@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import ScorePreviewRow from './ScorePreviewRow';
 import GapCardEvidence from './GapCardEvidence';
-import VendorChip from './VendorChip';
+import VendorMatrix from './VendorMatrix';
 
 const SEVERITY = {
   critical: { pill: 'bg-[#FAECE7] text-[#C2432A]', label: 'Critical' },
@@ -12,7 +12,7 @@ const SEVERITY = {
 export default function GapCard({ gap, trustScore, defaultOpen }) {
   const [open, setOpen] = useState(defaultOpen);
   const sev = SEVERITY[gap.severity] || SEVERITY.low;
-  const vendors = gap.vendor_intelligence?.vendors || [];
+  const hasVendorIntel = gap.vendor_intelligence?.vendors?.length > 0;
 
   return (
     <div className="border border-gray-100 rounded-lg overflow-hidden">
@@ -57,18 +57,8 @@ export default function GapCard({ gap, trustScore, defaultOpen }) {
 
           <GapCardEvidence evidence={gap.evidence} />
 
-          {vendors.length > 0 && (
-            <div className="mt-4">
-              <p className="text-xs text-gray-400 uppercase tracking-wide mb-2">Supported paths</p>
-              <div className="flex flex-wrap gap-2">
-                {vendors.map((v) => <VendorChip key={v.vendor_id} vendor={v} />)}
-              </div>
-              {gap.vendor_intelligence?.disclosure && (
-                <p className="text-[10px] text-gray-400 mt-2 leading-relaxed">
-                  {gap.vendor_intelligence.disclosure}
-                </p>
-              )}
-            </div>
+          {hasVendorIntel && (
+            <VendorMatrix vendorIntelligence={gap.vendor_intelligence} />
           )}
         </div>
       )}
