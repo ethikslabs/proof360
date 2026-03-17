@@ -7,6 +7,7 @@ import { inferencesHandler } from './handlers/inferences.js';
 import { followupQuestionsHandler } from './handlers/followup-questions.js';
 import { submitHandler } from './handlers/submit.js';
 import { statusHandler } from './handlers/status.js';
+import { reportHandler } from './handlers/report.js';
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
@@ -26,7 +27,7 @@ app.post('/api/v1/session/:id/submit', submitHandler);
 app.get('/api/v1/session/:id/status', statusHandler);
 
 // --- Phase 3: Report ---
-// app.get('/api/v1/session/:id/report', reportHandler);
+app.get('/api/v1/session/:id/report', reportHandler);
 
 // --- Phase 4: Remaining ---
 // app.get('/api/v1/session/:id/early-signal', earlySignalHandler);

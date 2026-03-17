@@ -44,10 +44,11 @@ export async function evaluateClaims(claims) {
         traceId: result.traceId,
       };
     } catch (err) {
-      // If Trust360 fails for a claim, mark as unconfirmed
+      // Trust360 unavailable — confirm gap as fallback (spec: brief-api.md)
       results[claim.metadata.gapId] = {
-        confirmed: false,
-        mos: 0,
+        confirmed: true,
+        mos: 8,
+        fallback: true,
         error: err.message,
       };
     }

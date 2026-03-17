@@ -27,10 +27,16 @@ export async function reportHandler(request, reply) {
   };
 
   // Enrich each gap with vendor_intelligence (brief-vendors.md shape)
-  const enrichedGaps = gaps.map((gap) => ({
-    ...gap,
-    vendor_intelligence: buildVendorIntelligence(gap, context) || undefined,
-  }));
+  // When layer2_locked, omit evidence and vendor_intelligence — those are the unlock incentive
+  const enrichedGaps = gaps.map((gap) => {
+    const enriched = { ...gap };
+    if (session.layer2_locked) {
+      delete enriched.evidence;
+    } else {
+      enriched.vendor_intelligence = buildVendorIntelligence(gap, context) || undefined;
+    }
+    return enriched;
+  });
 
   // Compute headline
   const criticalCount = gaps.filter((g) => g.severity === 'critical').length;
@@ -43,7 +49,7 @@ export async function reportHandler(request, reply) {
   const report = {
     session_id: id,
     company_name: session.company_name,
-    assessed_at: new Date(session.createdAt).toISOString(),
+    assessed_at: new Date(session.created_at).toISOString(),
     trust_score: session.trust_score,
     deal_readiness_label: readinessLabel(session.readiness),
     deal_readiness_score: session.trust_score,
