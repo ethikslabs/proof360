@@ -110,7 +110,7 @@ Response shape:
   company_name: string
   source_summary: string (e.g. Read from: acmecorp.com · homepage, pricing, about · 3 signals)
   inferences: array of { inference_id, label, confidence (confident|likely|probable), category }
-  corrections: array of { field, label, inferred_value }
+  correctable_fields: array of { key, label, inferred_value }
   followup_questions: array of { question_id, context, question, options[] }
 
 Render in this exact sequence:
@@ -125,8 +125,9 @@ Render in this exact sequence:
    - Pill colours: Confident = green (#EAF3DE / #2B5210), Likely = blue, Probable = amber
 5. Source attribution (fades in after all rows resolve)
 6. Corrections panel (500ms after source):
-   - One row per correction field: inferred value + Correct button
+   - One row per entry in correctable_fields: show label + inferred_value + Correct button
    - Correct opens inline field — do not navigate away
+   - On submit, pass corrections as { [key]: corrected_value } to POST /submit
 7. Follow-up questions (after corrections):
    - Label: Two things we couldn't figure out (or One thing if only one)
    - Each: context line + question + option tiles (single-select, always include Not sure)
@@ -186,9 +187,14 @@ Response shape:
   session_id, company_name, assessed_at, trust_score (int), deal_readiness_label, deal_readiness_score,
   headline { ready_count, blocking_count, summary_line },
   snapshot { deal_blockers, fundraising_risk, strengths },
-  gaps (array), strengths (array), next_steps (array), layer2_locked (boolean)
+  gaps (array), strengths (array of {category, label}), next_steps (array), layer2_locked (boolean)
 
-Gap object: gap_id, severity (critical|moderate|low), title, confidence (high|medium|low), why, risk, control, score_impact (int), time_estimate, evidence (array of {source, citation}), vendor_implementations (array of {vendor_name, notes})
+Gap object (layer2_locked = true): gap_id, severity (critical|moderate|low), title, confidence (high|medium|low), why, risk, control, score_impact (int), time_estimate
+Gap object (layer2_locked = false — after email capture): adds evidence (array of {source, citation}) and vendor_intelligence (object — see below)
+
+vendor_intelligence shape: category_name, quadrant_axes {x_left, x_right, y_top, y_bottom}, vendors (array of {vendor_id, display_name, initials, x, y, is_partner, is_pick, deal_label, best_for, summary, referral_url}), pick {vendor_id, stage_context, recommendation_headline, recommendation_body, meta {time_to_close, covers, best_for, what_wed_do_differently}, cta_label, deal_label, referral_url}, disclosure (string)
+
+Vendor chips in the gap card: render from vendor_intelligence.vendors. Highlight is_pick. Show disclosure below chips.
 
 Next step: step_number, title, score_trajectory, description
 
@@ -264,7 +270,7 @@ src/
 
 ## API base URL
 
-VITE_API_BASE_URL env var. Default: http://localhost:3000
+VITE_API_BASE_URL env var. Default: http://localhost:3001
 All calls through src/api/client.js. No inline fetch.
 
 ---
