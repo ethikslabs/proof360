@@ -1,5 +1,6 @@
 import { getSession, updateSession } from '../services/session-store.js';
 import { runGapAnalysis } from '../services/gap-mapper.js';
+import { normalizeContext } from '../services/context-normalizer.js';
 
 export async function submitHandler(request, reply) {
   const { id } = request.params;
@@ -11,6 +12,10 @@ export async function submitHandler(request, reply) {
 
   if (session.infer_status !== 'complete') {
     return reply.status(409).send({ error: 'Inferences not ready yet' });
+  }
+
+  if (session.analysis_status === 'processing') {
+    return reply.status(409).send({ error: 'Analysis already in progress', code: 'ALREADY_PROCESSING' });
   }
 
   const { corrections, followup_answers } = request.body || {};
@@ -31,7 +36,7 @@ export async function submitHandler(request, reply) {
 async function analyzeAsync(sessionId, session, corrections, followup_answers) {
   try {
     // Merge inferred signals + corrections + follow-up answers into a context object
-    const context = buildContext(session, corrections, followup_answers);
+    const context = normalizeContext(session, corrections, followup_answers);
 
     const result = await runGapAnalysis(context);
 
@@ -70,61 +75,3 @@ async function analyzeAsync(sessionId, session, corrections, followup_answers) {
   }
 }
 
-function buildContext(session, corrections, followup_answers) {
-  // Start with inferred values
-  const context = {};
-
-  // Map correctable fields to context — use correction if provided, else inferred
-  for (const field of session.correctable_fields || []) {
-    context[field.key] = corrections[field.key] || field.inferred_value;
-  }
-
-  // Map follow-up answers to context fields
-  const answerMap = {
-    q_identity: 'identity_model',
-    q_insurance: 'insurance_status',
-    q_questionnaire: 'questionnaire_experience',
-  };
-
-  for (const [qid, answer] of Object.entries(followup_answers)) {
-    const key = answerMap[qid];
-    if (key) {
-      context[key] = normalizeAnswer(key, answer);
-    }
-  }
-
-  // Derive compliance_status from inferences
-  const preSOC2 = (session.inferences || []).find(
-    (i) => i.inference_id === 'inf_compliance'
-  );
-  if (preSOC2 && !context.compliance_status) {
-    context.compliance_status = 'none';
-  }
-
-  return context;
-}
-
-function normalizeAnswer(key, answer) {
-  const normalizers = {
-    identity_model: {
-      'Passwords only': 'password_only',
-      'Passwords + MFA': 'mfa_only',
-      'SSO (Google, Okta, etc.)': 'sso',
-      'Not sure': 'unknown',
-    },
-    insurance_status: {
-      'Yes': 'active',
-      'No': 'none',
-      'In progress': 'planning',
-      'Not sure': 'unknown',
-    },
-    questionnaire_experience: {
-      'Yes, completed it': 'completed',
-      'Yes, it stalled a deal': 'stalled_deal',
-      'No': 'none',
-      'Not sure': 'unknown',
-    },
-  };
-
-  return normalizers[key]?.[answer] || answer;
-}

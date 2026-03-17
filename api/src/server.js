@@ -4,6 +4,9 @@ import { checkStaleSessions } from './services/session-store.js';
 import { sessionStartHandler } from './handlers/session-start.js';
 import { inferStatusHandler } from './handlers/infer-status.js';
 import { inferencesHandler } from './handlers/inferences.js';
+import { followupQuestionsHandler } from './handlers/followup-questions.js';
+import { submitHandler } from './handlers/submit.js';
+import { statusHandler } from './handlers/status.js';
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
@@ -17,10 +20,10 @@ app.post('/api/v1/session/start', sessionStartHandler);
 app.get('/api/v1/session/:id/infer-status', inferStatusHandler);
 app.get('/api/v1/session/:id/inferences', inferencesHandler);
 
-// --- Phase 2: Follow-up and submission (wired in Phase 2) ---
-// app.get('/api/v1/session/:id/followup-questions', followupQuestionsHandler);
-// app.post('/api/v1/session/:id/submit', submitHandler);
-// app.get('/api/v1/session/:id/status', statusHandler);
+// --- Phase 2: Follow-up and submission ---
+app.get('/api/v1/session/:id/followup-questions', followupQuestionsHandler);
+app.post('/api/v1/session/:id/submit', submitHandler);
+app.get('/api/v1/session/:id/status', statusHandler);
 
 // --- Phase 3: Report ---
 // app.get('/api/v1/session/:id/report', reportHandler);
