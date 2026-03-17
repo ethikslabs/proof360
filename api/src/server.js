@@ -11,7 +11,7 @@ import { reportHandler } from './handlers/report.js';
 import { captureEmailHandler } from './handlers/capture-email.js';
 import { earlySignalHandler } from './handlers/early-signal.js';
 
-const PORT = parseInt(process.env.PORT || '3001', 10);
+const PORT = parseInt(process.env.PORT || '3002', 10);
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
 
 const app = Fastify({ logger: { level: LOG_LEVEL } });
