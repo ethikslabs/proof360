@@ -86,6 +86,20 @@ export const GAP_DEFINITIONS = [
       evidence: `Identity model: ${ctx.identity_model}. Customer type: ${ctx.customer_type}.`,
     }),
   },
+  {
+    id: 'founder_trust',
+    severity: 'high',
+    label: 'Founder & leadership trust gap',
+    category: 'human',
+    // Always surfaces — every founder has an unassessed human factor.
+    // Severity is 'high' because investors and enterprise buyers consistently
+    // rate founder risk as a top concern. Not scrapeable — requires self-assessment.
+    triggerCondition: (ctx) => ctx.founder_profile_completed !== true,
+    claimTemplate: (ctx) => ({
+      question: 'Has the founding team completed a structured leadership trust assessment?',
+      evidence: `Founder profile completed: ${ctx.founder_profile_completed ?? false}. Stage: ${ctx.stage}. Customer type: ${ctx.customer_type}.`,
+    }),
+  },
 ];
 
 // Enterprise signals schema — collected on every session for dataset moat

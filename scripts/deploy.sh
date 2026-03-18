@@ -5,10 +5,34 @@ REPO_DIR="/home/ec2-user/proof360"
 API_DIR="$REPO_DIR/api"
 FRONTEND_DIR="$REPO_DIR/frontend"
 PM2_NAME="proof360-api"
+SSM_PREFIX="/proof360"
 
 echo "==> Pulling latest"
 cd $REPO_DIR
 git pull origin main
+
+echo "==> Loading secrets from SSM"
+get_ssm() {
+  aws ssm get-parameter \
+    --region ap-southeast-2 \
+    --name "$SSM_PREFIX/$1" \
+    --with-decryption \
+    --query "Parameter.Value" \
+    --output text 2>/dev/null || echo ""
+}
+
+FIRECRAWL_API_KEY=$(get_ssm "FIRECRAWL_API_KEY")
+ANTHROPIC_API_KEY=$(get_ssm "ANTHROPIC_API_KEY")
+PORT=$(get_ssm "PORT")
+PORT=${PORT:-3002}
+
+# Write .env for pm2 to pick up
+cat > "$API_DIR/.env" <<EOF
+PORT=$PORT
+FIRECRAWL_API_KEY=$FIRECRAWL_API_KEY
+ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY
+LOG_LEVEL=info
+EOF
 
 echo "==> Installing API dependencies"
 cd $API_DIR

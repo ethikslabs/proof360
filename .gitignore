@@ -1,0 +1,16 @@
+node_modules/
+.DS_Store
+
+# Local env files with real secrets — never commit
+api/.env
+frontend/.env.local
+
+# Frontend build output
+frontend/dist/
+
+# PM2 logs
+*.log
+
+# Lead data — never commit
+api/leads.ndjson
+*.ndjson
