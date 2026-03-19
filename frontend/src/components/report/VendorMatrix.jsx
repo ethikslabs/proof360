@@ -122,7 +122,12 @@ export default function VendorMatrix({ vendorIntelligence }) {
             >
               <span className={`w-2 h-2 rounded-full ${v.is_pick ? 'bg-gray-900' : 'bg-gray-300'}`} />
               <span className="text-gray-600">{v.display_name}</span>
-              {v.is_partner && <span className="text-gray-400">·</span>}
+              {v.distributor === 'ingram' && (
+                <span className="text-[8px] font-medium px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-500 border border-blue-100">Ingram</span>
+              )}
+              {v.distributor === 'dicker' && (
+                <span className="text-[8px] font-medium px-1.5 py-0.5 rounded-full bg-violet-50 text-violet-500 border border-violet-100">Dicker Data</span>
+              )}
             </button>
           ))}
         </div>
