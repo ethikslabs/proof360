@@ -70,12 +70,12 @@ function buildAuth0Url(challenge) {
   return `https://${AUTH0_DOMAIN}/authorize?${params}`;
 }
 
-const EXTRA_DOMAINS = {
-  'ethikslabs.com': 'ethikslabs',
-};
+const EXTRA_DOMAINS = { 'ethikslabs.com': 'ethikslabs' };
+const ADMIN_EMAILS  = new Set(['ethiks360.jp@gmail.com']);
 
 function tenantFromEmail(email) {
   if (!email) return null;
+  if (ADMIN_EMAILS.has(email.toLowerCase())) return 'ethikslabs';
   const domain = email.split('@')[1]?.toLowerCase();
   return EXTRA_DOMAINS[domain]
     || Object.entries(TENANTS).find(([, t]) => t.domain === domain)?.[0]
