@@ -4,8 +4,8 @@ import { TENANTS } from '../data/portal-leads';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 const MS_CLIENT_ID    = import.meta.env.VITE_MS_CLIENT_ID || '';
-const OKTA_DOMAIN     = import.meta.env.VITE_OKTA_DOMAIN || '';     // e.g. dev-123456.okta.com
-const OKTA_CLIENT_ID  = import.meta.env.VITE_OKTA_CLIENT_ID || '';
+const AUTH0_DOMAIN    = import.meta.env.VITE_AUTH0_DOMAIN || '';    // e.g. dev-xxxx.us.auth0.com
+const AUTH0_CLIENT_ID = import.meta.env.VITE_AUTH0_CLIENT_ID || 'aNaLCh7nqRtY4IQJ97feYYdbADBD2c0b';
 const REDIRECT_URI = typeof window !== 'undefined' ? `${window.location.origin}/portal/callback` : '';
 
 // PKCE helpers
@@ -20,13 +20,13 @@ async function generatePKCE() {
   return { verifier, challenge };
 }
 
-async function exchangeOktaCode(code, verifier) {
-  const res = await fetch(`https://${OKTA_DOMAIN}/oauth2/v1/token`, {
+async function exchangeAuth0Code(code, verifier) {
+  const res = await fetch(`https://${AUTH0_DOMAIN}/oauth/token`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
       grant_type: 'authorization_code',
-      client_id: OKTA_CLIENT_ID,
+      client_id: AUTH0_CLIENT_ID,
       redirect_uri: REDIRECT_URI,
       code,
       code_verifier: verifier,
@@ -57,17 +57,17 @@ function buildMicrosoftUrl() {
   return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params}`;
 }
 
-function buildOktaUrl(challenge) {
+function buildAuth0Url(challenge) {
   const params = new URLSearchParams({
-    client_id: OKTA_CLIENT_ID,
+    client_id: AUTH0_CLIENT_ID,
     redirect_uri: REDIRECT_URI,
     response_type: 'code',
     scope: 'openid email profile',
     code_challenge: challenge,
     code_challenge_method: 'S256',
-    state: 'okta',
+    state: 'auth0',
   });
-  return `https://${OKTA_DOMAIN}/oauth2/v1/authorize?${params}`;
+  return `https://${AUTH0_DOMAIN}/authorize?${params}`;
 }
 
 function tenantFromEmail(email) {
@@ -178,10 +178,10 @@ export default function Portal() {
     // Okta PKCE callback: ?code=xxx&state=okta
     const searchParams = new URLSearchParams(window.location.search);
     const code = searchParams.get('code');
-    if (code && searchParams.get('state') === 'okta') {
-      const verifier = sessionStorage.getItem('okta_pkce_verifier');
-      sessionStorage.removeItem('okta_pkce_verifier');
-      if (verifier) handleOktaCallback(code, verifier);
+    if (code && searchParams.get('state') === 'auth0') {
+      const verifier = sessionStorage.getItem('auth0_pkce_verifier');
+      sessionStorage.removeItem('auth0_pkce_verifier');
+      if (verifier) handleAuth0Callback(code, verifier);
       return;
     }
 
@@ -221,18 +221,18 @@ export default function Portal() {
     }
   }
 
-  async function loginWithOkta() {
-    if (!OKTA_DOMAIN || !OKTA_CLIENT_ID) { setShowDemo(true); return; }
+  async function loginWithAuth0() {
+    if (!AUTH0_DOMAIN) { setShowDemo(true); return; }
     const { verifier, challenge } = await generatePKCE();
-    sessionStorage.setItem('okta_pkce_verifier', verifier);
-    window.location.href = buildOktaUrl(challenge);
+    sessionStorage.setItem('auth0_pkce_verifier', verifier);
+    window.location.href = buildAuth0Url(challenge);
   }
 
-  async function handleOktaCallback(code, verifier) {
+  async function handleAuth0Callback(code, verifier) {
     try {
-      const tokens = await exchangeOktaCode(code, verifier);
+      const tokens = await exchangeAuth0Code(code, verifier);
       if (tokens.error) throw new Error(tokens.error_description);
-      const res = await fetch(`https://${OKTA_DOMAIN}/oauth2/v1/userinfo`, {
+      const res = await fetch(`https://${AUTH0_DOMAIN}/userinfo`, {
         headers: { Authorization: `Bearer ${tokens.access_token}` },
       });
       const data = await res.json();
@@ -248,7 +248,7 @@ export default function Portal() {
       }));
       navigate('/portal/dashboard');
     } catch (e) {
-      console.error('Okta auth error', e);
+      console.error('Auth0 error', e);
       setShowDemo(true);
     }
   }
@@ -318,17 +318,17 @@ export default function Portal() {
           Sign in with Microsoft
         </button>
 
-        {/* Okta */}
+        {/* Auth0 */}
         <button
           className="auth-btn"
-          style={s.authBtn('okta')}
-          onClick={loginWithOkta}
+          style={s.authBtn('auth0')}
+          onClick={loginWithAuth0}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="12" r="11" stroke="#00297a" strokeWidth="1.5" fill="#00297a"/>
             <circle cx="12" cy="12" r="4.5" fill="white"/>
           </svg>
-          Sign in with Okta
+          Sign in with Auth0
         </button>
 
         <div style={s.divider} />
