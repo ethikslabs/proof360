@@ -28,6 +28,7 @@ export function buildVendorIntelligence(gap, context) {
       y: pos.y,
       is_partner: v.is_partner,
       is_pick: v.id === pick.vendor_id,
+      distributor: v.distributor,
       deal_label: v.deal_label,
       best_for: v.best_for,
       summary: v.summary,
@@ -54,12 +55,22 @@ export function buildVendorIntelligence(gap, context) {
 
 function gapToCategory(gapId) {
   const map = {
-    soc2: { name: 'GRC & compliance automation' },
-    incident_response: { name: 'GRC & compliance automation' },
-    mfa: { name: 'Identity & IAM' },
-    sso: { name: 'Identity & IAM' },
-    cyber_insurance: null, // No quadrant for insurance
-    edr: null, // Would need an infrastructure security category
+    soc2:               { name: 'GRC & compliance automation' },
+    incident_response:  { name: 'GRC & compliance automation' },
+    compliance:         { name: 'GRC & compliance automation' },
+    mfa:                { name: 'Identity & IAM' },
+    sso:                { name: 'Identity & IAM' },
+    identity:           { name: 'Identity & IAM' },
+    edr:                { name: 'Endpoint protection' },
+    endpoint_protection:{ name: 'Endpoint protection' },
+    network_perimeter:  { name: 'Network security' },
+    firewall:           { name: 'Network security' },
+    zero_trust:         { name: 'Network security' },
+    waf:                { name: 'Network security' },
+    backup:             { name: 'Data resilience' },
+    recovery:           { name: 'Data resilience' },
+    data_resilience:    { name: 'Data resilience' },
+    cyber_insurance:    null,
     vendor_questionnaire: null,
   };
   return map[gapId] || null;
