@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TENANTS, PORTAL_LEADS, filterLeadsForTenant, getMatchedVendors, timeAgo } from '../data/portal-leads';
 
@@ -49,7 +49,7 @@ function StatusBadge({ status }) {
   );
 }
 
-function LeadCard({ lead, tenant, engagement, onEngage }) {
+function LeadCard({ lead, tenant, engagement, onEngage, onClick }) {
   const [expanded, setExpanded] = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const matchedVendors = getMatchedVendors(lead, tenant);
@@ -66,7 +66,7 @@ function LeadCard({ lead, tenant, engagement, onEngage }) {
       {/* Main row */}
       <div
         style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', cursor: 'pointer' }}
-        onClick={() => setExpanded(!expanded)}
+        onClick={() => onClick ? onClick(lead.id) : setExpanded(!expanded)}
       >
         <ScoreRing score={lead.trust_score} />
 
@@ -318,7 +318,7 @@ export default function PortalDashboard() {
         <nav style={{ flex: 1 }}>
           {[
             { id: 'all',    label: 'All Leads',   count: counts.all },
-            { id: 'new',    label: 'New',          count: counts.new },
+            { id: 'new',    label: 'New',          count: counts.new, pulse: counts.new > 0 },
             { id: 'active', label: 'In Pipeline',  count: counts.active },
             { id: 'won',    label: 'Won',           count: counts.won },
           ].map(item => (
@@ -329,6 +329,7 @@ export default function PortalDashboard() {
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 width: '100%', padding: '9px 12px', borderRadius: 8, border: 'none',
+                borderLeft: filter === item.id ? '2px solid #00d9b8' : '2px solid transparent',
                 background: filter === item.id ? 'rgba(255,255,255,0.07)' : 'transparent',
                 color: filter === item.id ? '#f1f5f9' : 'rgba(255,255,255,0.4)',
                 fontSize: 13, cursor: 'pointer', marginBottom: 2, textAlign: 'left',
@@ -336,7 +337,15 @@ export default function PortalDashboard() {
                 transition: 'all 0.15s',
               }}
             >
-              {item.label}
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {item.label}
+                {item.pulse && (
+                  <span style={{
+                    width: 5, height: 5, borderRadius: '50%', background: '#00d9b8',
+                    animation: 'pulseDot 2s infinite', flexShrink: 0,
+                  }}/>
+                )}
+              </span>
               {item.count > 0 && (
                 <span style={{
                   fontSize: 10, background: filter === item.id ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)',
@@ -417,8 +426,23 @@ export default function PortalDashboard() {
         {/* Lead feed */}
         <div>
           {filtered.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px 0', color: 'rgba(255,255,255,0.2)', fontSize: 13 }}>
-              No leads in this view
+            <div style={{ textAlign: 'center', padding: '72px 32px' }}>
+              <div style={{ fontSize: 28, marginBottom: 12, opacity: 0.3 }}>
+                {filter === 'won' ? '🏆' : filter === 'active' ? '📋' : '📭'}
+              </div>
+              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', marginBottom: 8, fontWeight: 500 }}>
+                {filter === 'new' ? 'No new leads right now'
+                  : filter === 'active' ? 'Nothing in pipeline yet'
+                  : filter === 'won' ? 'No won deals yet'
+                  : allLeads.length === 0
+                    ? 'No leads match your catalog'
+                    : 'No leads in this view'}
+              </p>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', lineHeight: 1.6, maxWidth: 320, margin: '0 auto' }}>
+                {filter === 'new' || allLeads.length === 0
+                  ? 'Leads appear here as founders complete audits and their gaps match your product catalog.'
+                  : 'Engage leads from the All Leads view to move them into your pipeline.'}
+              </p>
             </div>
           ) : (
             filtered.map(lead => (
@@ -428,6 +452,7 @@ export default function PortalDashboard() {
                 tenant={tenant}
                 engagement={engagements[lead.id]}
                 onEngage={engage}
+                onClick={(id) => navigate(`/portal/leads/${id}`)}
               />
             ))
           )}

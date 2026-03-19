@@ -174,8 +174,7 @@ const s = {
 export default function Portal() {
   const navigate = useNavigate();
   const [showDemo, setShowDemo] = useState(false);
-  const [hoveredDemo, setHoveredDemo] = useState(null);
-  const [hoveredAuth, setHoveredAuth] = useState(null);
+  const [redirecting, setRedirecting] = useState(null);
 
   useEffect(() => {
     const stored = localStorage.getItem('portal_auth');
@@ -272,7 +271,8 @@ export default function Portal() {
     <div style={s.page}>
       <style>{`
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-        .auth-btn:hover { background: rgba(255,255,255,0.07) !important; border-color: rgba(255,255,255,0.2) !important; transform: translateY(-1px); }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .auth-btn:not(:disabled):hover { background: rgba(255,255,255,0.07) !important; border-color: rgba(255,255,255,0.2) !important; transform: translateY(-1px); }
         .demo-card:hover { transform: translateY(-2px); filter: brightness(1.15); }
       `}</style>
       <div style={s.grid} />
@@ -297,44 +297,59 @@ export default function Portal() {
         {/* Google */}
         <button
           className="auth-btn"
-          style={s.authBtn('google')}
-          onClick={() => GOOGLE_CLIENT_ID ? window.location.href = buildGoogleUrl() : setShowDemo(true)}
+          style={{ ...s.authBtn('google'), opacity: redirecting && redirecting !== 'google' ? 0.4 : 1 }}
+          disabled={!!redirecting}
+          onClick={() => { setRedirecting('google'); GOOGLE_CLIENT_ID ? window.location.href = buildGoogleUrl() : setShowDemo(true); }}
         >
-          <svg width="18" height="18" viewBox="0 0 18 18">
-            <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
-            <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
-            <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
-            <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
-          </svg>
-          Sign in with Google
+          {redirecting === 'google' ? (
+            <span style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.2)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }}/>
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 18 18">
+              <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
+              <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
+              <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
+              <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
+            </svg>
+          )}
+          {redirecting === 'google' ? 'Redirecting…' : 'Sign in with Google'}
         </button>
 
         {/* Microsoft */}
         <button
           className="auth-btn"
-          style={s.authBtn('microsoft')}
-          onClick={() => MS_CLIENT_ID ? window.location.href = buildMicrosoftUrl() : setShowDemo(true)}
+          style={{ ...s.authBtn('microsoft'), opacity: redirecting && redirecting !== 'microsoft' ? 0.4 : 1 }}
+          disabled={!!redirecting}
+          onClick={() => { setRedirecting('microsoft'); MS_CLIENT_ID ? window.location.href = buildMicrosoftUrl() : setShowDemo(true); }}
         >
-          <svg width="18" height="18" viewBox="0 0 21 21">
-            <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
-            <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
-            <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
-            <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
-          </svg>
-          Sign in with Microsoft
+          {redirecting === 'microsoft' ? (
+            <span style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.2)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }}/>
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 21 21">
+              <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
+              <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
+              <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
+              <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
+            </svg>
+          )}
+          {redirecting === 'microsoft' ? 'Redirecting…' : 'Sign in with Microsoft'}
         </button>
 
         {/* Auth0 */}
         <button
           className="auth-btn"
-          style={s.authBtn('auth0')}
-          onClick={loginWithAuth0}
+          style={{ ...s.authBtn('auth0'), opacity: redirecting && redirecting !== 'auth0' ? 0.4 : 1 }}
+          disabled={!!redirecting}
+          onClick={() => { setRedirecting('auth0'); loginWithAuth0(); }}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="11" stroke="#00297a" strokeWidth="1.5" fill="#00297a"/>
-            <circle cx="12" cy="12" r="4.5" fill="white"/>
-          </svg>
-          Sign in with Auth0
+          {redirecting === 'auth0' ? (
+            <span style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.2)', borderTopColor: '#00d9b8', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }}/>
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="11" fill="#00297a"/>
+              <circle cx="12" cy="12" r="4.5" fill="white"/>
+            </svg>
+          )}
+          {redirecting === 'auth0' ? 'Redirecting…' : 'Sign in with Auth0'}
         </button>
 
         <div style={s.divider} />

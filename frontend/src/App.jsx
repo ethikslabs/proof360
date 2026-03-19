@@ -7,6 +7,7 @@ import Processing from './pages/Processing';
 import Report from './pages/Report';
 import Portal from './pages/Portal';
 import PortalDashboard from './pages/PortalDashboard';
+import PortalLeadDetail from './pages/PortalLeadDetail';
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/portal" element={<Portal />} />
         <Route path="/portal/callback" element={<Portal />} />
         <Route path="/portal/dashboard" element={<PortalDashboard />} />
+        <Route path="/portal/leads/:leadId" element={<PortalLeadDetail />} />
       </Routes>
     </BrowserRouter>
   );
