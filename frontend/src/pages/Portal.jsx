@@ -3,8 +3,37 @@ import { useNavigate } from 'react-router-dom';
 import { TENANTS } from '../data/portal-leads';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
-const MS_CLIENT_ID = import.meta.env.VITE_MS_CLIENT_ID || '';
+const MS_CLIENT_ID    = import.meta.env.VITE_MS_CLIENT_ID || '';
+const OKTA_DOMAIN     = import.meta.env.VITE_OKTA_DOMAIN || '';     // e.g. dev-123456.okta.com
+const OKTA_CLIENT_ID  = import.meta.env.VITE_OKTA_CLIENT_ID || '';
 const REDIRECT_URI = typeof window !== 'undefined' ? `${window.location.origin}/portal/callback` : '';
+
+// PKCE helpers
+async function generatePKCE() {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  const verifier = btoa(String.fromCharCode(...array))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
+  const challenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+  return { verifier, challenge };
+}
+
+async function exchangeOktaCode(code, verifier) {
+  const res = await fetch(`https://${OKTA_DOMAIN}/oauth2/v1/token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'authorization_code',
+      client_id: OKTA_CLIENT_ID,
+      redirect_uri: REDIRECT_URI,
+      code,
+      code_verifier: verifier,
+    }),
+  });
+  return res.json();
+}
 
 function buildGoogleUrl() {
   const params = new URLSearchParams({
@@ -26,6 +55,19 @@ function buildMicrosoftUrl() {
     state: 'microsoft',
   });
   return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params}`;
+}
+
+function buildOktaUrl(challenge) {
+  const params = new URLSearchParams({
+    client_id: OKTA_CLIENT_ID,
+    redirect_uri: REDIRECT_URI,
+    response_type: 'code',
+    scope: 'openid email profile',
+    code_challenge: challenge,
+    code_challenge_method: 'S256',
+    state: 'okta',
+  });
+  return `https://${OKTA_DOMAIN}/oauth2/v1/authorize?${params}`;
 }
 
 function tenantFromEmail(email) {
@@ -133,13 +175,21 @@ export default function Portal() {
     const stored = localStorage.getItem('portal_auth');
     if (stored) { navigate('/portal/dashboard'); return; }
 
-    // Handle OAuth callback via hash
+    // Okta PKCE callback: ?code=xxx&state=okta
+    const searchParams = new URLSearchParams(window.location.search);
+    const code = searchParams.get('code');
+    if (code && searchParams.get('state') === 'okta') {
+      const verifier = sessionStorage.getItem('okta_pkce_verifier');
+      sessionStorage.removeItem('okta_pkce_verifier');
+      if (verifier) handleOktaCallback(code, verifier);
+      return;
+    }
+
+    // Google / Microsoft implicit callback: #access_token=xxx
     const hash = window.location.hash;
     if (hash.includes('access_token')) {
       const params = new URLSearchParams(hash.replace('#', ''));
-      const token = params.get('access_token');
-      const state = params.get('state');
-      fetchUserFromToken(token, state);
+      fetchUserFromToken(params.get('access_token'), params.get('state'));
     }
   }, []);
 
@@ -167,6 +217,38 @@ export default function Portal() {
       localStorage.setItem('portal_auth', JSON.stringify({ user: { name, email, avatar }, tenant: tenantKey }));
       navigate('/portal/dashboard');
     } catch {
+      setShowDemo(true);
+    }
+  }
+
+  async function loginWithOkta() {
+    if (!OKTA_DOMAIN || !OKTA_CLIENT_ID) { setShowDemo(true); return; }
+    const { verifier, challenge } = await generatePKCE();
+    sessionStorage.setItem('okta_pkce_verifier', verifier);
+    window.location.href = buildOktaUrl(challenge);
+  }
+
+  async function handleOktaCallback(code, verifier) {
+    try {
+      const tokens = await exchangeOktaCode(code, verifier);
+      if (tokens.error) throw new Error(tokens.error_description);
+      const res = await fetch(`https://${OKTA_DOMAIN}/oauth2/v1/userinfo`, {
+        headers: { Authorization: `Bearer ${tokens.access_token}` },
+      });
+      const data = await res.json();
+      const email = data.email;
+      const tenantKey = tenantFromEmail(email);
+      if (!tenantKey) {
+        alert(`No partner account registered for ${email}. Contact your Proof360 partner manager.`);
+        return;
+      }
+      localStorage.setItem('portal_auth', JSON.stringify({
+        user: { name: data.name, email, avatar: null },
+        tenant: tenantKey,
+      }));
+      navigate('/portal/dashboard');
+    } catch (e) {
+      console.error('Okta auth error', e);
       setShowDemo(true);
     }
   }
@@ -234,6 +316,19 @@ export default function Portal() {
             <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
           </svg>
           Sign in with Microsoft
+        </button>
+
+        {/* Okta */}
+        <button
+          className="auth-btn"
+          style={s.authBtn('okta')}
+          onClick={loginWithOkta}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="11" stroke="#00297a" strokeWidth="1.5" fill="#00297a"/>
+            <circle cx="12" cy="12" r="4.5" fill="white"/>
+          </svg>
+          Sign in with Okta
         </button>
 
         <div style={s.divider} />
