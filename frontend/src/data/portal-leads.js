@@ -1,4 +1,14 @@
 export const TENANTS = {
+  ethikslabs: {
+    name: 'EthiksLabs',
+    short: 'EL',
+    domain: 'ethiks360.com',
+    color: '#00d9b8',
+    bg: 'rgba(0,217,184,0.1)',
+    role: 'distributor',
+    tagline: 'Platform Admin · All leads',
+    vendors: Object.keys({}).concat(['crowdstrike','trellix','trendmicro','sophos','vanta','drata','secureframe','trustwave','okta','cisco_duo','microsoft','rsa','palo_alto','fortinet','cloudflare','sonicwall','veeam','cohesity','veritas','netapp','proofpoint','opentext','keeper','jamf','nutanix']),
+  },
   ingram: {
     name: 'Ingram Micro',
     short: 'IM',

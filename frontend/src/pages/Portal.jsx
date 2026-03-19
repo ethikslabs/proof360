@@ -70,10 +70,16 @@ function buildAuth0Url(challenge) {
   return `https://${AUTH0_DOMAIN}/authorize?${params}`;
 }
 
+const EXTRA_DOMAINS = {
+  'ethikslabs.com': 'ethikslabs',
+};
+
 function tenantFromEmail(email) {
   if (!email) return null;
   const domain = email.split('@')[1]?.toLowerCase();
-  return Object.entries(TENANTS).find(([, t]) => t.domain === domain)?.[0] || null;
+  return EXTRA_DOMAINS[domain]
+    || Object.entries(TENANTS).find(([, t]) => t.domain === domain)?.[0]
+    || null;
 }
 
 const DEMO_TENANTS = ['ingram', 'dicker', 'crowdstrike', 'palo_alto', 'cloudflare'];
