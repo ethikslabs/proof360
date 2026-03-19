@@ -5,6 +5,8 @@ import AuditReading from './pages/AuditReading';
 import AuditColdRead from './pages/AuditColdRead';
 import Processing from './pages/Processing';
 import Report from './pages/Report';
+import Portal from './pages/Portal';
+import PortalDashboard from './pages/PortalDashboard';
 
 export default function App() {
   return (
@@ -16,6 +18,9 @@ export default function App() {
         <Route path="/audit/cold-read" element={<AuditColdRead />} />
         <Route path="/processing" element={<Processing />} />
         <Route path="/report/:sessionId" element={<Report />} />
+        <Route path="/portal" element={<Portal />} />
+        <Route path="/portal/callback" element={<Portal />} />
+        <Route path="/portal/dashboard" element={<PortalDashboard />} />
       </Routes>
     </BrowserRouter>
   );

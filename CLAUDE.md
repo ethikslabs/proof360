@@ -24,7 +24,29 @@ cd frontend && npm run build
 cd frontend && npm run lint
 ```
 
+**API (production preview)**
+```bash
+cd api && node --env-file=.env src/server.js
+```
+
+**Frontend (preview built output)**
+```bash
+cd frontend && npm run preview
+```
+
 **No test suite** — manual testing via API endpoints and frontend pages. Demo mode: visit `/report/demo` (uses `frontend/src/data/demo-report.js` without API).
+
+## Local environment
+
+`api/.env` is not committed. Required vars:
+```
+ANTHROPIC_API_KEY=...      # Claude Haiku for signal extraction
+FIRECRAWL_API_KEY=...      # Web scraping
+TRUST360_URL=...           # Defaults to http://localhost:3000 if omitted
+PORT=3002                  # Optional (default: 3002)
+```
+
+Frontend reads `VITE_API_BASE_URL` at build time (empty string in production = same-origin). In dev, Vite proxies `/api` via `vite.config.js`.
 
 ## Architecture
 
@@ -57,8 +79,13 @@ GET  /api/session/early-signal   (estimated score pre-report)
 | `api/src/services/signal-extractor.js` | Firecrawl → Claude → raw signals (product_type, data_sensitivity, compliance_status, etc.) |
 | `api/src/services/inference-builder.js` | Raw signals → cold read object (inferences[], correctable_fields[], followup_questions[]) |
 | `api/src/services/gap-mapper.js` | Gap trigger evaluation → Trust360 calls (parallel) → trust_score → signals_object |
-| `api/src/config/gaps.js` | Gap definitions: id, severity, triggerCondition fn, claimTemplate fn |
-| `api/src/config/vendors.js` | Vendor catalog (partners and non-partners, category-keyed) |
+| `api/src/services/context-normalizer.js` | Merges founder corrections + followup_answers → NormalizedContext for gap evaluation |
+| `api/src/services/trust-client.js` | POST /trust adapter for Trust360 (parallel, 20s timeout); fallback confirms all triggered gaps if unavailable |
+| `api/src/services/vendor-selector.js` | Matches vendors to confirmed gaps via closes_gaps[]; assigns priority (start_here / recommended / optional) |
+| `api/src/services/vendor-intelligence-builder.js` | Builds per-gap quadrant matrix, picks best vendor by context, adds partner disclosure |
+| `api/src/config/gaps.js` | Gap definitions: id, severity, triggerCondition fn, claimTemplate fn. Severity weights: critical=20, high=10, medium=5, low=2 |
+| `api/src/config/vendors.js` | Vendor catalog (partners and non-partners, category-keyed) with quadrant x/y positions |
+| `api/src/config/frameworks.js` | Compliance framework mapping per customer type (SOC 2, ISO 27001, APRA CPS 234, etc.) |
 | `frontend/src/App.jsx` | React Router: 6 routes (/, /audit, /audit/reading, /audit/cold-read, /processing, /report/:sessionId) |
 | `frontend/src/api/client.js` | All API calls funnel through this single wrapper |
 | `frontend/src/data/demo-report.js` | Hardcoded demo report — used for /report/demo without API |
@@ -75,6 +102,15 @@ GET  /api/session/early-signal   (estimated score pre-report)
 ### No database
 
 Sessions live in-memory only. There is no persistence between restarts. The `signals_object` written at analysis completion is the dataset moat — it accumulates per-session structured data about real companies.
+
+Lead capture writes to `api/leads.ndjson` (appended per email submission). Non-fatal: file write failures are swallowed.
+
+### Async pipeline patterns
+
+- **Fire-and-forget:** `session-start` handler kicks off extraction without awaiting — returns `session_id` immediately
+- **Polling:** Frontend polls `infer-status` then `status` until complete
+- **Parallel execution:** Firecrawl scrapes 5 pages via `Promise.allSettled`; Trust360 claims via `Promise.all`
+- **Stale timeout:** 90s per pipeline stage, checked on a 30s interval; 24h session TTL
 
 ## Deployment
 
