@@ -1,6 +1,7 @@
 import { getSession, updateSession } from '../services/session-store.js';
 import { runGapAnalysis } from '../services/gap-mapper.js';
 import { normalizeContext } from '../services/context-normalizer.js';
+import { emitPulse } from '../services/pulse-emitter.js';
 
 export async function submitHandler(request, reply) {
   const { id } = request.params;
@@ -29,6 +30,13 @@ export async function submitHandler(request, reply) {
 
   // Kick off gap analysis async
   analyzeAsync(id, session, corrections || {}, followup_answers || {});
+
+  emitPulse({
+    type: 'event',
+    severity: 'info',
+    tags: ['assessment', 'submitted'],
+    payload: { action: 'assessment_submitted', session_id: id },
+  });
 
   return reply.send({ status: 'processing' });
 }

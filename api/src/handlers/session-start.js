@@ -1,6 +1,7 @@
 import { createSession, updateSession } from '../services/session-store.js';
 import { extractSignals } from '../services/signal-extractor.js';
 import { buildInferences } from '../services/inference-builder.js';
+import { emitPulse } from '../services/pulse-emitter.js';
 
 export async function sessionStartHandler(request, reply) {
   const { website_url, deck_file } = request.body || {};
@@ -13,6 +14,13 @@ export async function sessionStartHandler(request, reply) {
   }
 
   const session = createSession({ website_url, deck_file });
+
+  emitPulse({
+    type: 'event',
+    severity: 'info',
+    tags: ['assessment', 'started'],
+    payload: { action: 'assessment_started', session_id: session.id, website_url: session.website_url },
+  });
 
   // Fire async signal extraction pipeline — don't block the response
   extractAndInfer(session.id, { website_url, deck_file });

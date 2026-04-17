@@ -65,7 +65,7 @@ export default function PortalLeadDetail() {
 
   function engage() {
     const updated = { ...JSON.parse(localStorage.getItem('portal_engagements') || '{}') };
-    updated[leadId] = { status: 'engaged', engaged_at: new Date().toISOString() };
+    updated[leadId] = { status: 'engaged', engaged_at: new Date().toISOString(), tenant: auth.tenant };
     localStorage.setItem('portal_engagements', JSON.stringify(updated));
     setEngagement(updated[leadId]);
     setShowEngage(false);

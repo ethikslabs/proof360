@@ -48,6 +48,19 @@ PORT=3002                  # Optional (default: 3002)
 
 Frontend reads `VITE_API_BASE_URL` at build time (empty string in production = same-origin). In dev, Vite proxies `/api` via `vite.config.js`.
 
+Optional frontend env vars for auth (defaults are hardcoded dev credentials):
+```
+VITE_AUTH0_DOMAIN=...       # Auth0 tenant domain
+VITE_AUTH0_CLIENT_ID=...    # Auth0 app client ID
+VITE_GOOGLE_CLIENT_ID=...   # Google OAuth (omit → falls back to demo mode)
+VITE_MS_CLIENT_ID=...       # Microsoft OAuth (omit → falls back to demo mode)
+```
+
+Optional API env var for dashboard pulse emission:
+```
+DASHBOARD_API_URL=http://localhost:3001   # If omitted, pulse-emitter silently no-ops
+```
+
 ## Architecture
 
 Proof360 is a trust readiness diagnostic for founders. A user submits a company URL, the system cold-reads their trust posture, asks follow-up questions, then delivers a scored gap report with vendor recommendations.
@@ -86,9 +99,34 @@ GET  /api/session/early-signal   (estimated score pre-report)
 | `api/src/config/gaps.js` | Gap definitions: id, severity, triggerCondition fn, claimTemplate fn. Severity weights: critical=20, high=10, medium=5, low=2 |
 | `api/src/config/vendors.js` | Vendor catalog (partners and non-partners, category-keyed) with quadrant x/y positions |
 | `api/src/config/frameworks.js` | Compliance framework mapping per customer type (SOC 2, ISO 27001, APRA CPS 234, etc.) |
-| `frontend/src/App.jsx` | React Router: 6 routes (/, /audit, /audit/reading, /audit/cold-read, /processing, /report/:sessionId) |
+| `api/src/services/pulse-emitter.js` | Fire-and-forget pulse emission to dashboard API on pipeline events; no-ops if `DASHBOARD_API_URL` unset |
+| `frontend/src/App.jsx` | React Router: 10 routes — audit flow, report, partner portal, founder account |
 | `frontend/src/api/client.js` | All API calls funnel through this single wrapper |
 | `frontend/src/data/demo-report.js` | Hardcoded demo report — used for /report/demo without API |
+| `frontend/src/data/portal-leads.js` | Static data: `TENANTS` (partner orgs + their vendor catalogs) and `PORTAL_LEADS` (sample leads); source of truth for portal demo |
+| `frontend/src/pages/Portal.jsx` | Partner portal login — Google/Microsoft OAuth (implicit) + Auth0 PKCE; handles `/portal/callback` for both portal and founder intents |
+| `frontend/src/pages/PortalDashboard.jsx` | Lead list filtered to tenant's vendor catalog; lead status managed in localStorage |
+| `frontend/src/pages/PortalLeadDetail.jsx` | Single lead detail, gap breakdown, engage flow — writes to `portal_engagements` in localStorage |
+| `frontend/src/pages/FounderAuth.jsx` | Founder login — Auth0 PKCE only; sets `auth0_intent=founder` in sessionStorage before redirect |
+| `frontend/src/pages/FounderDashboard.jsx` | Founder account — saved reports from localStorage + partner activity cross-referenced against `portal_engagements` |
+
+### Auth architecture (client-side only — no backend auth endpoints)
+
+Two independent auth flows, both storing state in localStorage:
+
+**Partner portal** (`portal_auth` key):
+- Google OAuth (implicit flow) or Microsoft OAuth (implicit flow) → `/portal/callback` (hash fragment)
+- Auth0 PKCE → `/portal/callback` (query param `?code=&state=auth0`)
+- Tenant resolved by email domain against `TENANTS` in `portal-leads.js`; admin emails hardcoded in `Portal.jsx`
+- On success: `portal_auth = { user, tenant }` → redirect to `/portal/dashboard`
+
+**Founder account** (`founder_auth` key):
+- Auth0 PKCE only; sets `sessionStorage.auth0_intent = 'founder'` before redirecting
+- Callback handled by `Portal.jsx` (`/portal/callback`) — intent key differentiates the two flows
+- On success: `founder_auth = { user }` → redirect to `/account`
+- Any `sessionStorage.pending_founder_report` is merged into `founder_reports` on successful login
+
+**Demo mode**: both flows expose bypass buttons that write mock auth state directly to localStorage.
 
 ### Trust score
 

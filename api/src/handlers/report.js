@@ -1,5 +1,6 @@
 import { getSession } from '../services/session-store.js';
 import { buildVendorIntelligence } from '../services/vendor-intelligence-builder.js';
+import { emitPulse } from '../services/pulse-emitter.js';
 
 export async function reportHandler(request, reply) {
   const { id } = request.params;
@@ -68,6 +69,19 @@ export async function reportHandler(request, reply) {
     next_steps: nextSteps,
     layer2_locked: session.layer2_locked,
   };
+
+  emitPulse({
+    type: 'event',
+    severity: 'info',
+    tags: ['trust_score', 'report'],
+    payload: {
+      action: 'report_generated',
+      session_id: id,
+      trust_score: session.trust_score,
+      gap_count: session.gaps?.length || 0,
+      deal_readiness: session.readiness,
+    },
+  });
 
   return reply.send(report);
 }

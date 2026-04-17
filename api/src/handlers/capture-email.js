@@ -1,5 +1,6 @@
 import { getSession, updateSession } from '../services/session-store.js';
 import { appendFileSync } from 'fs';
+import { emitPulse } from '../services/pulse-emitter.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -20,6 +21,13 @@ export async function captureEmailHandler(request, reply) {
     email,
     layer2_locked: false,
     signals: session.signals ? { ...session.signals, email_captured: true } : null,
+  });
+
+  emitPulse({
+    type: 'event',
+    severity: 'info',
+    tags: ['lead', 'email'],
+    payload: { action: 'lead_captured', session_id: id },
   });
 
   // Log lead to file (MVP — no email sending)

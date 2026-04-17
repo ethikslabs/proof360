@@ -177,10 +177,7 @@ export default function Portal() {
   const [redirecting, setRedirecting] = useState(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem('portal_auth');
-    if (stored) { navigate('/portal/dashboard'); return; }
-
-    // Okta PKCE callback: ?code=xxx&state=okta
+    // Handle callbacks first — before checking existing auth
     const searchParams = new URLSearchParams(window.location.search);
     const code = searchParams.get('code');
     if (code && searchParams.get('state') === 'auth0') {
@@ -190,12 +187,15 @@ export default function Portal() {
       return;
     }
 
-    // Google / Microsoft implicit callback: #access_token=xxx
     const hash = window.location.hash;
     if (hash.includes('access_token')) {
       const params = new URLSearchParams(hash.replace('#', ''));
       fetchUserFromToken(params.get('access_token'), params.get('state'));
+      return;
     }
+
+    const stored = localStorage.getItem('portal_auth');
+    if (stored) { navigate('/portal/dashboard'); return; }
   }, []);
 
   async function fetchUserFromToken(token, provider) {
@@ -226,8 +226,9 @@ export default function Portal() {
     }
   }
 
-  async function loginWithAuth0() {
+  async function loginWithAuth0(intent = 'portal') {
     if (!AUTH0_DOMAIN) { setShowDemo(true); return; }
+    sessionStorage.setItem('auth0_intent', intent);
     const { verifier, challenge } = await generatePKCE();
     sessionStorage.setItem('auth0_pkce_verifier', verifier);
     window.location.href = buildAuth0Url(challenge);
@@ -242,6 +243,28 @@ export default function Portal() {
       });
       const data = await res.json();
       const email = data.email;
+
+      const intent = sessionStorage.getItem('auth0_intent') || 'portal';
+      sessionStorage.removeItem('auth0_intent');
+
+      if (intent === 'founder') {
+        localStorage.setItem('founder_auth', JSON.stringify({
+          user: { name: data.name, email, avatar: null },
+        }));
+        // Persist any pending report saved before login
+        const pending = sessionStorage.getItem('pending_founder_report');
+        if (pending) {
+          sessionStorage.removeItem('pending_founder_report');
+          const existing = JSON.parse(localStorage.getItem('founder_reports') || '[]');
+          const parsed = JSON.parse(pending);
+          localStorage.setItem('founder_reports', JSON.stringify(
+            [...existing.filter(r => r.sessionId !== parsed.sessionId), parsed]
+          ));
+        }
+        navigate('/account');
+        return;
+      }
+
       const tenantKey = tenantFromEmail(email);
       if (!tenantKey) {
         alert(`No partner account registered for ${email}. Contact your Proof360 partner manager.`);

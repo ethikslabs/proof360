@@ -245,7 +245,11 @@ export default function PortalDashboard() {
   }, []);
 
   function engage(leadId, status) {
-    const updated = { ...engagements, [leadId]: { status, engaged_at: new Date().toISOString() } };
+    const prev = engagements[leadId] || {};
+    const updated = {
+      ...engagements,
+      [leadId]: { ...prev, status, tenant: auth.tenant, engaged_at: prev.engaged_at || new Date().toISOString() },
+    };
     setEngagements(updated);
     localStorage.setItem('portal_engagements', JSON.stringify(updated));
   }

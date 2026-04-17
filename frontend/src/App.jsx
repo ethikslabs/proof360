@@ -8,6 +8,8 @@ import Report from './pages/Report';
 import Portal from './pages/Portal';
 import PortalDashboard from './pages/PortalDashboard';
 import PortalLeadDetail from './pages/PortalLeadDetail';
+import FounderAuth from './pages/FounderAuth';
+import FounderDashboard from './pages/FounderDashboard';
 
 export default function App() {
   return (
@@ -23,6 +25,8 @@ export default function App() {
         <Route path="/portal/callback" element={<Portal />} />
         <Route path="/portal/dashboard" element={<PortalDashboard />} />
         <Route path="/portal/leads/:leadId" element={<PortalLeadDetail />} />
+        <Route path="/account/login" element={<FounderAuth />} />
+        <Route path="/account" element={<FounderDashboard />} />
       </Routes>
     </BrowserRouter>
   );

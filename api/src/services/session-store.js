@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import { emitPulse } from './pulse-emitter.js';
 
 const TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 const STALE_TIMEOUT_MS = 90 * 1000; // 90 seconds
@@ -88,11 +89,18 @@ export function checkStaleSessions() {
       now - session.infer_started_at > STALE_TIMEOUT_MS
     ) {
       session.infer_status = 'failed';
+      const elapsed_ms = now - session.infer_started_at;
       console.error(JSON.stringify({
         event: 'pipeline_timeout', session_id: id,
         pipeline: 'signal_extraction', reason: 'timeout',
-        elapsed_ms: now - session.infer_started_at,
+        elapsed_ms,
       }));
+      emitPulse({
+        type: 'alert',
+        severity: 'warning',
+        tags: ['pipeline', 'timeout'],
+        payload: { action: 'pipeline_timeout', session_id: id, pipeline: 'signal_extraction', elapsed_ms },
+      });
     }
 
     if (
@@ -101,11 +109,18 @@ export function checkStaleSessions() {
       now - session.analysis_started_at > STALE_TIMEOUT_MS
     ) {
       session.analysis_status = 'failed';
+      const elapsed_ms = now - session.analysis_started_at;
       console.error(JSON.stringify({
         event: 'pipeline_timeout', session_id: id,
         pipeline: 'gap_analysis', reason: 'timeout',
-        elapsed_ms: now - session.analysis_started_at,
+        elapsed_ms,
       }));
+      emitPulse({
+        type: 'alert',
+        severity: 'warning',
+        tags: ['pipeline', 'timeout'],
+        payload: { action: 'pipeline_timeout', session_id: id, pipeline: 'gap_analysis', elapsed_ms },
+      });
     }
 
     if (isExpired(session)) {
