@@ -102,7 +102,7 @@ function LeadCard({ lead, tenant, engagement, onEngage, onClick }) {
             <span style={{ fontSize: 14, fontWeight: 600, color: '#f1f5f9', letterSpacing: '-0.01em' }}>
               {lead.company_name}
             </span>
-            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>
+            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)' }}>
               {lead.industry} · {lead.location}
             </span>
           </div>
@@ -124,13 +124,13 @@ function LeadCard({ lead, tenant, engagement, onEngage, onClick }) {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
-          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', fontFamily: "'IBM Plex Mono', monospace" }}>
+          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', fontFamily: "'IBM Plex Mono', monospace" }}>
             {timeAgo(lead.submitted_at)}
           </span>
           <StatusBadge status={status} />
         </div>
 
-        <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12, flexShrink: 0, marginLeft: 4 }}>
+        <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 12, flexShrink: 0, marginLeft: 4 }}>
           {expanded ? '▴' : '▾'}
         </span>
       </div>
@@ -141,11 +141,11 @@ function LeadCard({ lead, tenant, engagement, onEngage, onClick }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
             {/* Matched vendors */}
             <div>
-              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
                 Your matched vendors
               </p>
               {matchedVendors.length === 0 ? (
-                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>No catalog matches</p>
+                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>No catalog matches</p>
               ) : (
                 matchedVendors.map(v => (
                   <div key={v.vendor_id} style={{
@@ -153,7 +153,7 @@ function LeadCard({ lead, tenant, engagement, onEngage, onClick }) {
                     border: '1px solid rgba(255,255,255,0.06)',
                   }}>
                     <div style={{ fontSize: 12, fontWeight: 600, color: '#f1f5f9', marginBottom: 3 }}>{v.name}</div>
-                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>
+                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)' }}>
                       Closes: {v.gaps.join(', ')}
                     </div>
                   </div>
@@ -163,18 +163,18 @@ function LeadCard({ lead, tenant, engagement, onEngage, onClick }) {
 
             {/* Lead detail */}
             <div>
-              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
                 Contact
               </p>
               <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}>
                 {lead.email_hint}
               </div>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginBottom: 12 }}>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', marginBottom: 12 }}>
                 {lead.website}
               </div>
 
               {engagement?.engaged_at && (
-                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>
+                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)' }}>
                   Engaged {timeAgo(engagement.engaged_at)}
                 </div>
               )}
@@ -239,7 +239,7 @@ function LeadCard({ lead, tenant, engagement, onEngage, onClick }) {
               target="_blank"
               rel="noopener noreferrer"
               onClick={e => e.stopPropagation()}
-              style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', textDecoration: 'none' }}
+              style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', textDecoration: 'none' }}
             >
               {lead.website} ↗
             </a>
@@ -341,7 +341,7 @@ export default function PortalDashboard() {
             border: `1px solid ${tenant.color}30`, marginBottom: 6,
           }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: tenant.color, marginBottom: 2 }}>{tenant.name}</div>
-            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>{tenant.tagline}</div>
+            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)' }}>{tenant.tagline}</div>
           </div>
           <button onClick={logout} style={{
             width: '100%', padding: '8px 12px', borderRadius: 7,
@@ -398,11 +398,11 @@ export default function PortalDashboard() {
 
         {/* User */}
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 16 }}>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {auth.user.email}
           </div>
           <button onClick={logout} style={{
-            fontSize: 11, color: 'rgba(255,255,255,0.2)', background: 'none', border: 'none',
+            fontSize: 11, color: 'rgba(255,255,255,0.45)', background: 'none', border: 'none',
             cursor: 'pointer', padding: 0, fontFamily: "'DM Sans', sans-serif",
           }}>Sign out</button>
         </div>
@@ -436,7 +436,7 @@ export default function PortalDashboard() {
                     </span>
                   </div>
                 </div>
-                <Link to="/" style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', textDecoration: 'none', paddingTop: 4 }}>
+                <Link to="/" style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', textDecoration: 'none', paddingTop: 4 }}>
                   ← proof360
                 </Link>
               </div>
@@ -454,7 +454,7 @@ export default function PortalDashboard() {
                 }}/>
                 <span style={{ fontSize: 13, color: tenant.color, fontWeight: 500 }}>{insightText}</span>
                 {!isDistributor && allLeads.length > 0 && (
-                  <span style={{ marginLeft: 'auto', fontSize: 11, color: 'rgba(255,255,255,0.3)', fontFamily: "'IBM Plex Mono', monospace" }}>
+                  <span style={{ marginLeft: 'auto', fontSize: 11, color: 'rgba(255,255,255,0.6)', fontFamily: "'IBM Plex Mono', monospace" }}>
                     avg score {Math.round(allLeads.reduce((s,l) => s + l.trust_score, 0) / allLeads.length)}/100
                   </span>
                 )}
@@ -475,13 +475,13 @@ export default function PortalDashboard() {
               background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
               borderRadius: 10, padding: '14px 16px', transition: 'border-color 0.15s',
             }}>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 {stat.label}
               </div>
               <div style={{ fontSize: 24, fontWeight: 700, color: stat.color, fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '-0.02em', lineHeight: 1 }}>
                 {stat.value}
               </div>
-              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', marginTop: 4 }}>{stat.note}</div>
+              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', marginTop: 4 }}>{stat.note}</div>
             </div>
           ))}
         </div>
@@ -501,7 +501,7 @@ export default function PortalDashboard() {
                     ? 'No leads match your catalog'
                     : 'No leads in this view'}
               </p>
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', lineHeight: 1.6, maxWidth: 320, margin: '0 auto' }}>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', lineHeight: 1.6, maxWidth: 320, margin: '0 auto' }}>
                 {filter === 'new' || allLeads.length === 0
                   ? 'Leads appear here as founders complete audits and their gaps match your product catalog.'
                   : 'Engage leads from the All Leads view to move them into your pipeline.'}

@@ -99,7 +99,7 @@ export default function PortalLeadDetail() {
       }}>
         <button
           onClick={() => navigate('/portal/dashboard')}
-          style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.35)', cursor: 'pointer',
+          style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', cursor: 'pointer',
             fontSize: 13, fontFamily: "'DM Sans', sans-serif", display: 'flex', alignItems: 'center', gap: 6,
             padding: 0,
           }}
@@ -107,7 +107,7 @@ export default function PortalLeadDetail() {
           ← Back to leads
         </button>
         <span style={{ color: 'rgba(255,255,255,0.1)' }}>·</span>
-        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', fontFamily: "'IBM Plex Mono', monospace" }}>
+        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', fontFamily: "'IBM Plex Mono', monospace" }}>
           {lead.id}
         </span>
       </div>
@@ -133,7 +133,7 @@ export default function PortalLeadDetail() {
                 {lead.trust_score >= 70 ? 'Deal ready' : lead.trust_score >= 50 ? 'Partial' : 'Needs work'}
               </span>
             </div>
-            <div style={{ display: 'flex', gap: 16, fontSize: 12, color: 'rgba(255,255,255,0.35)', marginBottom: 12 }}>
+            <div style={{ display: 'flex', gap: 16, fontSize: 12, color: 'rgba(255,255,255,0.7)', marginBottom: 12 }}>
               <span>{lead.industry}</span>
               <span>·</span>
               <span>{lead.location}</span>
@@ -195,7 +195,7 @@ export default function PortalLeadDetail() {
               <button
                 onClick={() => setShowEngage(false)}
                 style={{
-                  padding: '9px 14px', background: 'transparent', color: 'rgba(255,255,255,0.35)',
+                  padding: '9px 14px', background: 'transparent', color: 'rgba(255,255,255,0.7)',
                   border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: 13,
                   cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
                 }}
@@ -209,11 +209,11 @@ export default function PortalLeadDetail() {
         {status !== 'new' && (
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)',
+            background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.12)',
             borderRadius: 10, padding: '14px 18px', marginBottom: 32,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>Status</span>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>Status</span>
               <span style={{
                 fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20,
                 color: STATUSES[status].color, background: STATUSES[status].bg,
@@ -223,7 +223,7 @@ export default function PortalLeadDetail() {
                 {STATUSES[status].label}
               </span>
               {engagement?.engaged_at && (
-                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', fontFamily: "'IBM Plex Mono', monospace" }}>
+                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', fontFamily: "'IBM Plex Mono', monospace" }}>
                   · engaged {timeAgo(engagement.engaged_at)}
                 </span>
               )}
@@ -273,10 +273,10 @@ export default function PortalLeadDetail() {
 
           {/* Relevant gaps */}
           <div style={{
-            background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)',
+            background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.12)',
             borderRadius: 12, padding: '20px',
           }}>
-            <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase',
+            <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase',
               letterSpacing: '0.08em', marginBottom: 14 }}>
               Relevant gaps
             </p>
@@ -302,15 +302,15 @@ export default function PortalLeadDetail() {
 
           {/* Matched vendors */}
           <div style={{
-            background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)',
+            background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.12)',
             borderRadius: 12, padding: '20px',
           }}>
-            <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase',
+            <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase',
               letterSpacing: '0.08em', marginBottom: 14 }}>
               Your vendors
             </p>
             {matchedVendors.length === 0 ? (
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', lineHeight: 1.5 }}>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 1.5 }}>
                 No catalog matches for this lead.
               </p>
             ) : (
@@ -320,7 +320,7 @@ export default function PortalLeadDetail() {
                   marginBottom: 8, border: '1px solid rgba(255,255,255,0.05)',
                 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: '#f1f5f9', marginBottom: 3 }}>{v.name}</div>
-                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>
+                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)' }}>
                     Closes: {v.gaps.join(', ')}
                   </div>
                 </div>
@@ -331,10 +331,10 @@ export default function PortalLeadDetail() {
 
         {/* Contact */}
         <div style={{
-          background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)',
+          background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.12)',
           borderRadius: 12, padding: '20px',
         }}>
-          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase',
+          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase',
             letterSpacing: '0.08em', marginBottom: 14 }}>
             Contact
           </p>
@@ -347,7 +347,7 @@ export default function PortalLeadDetail() {
               }}>
                 {lead.email_hint}
               </div>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>{lead.website}</div>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)' }}>{lead.website}</div>
             </div>
             {status !== 'new' && !contactRevealed && (
               <button
@@ -365,7 +365,7 @@ export default function PortalLeadDetail() {
               </button>
             )}
             {status === 'new' && (
-              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}>
+              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', fontStyle: 'italic' }}>
                 Engage to reveal
               </span>
             )}

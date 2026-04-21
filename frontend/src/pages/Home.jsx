@@ -34,7 +34,7 @@ const TERMINAL_SEQUENCE = [
 
 const LINE_COLORS = {
   cmd:      '#F7F4F0',
-  muted:    '#52525B',
+  muted:    '#6B7280',
   ok:       '#4ADE80',
   query:    '#7DD3FC',
   warn:     '#FCD34D',
@@ -84,7 +84,7 @@ function TerminalPane({ runKey }) {
         {['#FF5F57','#FFBD2E','#28C840'].map(c => (
           <div key={c} style={{ width: 10, height: 10, borderRadius: '50%', background: c }} />
         ))}
-        <span style={{ marginLeft: 14, fontSize: 11, color: '#3F3F5A', letterSpacing: '0.06em' }}>
+        <span style={{ marginLeft: 14, fontSize: 11, color: '#6B7280', letterSpacing: '0.06em' }}>
           VERITAS — trust intelligence
         </span>
       </div>
@@ -234,13 +234,13 @@ export default function Home() {
         }
         .vendor-chip {
           padding: 6px 14px;
-          border: 1px solid #1E1E2E;
+          border: 1px solid #374151;
           border-radius: 20px;
-          font-size: 12px; color: #52525B;
+          font-size: 12px; color: #D1D5DB;
           letter-spacing: 0.03em;
           transition: border-color 0.2s, color 0.2s;
         }
-        .vendor-chip:hover { border-color: #3F3F52; color: #A8A29E; }
+        .vendor-chip:hover { border-color: #6B7280; color: #F9FAFB; }
 
         .step-number {
           font-family: "Cormorant Garamond", serif;
@@ -306,7 +306,7 @@ export default function Home() {
             }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ADE80', display: 'inline-block' }} />
               <span style={{
-                fontSize: 11, color: '#52525B',
+                fontSize: 11, color: '#9CA3AF',
                 fontFamily: '"IBM Plex Mono", monospace',
                 letterSpacing: '0.07em',
               }}>
@@ -327,7 +327,7 @@ export default function Home() {
 
             <p className="anim-3" style={{
               fontSize: 16, lineHeight: 1.75,
-              color: '#71717A',
+              color: '#A1A1AA',
               marginBottom: 40, maxWidth: 430,
             }}>
               proof360 cold-reads your trust posture from your public signals. No questionnaire. No consultant. 90 seconds to a scored gap report with a clear fix order.
@@ -340,7 +340,7 @@ export default function Home() {
               <Link to="/report/demo" className="btn-ghost">
                 See an example report
               </Link>
-              <Link to="/audit/cold-read?demo=true" style={{ fontSize: 11, color: '#71717A', textDecoration: 'none', fontFamily: '"IBM Plex Mono", monospace', letterSpacing: '0.04em' }}>
+              <Link to="/audit/cold-read?demo=true" style={{ fontSize: 11, color: '#A1A1AA', textDecoration: 'none', fontFamily: '"IBM Plex Mono", monospace', letterSpacing: '0.04em' }}>
                 demo walkthrough
               </Link>
             </div>
@@ -351,7 +351,7 @@ export default function Home() {
             <TerminalPane key={termKey} runKey={termKey} />
             <p style={{
               marginTop: 10, textAlign: 'right',
-              fontSize: 11, color: '#27272E',
+              fontSize: 11, color: '#6B7280',
               fontFamily: '"IBM Plex Mono", monospace',
               letterSpacing: '0.04em',
             }}>
@@ -378,7 +378,7 @@ export default function Home() {
                 color: '#F7F4F0', lineHeight: 1,
                 marginBottom: 10,
               }}>{n}</div>
-              <div style={{ fontSize: 13, color: '#52525B', lineHeight: 1.65 }}>{label}</div>
+              <div style={{ fontSize: 13, color: '#9CA3AF', lineHeight: 1.65 }}>{label}</div>
             </div>
           ))}
         </div>
@@ -432,7 +432,7 @@ export default function Home() {
                 fontSize: 22, fontWeight: 400,
                 color: '#F7F4F0', marginBottom: 12,
               }}>{title}</h3>
-              <p style={{ fontSize: 14, color: '#52525B', lineHeight: 1.75 }}>{body}</p>
+              <p style={{ fontSize: 14, color: '#9CA3AF', lineHeight: 1.75 }}>{body}</p>
             </div>
           ))}
         </div>
@@ -459,7 +459,7 @@ export default function Home() {
             }}>
               We know exactly what closes it — and how to get it.
             </h2>
-            <p style={{ fontSize: 14, color: '#52525B', lineHeight: 1.75, marginBottom: 32, maxWidth: 400 }}>
+            <p style={{ fontSize: 14, color: '#9CA3AF', lineHeight: 1.75, marginBottom: 32, maxWidth: 400 }}>
               Every vendor recommendation is matched to a specific gap in your posture, cross-referenced against VERITAS provenance. Not a commission push. A verified path.
             </p>
             <Link to="/audit" className="btn-primary">Start your audit →</Link>
@@ -472,7 +472,7 @@ export default function Home() {
             </div>
             <p style={{
               marginTop: 20, fontSize: 11,
-              color: '#27272E',
+              color: '#6B7280',
               fontFamily: '"IBM Plex Mono", monospace',
             }}>
               + additional vendors matched to your specific gaps
@@ -498,7 +498,7 @@ export default function Home() {
         }}>
           Your trust posture is either an asset<br />or a blocker.
         </h2>
-        <p style={{ fontSize: 15, color: '#52525B', marginBottom: 40 }}>
+        <p style={{ fontSize: 15, color: '#9CA3AF', marginBottom: 40 }}>
           Find out which. 90 seconds. No account required to start.
         </p>
         <Link to="/audit" className="btn-primary" style={{ fontSize: 15, padding: '16px 36px' }}>
@@ -516,13 +516,13 @@ export default function Home() {
       }}>
         <span style={{
           fontFamily: '"Cormorant Garamond", serif',
-          fontSize: 17, color: '#27272E',
+          fontSize: 17, color: '#6B7280',
         }}>
           Proof<em>360</em>
         </span>
         <div style={{ display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
-          <Link to="/portal" style={{ fontSize: 12, color: '#27272E', textDecoration: 'none' }}>Partner portal</Link>
-          <Link to="/report/demo" style={{ fontSize: 12, color: '#27272E', textDecoration: 'none' }}>Example report</Link>
+          <Link to="/portal" style={{ fontSize: 12, color: '#6B7280', textDecoration: 'none' }}>Partner portal</Link>
+          <Link to="/report/demo" style={{ fontSize: 12, color: '#6B7280', textDecoration: 'none' }}>Example report</Link>
           <span style={{
             fontSize: 11, color: '#1C1C28',
             fontFamily: '"IBM Plex Mono", monospace',
