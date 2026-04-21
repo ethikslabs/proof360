@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { demoReport } from '../data/demo-report';
 import { getReport } from '../api/client';
+import PersonaChat from '../components/PersonaChat';
 
 /* ─── Engagement store (localStorage) ───────────────────────────────────── */
 function useEngagements(sessionId) {
@@ -1212,6 +1213,14 @@ export default function Report() {
           onBooked={handleBooked}
         />
       )}
+
+      {/* ── Persona chat ── */}
+      <PersonaChat context={{
+        company_name: report.company_name,
+        score: report.trust_score,
+        website: report.website || null,
+        gaps: (report.gaps || []).map(g => ({ id: g.gap_id, severity: g.severity })),
+      }} />
     </div>
   );
 }
