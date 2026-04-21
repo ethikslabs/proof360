@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import PersonaChat from '../components/PersonaChat';
 
 /* ─── Constants ──────────────────────────────────────────────────────────── */
 const NAVY  = '#0B2545';
@@ -165,6 +166,17 @@ export default function FounderDashboard() {
       setEngagements(raw.sort((a, b) => new Date(b.engaged_at) - new Date(a.engaged_at)));
     }
   }, []);
+
+  const mostRecentReport = reports.length > 0
+    ? reports.slice().sort((a, b) => new Date(b.saved_at) - new Date(a.saved_at))[0]
+    : null;
+
+  const personaContext = mostRecentReport ? {
+    company_name: mostRecentReport.company_name,
+    score: mostRecentReport.trust_score,
+    website: mostRecentReport.website || null,
+    gaps: (mostRecentReport.gaps || []).map(g => ({ id: g.gap_id || g.id, severity: g.severity })),
+  } : null;
 
   function logout() {
     localStorage.removeItem('founder_auth');
@@ -398,6 +410,9 @@ export default function FounderDashboard() {
             <Link to="/portal" style={{ color: LIGHT, textDecoration: 'underline' }}>Partner portal</Link>
           </p>
         </div>
+
+        {/* ── Persona chat ── */}
+        {personaContext && <PersonaChat context={personaContext} />}
       </div>
     </div>
   );
