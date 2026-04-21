@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { TENANTS } from '../data/portal-leads';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
@@ -82,7 +82,7 @@ function tenantFromEmail(email) {
     || null;
 }
 
-const DEMO_TENANTS = ['ingram', 'dicker', 'crowdstrike', 'palo_alto', 'cloudflare'];
+const DEMO_TENANTS = ['vanta','cisco','austbrokers','aws','cloudflare','okta','crowdstrike','palo_alto','dicker','ingram'];
 
 const s = {
   page: {
@@ -144,6 +144,7 @@ const s = {
   },
   demoGrid: {
     display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 16,
+    maxHeight: 280, overflowY: 'auto',
   },
   demoCard: (tenant) => ({
     padding: '10px 12px', borderRadius: 8, cursor: 'pointer',
@@ -408,9 +409,12 @@ export default function Portal() {
         )}
       </div>
 
-      <p style={{ position: 'relative', zIndex: 1, marginTop: 24, fontSize: 11, color: 'rgba(255,255,255,0.15)' }}>
-        proof360.au · Partner Intelligence Platform
-      </p>
+      <div style={{ position: 'relative', zIndex: 1, marginTop: 24, display: 'flex', alignItems: 'center', gap: 20 }}>
+        <Link to="/" style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', textDecoration: 'none' }}>
+          ← Back to proof360
+        </Link>
+        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.1)' }}>Partner Intelligence Platform</span>
+      </div>
     </div>
   );
 }

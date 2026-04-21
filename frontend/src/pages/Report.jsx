@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { demoReport } from '../data/demo-report';
 import { getReport } from '../api/client';
 
@@ -861,11 +861,14 @@ function EmailGate({ sessionId, onUnlock }) {
 export default function Report() {
   const { sessionId } = useParams();
   const navigate      = useNavigate();
+  const [searchParams] = useSearchParams();
   const isDemo        = sessionId === 'demo';
+  const bypassUnlock  = isDemo || searchParams.get('unlock') === 'true';
 
   const [report,  setReport]  = useState(isDemo ? demoReport : null);
-  const [locked,  setLocked]  = useState(isDemo ? false : true);
+  const [locked,  setLocked]  = useState(bypassUnlock ? false : true);
   const [error,   setError]   = useState('');
+  const [showUnlockBar, setShowUnlockBar] = useState(false);
 
   // Engagement state
   const engagements       = useEngagements(sessionId);
@@ -921,12 +924,18 @@ export default function Report() {
   useEffect(() => {
     if (isDemo) return;
     getReport(sessionId)
-      .then(r => { setReport(r); setLocked(r.layer2_locked); })
+      .then(r => {
+        setReport(r);
+        const isLocked = bypassUnlock ? false : r.layer2_locked;
+        setLocked(isLocked);
+        if (isLocked) setShowUnlockBar(true);
+      })
       .catch(() => setError('We couldn\'t load your report. Please try again.'));
   }, [sessionId, isDemo]);
 
   function handleUnlock() {
     setLocked(false);
+    setShowUnlockBar(false);
     if (!isDemo) getReport(sessionId).then(r => setReport(r)).catch(() => {});
   }
 
@@ -1028,6 +1037,37 @@ export default function Report() {
         </div>
       </nav>
 
+      {/* ── Layer 2 unlock bar ── */}
+      {showUnlockBar && locked && (
+        <div style={{
+          position: 'sticky', top: 52, zIndex: 90,
+          background: AMBER,
+          padding: '10px 24px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16,
+          flexWrap: 'wrap',
+        }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: WHITE, fontFamily: '"Outfit", sans-serif' }}>
+            🔒 Vendor recommendations are ready — enter your email to unlock
+          </span>
+          <button
+            onClick={() => {
+              document.getElementById('email-gate')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }}
+            style={{
+              padding: '5px 14px', background: WHITE, color: AMBER,
+              border: 'none', borderRadius: 5, cursor: 'pointer',
+              fontSize: 12, fontWeight: 700, fontFamily: '"Outfit", sans-serif',
+            }}
+          >
+            Unlock Layer 2 ↓
+          </button>
+          <button
+            onClick={() => setShowUnlockBar(false)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', fontSize: 16 }}
+          >×</button>
+        </div>
+      )}
+
       {/* ── Hero band ── */}
       <div style={{ background: NAVY, paddingBottom: 40 }}>
         <div style={{ maxWidth: 800, margin: '0 auto', padding: '40px 24px 0' }}>
@@ -1100,7 +1140,11 @@ export default function Report() {
               />
             ))}
           </div>
-          {locked && <EmailGate sessionId={sessionId} onUnlock={handleUnlock} />}
+          {locked && (
+            <div id="email-gate">
+              <EmailGate sessionId={sessionId} onUnlock={handleUnlock} />
+            </div>
+          )}
         </section>
 
         {report.next_steps?.length > 0 && <PathForward steps={report.next_steps} />}

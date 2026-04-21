@@ -1,29 +1,123 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { TENANTS, PORTAL_LEADS } from '../data/portal-leads';
+import { useNavigate, Link } from 'react-router-dom';
 
-const SEV_COLORS = {
-  critical: { color: '#ef4444', bg: '#fef2f2' },
-  high:     { color: '#f97316', bg: '#fff7ed' },
-  moderate: { color: '#f59e0b', bg: '#fffbeb' },
-  low:      { color: '#6b7280', bg: '#f9fafb' },
-};
+/* ─── Constants ──────────────────────────────────────────────────────────── */
+const NAVY  = '#0B2545';
+const AMBER = '#E07B39';
+const WHITE = '#FFFFFF';
+const OFFWHITE = '#F7F8FA';
+const BORDER = '#E4E7EC';
+const TEXT   = '#101828';
+const MUTED  = '#667085';
+const LIGHT  = '#98A2B3';
 
-const STATUS_LABELS = {
-  engaged: { label: 'Engaged',   color: '#3b82f6' },
-  quoted:  { label: 'Quoted',    color: '#f59e0b' },
-  won:     { label: 'Won',       color: '#10b981' },
-  lost:    { label: 'Lost',      color: '#9ca3af' },
-};
+const PIPELINE_STAGES = [
+  { key: 'new',           label: 'New',            color: '#6366F1', bg: '#EEF2FF' },
+  { key: 'contacted',     label: 'Contacted',       color: '#0EA5E9', bg: '#E0F2FE' },
+  { key: 'meeting_booked',label: 'Meeting Booked',  color: '#E07B39', bg: '#FFF4ED' },
+  { key: 'in_progress',   label: 'In Progress',     color: '#8B5CF6', bg: '#F5F3FF' },
+  { key: 'sold',          label: 'Sold',            color: '#16A34A', bg: '#F0FDF4' },
+];
 
-function ScoreRing({ score, size = 56 }) {
+const STAGE_MAP = Object.fromEntries(PIPELINE_STAGES.map(s => [s.key, s]));
+
+/* ─── Demo seed data (shown when proof360_engagements is empty) ──────────── */
+const now = Date.now();
+const DEMO_ENGAGEMENTS = [
+  {
+    id: 'demo_e1', session_id: 'demo',
+    company_name: 'Stackfield', vendor_id: 'vanta', vendor_name: 'Vanta',
+    gap_id: 'soc2', gap_title: 'SOC 2 certification gap',
+    status: 'meeting_booked', engaged_at: new Date(now - 2 * 3600000).toISOString(),
+  },
+  {
+    id: 'demo_e2', session_id: 'demo',
+    company_name: 'Stackfield', vendor_id: 'crowdstrike', vendor_name: 'CrowdStrike',
+    gap_id: 'edr', gap_title: 'Endpoint protection gap',
+    status: 'contacted', engaged_at: new Date(now - 5 * 3600000).toISOString(),
+  },
+  {
+    id: 'demo_e3', session_id: 'demo',
+    company_name: 'Stackfield', vendor_id: 'cisco_duo', vendor_name: 'Cisco Duo',
+    gap_id: 'mfa', gap_title: 'MFA not enforced',
+    status: 'new', engaged_at: new Date(now - 45 * 60000).toISOString(),
+  },
+  {
+    id: 'demo_e4', session_id: 'demo',
+    company_name: 'Stackfield', vendor_id: 'cloudflare', vendor_name: 'Cloudflare',
+    gap_id: 'network_perimeter', gap_title: 'Network perimeter gap',
+    status: 'in_progress', engaged_at: new Date(now - 27 * 3600000).toISOString(),
+  },
+  {
+    id: 'demo_e5', session_id: 'demo',
+    company_name: 'Stackfield', vendor_id: 'austbrokers', vendor_name: 'Austbrokers CyberPro',
+    gap_id: 'cyber_insurance', gap_title: 'No cyber insurance',
+    status: 'sold', engaged_at: new Date(now - 3 * 86400000).toISOString(),
+  },
+];
+
+/* ─── Helpers ────────────────────────────────────────────────────────────── */
+function timeAgo(iso) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+
+function VendorInitials({ name, size = 36 }) {
+  const initials = (name || '??').split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  const hue = (name || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: 8, flexShrink: 0,
+      background: `hsl(${hue},40%,90%)`,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: size * 0.32, fontWeight: 700,
+      color: `hsl(${hue},50%,30%)`,
+      fontFamily: '"Outfit", sans-serif',
+      border: `1px solid hsl(${hue},30%,82%)`,
+    }}>
+      {initials}
+    </div>
+  );
+}
+
+function StageBadge({ status }) {
+  const s = STAGE_MAP[status] || STAGE_MAP.new;
+  return (
+    <span style={{
+      fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 20,
+      color: s.color, background: s.bg,
+      fontFamily: '"Outfit", sans-serif', whiteSpace: 'nowrap',
+    }}>
+      {s.label}
+    </span>
+  );
+}
+
+function Proof360Mark({ size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <rect width="32" height="32" rx="7" fill="#0B2545" />
+      <path d="M16 5L25 8.8V15.5C25 20.5 21 24.8 16 26.5C11 24.8 7 20.5 7 15.5V8.8L16 5Z"
+        stroke="#E07B39" strokeWidth="1.4" fill="none" />
+      <path d="M11.5 16L14.5 19L20.5 13"
+        stroke="#E07B39" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/* ─── ScoreRing ──────────────────────────────────────────────────────────── */
+function ScoreRing({ score, size = 52 }) {
   const r = (size - 6) / 2;
   const circ = 2 * Math.PI * r;
   const fill = (score / 100) * circ;
-  const color = score >= 70 ? '#10b981' : score >= 50 ? '#f59e0b' : '#ef4444';
+  const color = score >= 70 ? '#16A34A' : score >= 50 ? '#D97706' : '#DC2626';
   return (
     <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', flexShrink: 0 }}>
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#f3f4f6" strokeWidth={5}/>
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={BORDER} strokeWidth={5}/>
       <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={5}
         strokeDasharray={`${fill} ${circ}`} strokeLinecap="round"/>
       <text x={size/2} y={size/2} dominantBaseline="middle" textAnchor="middle"
@@ -36,20 +130,22 @@ function ScoreRing({ score, size = 56 }) {
   );
 }
 
-function timeAgo(iso) {
-  const diff = Date.now() - new Date(iso).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-}
-
+/* ─── FounderDashboard ───────────────────────────────────────────────────── */
 export default function FounderDashboard() {
   const navigate = useNavigate();
-  const [auth, setAuth] = useState(null);
-  const [reports, setReports] = useState([]);
-  const [activity, setActivity] = useState([]);
+  const [auth, setAuth]             = useState(null);
+  const [reports, setReports]       = useState([]);
+  const [engagements, setEngagements] = useState([]);
+  const [isDemo, setIsDemo]         = useState(false);
+  const [activeStage, setActiveStage] = useState('all');
+
+  useEffect(() => {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap';
+    document.head.appendChild(link);
+    return () => link.remove();
+  }, []);
 
   useEffect(() => {
     const stored = localStorage.getItem('founder_auth');
@@ -59,35 +155,14 @@ export default function FounderDashboard() {
     const savedReports = JSON.parse(localStorage.getItem('founder_reports') || '[]');
     setReports(savedReports);
 
-    // Cross-reference portal engagements with saved companies
-    const engagements = JSON.parse(localStorage.getItem('portal_engagements') || '{}');
-    const companyNames = new Set(savedReports.map(r => r.company_name?.toLowerCase()));
+    // Read founder's own vendor engagements (booked from report page)
+    const raw = JSON.parse(localStorage.getItem('proof360_engagements') || '[]');
 
-    const items = Object.entries(engagements)
-      .map(([leadId, eng]) => {
-        const lead = PORTAL_LEADS.find(l => l.id === leadId);
-        const tenant = TENANTS[eng.tenant];
-        if (!lead || !tenant) return null;
-        // Show activity if company name matches OR if user has no saved reports (demo mode)
-        const isMatch = companyNames.size === 0 || companyNames.has(lead.company_name?.toLowerCase());
-        return isMatch ? { leadId, lead, tenant, engagement: eng } : null;
-      })
-      .filter(Boolean)
-      .sort((a, b) => new Date(b.engagement.engaged_at) - new Date(a.engagement.engaged_at));
-
-    // If no matches and there are engagements, show all as demo activity
-    if (items.length === 0 && Object.keys(engagements).length > 0) {
-      const all = Object.entries(engagements)
-        .map(([leadId, eng]) => {
-          const lead = PORTAL_LEADS.find(l => l.id === leadId);
-          const tenant = TENANTS[eng.tenant];
-          return lead && tenant ? { leadId, lead, tenant, engagement: eng, isDemo: true } : null;
-        })
-        .filter(Boolean)
-        .sort((a, b) => new Date(b.engagement.engaged_at) - new Date(a.engagement.engaged_at));
-      setActivity(all);
+    if (raw.length === 0) {
+      setEngagements(DEMO_ENGAGEMENTS);
+      setIsDemo(true);
     } else {
-      setActivity(items);
+      setEngagements(raw.sort((a, b) => new Date(b.engaged_at) - new Date(a.engaged_at)));
     }
   }, []);
 
@@ -96,197 +171,231 @@ export default function FounderDashboard() {
     navigate('/account/login');
   }
 
+  function updateStatus(id, newStatus) {
+    const updated = engagements.map(e => e.id === id ? { ...e, status: newStatus } : e);
+    setEngagements(updated);
+    if (!isDemo) {
+      localStorage.setItem('proof360_engagements', JSON.stringify(updated));
+    }
+  }
+
   if (!auth) return null;
 
-  const hasActivity = activity.length > 0;
-  const hasReports = reports.length > 0;
+  const filtered = activeStage === 'all'
+    ? engagements
+    : engagements.filter(e => e.status === activeStage);
+
+  const stageCounts = PIPELINE_STAGES.reduce((acc, s) => {
+    acc[s.key] = engagements.filter(e => e.status === s.key).length;
+    return acc;
+  }, {});
 
   return (
-    <div className="min-h-screen bg-white font-sans">
+    <div style={{ minHeight: '100vh', background: OFFWHITE, fontFamily: '"Outfit", sans-serif' }}>
       <style>{`
-        @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-        .acct-card { animation: fadeUp 0.3s ease both; }
-        .activity-row:hover { background: #f9fafb !important; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .fade-in { animation: fadeUp 0.4s ease both; }
+        .eng-row:hover { background: #F0F4FF !important; }
+        .stage-btn:hover { opacity: 0.8; }
       `}</style>
 
-      {/* Header */}
-      <div className="border-b border-gray-100">
-        <div className="max-w-3xl mx-auto px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-[#00d9b8] flex items-center justify-center text-[#07090f] font-bold text-xs">P</div>
-            <span className="text-sm font-semibold text-gray-800 tracking-tight">proof360</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-xs text-gray-400">{auth.user?.email}</span>
-            <button
-              onClick={logout}
-              className="text-xs text-gray-400 hover:text-gray-600 transition-colors bg-transparent border-none cursor-pointer"
-            >
+      {/* Nav */}
+      <nav style={{
+        background: WHITE, borderBottom: `1px solid ${BORDER}`,
+        position: 'sticky', top: 0, zIndex: 100,
+      }}>
+        <div style={{
+          maxWidth: 860, margin: '0 auto', padding: '0 24px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          height: 56,
+        }}>
+          <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Proof360Mark size={24} />
+            <span style={{ fontSize: 16, fontWeight: 700, color: NAVY, letterSpacing: '-0.01em' }}>
+              Proof<span style={{ color: AMBER }}>360</span>
+            </span>
+          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <span style={{ fontSize: 12, color: LIGHT }}>{auth.user?.email}</span>
+            <button onClick={logout} style={{
+              fontSize: 12, color: MUTED, background: 'none', border: 'none',
+              cursor: 'pointer', fontFamily: '"Outfit", sans-serif',
+            }}>
               Sign out
             </button>
           </div>
         </div>
-      </div>
+      </nav>
 
-      <div className="max-w-3xl mx-auto px-8 py-10">
+      <div style={{ maxWidth: 860, margin: '0 auto', padding: '40px 24px 100px' }}>
 
-        {/* Greeting */}
-        <div className="mb-10 acct-card">
-          <h1 className="text-2xl font-serif text-gray-900 mb-1">
-            {auth.user?.name ? `Welcome, ${auth.user.name.split(' ')[0]}` : 'Your account'}
+        {/* Header */}
+        <div className="fade-in" style={{ marginBottom: 36 }}>
+          <h1 style={{ fontSize: 26, fontWeight: 700, color: NAVY, letterSpacing: '-0.02em', marginBottom: 6 }}>
+            {auth.user?.name ? `Welcome back, ${auth.user.name.split(' ')[0]}` : 'Your account'}
           </h1>
-          <p className="text-sm text-gray-400">
-            Track your trust posture and see how partners engage with your profile.
+          <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6 }}>
+            Your trust remediation pipeline — all vendor engagements in one place.
           </p>
+          {isDemo && (
+            <div style={{
+              marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 8,
+              background: '#FFFBEB', border: '1px solid #FCD34D',
+              borderRadius: 6, padding: '6px 12px',
+            }}>
+              <span style={{ fontSize: 11, color: '#B45309', fontFamily: '"Outfit", sans-serif' }}>
+                Demo data — book meetings from a report to populate your real pipeline
+              </span>
+              <Link to="/report/demo" style={{ fontSize: 11, color: AMBER, fontWeight: 600, textDecoration: 'none' }}>
+                View demo report →
+              </Link>
+            </div>
+          )}
         </div>
 
-        {/* Saved reports */}
-        <section className="mb-10 acct-card" style={{ animationDelay: '0.05s' }}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xs uppercase tracking-widest text-gray-400">Audit reports</h2>
+        {/* Pipeline summary */}
+        <div className="fade-in" style={{
+          display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 10, marginBottom: 28,
+          animationDelay: '0.05s',
+        }}>
+          {PIPELINE_STAGES.map(stage => (
             <button
-              onClick={() => navigate('/audit')}
-              className="text-xs text-[#00d9b8] hover:opacity-75 transition-opacity bg-transparent border-none cursor-pointer font-medium"
+              key={stage.key}
+              className="stage-btn"
+              onClick={() => setActiveStage(activeStage === stage.key ? 'all' : stage.key)}
+              style={{
+                background: activeStage === stage.key ? stage.bg : WHITE,
+                border: `1.5px solid ${activeStage === stage.key ? stage.color : BORDER}`,
+                borderRadius: 10, padding: '14px 12px', cursor: 'pointer',
+                textAlign: 'left', transition: 'all 0.15s',
+                fontFamily: '"Outfit", sans-serif',
+              }}
             >
-              + New audit
+              <div style={{ fontSize: 22, fontWeight: 700, color: stage.color, lineHeight: 1, marginBottom: 4 }}>
+                {stageCounts[stage.key]}
+              </div>
+              <div style={{ fontSize: 11, color: MUTED, fontWeight: 500 }}>{stage.label}</div>
             </button>
+          ))}
+        </div>
+
+        {/* Engagement list */}
+        <div className="fade-in" style={{ animationDelay: '0.1s' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: AMBER, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              {activeStage === 'all' ? 'All engagements' : STAGE_MAP[activeStage]?.label}
+              {' '}· {filtered.length}
+            </p>
+            <Link to="/audit" style={{ fontSize: 13, color: AMBER, textDecoration: 'none', fontWeight: 600 }}>
+              + New audit
+            </Link>
           </div>
 
-          {!hasReports ? (
-            <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center">
-              <div className="text-2xl mb-2">📋</div>
-              <p className="text-sm text-gray-500 mb-1">No reports saved yet</p>
-              <p className="text-xs text-gray-400 mb-4">
-                Complete a trust audit and save your report to track partner interest.
-              </p>
-              <button
-                onClick={() => navigate('/audit')}
-                className="text-xs font-medium text-[#00d9b8] hover:opacity-75 transition-opacity bg-transparent border-none cursor-pointer"
-              >
-                Start your audit →
+          {filtered.length === 0 ? (
+            <div style={{
+              background: WHITE, border: `1.5px dashed ${BORDER}`,
+              borderRadius: 12, padding: '48px 24px', textAlign: 'center',
+            }}>
+              <p style={{ fontSize: 14, color: MUTED, marginBottom: 8 }}>No engagements in this stage</p>
+              <button onClick={() => setActiveStage('all')} style={{
+                fontSize: 13, color: AMBER, background: 'none', border: 'none',
+                cursor: 'pointer', fontFamily: '"Outfit", sans-serif', fontWeight: 600,
+              }}>
+                Show all →
               </button>
             </div>
           ) : (
-            <div className="space-y-3">
-              {reports.map((r) => (
-                <div key={r.sessionId} className="border border-gray-100 rounded-xl p-5 flex items-center gap-4 hover:border-gray-200 transition-colors">
-                  <ScoreRing score={r.trust_score} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-semibold text-gray-900 truncate">{r.company_name}</span>
-                      {r.industry && (
-                        <span className="text-xs text-gray-400">{r.industry}</span>
-                      )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {filtered.map(eng => {
+                const stage = STAGE_MAP[eng.status] || STAGE_MAP.new;
+                return (
+                  <div
+                    key={eng.id}
+                    className="eng-row"
+                    style={{
+                      background: WHITE, border: `1px solid ${BORDER}`,
+                      borderLeft: `4px solid ${stage.color}`,
+                      borderRadius: 10, padding: '18px 20px',
+                      display: 'flex', alignItems: 'center', gap: 16,
+                      transition: 'background 0.15s',
+                    }}
+                  >
+                    <VendorInitials name={eng.vendor_name} size={40} />
+
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 15, fontWeight: 600, color: TEXT }}>{eng.vendor_name}</span>
+                        <StageBadge status={eng.status} />
+                      </div>
+                      <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.5 }}>
+                        {eng.gap_title || 'Trust gap remediation'}
+                        {eng.company_name && eng.company_name !== 'Your company' && (
+                          <span style={{ color: LIGHT }}> · {eng.company_name}</span>
+                        )}
+                      </p>
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-gray-400">
-                      <span>{r.gaps_count} gaps identified</span>
-                      <span>·</span>
-                      <span>{timeAgo(r.saved_at)}</span>
+
+                    {/* Stage mover */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                      <select
+                        value={eng.status}
+                        onChange={e => updateStatus(eng.id, e.target.value)}
+                        style={{
+                          fontSize: 12, color: MUTED, background: OFFWHITE,
+                          border: `1px solid ${BORDER}`, borderRadius: 6,
+                          padding: '4px 8px', cursor: 'pointer',
+                          fontFamily: '"Outfit", sans-serif',
+                        }}
+                      >
+                        {PIPELINE_STAGES.map(s => (
+                          <option key={s.key} value={s.key}>{s.label}</option>
+                        ))}
+                      </select>
+                      <span style={{ fontSize: 11, color: LIGHT, fontFamily: '"IBM Plex Mono", monospace', whiteSpace: 'nowrap' }}>
+                        {timeAgo(eng.engaged_at)}
+                      </span>
                     </div>
                   </div>
-                  <button
-                    onClick={() => navigate(`/report/${r.sessionId}`)}
-                    className="text-xs text-gray-400 hover:text-gray-600 transition-colors bg-transparent border-none cursor-pointer flex-shrink-0"
-                  >
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Saved reports */}
+        {reports.length > 0 && (
+          <div className="fade-in" style={{ marginTop: 40, animationDelay: '0.15s' }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: AMBER, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 16 }}>
+              Saved reports
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {reports.map(r => (
+                <div key={r.sessionId} style={{
+                  background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 10,
+                  padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16,
+                }}>
+                  <ScoreRing score={r.trust_score} size={44} />
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: TEXT, marginBottom: 3 }}>{r.company_name}</p>
+                    <p style={{ fontSize: 12, color: LIGHT }}>{r.gaps_count} gaps · {timeAgo(r.saved_at)}</p>
+                  </div>
+                  <Link to={`/report/${r.sessionId}`} style={{
+                    fontSize: 13, color: NAVY, textDecoration: 'none', fontWeight: 600,
+                  }}>
                     View →
-                  </button>
+                  </Link>
                 </div>
               ))}
             </div>
-          )}
-        </section>
-
-        {/* Partner activity */}
-        <section className="acct-card" style={{ animationDelay: '0.1s' }}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xs uppercase tracking-widest text-gray-400">Partner activity</h2>
-            {hasActivity && (
-              <span className="text-xs font-medium text-[#00d9b8]">{activity.length} active</span>
-            )}
           </div>
+        )}
 
-          {!hasActivity ? (
-            <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center">
-              <div className="text-2xl mb-2">👀</div>
-              <p className="text-sm text-gray-500 mb-1">No partner activity yet</p>
-              <p className="text-xs text-gray-400 leading-relaxed">
-                When vendors engage with your trust profile, their activity will appear here.
-                Partners see your gaps and whether their products can close them.
-              </p>
-            </div>
-          ) : (
-            <>
-              {activity[0]?.isDemo && (
-                <div className="mb-3 px-3 py-2 rounded-lg bg-amber-50 border border-amber-100">
-                  <p className="text-xs text-amber-600">
-                    Demo: showing partner activity from your portal session
-                  </p>
-                </div>
-              )}
-              <div className="border border-gray-100 rounded-xl overflow-hidden divide-y divide-gray-50">
-                {activity.map(({ leadId, lead, tenant, engagement }, i) => {
-                  const statusInfo = STATUS_LABELS[engagement.status] || STATUS_LABELS.engaged;
-                  const gap = lead.gaps[0];
-                  const sev = gap ? SEV_COLORS[gap.severity] : null;
-                  return (
-                    <div
-                      key={leadId}
-                      className="activity-row flex items-center gap-4 px-5 py-4 transition-colors"
-                      style={{ animationDelay: `${0.1 + i * 0.03}s` }}
-                    >
-                      {/* Tenant badge */}
-                      <div style={{
-                        width: 32, height: 32, borderRadius: 8, background: tenant.bg,
-                        border: `1px solid ${tenant.color}30`, flexShrink: 0,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 10, fontWeight: 700, color: tenant.color,
-                      }}>
-                        {tenant.short}
-                      </div>
-
-                      {/* Detail */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="text-sm font-medium text-gray-800">{tenant.name}</span>
-                          <span
-                            className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                            style={{ color: statusInfo.color, background: `${statusInfo.color}15` }}
-                          >
-                            {statusInfo.label}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-gray-400">
-                          <span>{lead.company_name}</span>
-                          {gap && sev && (
-                            <>
-                              <span>·</span>
-                              <span style={{ color: sev.color }}>{gap.title}</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-
-                      <span className="text-xs text-gray-300 flex-shrink-0" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
-                        {timeAgo(engagement.engaged_at)}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </>
-          )}
-        </section>
-
-        {/* Footer nudge */}
-        <div className="mt-12 pt-8 border-t border-gray-50 text-center acct-card" style={{ animationDelay: '0.15s' }}>
-          <p className="text-xs text-gray-300">
+        {/* Footer */}
+        <div style={{ marginTop: 48, paddingTop: 24, borderTop: `1px solid ${BORDER}`, textAlign: 'center' }}>
+          <p style={{ fontSize: 12, color: LIGHT }}>
             proof360 · Trust readiness for founders ·{' '}
-            <button
-              onClick={() => navigate('/portal')}
-              className="text-gray-300 hover:text-gray-400 transition-colors bg-transparent border-none cursor-pointer underline underline-offset-2"
-            >
-              Partner portal
-            </button>
+            <Link to="/portal" style={{ color: LIGHT, textDecoration: 'underline' }}>Partner portal</Link>
           </p>
         </div>
       </div>

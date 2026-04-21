@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { TENANTS, PORTAL_LEADS, filterLeadsForTenant, getMatchedVendors, timeAgo } from '../data/portal-leads';
 
 const STATUSES = {
@@ -396,12 +396,12 @@ export default function PortalDashboard() {
               </span>
             </div>
           </div>
-          <a
-            href="/"
-            style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', textDecoration: 'none', paddingTop: 4 }}
+          <Link
+            to="/"
+            style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', textDecoration: 'none', paddingTop: 4 }}
           >
-            ← proof360.au
-          </a>
+            ← proof360
+          </Link>
         </div>
 
         {/* Stats */}
