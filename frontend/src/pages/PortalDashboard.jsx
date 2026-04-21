@@ -319,10 +319,10 @@ export default function PortalDashboard() {
             <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>{tenant.tagline}</div>
           </div>
           <button onClick={logout} style={{
-            width: '100%', padding: '6px 12px', borderRadius: 7,
-            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-            color: 'rgba(255,255,255,0.4)', fontSize: 11, cursor: 'pointer',
-            fontFamily: "'DM Sans', sans-serif", textAlign: 'left',
+            width: '100%', padding: '8px 12px', borderRadius: 7,
+            background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.18)',
+            color: '#ffffff', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+            fontFamily: "'DM Sans', sans-serif", textAlign: 'center', letterSpacing: '0.01em',
           }}>
             ⇄ Switch partner
           </button>
