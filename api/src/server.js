@@ -10,6 +10,7 @@ import { statusHandler } from './handlers/status.js';
 import { reportHandler } from './handlers/report.js';
 import { captureEmailHandler } from './handlers/capture-email.js';
 import { earlySignalHandler } from './handlers/early-signal.js';
+import { chatHandler } from './handlers/chat.js';
 
 const PORT = parseInt(process.env.PORT || '3002', 10);
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
@@ -34,6 +35,9 @@ app.get('/api/v1/session/:id/report', reportHandler);
 // --- Phase 4: Remaining ---
 app.get('/api/v1/session/:id/early-signal', earlySignalHandler);
 app.post('/api/v1/session/:id/capture-email', captureEmailHandler);
+
+// --- Persona chat ---
+app.post('/api/v1/chat', chatHandler);
 
 // Start stale session cleanup on 30-second interval
 const staleInterval = setInterval(checkStaleSessions, 30_000);
