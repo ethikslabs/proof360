@@ -187,23 +187,23 @@ export default function Home() {
         .btn-ghost {
           display: inline-flex; align-items: center;
           font-family: "DM Sans", sans-serif; font-size: 13px;
-          color: #52525B; text-decoration: none;
+          color: #A8A29E; text-decoration: none;
           transition: color 0.2s;
         }
-        .btn-ghost:hover { color: #A8A29E; }
+        .btn-ghost:hover { color: #D1C9BF; }
 
         .nav-link {
-          font-size: 13px; color: #52525B; text-decoration: none;
+          font-size: 13px; color: #A8A29E; text-decoration: none;
           transition: color 0.2s;
         }
-        .nav-link:hover { color: #D1C9BF; }
+        .nav-link:hover { color: #F7F4F0; }
 
         .portal-pill {
-          font-size: 12px; color: #52525B; text-decoration: none;
-          border: 1px solid #1E1E2E; padding: 5px 13px;
+          font-size: 12px; color: #A8A29E; text-decoration: none;
+          border: 1px solid #3F3F5A; padding: 5px 13px;
           border-radius: 20px; transition: border-color 0.2s, color 0.2s;
         }
-        .portal-pill:hover { border-color: #3F3F52; color: #A8A29E; }
+        .portal-pill:hover { border-color: #6B6B8A; color: #F7F4F0; }
 
         .divider { border: none; border-top: 1px solid #141420; }
 
@@ -340,7 +340,7 @@ export default function Home() {
               <Link to="/report/demo" className="btn-ghost">
                 See an example report
               </Link>
-              <Link to="/audit/cold-read?demo=true" style={{ fontSize: 11, color: '#3F3F52', textDecoration: 'none', fontFamily: '"IBM Plex Mono", monospace', letterSpacing: '0.04em' }}>
+              <Link to="/audit/cold-read?demo=true" style={{ fontSize: 11, color: '#71717A', textDecoration: 'none', fontFamily: '"IBM Plex Mono", monospace', letterSpacing: '0.04em' }}>
                 demo walkthrough
               </Link>
             </div>

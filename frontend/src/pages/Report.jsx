@@ -1,7 +1,191 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { demoReport } from '../data/demo-report';
 import { getReport } from '../api/client';
+
+/* ─── Engagement store (localStorage) ───────────────────────────────────── */
+function useEngagements(sessionId) {
+  const key = 'proof360_engagements';
+
+  function getAll() {
+    try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; }
+  }
+
+  function add(engagement) {
+    const all = getAll();
+    const updated = [...all.filter(e => !(e.session_id === engagement.session_id && e.vendor_id === engagement.vendor_id)), engagement];
+    localStorage.setItem(key, JSON.stringify(updated));
+  }
+
+  function forSession() {
+    return getAll().filter(e => e.session_id === sessionId);
+  }
+
+  return { add, forSession, getAll };
+}
+
+/* ─── HubSpot booking modal ──────────────────────────────────────────────── */
+function BookingModal({ vendor, gap, report, sessionId, onClose, onBooked }) {
+  const [booked, setBooked] = useState(false);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    // Load HubSpot embed script once
+    if (!document.querySelector('script[src*="MeetingsEmbedCode"]')) {
+      const s = document.createElement('script');
+      s.type = 'text/javascript';
+      s.src = 'https://static.hsappstatic.net/MeetingsEmbed/ex/MeetingsEmbedCode.js';
+      document.body.appendChild(s);
+    } else if (window.HubSpotMeetings) {
+      window.HubSpotMeetings.refresh?.();
+    }
+
+    function handleMessage(e) {
+      if (e.data?.meetingBookSucceeded) {
+        setBooked(true);
+        onBooked({ vendor, gap, status: 'meeting_booked' });
+      }
+    }
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  // Block body scroll
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
+  return (
+    <div
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9000,
+        background: 'rgba(11,37,69,0.72)',
+        backdropFilter: 'blur(6px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '24px',
+      }}
+    >
+      <div style={{
+        background: WHITE, borderRadius: 14,
+        width: '100%', maxWidth: 680,
+        maxHeight: '92vh', overflowY: 'auto',
+        boxShadow: '0 24px 80px rgba(0,0,0,0.35)',
+      }}>
+        {/* Header */}
+        <div style={{ padding: '28px 32px 0', borderBottom: `1px solid ${BORDER}`, paddingBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+            <div>
+              <p style={{ fontSize: 11, color: AMBER, fontFamily: '"Outfit", sans-serif', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>
+                {gap?.title || 'Vendor engagement'}
+              </p>
+              <h2 style={{ fontSize: 22, fontWeight: 700, color: NAVY, fontFamily: '"Outfit", sans-serif', letterSpacing: '-0.01em' }}>
+                Book a call with {vendor.display_name}
+              </h2>
+            </div>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: LIGHT, fontSize: 20, padding: 4, flexShrink: 0, marginTop: 2 }}>×</button>
+          </div>
+
+          {/* Why this vendor */}
+          <div style={{ marginTop: 16, padding: '14px 16px', background: OFFWHITE, borderRadius: 8, border: `1px solid ${BORDER}` }}>
+            <p style={{ fontSize: 13, color: TEXT, lineHeight: 1.75, fontFamily: '"Outfit", sans-serif' }}>
+              <strong style={{ color: NAVY }}>Why {vendor.display_name} for {report.company_name}:</strong>{' '}
+              {vendor.summary} Best for {vendor.best_for}.
+            </p>
+            {vendor.referral_url && (
+              <a href={vendor.referral_url} target="_blank" rel="noopener noreferrer"
+                style={{ fontSize: 12, color: AMBER, fontFamily: '"Outfit", sans-serif', fontWeight: 600, marginTop: 8, display: 'inline-block', textDecoration: 'none' }}>
+                Product overview →
+              </a>
+            )}
+          </div>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: '28px 32px' }}>
+          {booked ? (
+            <div style={{ textAlign: 'center', padding: '32px 0' }}>
+              <div style={{ fontSize: 36, marginBottom: 16 }}>✓</div>
+              <h3 style={{ fontSize: 20, fontWeight: 700, color: NAVY, fontFamily: '"Outfit", sans-serif', marginBottom: 10 }}>
+                Meeting booked
+              </h3>
+              <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.7, fontFamily: '"Outfit", sans-serif' }}>
+                Your call with {vendor.display_name} is confirmed. Check your account to track this engagement and all your other vendor conversations.
+              </p>
+              <button onClick={onClose} style={{
+                marginTop: 24, padding: '10px 24px', background: NAVY, color: WHITE,
+                border: 'none', borderRadius: 6, fontFamily: '"Outfit", sans-serif',
+                fontSize: 14, fontWeight: 600, cursor: 'pointer',
+              }}>
+                Back to report
+              </button>
+            </div>
+          ) : (
+            <>
+              <p style={{ fontSize: 13, color: MUTED, fontFamily: '"Outfit", sans-serif', marginBottom: 20, lineHeight: 1.6 }}>
+                Pick a time that works. The context from your trust assessment will be shared with the {vendor.display_name} team before the call.
+              </p>
+              <div
+                ref={containerRef}
+                className="meetings-iframe-container"
+                data-src="https://meetings.hubspot.com/john3174?embed=true"
+                style={{ minHeight: 600 }}
+              />
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Login gate modal ───────────────────────────────────────────────────── */
+function LoginGate({ vendor, onDemoLogin, onClose }) {
+  return (
+    <div
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9000,
+        background: 'rgba(11,37,69,0.72)',
+        backdropFilter: 'blur(6px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '24px',
+      }}
+    >
+      <div style={{
+        background: WHITE, borderRadius: 14,
+        width: '100%', maxWidth: 420, padding: '40px 36px',
+        boxShadow: '0 24px 80px rgba(0,0,0,0.35)',
+        textAlign: 'center',
+      }}>
+        <p style={{ fontSize: 11, color: AMBER, fontFamily: '"Outfit", sans-serif', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>
+          One more step
+        </p>
+        <h2 style={{ fontSize: 22, fontWeight: 700, color: NAVY, fontFamily: '"Outfit", sans-serif', marginBottom: 12 }}>
+          Sign in to book with {vendor.display_name}
+        </h2>
+        <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.7, fontFamily: '"Outfit", sans-serif', marginBottom: 28 }}>
+          Create a free account to book the meeting and track all your vendor engagements in one place.
+        </p>
+        <Link to="/account/login" style={{
+          display: 'block', padding: '12px 24px', background: NAVY, color: WHITE,
+          borderRadius: 7, fontFamily: '"Outfit", sans-serif', fontSize: 14,
+          fontWeight: 600, textDecoration: 'none', marginBottom: 12,
+        }}>
+          Sign in →
+        </Link>
+        <button onClick={onDemoLogin} style={{
+          background: 'none', border: 'none', cursor: 'pointer',
+          fontSize: 12, color: LIGHT, fontFamily: '"Outfit", sans-serif',
+          textDecoration: 'underline',
+        }}>
+          Continue in demo mode
+        </button>
+      </div>
+    </div>
+  );
+}
 
 /* ─── Constants ──────────────────────────────────────────────────────────── */
 const NAVY  = '#0B2545';
@@ -221,7 +405,7 @@ function VendorLogo({ vendorId, initials, size = 20 }) {
 }
 
 /* ─── Vendor section ─────────────────────────────────────────────────────── */
-function VendorSection({ vi }) {
+function VendorSection({ vi, gap, report, sessionId, onEngage, engagedVendorIds = [] }) {
   const { category_name, quadrant_axes, vendors, pick, disclosure } = vi;
   const [selected, setSelected] = useState(null);
 
@@ -353,33 +537,49 @@ function VendorSection({ vi }) {
               </div>
             ))}
           </div>
-          {activePick.referral_url ? (
-            <a
-              href={activePick.referral_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            {engagedVendorIds.includes(activeVendor?.vendor_id) ? (
+              <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6,
-                background: NAVY, color: WHITE,
+                background: '#F0FDF4', color: '#15803D',
                 fontSize: 13, fontWeight: 600,
-                padding: '9px 20px', borderRadius: 6, textDecoration: 'none',
+                padding: '9px 20px', borderRadius: 6,
+                border: '1px solid #BBF7D0',
                 fontFamily: '"Outfit", sans-serif',
-              }}
-            >
-              {activePick.cta_label} →
-            </a>
-          ) : (
-            <button style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              background: NAVY, color: WHITE,
-              fontSize: 13, fontWeight: 600,
-              padding: '9px 20px', borderRadius: 6,
-              border: 'none', cursor: 'pointer',
-              fontFamily: '"Outfit", sans-serif',
-            }}>
-              {activePick.cta_label} →
-            </button>
-          )}
+              }}>
+                ✓ Engaged
+              </span>
+            ) : (
+              <button
+                onClick={() => onEngage(activeVendor, gap)}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  background: AMBER, color: WHITE,
+                  fontSize: 13, fontWeight: 600,
+                  padding: '9px 20px', borderRadius: 6,
+                  border: 'none', cursor: 'pointer',
+                  fontFamily: '"Outfit", sans-serif',
+                  transition: 'background 0.15s',
+                }}
+              >
+                Book a meeting →
+              </button>
+            )}
+            {activePick.referral_url && (
+              <a
+                href={activePick.referral_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  fontSize: 13, color: NAVY, fontFamily: '"Outfit", sans-serif',
+                  fontWeight: 500, textDecoration: 'none',
+                  borderBottom: `1px solid ${BORDER}`, paddingBottom: 1,
+                }}
+              >
+                Product info →
+              </a>
+            )}
+          </div>
         </div>
       )}
 
@@ -401,7 +601,7 @@ function Tag({ color, bg, border, children }) {
 }
 
 /* ─── Gap section ────────────────────────────────────────────────────────── */
-function GapSection({ gap, index, trustScore }) {
+function GapSection({ gap, index, trustScore, report, sessionId, onEngage, engagedVendorIds }) {
   const [open, setOpen] = useState(index === 0);
   const sev = SEV[gap.severity] || SEV.low;
 
@@ -517,7 +717,16 @@ function GapSection({ gap, index, trustScore }) {
             </div>
           )}
 
-          {gap.vendor_intelligence && <VendorSection vi={gap.vendor_intelligence} />}
+          {gap.vendor_intelligence && (
+            <VendorSection
+              vi={gap.vendor_intelligence}
+              gap={gap}
+              report={report}
+              sessionId={sessionId}
+              onEngage={onEngage}
+              engagedVendorIds={engagedVendorIds}
+            />
+          )}
         </div>
       )}
     </div>
@@ -657,6 +866,49 @@ export default function Report() {
   const [report,  setReport]  = useState(isDemo ? demoReport : null);
   const [locked,  setLocked]  = useState(isDemo ? false : true);
   const [error,   setError]   = useState('');
+
+  // Engagement state
+  const engagements       = useEngagements(sessionId);
+  const [sessionEngaged, setSessionEngaged] = useState(() => engagements.forSession());
+  const engagedVendorIds  = sessionEngaged.map(e => e.vendor_id);
+
+  // Modal state
+  const [bookingTarget, setBookingTarget] = useState(null); // { vendor, gap }
+  const [showLoginGate, setShowLoginGate] = useState(false);
+  const founderAuth = typeof window !== 'undefined'
+    ? (() => { try { return JSON.parse(localStorage.getItem('founder_auth')); } catch { return null; } })()
+    : null;
+
+  function handleEngage(vendor, gap) {
+    if (!vendor) return;
+    setBookingTarget({ vendor, gap });
+    if (!founderAuth) {
+      setShowLoginGate(true);
+    }
+  }
+
+  function handleBooked({ vendor, gap, status }) {
+    const record = {
+      id:           `eng_${Date.now()}`,
+      session_id:   sessionId,
+      company_name: report?.company_name || 'Your company',
+      vendor_id:    vendor.vendor_id,
+      vendor_name:  vendor.display_name,
+      gap_id:       gap?.gap_id,
+      gap_title:    gap?.title,
+      status:       status || 'meeting_booked',
+      engaged_at:   new Date().toISOString(),
+    };
+    engagements.add(record);
+    setSessionEngaged(engagements.forSession());
+  }
+
+  function handleDemoLogin() {
+    // Demo bypass — write a fake founder auth and proceed
+    localStorage.setItem('founder_auth', JSON.stringify({ user: { name: 'Demo User', email: 'demo@proof360.au' }, demo: true }));
+    setShowLoginGate(false);
+    // bookingTarget stays set, modal opens
+  }
 
   useEffect(() => {
     const link = document.createElement('link');
@@ -841,6 +1093,10 @@ export default function Report() {
                 gap={locked ? { ...gap, vendor_intelligence: null } : gap}
                 index={i}
                 trustScore={report.trust_score}
+                report={report}
+                sessionId={sessionId}
+                onEngage={handleEngage}
+                engagedVendorIds={engagedVendorIds}
               />
             ))}
           </div>
@@ -891,6 +1147,27 @@ export default function Report() {
         </section>
 
       </main>
+
+      {/* ── Login gate ── */}
+      {showLoginGate && bookingTarget && (
+        <LoginGate
+          vendor={bookingTarget.vendor}
+          onDemoLogin={handleDemoLogin}
+          onClose={() => { setShowLoginGate(false); setBookingTarget(null); }}
+        />
+      )}
+
+      {/* ── Booking modal ── */}
+      {bookingTarget && !showLoginGate && (
+        <BookingModal
+          vendor={bookingTarget.vendor}
+          gap={bookingTarget.gap}
+          report={report}
+          sessionId={sessionId}
+          onClose={() => setBookingTarget(null)}
+          onBooked={handleBooked}
+        />
+      )}
     </div>
   );
 }
