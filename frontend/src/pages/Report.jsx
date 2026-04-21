@@ -978,7 +978,7 @@ export default function Report() {
   const date   = new Date(report.assessed_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
 
   return (
-    <div style={{ background: WHITE, minHeight: '100vh', fontFamily: '"Outfit", sans-serif' }}>
+    <div style={{ background: WHITE, minHeight: '100vh', fontFamily: '"Outfit", sans-serif', paddingBottom: 70 }}>
       <style>{`
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         @keyframes fadeUp {

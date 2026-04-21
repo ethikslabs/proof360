@@ -203,7 +203,7 @@ export default function FounderDashboard() {
   }, {});
 
   return (
-    <div style={{ minHeight: '100vh', background: OFFWHITE, fontFamily: '"Outfit", sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: OFFWHITE, fontFamily: '"Outfit", sans-serif', paddingBottom: 70 }}>
       <style>{`
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
