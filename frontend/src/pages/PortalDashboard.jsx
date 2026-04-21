@@ -17,6 +17,21 @@ const SEV_COLORS = {
   low:      { color: '#6b7280', bg: 'rgba(107,114,128,0.08)' },
 };
 
+// Per-tenant personalization
+const TENANT_CONTEXT = {
+  vanta:       { headline: 'Compliance Pipeline',        insight: n => `${n} ${n===1?'company':'companies'} missing SOC 2 or GRC certification — your core offering` },
+  cisco:       { headline: 'Network & Identity Pipeline', insight: n => `${n} ${n===1?'lead':'leads'} with network perimeter and MFA gaps matching your Duo and SASE catalog` },
+  okta:        { headline: 'Identity Pipeline',           insight: n => `${n} ${n===1?'company':'companies'} with MFA and identity gaps — direct match for Okta and Microsoft Entra` },
+  crowdstrike: { headline: 'Endpoint Security Pipeline',  insight: n => `${n} ${n===1?'company':'companies'} running without endpoint protection — unmanaged exposure` },
+  cloudflare:  { headline: 'Edge & Zero Trust Pipeline',  insight: n => `${n} ${n===1?'lead':'leads'} with network perimeter and zero trust gaps matching your edge catalog` },
+  aws:         { headline: 'Cloud Security Pipeline',     insight: n => `${n} ${n===1?'company':'companies'} with cloud security and infrastructure gaps` },
+  austbrokers: { headline: 'Cyber Insurance Pipeline',    insight: n => `${n} high-risk ${n===1?'company':'companies'} without cyber insurance coverage` },
+  palo_alto:   { headline: 'SASE & Firewall Pipeline',    insight: n => `${n} ${n===1?'lead':'leads'} with firewall and zero trust gaps matching your SASE platform` },
+  dicker:      { headline: 'Distributor Pipeline',        insight: n => `${n} qualified leads across your full Dicker Data catalog` },
+  ingram:      { headline: 'Distributor Pipeline',        insight: n => `${n} qualified leads across your full Ingram Micro catalog` },
+  ethikslabs:  { headline: 'Platform Admin View',         insight: n => `${n} total leads across the proof360 platform` },
+};
+
 function ScoreRing({ score, size = 44 }) {
   const r = (size - 6) / 2;
   const circ = 2 * Math.PI * r;
@@ -56,6 +71,11 @@ function LeadCard({ lead, tenant, engagement, onEngage, onClick }) {
   const status = engagement?.status || 'new';
   const isNew = status === 'new';
 
+  // Which gap titles does this partner directly address?
+  const matchedGapTitles = new Set(matchedVendors.flatMap(v => v.gaps));
+  const isDistributor = tenant?.role === 'distributor';
+  const tenantColor = tenant?.color || '#00d9b8';
+
   return (
     <div style={{
       background: isNew ? 'rgba(0,217,184,0.03)' : 'rgba(255,255,255,0.02)',
@@ -88,12 +108,16 @@ function LeadCard({ lead, tenant, engagement, onEngage, onClick }) {
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
             {lead.gaps.map(g => {
+              const isMatch = isDistributor || matchedGapTitles.has(g.title);
               const sc = SEV_COLORS[g.severity] || SEV_COLORS.low;
               return (
                 <span key={g.gap_id} style={{
                   fontSize: 10, padding: '2px 7px', borderRadius: 4,
-                  color: sc.color, background: sc.bg,
-                }}>{g.title}</span>
+                  color: isMatch ? tenantColor : 'rgba(255,255,255,0.2)',
+                  background: isMatch ? `${tenantColor}18` : 'rgba(255,255,255,0.04)',
+                  border: isMatch ? `1px solid ${tenantColor}40` : '1px solid transparent',
+                  fontWeight: isMatch ? 600 : 400,
+                }}>{g.title}{isMatch && !isDistributor ? ' ✓' : ''}</span>
               );
             })}
           </div>
@@ -263,6 +287,7 @@ export default function PortalDashboard() {
   if (!auth) return null;
 
   const tenant = TENANTS[auth.tenant];
+  const isDistributor = tenant?.role === 'distributor';
   const allLeads = filterLeadsForTenant(PORTAL_LEADS, tenant);
 
   const counts = {
@@ -387,32 +412,56 @@ export default function PortalDashboard() {
       <div style={{ flex: 1, overflow: 'auto', padding: '28px 32px' }}>
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 28 }}>
-          <div>
-            <h1 style={{
-              fontFamily: "'DM Serif Display', serif", fontSize: 24, color: '#f1f5f9',
-              marginBottom: 4, letterSpacing: '-0.01em',
-            }}>
-              Partner Intelligence
-            </h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        {(() => {
+          const ctx = TENANT_CONTEXT[auth.tenant] || {};
+          const headline = ctx.headline || 'Partner Intelligence';
+          const insightText = ctx.insight ? ctx.insight(allLeads.length) : `${allLeads.length} qualified leads`;
+          return (
+            <>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+                <div>
+                  <h1 style={{
+                    fontFamily: "'DM Serif Display', serif", fontSize: 24, color: '#f1f5f9',
+                    marginBottom: 4, letterSpacing: '-0.01em',
+                  }}>
+                    {headline}
+                  </h1>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{
+                      width: 6, height: 6, borderRadius: '50%', background: '#00d9b8',
+                      boxShadow: '0 0 8px #00d9b8', animation: 'pulseDot 2s infinite',
+                    }}/>
+                    <span style={{ fontSize: 11, color: '#00d9b8', fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '0.05em' }}>
+                      LIVE · {allLeads.length} QUALIFIED LEADS
+                    </span>
+                  </div>
+                </div>
+                <Link to="/" style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', textDecoration: 'none', paddingTop: 4 }}>
+                  ← proof360
+                </Link>
+              </div>
+
+              {/* Partner insight banner */}
               <div style={{
-                width: 6, height: 6, borderRadius: '50%', background: '#00d9b8',
-                boxShadow: '0 0 8px #00d9b8',
-                animation: 'pulseDot 2s infinite',
-              }}/>
-              <span style={{ fontSize: 11, color: '#00d9b8', fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '0.05em' }}>
-                LIVE · {allLeads.length} QUALIFIED LEADS
-              </span>
-            </div>
-          </div>
-          <Link
-            to="/"
-            style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', textDecoration: 'none', paddingTop: 4 }}
-          >
-            ← proof360
-          </Link>
-        </div>
+                background: `${tenant.color}12`,
+                border: `1px solid ${tenant.color}30`,
+                borderRadius: 10, padding: '12px 16px', marginBottom: 24,
+                display: 'flex', alignItems: 'center', gap: 10,
+              }}>
+                <div style={{
+                  width: 8, height: 8, borderRadius: '50%',
+                  background: tenant.color, flexShrink: 0, boxShadow: `0 0 8px ${tenant.color}`,
+                }}/>
+                <span style={{ fontSize: 13, color: tenant.color, fontWeight: 500 }}>{insightText}</span>
+                {!isDistributor && allLeads.length > 0 && (
+                  <span style={{ marginLeft: 'auto', fontSize: 11, color: 'rgba(255,255,255,0.3)', fontFamily: "'IBM Plex Mono', monospace" }}>
+                    avg score {Math.round(allLeads.reduce((s,l) => s + l.trust_score, 0) / allLeads.length)}/100
+                  </span>
+                )}
+              </div>
+            </>
+          );
+        })()}
 
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 24 }}>
