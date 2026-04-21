@@ -299,23 +299,33 @@ export default function PortalDashboard() {
         display: 'flex', flexDirection: 'column', padding: '24px 16px', flexShrink: 0,
         position: 'sticky', top: 0, height: '100vh',
       }}>
-        {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 28 }}>
+        {/* Logo — click to go home */}
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 28, textDecoration: 'none' }}>
           <div style={{
             width: 26, height: 26, borderRadius: 6, background: '#00d9b8',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 12, fontWeight: 700, color: '#07090f',
           }}>P</div>
           <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>proof360</span>
-        </div>
+        </Link>
 
-        {/* Tenant badge */}
-        <div style={{
-          padding: '10px 12px', borderRadius: 9, background: tenant.bg,
-          border: `1px solid ${tenant.color}30`, marginBottom: 28,
-        }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: tenant.color, marginBottom: 2 }}>{tenant.name}</div>
-          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>{tenant.tagline}</div>
+        {/* Tenant badge + switch */}
+        <div style={{ marginBottom: 28 }}>
+          <div style={{
+            padding: '10px 12px', borderRadius: 9, background: tenant.bg,
+            border: `1px solid ${tenant.color}30`, marginBottom: 6,
+          }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: tenant.color, marginBottom: 2 }}>{tenant.name}</div>
+            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>{tenant.tagline}</div>
+          </div>
+          <button onClick={logout} style={{
+            width: '100%', padding: '6px 12px', borderRadius: 7,
+            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+            color: 'rgba(255,255,255,0.4)', fontSize: 11, cursor: 'pointer',
+            fontFamily: "'DM Sans', sans-serif", textAlign: 'left',
+          }}>
+            ⇄ Switch partner
+          </button>
         </div>
 
         {/* Nav */}
