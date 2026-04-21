@@ -320,7 +320,7 @@ export default function PortalDashboard() {
 
       {/* Sidebar */}
       <div style={{
-        width: 220, background: 'rgba(255,255,255,0.02)', borderRight: '1px solid rgba(255,255,255,0.06)',
+        width: 220, background: '#0D1521', borderRight: '1px solid rgba(255,255,255,0.08)',
         display: 'flex', flexDirection: 'column', padding: '24px 16px', flexShrink: 0,
         position: 'sticky', top: 0, height: '100vh',
       }}>

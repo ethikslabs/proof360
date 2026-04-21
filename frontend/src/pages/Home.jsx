@@ -140,7 +140,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div style={{ background: '#09090B', minHeight: '100vh', color: '#F7F4F0', fontFamily: '"DM Sans", sans-serif' }}>
+    <div style={{ background: '#F5F4F0', minHeight: '100vh', color: '#0D0D0F', fontFamily: '"DM Sans", sans-serif' }}>
       <style>{`
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         ::-webkit-scrollbar { display: none; }
@@ -187,25 +187,25 @@ export default function Home() {
         .btn-ghost {
           display: inline-flex; align-items: center;
           font-family: "DM Sans", sans-serif; font-size: 13px;
-          color: #A8A29E; text-decoration: none;
+          color: #52525B; text-decoration: none;
           transition: color 0.2s;
         }
-        .btn-ghost:hover { color: #D1C9BF; }
+        .btn-ghost:hover { color: #1C1C1E; }
 
         .nav-link {
-          font-size: 13px; color: #A8A29E; text-decoration: none;
+          font-size: 13px; color: #52525B; text-decoration: none;
           transition: color 0.2s;
         }
-        .nav-link:hover { color: #F7F4F0; }
+        .nav-link:hover { color: #0D0D0F; }
 
         .portal-pill {
-          font-size: 12px; color: #A8A29E; text-decoration: none;
-          border: 1px solid #3F3F5A; padding: 5px 13px;
+          font-size: 12px; color: #52525B; text-decoration: none;
+          border: 1px solid #C8C5BC; padding: 5px 13px;
           border-radius: 20px; transition: border-color 0.2s, color 0.2s;
         }
-        .portal-pill:hover { border-color: #6B6B8A; color: #F7F4F0; }
+        .portal-pill:hover { border-color: #9CA3AF; color: #0D0D0F; }
 
-        .divider { border: none; border-top: 1px solid #141420; }
+        .divider { border: none; border-top: 1px solid #E2DFD8; }
 
         .hero-grid {
           display: grid;
@@ -234,18 +234,18 @@ export default function Home() {
         }
         .vendor-chip {
           padding: 6px 14px;
-          border: 1px solid #374151;
+          border: 1px solid #D5D2C8;
           border-radius: 20px;
-          font-size: 12px; color: #D1D5DB;
+          font-size: 12px; color: #52525B;
           letter-spacing: 0.03em;
           transition: border-color 0.2s, color 0.2s;
         }
-        .vendor-chip:hover { border-color: #6B7280; color: #F9FAFB; }
+        .vendor-chip:hover { border-color: #9CA3AF; color: #0D0D0F; }
 
         .step-number {
           font-family: "Cormorant Garamond", serif;
           font-size: 52px; font-weight: 300;
-          color: #1C1C2A; line-height: 1;
+          color: #E0DDD7; line-height: 1;
           user-select: none;
         }
 
@@ -262,8 +262,8 @@ export default function Home() {
       {/* ── Nav ───────────────────────────────────────────────────────────── */}
       <nav style={{
         position: 'sticky', top: 0, zIndex: 100,
-        borderBottom: '1px solid #111118',
-        background: 'rgba(9,9,11,0.9)',
+        borderBottom: '1px solid #E2DFD8',
+        background: 'rgba(245,244,240,0.94)',
         backdropFilter: 'blur(16px)',
       }}>
         <div style={{
@@ -275,7 +275,7 @@ export default function Home() {
           <span style={{
             fontFamily: '"Cormorant Garamond", serif',
             fontSize: 21, fontWeight: 400,
-            color: '#F7F4F0', letterSpacing: '-0.01em',
+            color: '#0C0C10', letterSpacing: '-0.01em',
           }}>
             Proof<em>360</em>
           </span>
@@ -301,7 +301,7 @@ export default function Home() {
           <div>
             <div className="anim-1" style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
-              border: '1px solid #1A1A2E', borderRadius: 20,
+              border: '1px solid rgba(0,0,0,0.12)', borderRadius: 20,
               padding: '4px 13px', marginBottom: 32,
             }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ADE80', display: 'inline-block' }} />
@@ -319,7 +319,7 @@ export default function Home() {
               fontSize: 'clamp(34px, 3.8vw, 52px)',
               fontWeight: 400, lineHeight: 1.13,
               letterSpacing: '-0.025em',
-              color: '#F7F4F0',
+              color: '#0C0C10',
               marginBottom: 22,
             }}>
               Your next enterprise deal is blocked by trust gaps you haven't found yet.
@@ -327,7 +327,7 @@ export default function Home() {
 
             <p className="anim-3" style={{
               fontSize: 16, lineHeight: 1.75,
-              color: '#A1A1AA',
+              color: '#52525B',
               marginBottom: 40, maxWidth: 430,
             }}>
               proof360 cold-reads your trust posture from your public signals. No questionnaire. No consultant. 90 seconds to a scored gap report with a clear fix order.
@@ -340,7 +340,7 @@ export default function Home() {
               <Link to="/report/demo" className="btn-ghost">
                 See an example report
               </Link>
-              <Link to="/audit/cold-read?demo=true" style={{ fontSize: 11, color: '#A1A1AA', textDecoration: 'none', fontFamily: '"IBM Plex Mono", monospace', letterSpacing: '0.04em' }}>
+              <Link to="/audit/cold-read?demo=true" style={{ fontSize: 11, color: '#71717A', textDecoration: 'none', fontFamily: '"IBM Plex Mono", monospace', letterSpacing: '0.04em' }}>
                 demo walkthrough
               </Link>
             </div>
@@ -351,7 +351,7 @@ export default function Home() {
             <TerminalPane key={termKey} runKey={termKey} />
             <p style={{
               marginTop: 10, textAlign: 'right',
-              fontSize: 11, color: '#6B7280',
+              fontSize: 11, color: '#9CA3AF',
               fontFamily: '"IBM Plex Mono", monospace',
               letterSpacing: '0.04em',
             }}>
@@ -375,10 +375,10 @@ export default function Home() {
               <div style={{
                 fontFamily: '"Cormorant Garamond", serif',
                 fontSize: 58, fontWeight: 300,
-                color: '#F7F4F0', lineHeight: 1,
+                color: '#0C0C10', lineHeight: 1,
                 marginBottom: 10,
               }}>{n}</div>
-              <div style={{ fontSize: 13, color: '#9CA3AF', lineHeight: 1.65 }}>{label}</div>
+              <div style={{ fontSize: 13, color: '#52525B', lineHeight: 1.65 }}>{label}</div>
             </div>
           ))}
         </div>
@@ -399,7 +399,7 @@ export default function Home() {
           <h2 style={{
             fontFamily: '"Cormorant Garamond", serif',
             fontSize: 'clamp(30px, 3vw, 42px)',
-            fontWeight: 400, color: '#F7F4F0',
+            fontWeight: 400, color: '#0C0C10',
             lineHeight: 1.2, maxWidth: 520,
           }}>
             Three minutes from URL to a board-ready gap report.
@@ -426,13 +426,13 @@ export default function Home() {
           ].map(({ n, title, body }) => (
             <div key={n}>
               <div className="step-number">{n}</div>
-              <div style={{ height: 1, background: '#1C1C28', margin: '14px 0 18px' }} />
+              <div style={{ height: 1, background: '#E0DDD7', margin: '14px 0 18px' }} />
               <h3 style={{
                 fontFamily: '"Cormorant Garamond", serif',
                 fontSize: 22, fontWeight: 400,
-                color: '#F7F4F0', marginBottom: 12,
+                color: '#0C0C10', marginBottom: 12,
               }}>{title}</h3>
-              <p style={{ fontSize: 14, color: '#9CA3AF', lineHeight: 1.75 }}>{body}</p>
+              <p style={{ fontSize: 14, color: '#52525B', lineHeight: 1.75 }}>{body}</p>
             </div>
           ))}
         </div>
@@ -454,12 +454,12 @@ export default function Home() {
             <h2 style={{
               fontFamily: '"Cormorant Garamond", serif',
               fontSize: 'clamp(28px, 3vw, 40px)',
-              fontWeight: 400, color: '#F7F4F0',
+              fontWeight: 400, color: '#0C0C10',
               lineHeight: 1.2, marginBottom: 18,
             }}>
               We know exactly what closes it — and how to get it.
             </h2>
-            <p style={{ fontSize: 14, color: '#9CA3AF', lineHeight: 1.75, marginBottom: 32, maxWidth: 400 }}>
+            <p style={{ fontSize: 14, color: '#52525B', lineHeight: 1.75, marginBottom: 32, maxWidth: 400 }}>
               Every vendor recommendation is matched to a specific gap in your posture, cross-referenced against VERITAS provenance. Not a commission push. A verified path.
             </p>
             <Link to="/audit" className="btn-primary">Start your audit →</Link>
@@ -493,12 +493,12 @@ export default function Home() {
           fontFamily: '"Cormorant Garamond", serif',
           fontSize: 'clamp(32px, 4vw, 54px)',
           fontWeight: 300, fontStyle: 'italic',
-          color: '#F7F4F0', lineHeight: 1.18,
+          color: '#0C0C10', lineHeight: 1.18,
           marginBottom: 20,
         }}>
           Your trust posture is either an asset<br />or a blocker.
         </h2>
-        <p style={{ fontSize: 15, color: '#9CA3AF', marginBottom: 40 }}>
+        <p style={{ fontSize: 15, color: '#52525B', marginBottom: 40 }}>
           Find out which. 90 seconds. No account required to start.
         </p>
         <Link to="/audit" className="btn-primary" style={{ fontSize: 15, padding: '16px 36px' }}>
@@ -508,7 +508,7 @@ export default function Home() {
 
       {/* ── Footer ────────────────────────────────────────────────────────── */}
       <footer style={{
-        borderTop: '1px solid #111118',
+        borderTop: '1px solid #E2DFD8',
         padding: '22px 24px',
         maxWidth: 1100, margin: '0 auto',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -516,15 +516,15 @@ export default function Home() {
       }}>
         <span style={{
           fontFamily: '"Cormorant Garamond", serif',
-          fontSize: 17, color: '#6B7280',
+          fontSize: 17, color: '#9CA3AF',
         }}>
           Proof<em>360</em>
         </span>
         <div style={{ display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
-          <Link to="/portal" style={{ fontSize: 12, color: '#6B7280', textDecoration: 'none' }}>Partner portal</Link>
-          <Link to="/report/demo" style={{ fontSize: 12, color: '#6B7280', textDecoration: 'none' }}>Example report</Link>
+          <Link to="/portal" style={{ fontSize: 12, color: '#9CA3AF', textDecoration: 'none' }}>Partner portal</Link>
+          <Link to="/report/demo" style={{ fontSize: 12, color: '#9CA3AF', textDecoration: 'none' }}>Example report</Link>
           <span style={{
-            fontSize: 11, color: '#1C1C28',
+            fontSize: 11, color: '#D5D2C8',
             fontFamily: '"IBM Plex Mono", monospace',
           }}>
             Powered by VERITAS
