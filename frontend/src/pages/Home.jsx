@@ -340,9 +340,6 @@ export default function Home() {
               <Link to="/report/demo" className="btn-ghost">
                 See an example report
               </Link>
-              <Link to="/audit/cold-read?demo=true" style={{ fontSize: 11, color: '#71717A', textDecoration: 'none', fontFamily: '"IBM Plex Mono", monospace', letterSpacing: '0.04em' }}>
-                demo walkthrough
-              </Link>
             </div>
           </div>
 

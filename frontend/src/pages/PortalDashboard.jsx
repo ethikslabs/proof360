@@ -399,7 +399,7 @@ export default function PortalDashboard() {
         {/* User */}
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 16 }}>
           <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {auth.user.email}
+            {auth.tenant === 'ethikslabs' ? 'alfred@ethikslabs.com' : auth.user.email}
           </div>
           <button onClick={logout} style={{
             fontSize: 11, color: 'rgba(255,255,255,0.45)', background: 'none', border: 'none',

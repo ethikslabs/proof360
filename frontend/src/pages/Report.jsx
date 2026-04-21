@@ -208,7 +208,7 @@ const SEV = {
 
 function scoreLabel(s) {
   if (s >= 80) return 'Strong trust posture';
-  if (s >= 60) return 'Developing — gaps present';
+  if (s >= 60) return 'Gaps present — fix order below';
   if (s >= 40) return 'Significant gaps';
   return 'Needs immediate attention';
 }
