@@ -220,3 +220,122 @@ function logSummary(p) {
   const fail  = sources.filter(s => p[s]?.error).length;
   console.log(`[recon] Complete — ${ok} ok, ${skip} skipped, ${fail} failed | domain: ${p.domain}`);
 }
+
+// ── Recon SSE line formatter ────────────────────────────────────────────────
+// Used by onSourceComplete callback to format each source result into
+// a right-pane terminal line before emitting over SSE.
+
+function tag(source) {
+  // Right-pad the [source] label to column 12 so text aligns across all sources.
+  // [abuseipdb] is exactly 11 chars — gets 1 space. Shorter sources get more.
+  return `[${source}]`.padEnd(12);
+}
+
+export function formatReconLine(source, result) {
+  // Error / skipped guards — applies to all sources
+  if (!result || result.error) {
+    return { type: 'recon', source, text: `${tag(source)}error · skipped`,   color: 'muted' };
+  }
+  if (result.skipped) {
+    return { type: 'recon', source, text: `${tag(source)}skipped · no key`,  color: 'muted' };
+  }
+
+  switch (source) {
+    case 'dns': {
+      const p = result.dmarc_policy;
+      if (!p || p === 'missing' || p === 'none') {
+        return { type: 'recon', source, text: `${tag(source)}DMARC not enforced · spoofing risk`, color: 'err' };
+      }
+      return { type: 'recon', source, text: `${tag(source)}DMARC enforced · SPF ${result.spf_policy || 'present'}`, color: 'ok' };
+    }
+
+    case 'http': {
+      const score = result.security_headers_score ?? 0;
+      if (score >= 5) {
+        return { type: 'recon', source, text: `${tag(source)}${score}/6 headers set`, color: 'ok' };
+      }
+      const missing = !result.has_csp ? 'CSP missing' : 'HSTS missing';
+      return { type: 'recon', source, text: `${tag(source)}${score}/6 headers · ${missing}`, color: 'err' };
+    }
+
+    case 'certs': {
+      const count   = result.subdomain_count ?? 0;
+      const exposed = result.exposed_sensitive_subdomains?.length ?? 0;
+      if (exposed > 0) {
+        return { type: 'recon', source, text: `${tag(source)}${count} subdomains · ${exposed} staging exposed`, color: 'query' };
+      }
+      return { type: 'recon', source, text: `${tag(source)}${count} subdomains · none exposed`, color: 'ok' };
+    }
+
+    case 'ip': {
+      const provider = result.cloud_provider || result.hosting_provider || 'unknown';
+      const country  = result.hosting_country ? ` · ${result.hosting_country}` : '';
+      return { type: 'recon', source, text: `${tag(source)}${provider}${country} · clean`, color: 'ok' };
+    }
+
+    case 'github': {
+      if (!result.found) {
+        return { type: 'recon', source, text: `${tag(source)}no org found`, color: 'muted' };
+      }
+      if (!result.has_security_policy) {
+        return { type: 'recon', source, text: `${tag(source)}no security policy`, color: 'err' };
+      }
+      return { type: 'recon', source, text: `${tag(source)}org found · security policy set`, color: 'ok' };
+    }
+
+    case 'jobs': {
+      if (!result.found) {
+        return { type: 'recon', source, text: `${tag(source)}no careers page found`, color: 'muted' };
+      }
+      if (result.security_hire_signal || result.compliance_hire_signal) {
+        return { type: 'recon', source, text: `${tag(source)}active security hiring detected`, color: 'query' };
+      }
+      return { type: 'recon', source, text: `${tag(source)}no security hiring signals`, color: 'ok' };
+    }
+
+    case 'hibp': {
+      const count = result.breach_count ?? 0;
+      if (count === 0 && !result.domain_in_breach) {
+        return { type: 'recon', source, text: `${tag(source)}no breaches on record`, color: 'ok' };
+      }
+      return { type: 'recon', source, text: `${tag(source)}${count} breach${count !== 1 ? 'es' : ''} on record`, color: 'err' };
+    }
+
+    case 'ports': {
+      const risky = result.risky_port_count ?? 0;
+      if (risky === 0) {
+        return { type: 'recon', source, text: `${tag(source)}no risky ports exposed`, color: 'ok' };
+      }
+      const notable = (result.open_ports || [])
+        .filter(p => p.risk === 'critical' || p.risk === 'high')
+        .map(p => p.port)
+        .slice(0, 2)
+        .join(' · ');
+      return { type: 'recon', source, text: `${tag(source)}${notable || `${risky} risky`} exposed`, color: 'err' };
+    }
+
+    case 'ssllabs': {
+      const grade = result.ssl_grade || '?';
+      const proto = (result.protocols || []).includes('TLS1.3') ? 'TLS 1.3' : 'TLS 1.2';
+      if (result.has_old_tls) {
+        return { type: 'recon', source, text: `${tag(source)}grade ${grade} · TLS 1.0 enabled`, color: 'err' };
+      }
+      if (['A+', 'A', 'A-'].includes(grade)) {
+        return { type: 'recon', source, text: `${tag(source)}grade ${grade} · ${proto}`, color: 'ok' };
+      }
+      return { type: 'recon', source, text: `${tag(source)}grade ${grade} · review needed`, color: 'err' };
+    }
+
+    case 'abuseipdb': {
+      const score   = result.abuse_confidence_score ?? 0;
+      const reports = result.total_reports ?? 0;
+      if (score >= 25) {
+        return { type: 'recon', source, text: `${tag(source)}score ${score}% · ${reports} reports`, color: 'err' };
+      }
+      return { type: 'recon', source, text: `${tag(source)}IP clean · ${reports} reports`, color: 'ok' };
+    }
+
+    default:
+      return { type: 'recon', source, text: `${tag(source)}done`, color: 'ok' };
+  }
+}
