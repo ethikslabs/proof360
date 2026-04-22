@@ -7,10 +7,11 @@
     "dev": "node --env-file=.env --watch src/server.js"
   },
   "dependencies": {
-    "fastify": "^5.3.3",
+    "@anthropic-ai/sdk": "^0.39.0",
     "@fastify/cors": "^11.0.1",
-    "uuid": "^11.1.0",
     "@mendable/firecrawl-js": "^1.23.0",
-    "@anthropic-ai/sdk": "^0.39.0"
+    "fastify": "^5.3.3",
+    "openai": "^6.34.0",
+    "uuid": "^11.1.0"
   }
 }
