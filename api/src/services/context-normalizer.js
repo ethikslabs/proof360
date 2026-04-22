@@ -2,6 +2,8 @@
 // into a single NormalizedContext object for gap analysis.
 // Corrections override inferred values. Follow-up answers are normalised to internal enums.
 
+import { extractReconContext } from './recon-pipeline.js';
+
 export function normalizeContext(session, corrections = {}, followup_answers = {}) {
   const context = {};
 
@@ -28,6 +30,19 @@ export function normalizeContext(session, corrections = {}, followup_answers = {
       (i) => i.inference_id === 'inf_compliance'
     );
     if (preSOC2) context.compliance_status = 'none';
+  }
+
+  // Pass through sector signals from raw extraction — these inform industry-specific gaps
+  for (const sig of session.raw_signals || []) {
+    if (['sector', 'geo_market', 'handles_payments', 'data_sensitivity', 'stage', 'infrastructure', 'customer_type'].includes(sig.type)) {
+      if (!context[sig.type]) context[sig.type] = sig.value;
+    }
+  }
+
+  // Merge full passive recon context — facts from the pipeline, never overridden by inferences
+  if (session.recon_context) {
+    const reconCtx = extractReconContext(session.recon_context);
+    Object.assign(context, reconCtx);
   }
 
   return context;

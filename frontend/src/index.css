@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --p360-red:   #A64640;
+  --p360-amber: #C7922E;
+  --p360-green: #3D9B5A;
+  --p360-tick:  #46B561;
+}
+
 body {
   margin: 0;
   font-family: 'DM Sans', sans-serif;

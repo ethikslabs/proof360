@@ -33,6 +33,8 @@ export function buildVendorIntelligence(gap, context) {
       best_for: v.best_for,
       summary: v.summary,
       referral_url: v.is_partner ? v.referral_url : null,
+      marketplace_aws: v.marketplace_aws || false,
+      aws_native: v.aws_native || false,
     };
   });
 
@@ -58,6 +60,11 @@ function gapToCategory(gapId) {
     soc2:               { name: 'GRC & compliance automation' },
     incident_response:  { name: 'GRC & compliance automation' },
     compliance:         { name: 'GRC & compliance automation' },
+    pci_dss:            { name: 'GRC & compliance automation' },
+    hipaa_security:     { name: 'GRC & compliance automation' },
+    apra_prudential:    { name: 'GRC & compliance automation' },
+    essential_eight:    { name: 'GRC & compliance automation' },
+    founder_trust:      { name: 'Founder trust' },
     mfa:                { name: 'Identity & IAM' },
     sso:                { name: 'Identity & IAM' },
     identity:           { name: 'Identity & IAM' },
@@ -67,6 +74,10 @@ function gapToCategory(gapId) {
     firewall:           { name: 'Network security' },
     zero_trust:         { name: 'Network security' },
     waf:                { name: 'Network security' },
+    dmarc:              { name: 'Network security' },
+    spf:                { name: 'Network security' },
+    security_headers:   { name: 'Network security' },
+    tls_configuration:  { name: 'Network security' },
     backup:             { name: 'Data resilience' },
     recovery:           { name: 'Data resilience' },
     data_resilience:    { name: 'Data resilience' },
@@ -77,7 +88,16 @@ function gapToCategory(gapId) {
 }
 
 function selectPick(vendors, gap, context) {
-  // Prefer partner vendors, then by best_for match
+  const isAWS = context.cloud_provider === 'AWS';
+
+  if (isAWS) {
+    // On AWS: native tools first, then Marketplace-listed partners, then any partner
+    const awsNative = vendors.filter((v) => v.aws_native);
+    if (awsNative.length > 0) return awsNative[0];
+    const marketplacePartners = vendors.filter((v) => v.is_partner && v.marketplace_aws);
+    if (marketplacePartners.length > 0) return marketplacePartners[0];
+  }
+
   const partners = vendors.filter((v) => v.is_partner);
   if (partners.length > 0) return partners[0];
   return vendors[0];
@@ -91,23 +111,56 @@ function buildPickCard(vendor, gap, context) {
     ? ` · ${context.infrastructure} stack`
     : '';
 
+  // Detect if they already use this vendor — recon-confirmed, not inferred
+  const alreadyUsing = isVendorAlreadyInUse(vendor, context);
+  const awsMarketplace = !alreadyUsing && context.cloud_provider === 'AWS' && vendor.marketplace_aws;
+  const awsNative = vendor.aws_native || false;
+  const marketplaceLabel = awsMarketplace ? ' · AWS Marketplace' : '';
+  const activateNote = awsNative
+    ? 'Included in AWS — no additional license cost.'
+    : awsMarketplace
+      ? 'Available on AWS Marketplace — purchase against your AWS commitment or AWS Activate credits.'
+      : null;
+
   return {
     vendor_id: vendor.id,
-    stage_context: stageContext + infraContext,
+    stage_context: stageContext + infraContext + marketplaceLabel,
+    marketplace_aws: awsMarketplace || false,
+    activate_note: activateNote,
     recommendation_headline: vendor.display_name,
-    recommendation_body: generateRecommendation(vendor, gap),
+    recommendation_body: alreadyUsing
+      ? generateAlreadyUsingRec(vendor, gap)
+      : generateRecommendation(vendor, gap),
+    already_using: alreadyUsing,
     meta: {
       time_to_close: vendor.timeline,
       covers: vendor.closes.join(', ').toUpperCase().replace(/_/g, ' '),
       best_for: vendor.best_for,
       what_wed_do_differently: 'Start evidence collection earlier',
     },
-    cta_label: `Start with ${vendor.display_name}`,
-    deal_label: vendor.deal_label
+    cta_label: alreadyUsing ? `Configure in ${vendor.display_name}` : `Start with ${vendor.display_name}`,
+    deal_label: !alreadyUsing && vendor.deal_label
       ? `${vendor.deal_label} through Proof360`
       : null,
-    referral_url: vendor.is_partner ? vendor.referral_url : null,
+    referral_url: !alreadyUsing && vendor.is_partner ? vendor.referral_url : null,
   };
+}
+
+function isVendorAlreadyInUse(vendor, context) {
+  if (vendor.id === 'cloudflare') {
+    return !!(context.cdn_provider === 'Cloudflare' || context.waf_detected?.includes('Cloudflare'));
+  }
+  if (vendor.id === 'aws') {
+    return context.cloud_provider === 'AWS';
+  }
+  return false;
+}
+
+function generateAlreadyUsingRec(vendor, gap) {
+  const recs = {
+    cloudflare: `You're already on Cloudflare — this gap is a configuration issue, not a product decision. The fix is in your Cloudflare dashboard, not a new signup.`,
+  };
+  return recs[vendor.id] || `You already use ${vendor.display_name}. This gap can be closed through your existing account — no new product needed.`;
 }
 
 function generateRecommendation(vendor, gap) {

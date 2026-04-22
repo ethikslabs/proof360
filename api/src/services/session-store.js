@@ -129,6 +129,18 @@ export function checkStaleSessions() {
   }
 }
 
+// Real-time log for SSE streaming — appended by signal-extractor during pipeline
+export function appendLog(id, line) {
+  const session = sessions.get(id);
+  if (!session) return;
+  if (!session._log) session._log = [];
+  session._log.push(line);
+}
+
+export function getLogs(id) {
+  return sessions.get(id)?._log || [];
+}
+
 // Expose for testing
 export function _getSessionsMap() {
   return sessions;

@@ -1,4 +1,11 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return null;
+}
 import Home from './pages/Home';
 import Audit from './pages/Audit';
 import AuditReading from './pages/AuditReading';
@@ -14,6 +21,7 @@ import FounderDashboard from './pages/FounderDashboard';
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/audit" element={<Audit />} />

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
+import { Proof360Mark } from '../components/Proof360Mark';
 
 /* ─── Terminal sequence ──────────────────────────────────────────────────── */
 const TERMINAL_SEQUENCE = [
@@ -140,7 +141,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div style={{ background: '#F5F4F0', minHeight: '100vh', color: '#0D0D0F', fontFamily: '"DM Sans", sans-serif' }}>
+    <div style={{ background: '#FFFFFF', minHeight: '100vh', color: '#0D0D0F', fontFamily: '"DM Sans", sans-serif' }}>
       <style>{`
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         ::-webkit-scrollbar { display: none; }
@@ -187,23 +188,23 @@ export default function Home() {
         .btn-ghost {
           display: inline-flex; align-items: center;
           font-family: "DM Sans", sans-serif; font-size: 13px;
-          color: #52525B; text-decoration: none;
+          color: rgba(255,255,255,0.55); text-decoration: none;
           transition: color 0.2s;
         }
-        .btn-ghost:hover { color: #1C1C1E; }
+        .btn-ghost:hover { color: rgba(255,255,255,0.9); }
 
         .nav-link {
-          font-size: 13px; color: #52525B; text-decoration: none;
+          font-size: 13px; color: rgba(255,255,255,0.6); text-decoration: none;
           transition: color 0.2s;
         }
-        .nav-link:hover { color: #0D0D0F; }
+        .nav-link:hover { color: #FFFFFF; }
 
         .portal-pill {
-          font-size: 12px; color: #52525B; text-decoration: none;
-          border: 1px solid #C8C5BC; padding: 5px 13px;
+          font-size: 12px; color: rgba(255,255,255,0.65); text-decoration: none;
+          border: 1px solid rgba(255,255,255,0.2); padding: 5px 13px;
           border-radius: 20px; transition: border-color 0.2s, color 0.2s;
         }
-        .portal-pill:hover { border-color: #9CA3AF; color: #0D0D0F; }
+        .portal-pill:hover { border-color: rgba(255,255,255,0.45); color: #FFFFFF; }
 
         .divider { border: none; border-top: 1px solid #E2DFD8; }
 
@@ -242,11 +243,12 @@ export default function Home() {
         }
         .vendor-chip:hover { border-color: #9CA3AF; color: #0D0D0F; }
 
+        /* serif alt: .step-number { font-family: "Cormorant Garamond", serif; font-size: 52px; font-weight: 300; } */
         .step-number {
-          font-family: "Cormorant Garamond", serif;
-          font-size: 52px; font-weight: 300;
-          color: #E0DDD7; line-height: 1;
-          user-select: none;
+          font-family: "IBM Plex Mono", monospace;
+          font-size: 36px; font-weight: 300;
+          color: #D0CCC4; line-height: 1;
+          user-select: none; letter-spacing: -0.02em;
         }
 
         @media (max-width: 860px) {
@@ -262,8 +264,8 @@ export default function Home() {
       {/* ── Nav ───────────────────────────────────────────────────────────── */}
       <nav style={{
         position: 'sticky', top: 0, zIndex: 100,
-        borderBottom: '1px solid #E2DFD8',
-        background: 'rgba(245,244,240,0.94)',
+        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        background: 'rgba(10,22,40,0.97)',
         backdropFilter: 'blur(16px)',
       }}>
         <div style={{
@@ -272,91 +274,126 @@ export default function Home() {
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           height: 56,
         }}>
-          <span style={{
-            fontFamily: '"Cormorant Garamond", serif',
-            fontSize: 21, fontWeight: 400,
-            color: '#0C0C10', letterSpacing: '-0.01em',
-          }}>
-            Proof<em>360</em>
-          </span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-            {founderAuth
-              ? <Link to="/account" className="nav-link">My account</Link>
-              : <Link to="/account/login" className="nav-link">Sign in</Link>
-            }
-            <Link to="/portal" className="portal-pill">Partner portal →</Link>
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
+            <Proof360Mark size={28} />
+            <span style={{
+              fontFamily: '"DM Sans", sans-serif',
+              fontSize: 19, fontWeight: 700,
+              color: '#FFFFFF', letterSpacing: '-0.02em',
+            }}>
+              Proof<span style={{ color: '#E07B39' }}>360</span>
+            </span>
+          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+            {founderAuth ? (() => {
+              const name = founderAuth.user?.name || '';
+              const email = founderAuth.user?.email || '';
+              const parts = name.trim().split(/\s+/);
+              const initials = parts.length >= 2
+                ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+                : (parts[0]?.[0] || email[0] || '?').toUpperCase();
+              const firstName = parts[0] || email.split('@')[0] || 'Account';
+              const pic = founderAuth.user?.picture;
+              return (
+                <Link to="/account" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {pic
+                    ? <img src={pic} alt={initials} style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.15)' }} />
+                    : <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#E07B39', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: '0.03em' }}>{initials}</div>
+                  }
+                  <span style={{ fontSize: 13, fontWeight: 500, color: '#FFFFFF' }}>{firstName}</span>
+                </Link>
+              );
+            })() : (
+              <Link to="/account/login" style={{
+                fontSize: 13, color: 'rgba(255,255,255,0.7)', textDecoration: 'none',
+                border: '1px solid rgba(255,255,255,0.2)', padding: '5px 14px',
+                borderRadius: 6, transition: 'border-color 0.2s, color 0.2s',
+              }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)'; e.currentTarget.style.color = '#fff'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; }}
+              >Sign in</Link>
+            )}
+            <Link to="/portal" style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', textDecoration: 'none', letterSpacing: '0.02em' }}>Partner portal</Link>
           </div>
         </div>
       </nav>
 
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
-      <section style={{
-        maxWidth: 1100, margin: '0 auto',
-        padding: '88px 24px 96px',
-        minHeight: 'calc(100vh - 56px)',
-        display: 'flex', alignItems: 'center',
-      }}>
-        <div className="hero-grid" style={{ width: '100%' }}>
-          {/* Left */}
-          <div>
-            <div className="anim-1" style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              border: '1px solid rgba(0,0,0,0.12)', borderRadius: 20,
-              padding: '4px 13px', marginBottom: 32,
-            }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ADE80', display: 'inline-block' }} />
-              <span style={{
-                fontSize: 11, color: '#9CA3AF',
-                fontFamily: '"IBM Plex Mono", monospace',
-                letterSpacing: '0.07em',
+      <div style={{ background: '#0A1628' }}>
+        <section style={{
+          maxWidth: 1100, margin: '0 auto',
+          padding: '64px 24px 72px',
+          display: 'flex', alignItems: 'center',
+        }}>
+          <div className="hero-grid" style={{ width: '100%' }}>
+            {/* Left */}
+            <div>
+              <div className="anim-1" style={{
+                display: 'inline-flex', alignItems: 'center', gap: 12,
+                marginBottom: 32,
               }}>
-                VERITAS — live trust intelligence
-              </span>
+                <Proof360Mark variant="hero" size={52} />
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  border: '1px solid rgba(255,255,255,0.12)', borderRadius: 20,
+                  padding: '5px 14px',
+                }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ADE80', display: 'inline-block' }} />
+                  <span style={{
+                    fontSize: 11, color: 'rgba(255,255,255,0.45)',
+                    fontFamily: '"IBM Plex Mono", monospace',
+                    letterSpacing: '0.07em',
+                  }}>
+                    VERITAS — live trust intelligence
+                  </span>
+                </div>
+              </div>
+
+              <h1 className="anim-2" style={{
+                /* serif alt: fontFamily: '"Cormorant Garamond", serif', fontWeight: 400, letterSpacing: '-0.025em' */
+                fontFamily: '"DM Sans", sans-serif',
+                fontSize: 'clamp(30px, 3.5vw, 48px)',
+                fontWeight: 700, lineHeight: 1.1,
+                letterSpacing: '-0.03em',
+                color: '#FFFFFF',
+                marginBottom: 22,
+              }}>
+                Your next enterprise deal is blocked by trust gaps you haven't found yet.
+              </h1>
+
+              <p className="anim-3" style={{
+                fontSize: 16, lineHeight: 1.75,
+                color: 'rgba(255,255,255,0.6)',
+                marginBottom: 40, maxWidth: 430,
+              }}>
+                proof360 cold-reads your trust posture from your public signals. No questionnaire. No consultant. 90 seconds to a scored gap report with a clear fix order.
+              </p>
+
+              <div className="anim-4" style={{ display: 'flex', alignItems: 'center', gap: 22, flexWrap: 'wrap' }}>
+                <Link to="/audit" className="btn-primary">
+                  Run your trust audit →
+                </Link>
+                <Link to="/report/demo" className="btn-ghost">
+                  See an example report
+                </Link>
+              </div>
             </div>
 
-            <h1 className="anim-2" style={{
-              fontFamily: '"Cormorant Garamond", serif',
-              fontSize: 'clamp(34px, 3.8vw, 52px)',
-              fontWeight: 400, lineHeight: 1.13,
-              letterSpacing: '-0.025em',
-              color: '#0C0C10',
-              marginBottom: 22,
-            }}>
-              Your next enterprise deal is blocked by trust gaps you haven't found yet.
-            </h1>
-
-            <p className="anim-3" style={{
-              fontSize: 16, lineHeight: 1.75,
-              color: '#52525B',
-              marginBottom: 40, maxWidth: 430,
-            }}>
-              proof360 cold-reads your trust posture from your public signals. No questionnaire. No consultant. 90 seconds to a scored gap report with a clear fix order.
-            </p>
-
-            <div className="anim-4" style={{ display: 'flex', alignItems: 'center', gap: 22, flexWrap: 'wrap' }}>
-              <Link to="/audit" className="btn-primary">
-                Run your trust audit →
-              </Link>
-              <Link to="/report/demo" className="btn-ghost">
-                See an example report
-              </Link>
+            {/* Right — terminal */}
+            <div className="anim-5">
+              <TerminalPane key={termKey} runKey={termKey} />
+              <p style={{
+                marginTop: 10, textAlign: 'right',
+                fontSize: 11, color: 'rgba(255,255,255,0.3)',
+                fontFamily: '"IBM Plex Mono", monospace',
+                letterSpacing: '0.04em',
+              }}>
+                provenance-backed · not guessed
+              </p>
             </div>
           </div>
-
-          {/* Right — terminal */}
-          <div className="anim-5">
-            <TerminalPane key={termKey} runKey={termKey} />
-            <p style={{
-              marginTop: 10, textAlign: 'right',
-              fontSize: 11, color: '#9CA3AF',
-              fontFamily: '"IBM Plex Mono", monospace',
-              letterSpacing: '0.04em',
-            }}>
-              provenance-backed · not guessed
-            </p>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
       <hr className="divider" />
 
@@ -369,9 +406,10 @@ export default function Home() {
             { n: '100%', label: 'Cold read — no login required to start'    },
           ].map(({ n, label }) => (
             <div key={n}>
+              {/* serif alt: fontFamily: '"Cormorant Garamond", serif', fontWeight: 300, fontSize: 58 */}
               <div style={{
-                fontFamily: '"Cormorant Garamond", serif',
-                fontSize: 58, fontWeight: 300,
+                fontFamily: '"IBM Plex Mono", monospace',
+                fontSize: 48, fontWeight: 400,
                 color: '#0C0C10', lineHeight: 1,
                 marginBottom: 10,
               }}>{n}</div>
@@ -393,11 +431,12 @@ export default function Home() {
           }}>
             HOW IT WORKS
           </p>
+          {/* serif alt: fontFamily: '"Cormorant Garamond", serif', fontWeight: 400 */}
           <h2 style={{
-            fontFamily: '"Cormorant Garamond", serif',
-            fontSize: 'clamp(30px, 3vw, 42px)',
-            fontWeight: 400, color: '#0C0C10',
-            lineHeight: 1.2, maxWidth: 520,
+            fontFamily: '"DM Sans", sans-serif',
+            fontSize: 'clamp(26px, 2.8vw, 38px)',
+            fontWeight: 700, color: '#0C0C10',
+            lineHeight: 1.15, letterSpacing: '-0.025em', maxWidth: 520,
           }}>
             Three minutes from URL to a board-ready gap report.
           </h2>
@@ -424,10 +463,12 @@ export default function Home() {
             <div key={n}>
               <div className="step-number">{n}</div>
               <div style={{ height: 1, background: '#E0DDD7', margin: '14px 0 18px' }} />
+              {/* serif alt: fontFamily: '"Cormorant Garamond", serif', fontWeight: 400, fontSize: 22 */}
               <h3 style={{
-                fontFamily: '"Cormorant Garamond", serif',
-                fontSize: 22, fontWeight: 400,
+                fontFamily: '"DM Sans", sans-serif',
+                fontSize: 17, fontWeight: 600,
                 color: '#0C0C10', marginBottom: 12,
+                letterSpacing: '-0.01em',
               }}>{title}</h3>
               <p style={{ fontSize: 14, color: '#52525B', lineHeight: 1.75 }}>{body}</p>
             </div>
@@ -448,11 +489,12 @@ export default function Home() {
             }}>
               WHEN WE FIND A GAP
             </p>
+            {/* serif alt: fontFamily: '"Cormorant Garamond", serif', fontWeight: 400 */}
             <h2 style={{
-              fontFamily: '"Cormorant Garamond", serif',
-              fontSize: 'clamp(28px, 3vw, 40px)',
-              fontWeight: 400, color: '#0C0C10',
-              lineHeight: 1.2, marginBottom: 18,
+              fontFamily: '"DM Sans", sans-serif',
+              fontSize: 'clamp(24px, 2.8vw, 36px)',
+              fontWeight: 700, color: '#0C0C10',
+              lineHeight: 1.15, letterSpacing: '-0.025em', marginBottom: 18,
             }}>
               We know exactly what closes it — and how to get it.
             </h2>
@@ -462,13 +504,41 @@ export default function Home() {
             <Link to="/audit" className="btn-primary">Start your audit →</Link>
           </div>
           <div>
-            <div className="vendor-chips">
-              {['Cloudflare', 'Vanta', 'Cisco', 'AWS', 'Apollo Secure', 'Dicker Data', 'Okta', 'Ingram Micro', 'CyberPro'].map(v => (
-                <span key={v} className="vendor-chip">{v}</span>
+            {/* Certified partner badges — real marks, not name-drops */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 28, alignItems: 'center', marginBottom: 28 }}>
+              {[
+                { href: 'https://www.vanta.com', alt: 'Vanta Partner', src: '/logos/vanta-partner.svg', style: { height: 80, width: 80, borderRadius: '50%' } },
+                { href: 'https://aws.amazon.com/partners/', alt: 'AWS Partner', src: '/logos/aws-partner.png', style: { height: 80, width: 'auto' } },
+                { href: 'https://www.cloudflare.com', alt: 'Cloudflare', src: '/logos/cloudflare.png', style: { height: 44, width: 'auto' } },
+                { href: 'https://www.cisco.com', alt: 'Cisco', src: '/logos/cisco.svg', style: { height: 44, width: 'auto' } },
+                { href: 'https://abcyberpro.com.au', alt: 'Austbrokers Cyber Pro', src: '/logos/cyberpro.png', style: { height: 44, width: 'auto' } },
+                { href: 'https://www.paloaltonetworks.com', alt: 'Palo Alto Networks', src: '/logos/paloalto.svg', style: { height: 36, width: 'auto' } },
+                { href: 'https://www.okta.com', alt: 'Okta', src: '/logos/okta.svg', style: { height: 36, width: 'auto' } },
+                { href: 'https://www.wholesaleinvestor.com', alt: 'Wholesale Investor', src: '/logos/wholesale-investor.webp', style: { height: 40, width: 'auto' } },
+              ].map(({ href, alt, src, style }) => (
+                <a key={alt} href={href} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', opacity: 0.9, transition: 'opacity 0.2s' }}
+                  onMouseEnter={e => e.currentTarget.style.opacity = 1}
+                  onMouseLeave={e => e.currentTarget.style.opacity = 0.9}
+                >
+                  <img src={src} alt={alt} style={style} />
+                </a>
               ))}
+              <a href="https://arcticwolf.com" target="_blank" rel="noopener noreferrer"
+                style={{ display: 'flex', alignItems: 'center', opacity: 0.9, transition: 'opacity 0.2s' }}
+                onMouseEnter={e => e.currentTarget.style.opacity = 1}
+                onMouseLeave={e => e.currentTarget.style.opacity = 0.9}
+              >
+                <div style={{ background: '#1a2b3c', borderRadius: 8, padding: '8px 16px', display: 'flex', alignItems: 'center' }}>
+                  <img src="/logos/arcticwolf.png" alt="Arctic Wolf" style={{ height: 32, width: 'auto' }} />
+                </div>
+              </a>
+            </div>
+
+            {/* Vendors without certified badge yet — chips until mark is available */}
+            <div className="vendor-chips">
             </div>
             <p style={{
-              marginTop: 20, fontSize: 11,
+              marginTop: 16, fontSize: 11,
               color: '#6B7280',
               fontFamily: '"IBM Plex Mono", monospace',
             }}>
@@ -486,11 +556,13 @@ export default function Home() {
         padding: '100px 24px 120px',
         textAlign: 'center',
       }}>
+        {/* serif alt: fontFamily: '"Cormorant Garamond", serif', fontWeight: 300, fontStyle: 'italic', fontSize: 'clamp(32px, 4vw, 54px)' */}
         <h2 style={{
-          fontFamily: '"Cormorant Garamond", serif',
-          fontSize: 'clamp(32px, 4vw, 54px)',
-          fontWeight: 300, fontStyle: 'italic',
-          color: '#0C0C10', lineHeight: 1.18,
+          fontFamily: '"DM Sans", sans-serif',
+          fontSize: 'clamp(28px, 3.5vw, 48px)',
+          fontWeight: 700,
+          color: '#0C0C10', lineHeight: 1.1,
+          letterSpacing: '-0.03em',
           marginBottom: 20,
         }}>
           Your trust posture is either an asset<br />or a blocker.
@@ -511,12 +583,16 @@ export default function Home() {
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         flexWrap: 'wrap', gap: 16,
       }}>
-        <span style={{
-          fontFamily: '"Cormorant Garamond", serif',
-          fontSize: 17, color: '#9CA3AF',
-        }}>
-          Proof<em>360</em>
-        </span>
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none' }}>
+          <Proof360Mark size={20} style={{ opacity: 0.5 }} />
+          <span style={{
+            fontFamily: '"DM Sans", sans-serif',
+            fontSize: 15, fontWeight: 700,
+            color: '#9CA3AF', letterSpacing: '-0.02em',
+          }}>
+            Proof<span style={{ color: '#C47030' }}>360</span>
+          </span>
+        </Link>
         <div style={{ display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
           <Link to="/portal" style={{ fontSize: 12, color: '#9CA3AF', textDecoration: 'none' }}>Partner portal</Link>
           <Link to="/report/demo" style={{ fontSize: 12, color: '#9CA3AF', textDecoration: 'none' }}>Example report</Link>

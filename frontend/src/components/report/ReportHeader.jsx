@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { Proof360Mark } from '../Proof360Mark';
 
 export default function ReportHeader({ isDemo, onSaveTrack, canSave }) {
   const [founderAuth, setFounderAuth] = useState(null);
@@ -12,8 +13,9 @@ export default function ReportHeader({ isDemo, onSaveTrack, canSave }) {
   return (
     <div className="flex items-center justify-between px-8 py-4 border-b border-gray-100">
       <div className="flex items-center gap-3">
-        <Link to="/" className="font-serif text-xl text-gray-900 hover:text-gray-700 transition-colors">
-          Proof<span className="italic">360</span>
+        <Link to="/" className="flex items-center gap-2 text-gray-900 hover:text-gray-700 transition-colors no-underline" style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em' }}>
+          <Proof360Mark size={26} />
+          Proof<span style={{ color: '#E07B39' }}>360</span>
         </Link>
         {isDemo && (
           <span className="text-xs bg-amber-50 text-amber-700 border border-amber-200 rounded px-2 py-0.5">

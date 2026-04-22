@@ -84,97 +84,18 @@ function tenantFromEmail(email) {
 
 const DEMO_TENANTS = ['vanta','cisco','austbrokers','aws','cloudflare','okta','crowdstrike','palo_alto','dicker','ingram'];
 
-const s = {
-  page: {
-    minHeight: '100vh', background: '#07090f', display: 'flex', flexDirection: 'column',
-    alignItems: 'center', justifyContent: 'center', fontFamily: "'DM Sans', sans-serif",
-    position: 'relative', overflow: 'hidden',
-  },
-  grid: {
-    position: 'absolute', inset: 0, pointerEvents: 'none',
-    backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px)',
-    backgroundSize: '28px 28px',
-  },
-  glow: {
-    position: 'absolute', top: '-20%', left: '50%', transform: 'translateX(-50%)',
-    width: 600, height: 400, borderRadius: '50%',
-    background: 'radial-gradient(ellipse, rgba(0,217,184,0.07) 0%, transparent 70%)',
-    pointerEvents: 'none',
-  },
-  card: {
-    position: 'relative', zIndex: 1, width: '100%', maxWidth: 420,
-    background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '40px 36px',
-  },
-  logo: {
-    display: 'flex', alignItems: 'center', gap: 8, marginBottom: 32,
-  },
-  logoMark: {
-    width: 28, height: 28, borderRadius: 6, background: '#00d9b8',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: 13, fontWeight: 700, color: '#07090f',
-  },
-  logoText: {
-    fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.9)', letterSpacing: '-0.01em',
-  },
-  heading: {
-    fontFamily: "'DM Serif Display', serif", fontSize: 26, color: '#f1f5f9',
-    lineHeight: 1.2, marginBottom: 8,
-  },
-  sub: {
-    fontSize: 13, color: 'rgba(255,255,255,0.35)', marginBottom: 32, lineHeight: 1.5,
-  },
-  divider: {
-    borderTop: '1px solid rgba(255,255,255,0.07)', margin: '24px 0',
-  },
-  authBtn: (provider) => ({
-    width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    gap: 10, padding: '11px 16px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.1)',
-    background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.85)',
-    fontSize: 14, fontWeight: 500, cursor: 'pointer', marginBottom: 10,
-    transition: 'all 0.15s', fontFamily: "'DM Sans', sans-serif",
-  }),
-  demoToggle: {
-    textAlign: 'center', marginTop: 20,
-  },
-  demoLink: {
-    fontSize: 12, color: 'rgba(255,255,255,0.25)', cursor: 'pointer',
-    textDecoration: 'underline', textDecorationColor: 'rgba(255,255,255,0.1)',
-    background: 'none', border: 'none', fontFamily: "'DM Sans', sans-serif",
-  },
-  demoGrid: {
-    display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 16,
-    maxHeight: 280, overflowY: 'auto',
-  },
-  demoCard: (tenant) => ({
-    padding: '10px 12px', borderRadius: 8, cursor: 'pointer',
-    border: `1px solid ${tenant.color}30`,
-    background: tenant.bg,
-    transition: 'all 0.15s',
-  }),
-  demoName: {
-    fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.85)', marginBottom: 2,
-  },
-  demoTag: {
-    fontSize: 10, color: 'rgba(255,255,255,0.35)',
-  },
-  live: {
-    display: 'flex', alignItems: 'center', gap: 6, marginBottom: 24,
-  },
-  liveDot: {
-    width: 6, height: 6, borderRadius: '50%', background: '#00d9b8',
-    boxShadow: '0 0 8px #00d9b8',
-    animation: 'pulse 2s infinite',
-  },
-  liveText: {
-    fontSize: 11, color: '#00d9b8', fontFamily: "'IBM Plex Mono', monospace",
-    letterSpacing: '0.05em', textTransform: 'uppercase',
-  },
+const DEMO_LOGOS = {
+  vanta:       { src: '/logos/vanta-partner.svg', style: { height: 22, width: 22, borderRadius: '50%' } },
+  aws:         { src: '/logos/aws-partner.png',   style: { height: 16, width: 'auto' } },
+  cloudflare:  { src: '/logos/cloudflare.png',    style: { height: 13, width: 'auto' } },
+  cisco:       { src: '/logos/cisco.svg',         style: { height: 13, width: 'auto' } },
+  palo_alto:   { src: '/logos/paloalto.svg',      style: { height: 13, width: 'auto' } },
+  okta:        { src: '/logos/okta.svg',          style: { height: 13, width: 'auto' } },
+  austbrokers: { src: '/logos/cyberpro.png',      style: { height: 20, width: 'auto' } },
 };
 
 export default function Portal() {
   const navigate = useNavigate();
-  const [showDemo, setShowDemo] = useState(false);
   const [redirecting, setRedirecting] = useState(null);
 
   useEffect(() => {
@@ -223,7 +144,7 @@ export default function Portal() {
       localStorage.setItem('portal_auth', JSON.stringify({ user: { name, email, avatar }, tenant: tenantKey }));
       navigate('/portal/dashboard');
     } catch {
-      setShowDemo(true);
+      setRedirecting(null);
     }
   }
 
@@ -250,7 +171,7 @@ export default function Portal() {
 
       if (intent === 'founder') {
         localStorage.setItem('founder_auth', JSON.stringify({
-          user: { name: data.name, email, avatar: null },
+          user: { name: data.name, email, picture: data.picture || null },
         }));
         // Persist any pending report saved before login
         const pending = sessionStorage.getItem('pending_founder_report');
@@ -278,7 +199,7 @@ export default function Portal() {
       navigate('/portal/dashboard');
     } catch (e) {
       console.error('Auth0 error', e);
-      setShowDemo(true);
+      setRedirecting(null);
     }
   }
 
@@ -291,129 +212,110 @@ export default function Portal() {
     navigate('/portal/dashboard');
   }
 
+  const spin = { width: 16, height: 16, border: '2px solid rgba(255,255,255,0.2)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block', flexShrink: 0 };
+
   return (
-    <div style={s.page}>
+    <div style={{ minHeight: '100vh', background: '#07090f', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: "'DM Sans', sans-serif", position: 'relative', overflow: 'hidden', padding: '40px 16px' }}>
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .auth-btn:not(:disabled):hover { background: rgba(255,255,255,0.07) !important; border-color: rgba(255,255,255,0.2) !important; transform: translateY(-1px); }
-        .demo-card:hover { transform: translateY(-2px); filter: brightness(1.15); }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        .auth-btn:not(:disabled):hover { background: rgba(255,255,255,0.08) !important; border-color: rgba(255,255,255,0.22) !important; }
+        .demo-tile:hover { filter: brightness(1.2); transform: translateY(-1px); }
       `}</style>
-      <div style={s.grid} />
-      <div style={s.glow} />
 
-      <div style={s.card}>
-        <div style={s.logo}>
-          <div style={s.logoMark}>P</div>
-          <span style={s.logoText}>proof360</span>
+      {/* bg grid */}
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+      <div style={{ position: 'absolute', top: '-15%', left: '50%', transform: 'translateX(-50%)', width: 600, height: 400, borderRadius: '50%', background: 'radial-gradient(ellipse, rgba(0,217,184,0.06) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+      <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 460, background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 18, padding: '36px 36px 32px' }}>
+
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+            <div style={{ width: 26, height: 26, borderRadius: 6, background: '#00d9b8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#07090f' }}>P</div>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.8)', letterSpacing: '-0.01em' }}>proof360</span>
+          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#00d9b8', boxShadow: '0 0 6px #00d9b8', animation: 'pulse 2s infinite' }} />
+            <span style={{ fontSize: 10, color: '#00d9b8', fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '0.05em', textTransform: 'uppercase' }}>Live</span>
+          </div>
         </div>
 
-        <div style={s.live}>
-          <div style={s.liveDot} />
-          <span style={s.liveText}>Partner intelligence · live</span>
-        </div>
-
-        <h1 style={s.heading}>Partner Portal</h1>
-        <p style={s.sub}>
-          Sign in with your company account to see qualified leads matched to your product catalog.
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#f1f5f9', letterSpacing: '-0.025em', marginBottom: 6 }}>Partner Portal</h1>
+        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', marginBottom: 24, lineHeight: 1.55 }}>
+          Sign in with your company account to access qualified leads matched to your catalog.
         </p>
 
-        {/* Google */}
-        <button
-          className="auth-btn"
-          style={{ ...s.authBtn('google'), opacity: redirecting && redirecting !== 'google' ? 0.4 : 1 }}
-          disabled={!!redirecting}
-          onClick={() => { setRedirecting('google'); GOOGLE_CLIENT_ID ? window.location.href = buildGoogleUrl() : setShowDemo(true); }}
-        >
-          {redirecting === 'google' ? (
-            <span style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.2)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }}/>
-          ) : (
-            <svg width="18" height="18" viewBox="0 0 18 18">
-              <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
-              <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
-              <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
-              <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
-            </svg>
-          )}
-          {redirecting === 'google' ? 'Redirecting…' : 'Sign in with Google'}
-        </button>
+        {/* Real auth */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <button className="auth-btn" disabled={!!redirecting} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, padding: '10px 16px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: 500, cursor: GOOGLE_CLIENT_ID ? 'pointer' : 'default', opacity: (!GOOGLE_CLIENT_ID || (redirecting && redirecting !== 'google')) ? 0.35 : 1, transition: 'all 0.15s', fontFamily: "'DM Sans', sans-serif" }}
+            onClick={() => { if (!GOOGLE_CLIENT_ID) return; setRedirecting('google'); window.location.href = buildGoogleUrl(); }}>
+            {redirecting === 'google' ? <span style={spin}/> : <svg width="16" height="16" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>}
+            {redirecting === 'google' ? 'Redirecting…' : 'Sign in with Google'}
+          </button>
 
-        {/* Microsoft */}
-        <button
-          className="auth-btn"
-          style={{ ...s.authBtn('microsoft'), opacity: redirecting && redirecting !== 'microsoft' ? 0.4 : 1 }}
-          disabled={!!redirecting}
-          onClick={() => { setRedirecting('microsoft'); MS_CLIENT_ID ? window.location.href = buildMicrosoftUrl() : setShowDemo(true); }}
-        >
-          {redirecting === 'microsoft' ? (
-            <span style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.2)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }}/>
-          ) : (
-            <svg width="18" height="18" viewBox="0 0 21 21">
-              <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
-              <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
-              <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
-              <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
-            </svg>
-          )}
-          {redirecting === 'microsoft' ? 'Redirecting…' : 'Sign in with Microsoft'}
-        </button>
+          <button className="auth-btn" disabled={!!redirecting} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, padding: '10px 16px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: 500, cursor: MS_CLIENT_ID ? 'pointer' : 'default', opacity: (!MS_CLIENT_ID || (redirecting && redirecting !== 'microsoft')) ? 0.35 : 1, transition: 'all 0.15s', fontFamily: "'DM Sans', sans-serif" }}
+            onClick={() => { if (!MS_CLIENT_ID) return; setRedirecting('microsoft'); window.location.href = buildMicrosoftUrl(); }}>
+            {redirecting === 'microsoft' ? <span style={spin}/> : <svg width="16" height="16" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>}
+            {redirecting === 'microsoft' ? 'Redirecting…' : 'Sign in with Microsoft'}
+          </button>
 
-        {/* Auth0 */}
-        <button
-          className="auth-btn"
-          style={{ ...s.authBtn('auth0'), opacity: redirecting && redirecting !== 'auth0' ? 0.4 : 1 }}
-          disabled={!!redirecting}
-          onClick={() => { setRedirecting('auth0'); loginWithAuth0(); }}
-        >
-          {redirecting === 'auth0' ? (
-            <span style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.2)', borderTopColor: '#00d9b8', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }}/>
-          ) : (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="11" fill="#00297a"/>
-              <circle cx="12" cy="12" r="4.5" fill="white"/>
-            </svg>
-          )}
-          {redirecting === 'auth0' ? 'Redirecting…' : 'Sign in with Auth0'}
-        </button>
+          <button className="auth-btn" disabled={!!redirecting} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, padding: '10px 16px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: 500, cursor: 'pointer', opacity: redirecting && redirecting !== 'auth0' ? 0.35 : 1, transition: 'all 0.15s', fontFamily: "'DM Sans', sans-serif" }}
+            onClick={() => { setRedirecting('auth0'); loginWithAuth0(); }}>
+            {redirecting === 'auth0' ? <span style={{ ...spin, borderTopColor: '#00d9b8' }}/> : <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#00297a"/><circle cx="12" cy="12" r="4.5" fill="white"/></svg>}
+            {redirecting === 'auth0' ? 'Redirecting…' : 'Sign in with Auth0'}
+          </button>
+        </div>
 
-        <div style={s.divider} />
+        {/* Divider */}
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', margin: '24px 0 20px' }} />
 
-        {!showDemo ? (
-          <div style={s.demoToggle}>
-            <button style={s.demoLink} onClick={() => setShowDemo(true)}>
-              Access demo portal →
-            </button>
-          </div>
-        ) : (
-          <div>
-            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              Demo as
-            </p>
-            <div style={s.demoGrid}>
-              {DEMO_TENANTS.map(key => {
-                const t = TENANTS[key];
-                return (
-                  <button
-                    key={key}
-                    className="demo-card"
-                    style={{ ...s.demoCard(t), textAlign: 'left', fontFamily: "'DM Sans', sans-serif" }}
-                    onClick={() => loginDemo(key)}
-                  >
-                    <div style={s.demoName}>{t.name}</div>
-                    <div style={s.demoTag}>{t.tagline}</div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        {/* Demo section */}
+        <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>
+          Explore the demo as a partner
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7 }}>
+          {DEMO_TENANTS.map(key => {
+            const t = TENANTS[key];
+            const logo = DEMO_LOGOS[key];
+            const initials = t.short || t.name.slice(0, 2).toUpperCase();
+            return (
+              <button
+                key={key}
+                className="demo-tile"
+                onClick={() => loginDemo(key)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '9px 11px', borderRadius: 8, cursor: 'pointer',
+                  border: `1px solid ${t.color}28`,
+                  background: t.bg,
+                  transition: 'all 0.15s', textAlign: 'left',
+                  fontFamily: "'DM Sans', sans-serif",
+                }}
+              >
+                {/* Logo */}
+                <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden', padding: logo ? 4 : 0 }}>
+                  {logo ? (
+                    <img src={logo.src} alt={t.name} style={{ ...logo.style, objectFit: 'contain', maxWidth: '100%', maxHeight: '100%' }} />
+                  ) : (
+                    <span style={{ fontSize: 9, fontWeight: 700, color: t.color, letterSpacing: '-0.01em' }}>{initials}</span>
+                  )}
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.85)', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.name}</div>
+                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.tagline}</div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      <div style={{ position: 'relative', zIndex: 1, marginTop: 24, display: 'flex', alignItems: 'center', gap: 20 }}>
-        <Link to="/" style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', textDecoration: 'none' }}>
-          ← Back to proof360
-        </Link>
-        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.1)' }}>Partner Intelligence Platform</span>
+      <div style={{ position: 'relative', zIndex: 1, marginTop: 20, display: 'flex', alignItems: 'center', gap: 20 }}>
+        <Link to="/" style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', textDecoration: 'none' }}>← Back to proof360</Link>
+        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.1)', fontFamily: "'IBM Plex Mono', monospace" }}>Partner Intelligence Platform</span>
       </div>
     </div>
   );

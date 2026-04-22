@@ -1,25 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { startSession } from '../api/client';
-
-/* ─── Proof360 logo mark ─────────────────────────────────────────────────── */
-function Proof360Mark({ size = 30 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="32" height="32" rx="7" fill="#0B2545" />
-      {/* Shield outline */}
-      <path
-        d="M16 5L25 8.8V15.5C25 20.5 21 24.8 16 26.5C11 24.8 7 20.5 7 15.5V8.8L16 5Z"
-        stroke="#E07B39" strokeWidth="1.4" fill="none"
-      />
-      {/* Checkmark */}
-      <path
-        d="M11.5 16L14.5 19L20.5 13"
-        stroke="#E07B39" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
+import { Proof360Mark } from '../components/Proof360Mark';
 
 export default function Audit() {
   const [url, setUrl] = useState('');

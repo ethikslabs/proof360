@@ -15,21 +15,23 @@ echo "==> Loading secrets from SSM"
 get_ssm() {
   aws ssm get-parameter \
     --region ap-southeast-2 \
-    --name "$SSM_PREFIX/$1" \
+    --name "$1" \
     --with-decryption \
     --query "Parameter.Value" \
     --output text 2>/dev/null || echo ""
 }
 
-FIRECRAWL_API_KEY=$(get_ssm "FIRECRAWL_API_KEY")
-ANTHROPIC_API_KEY=$(get_ssm "ANTHROPIC_API_KEY")
-PORT=$(get_ssm "PORT")
+FIRECRAWL_API_KEY=$(get_ssm "$SSM_PREFIX/FIRECRAWL_API_KEY")
+FIRECRAWL_API_URL=$(get_ssm "$SSM_PREFIX/FIRECRAWL_API_URL")
+ANTHROPIC_API_KEY=$(get_ssm "/ethikslabs/anthropic/api-key")
+PORT=$(get_ssm "$SSM_PREFIX/PORT")
 PORT=${PORT:-3002}
 
 # Write .env for pm2 to pick up
 cat > "$API_DIR/.env" <<EOF
 PORT=$PORT
 FIRECRAWL_API_KEY=$FIRECRAWL_API_KEY
+FIRECRAWL_API_URL=$FIRECRAWL_API_URL
 ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY
 LOG_LEVEL=info
 EOF

@@ -147,6 +147,23 @@ const now = Date.now();
 
 export const PORTAL_LEADS = [
   {
+    id: 'lead_stackfield',
+    company_name: 'Stackfield',
+    website: 'stackfield.com',
+    industry: 'SaaS · Project Management',
+    location: 'Remote · Global',
+    trust_score: 61,
+    submitted_at: new Date(now - 3 * 86400000).toISOString(),
+    email_hint: 'd***@stackfield.com',
+    gaps: [
+      { gap_id: 'soc2',             severity: 'critical', title: 'SOC 2 not started',        score_impact: 20 },
+      { gap_id: 'edr',              severity: 'critical', title: 'No endpoint protection',    score_impact: 15 },
+      { gap_id: 'mfa',              severity: 'high',     title: 'MFA not enforced',          score_impact: 10 },
+      { gap_id: 'network_perimeter',severity: 'high',     title: 'Network perimeter gaps',    score_impact: 8  },
+      { gap_id: 'cyber_insurance',  severity: 'high',     title: 'No cyber insurance',        score_impact: 10 },
+    ],
+  },
+  {
     id: 'lead_001',
     company_name: 'Northstar Analytics',
     website: 'northstar-analytics.com.au',

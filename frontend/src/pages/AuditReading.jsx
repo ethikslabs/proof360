@@ -1,86 +1,25 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getInferStatus } from '../api/client';
-
-/* ─── Build terminal sequence from URL ───────────────────────────────────── */
-function buildSequence(rawUrl) {
-  let domain = 'yourcompany.io';
-  try {
-    const parsed = new URL(rawUrl.startsWith('http') ? rawUrl : `https://${rawUrl}`);
-    domain = parsed.hostname.replace('www.', '');
-  } catch {}
-
-  return [
-    { text: `$ proof360 --url ${domain}`,           type: 'cmd',    delay: 300  },
-    { text: '',                                      type: 'blank',  delay: 700  },
-    { text: '  Fetching public signals...',          type: 'muted',  delay: 1000 },
-    { text: `  ✓  ${domain} · HTTP 200`,             type: 'ok',     delay: 1600 },
-    { text: '  ✓  TLS certificate valid',            type: 'ok',     delay: 2000 },
-    { text: '  ✓  DNS records mapped',               type: 'ok',     delay: 2400 },
-    { text: '  ✓  Sitemap indexed (5 pages)',         type: 'ok',     delay: 2900 },
-    { text: '  ✓  LinkedIn signals extracted',       type: 'ok',     delay: 3350 },
-    { text: '',                                      type: 'blank',  delay: 3700 },
-    { text: '  Querying VERITAS corpus...',           type: 'muted',  delay: 4000 },
-    { text: '  ↳  SOC 2 Type II — CC6.1',            type: 'query',  delay: 4500 },
-    { text: '  ↳  ISO 27001:2022 — A.9 Access',     type: 'query',  delay: 4900 },
-    { text: '  ↳  APRA CPS 234 requirements',        type: 'query',  delay: 5300 },
-    { text: '  ↳  NIST CSF 2.0 — Identify',          type: 'query',  delay: 5700 },
-    { text: '  ↳  CISSP Domain 5 — IAM',             type: 'query',  delay: 6100 },
-    { text: '  ↳  GDPR Article 32 — Security',       type: 'query',  delay: 6500 },
-    { text: '  ↳  ASD ISM controls — 2024',          type: 'query',  delay: 6900 },
-    { text: '',                                      type: 'blank',  delay: 7200 },
-    { text: '  Mapping trust posture...',             type: 'muted',  delay: 7500 },
-    { text: '  ↳  Identity & access posture',        type: 'query',  delay: 8000 },
-    { text: '  ↳  Endpoint coverage signals',        type: 'query',  delay: 8450 },
-    { text: '  ↳  Governance indicators',            type: 'query',  delay: 8900 },
-    { text: '  ↳  Vendor risk profile',              type: 'query',  delay: 9350 },
-    { text: '  ↳  Data handling posture',            type: 'query',  delay: 9800 },
-    { text: '',                                      type: 'blank',  delay: 10200 },
-    { text: '  Detecting gaps...',                   type: 'muted',  delay: 10600 },
-    { text: '  ↳  Checking SOC 2 certification status',  type: 'query', delay: 11100 },
-    { text: '  ↳  MFA enforcement signals',          type: 'query',  delay: 11600 },
-    { text: '  ↳  Incident response indicators',     type: 'query',  delay: 12100 },
-    { text: '  ↳  Penetration test recency',         type: 'query',  delay: 12600 },
-    { text: '  ↳  Cyber insurance signals',          type: 'query',  delay: 13100 },
-    { text: '',                                      type: 'blank',  delay: 13600 },
-    { text: '  Scoring trust posture...',            type: 'muted',  delay: 14000 },
-    { text: '  Computing gap weights...',            type: 'muted',  delay: 14800 },
-    { text: '  Applying framework coverage...',      type: 'muted',  delay: 15600 },
-    { text: '',                                      type: 'blank',  delay: 16400 },
-    { text: '  Selecting vendor paths...',           type: 'muted',  delay: 16800 },
-    { text: '  ↳  Matching gaps to catalog',         type: 'query',  delay: 17300 },
-    { text: '  ↳  Applying distributor routing',     type: 'query',  delay: 17800 },
-    { text: '  ↳  Ranking by deal velocity',         type: 'query',  delay: 18300 },
-    { text: '',                                      type: 'blank',  delay: 18800 },
-    { text: '  Building cold read...',               type: 'muted',  delay: 19200 },
-    { text: '  Generating inferences...',            type: 'muted',  delay: 20200 },
-    { text: '  Preparing questions...',              type: 'muted',  delay: 21200 },
-  ];
-}
+import { Proof360Mark } from '../components/Proof360Mark';
 
 const LINE_COLORS = {
   cmd:   '#F7F4F0',
   muted: '#52525B',
   ok:    '#4ADE80',
   query: '#7DD3FC',
+  err:   '#F87171',
   blank: 'transparent',
 };
 
-/* ─── Terminal pane ──────────────────────────────────────────────────────── */
-function TerminalPane({ domain, active }) {
-  const [lines, setLines] = useState([]);
+/* ─── Terminal pane — renders real SSE lines ─────────────────────────────── */
+function TerminalPane({ domain, lines, active }) {
   const [blink, setBlink] = useState(true);
   const bodyRef = useRef(null);
-  const sequence = buildSequence(domain);
 
   useEffect(() => {
-    setLines([]);
-    const timers = sequence.map(line =>
-      setTimeout(() => setLines(prev => [...prev, line]), line.delay)
-    );
     const blinker = setInterval(() => setBlink(b => !b), 530);
-    return () => { timers.forEach(clearTimeout); clearInterval(blinker); };
-  }, [domain]);
+    return () => clearInterval(blinker);
+  }, []);
 
   useEffect(() => {
     if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
@@ -131,42 +70,49 @@ function TerminalPane({ domain, active }) {
           lineHeight: 1.8,
         }}
       >
+        {lines.length === 0 && (
+          <div style={{ color: '#3F3F5A' }}>
+            $ proof360 --url {domain || '...'}
+          </div>
+        )}
         {lines.map((line, i) => (
           <div key={i} style={{ color: LINE_COLORS[line.type] || '#F7F4F0', minHeight: '1.8em' }}>
             {line.text}
           </div>
         ))}
-        <span style={{
-          display: 'inline-block', width: 7, height: '1em',
-          background: blink ? '#E07B39' : 'transparent',
-          verticalAlign: 'text-bottom', marginLeft: 2,
-        }} />
+        {active && (
+          <span style={{
+            display: 'inline-block', width: 7, height: '1em',
+            background: blink ? '#E07B39' : 'transparent',
+            verticalAlign: 'text-bottom', marginLeft: 2,
+          }} />
+        )}
       </div>
     </div>
   );
 }
 
-/* ─── Proof360 mark ──────────────────────────────────────────────────────── */
-function Proof360Mark({ size = 26 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-      <rect width="32" height="32" rx="7" fill="#0B2545" />
-      <path d="M16 5L25 8.8V15.5C25 20.5 21 24.8 16 26.5C11 24.8 7 20.5 7 15.5V8.8L16 5Z"
-        stroke="#E07B39" strokeWidth="1.4" fill="none" />
-      <path d="M11.5 16L14.5 19L20.5 13"
-        stroke="#E07B39" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 /* ─── AuditReading ───────────────────────────────────────────────────────── */
 export default function AuditReading() {
-  const [params] = useSearchParams();
+  const [params]  = useSearchParams();
   const sessionId = params.get('session');
   const rawUrl    = params.get('url') || '';
   const navigate  = useNavigate();
-  const [error, setError] = useState('');
-  const [phase, setPhase] = useState('reading'); // reading | building
+
+  const [lines,       setLines]       = useState([]);
+  const [beatVisible, setBeatVisible] = useState(false);
+
+  // Throttle queue — lines drip at 150ms each regardless of burst rate
+  const queueRef        = useRef([]);
+  const timerRef        = useRef(null);
+  const sseCompleteRef  = useRef(false);
+  const linesReceivedRef = useRef(0);
+
+  let domain = rawUrl;
+  try {
+    const parsed = new URL(rawUrl.startsWith('http') ? rawUrl : `https://${rawUrl}`);
+    domain = parsed.hostname.replace('www.', '');
+  } catch {}
 
   useEffect(() => {
     const link = document.createElement('link');
@@ -176,39 +122,102 @@ export default function AuditReading() {
     return () => link.remove();
   }, []);
 
-  useEffect(() => {
-    const t = setTimeout(() => setPhase('building'), 5000);
-    return () => clearTimeout(t);
-  }, []);
+  function drainQueue() {
+    if (queueRef.current.length === 0) {
+      timerRef.current = null;
+      if (sseCompleteRef.current) setBeatVisible(true);
+      return;
+    }
+    const next = queueRef.current.shift();
+    setLines(prev => [...prev, next]);
+    timerRef.current = setTimeout(drainQueue, 150);
+  }
+
+  function enqueueLine(line) {
+    queueRef.current.push(line);
+    if (!timerRef.current) {
+      timerRef.current = setTimeout(drainQueue, 0);
+    }
+  }
 
   useEffect(() => {
     if (!sessionId) return;
-    let elapsed = 0;
-    const poll = setInterval(async () => {
-      elapsed += 1500;
-      try {
-        const { status } = await getInferStatus(sessionId);
-        if (status === 'complete') {
-          clearInterval(poll);
-          navigate(`/audit/cold-read?session=${sessionId}`);
-        } else if (status === 'failed' || elapsed > 90000) {
-          clearInterval(poll);
-          setError('We had trouble reading your site. Please try again.');
-        }
-      } catch {
-        // keep polling silently
-      }
-    }, 1500);
-    return () => clearInterval(poll);
-  }, [sessionId, navigate]);
 
-  const phaseLabel = phase === 'reading'
-    ? 'Reading public signals'
-    : 'Building your cold read';
+    const apiBase = import.meta.env.VITE_API_BASE_URL || '';
+    const evtSource = new EventSource(`${apiBase}/api/v1/session/${sessionId}/log`);
+
+    evtSource.onmessage = (e) => {
+      const line = JSON.parse(e.data);
+      if (line.type === '__done__') {
+        evtSource.close();
+        sseCompleteRef.current = true;
+        // If queue already drained, show beat immediately
+        if (!timerRef.current && queueRef.current.length === 0) {
+          setBeatVisible(true);
+        }
+      } else {
+        linesReceivedRef.current++;
+        enqueueLine(line);
+      }
+    };
+
+    evtSource.onerror = () => {
+      // EventSource fires onerror on ANY close, including clean server-initiated ones.
+      // Delay to let onmessage(__done__) process first, then check real session status.
+      setTimeout(async () => {
+        if (sseCompleteRef.current) return; // __done__ already received — not an error
+        evtSource.close();
+        sseCompleteRef.current = true;
+
+        if (linesReceivedRef.current === 0) {
+          // Never received a single line — genuine connection failure
+          enqueueLine({ text: '  ✗  Could not connect to VERITAS', type: 'err' });
+          enqueueLine({ text: '  ↳  Is the API running?', type: 'muted' });
+          return;
+        }
+
+        // Got real data but no __done__ — check what actually happened
+        try {
+          const apiBase = import.meta.env.VITE_API_BASE_URL || '';
+          const res = await fetch(`${apiBase}/api/v1/session/${sessionId}/infer-status`);
+          if (res.ok) {
+            const { status } = await res.json();
+            if (status === 'complete') {
+              // Extraction finished fine — SSE just dropped the closing frame
+              // Drain the queue then show the beat
+              if (!timerRef.current && queueRef.current.length === 0) {
+                setBeatVisible(true);
+              } else {
+                // Mark done so drainQueue triggers beat on next empty drain
+                sseCompleteRef.current = true;
+              }
+              return;
+            }
+            if (status === 'failed') {
+              enqueueLine({ text: '  ✗  Extraction failed — check API logs', type: 'err' });
+              return;
+            }
+            // Still processing — stream dropped while live
+            enqueueLine({ text: `  ✗  Connection lost (session: ${status})`, type: 'err' });
+            enqueueLine({ text: '  ↳  Refresh to retry', type: 'muted' });
+          } else {
+            enqueueLine({ text: `  ✗  Connection lost · status check ${res.status}`, type: 'err' });
+          }
+        } catch (fetchErr) {
+          enqueueLine({ text: `  ✗  Connection lost · ${fetchErr.message}`, type: 'err' });
+        }
+      }, 600);
+    };
+
+    return () => {
+      evtSource.close();
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [sessionId]);
 
   return (
     <div style={{
-      minHeight: '100vh', background: '#09090B',
+      minHeight: '100vh', background: '#FFFFFF',
       display: 'flex', flexDirection: 'column',
       fontFamily: '"Outfit", sans-serif',
     }}>
@@ -223,9 +232,8 @@ export default function AuditReading() {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.4; }
         }
-        .fade-in { animation: fadeUp 0.6s ease both; }
+        .fade-in  { animation: fadeUp 0.6s ease both; }
         .fade-in-2 { animation: fadeUp 0.6s ease both 0.15s; }
-        .fade-in-3 { animation: fadeUp 0.6s ease both 0.3s; }
         .grain {
           position: fixed; inset: -50%; width: 200%; height: 200%;
           background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
@@ -239,11 +247,14 @@ export default function AuditReading() {
       <nav style={{
         padding: '0 32px', height: 52,
         display: 'flex', alignItems: 'center',
-        borderBottom: '1px solid #111118',
+        borderBottom: '1px solid #E4E7EC',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div
+          onClick={() => navigate('/')}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}
+        >
           <Proof360Mark size={24} />
-          <span style={{ fontSize: 16, fontWeight: 700, color: '#F7F4F0', letterSpacing: '-0.01em' }}>
+          <span style={{ fontSize: 16, fontWeight: 700, color: '#0B2545', letterSpacing: '-0.01em' }}>
             Proof<span style={{ color: '#E07B39' }}>360</span>
           </span>
         </div>
@@ -256,43 +267,82 @@ export default function AuditReading() {
         padding: '48px 24px',
         gap: 36,
       }}>
+
         {/* Status badge */}
         <div className="fade-in" style={{
           display: 'flex', alignItems: 'center', gap: 8,
-          border: '1px solid #1A1A2E', borderRadius: 20,
+          border: '1px solid #E4E7EC', borderRadius: 20,
           padding: '5px 14px',
         }}>
           <span style={{
             width: 7, height: 7, borderRadius: '50%',
-            background: '#E07B39',
+            background: beatVisible ? '#4ADE80' : '#E07B39',
             display: 'inline-block',
-            animation: 'pulse 1.2s ease-in-out infinite',
+            animation: beatVisible ? 'none' : 'pulse 1.2s ease-in-out infinite',
+            transition: 'background 0.4s',
           }} />
           <span style={{
             fontSize: 11, color: '#52525B',
             fontFamily: '"IBM Plex Mono", monospace',
             letterSpacing: '0.07em',
           }}>
-            {phaseLabel}
+            {beatVisible ? 'Read complete' : 'Reading public signals'}
           </span>
         </div>
 
-        {/* Terminal */}
-        <div className="fade-in-2">
-          <TerminalPane domain={rawUrl} active />
+        {/* Terminal — shows real SSE lines */}
+        <div className="fade-in-2" style={{ opacity: beatVisible ? 0.4 : 1, transition: 'opacity 0.6s' }}>
+          <TerminalPane domain={domain} lines={lines} active={!beatVisible} />
         </div>
 
-        {/* Sub-label */}
-        <div className="fade-in-3" style={{ textAlign: 'center' }}>
-          <p style={{ fontSize: 13, color: '#3F3F5A', fontFamily: '"IBM Plex Mono", monospace', letterSpacing: '0.04em' }}>
-            provenance-backed · not guessed
-          </p>
-          {error && (
-            <p style={{ fontSize: 13, color: '#F87171', marginTop: 12, maxWidth: 340, lineHeight: 1.6 }}>
-              {error}
+        {/* Sub-label while reading */}
+        {!beatVisible && (
+          <div className="fade-in" style={{ textAlign: 'center' }}>
+            <p style={{ fontSize: 13, color: '#3F3F5A', fontFamily: '"IBM Plex Mono", monospace', letterSpacing: '0.04em' }}>
+              provenance-backed · not guessed
             </p>
-          )}
-        </div>
+          </div>
+        )}
+
+        {/* Human beat — appears when real extraction is done */}
+        {beatVisible && (
+          <div style={{
+            animation: 'fadeUp 0.7s ease both',
+            textAlign: 'center',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
+          }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: '50%',
+              background: 'rgba(224,123,57,0.12)',
+              border: '1px solid rgba(224,123,57,0.3)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 18,
+            }}>✓</div>
+            <div>
+              <p style={{ fontSize: 22, fontWeight: 700, color: '#0B2545', letterSpacing: '-0.02em', marginBottom: 6 }}>
+                Here's what we read about <span style={{ color: '#E07B39' }}>{domain}</span>.
+              </p>
+              <p style={{ fontSize: 13, color: '#52525B', fontFamily: '"IBM Plex Mono", monospace' }}>
+                Step 2 of 3 · Is this right?
+              </p>
+            </div>
+            <button
+              onClick={() => navigate(`/audit/cold-read?session=${sessionId}`)}
+              style={{
+                marginTop: 4,
+                padding: '12px 32px',
+                background: '#E07B39', color: '#fff',
+                fontSize: 15, fontWeight: 700,
+                border: 'none', borderRadius: 8,
+                cursor: 'pointer',
+                fontFamily: '"Outfit", sans-serif',
+                letterSpacing: '-0.01em',
+              }}
+            >
+              See your read →
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
