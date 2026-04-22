@@ -3,14 +3,15 @@
 // and returns a null result, never blocking the session.
 //
 // Sources (all passive, no target system interaction):
-//   dns    — DMARC/SPF/MX/CAA records
-//   http   — Security headers, TLS cert, tech fingerprint
-//   certs  — CT log subdomain enumeration (crt.sh)
-//   ip     — IP/ASN/hosting provider (ipapi.co)
-//   github — GitHub org presence, security policy, tech stack
-//   jobs   — Careers page hiring signals (via Firecrawl)
-//   hibp     — Domain breach history (requires HIBP_API_KEY)
-//   ssllabs  — Official TLS grade (Qualys SSL Labs, no key required)
+//   dns       — DMARC/SPF/MX/CAA/DKIM/DNSSEC/BIMI records
+//   http      — Security headers, TLS cert, tech fingerprint
+//   certs     — CT log subdomain enumeration (crt.sh)
+//   ip        — IP/ASN/hosting provider (ipapi.co)
+//   github    — GitHub org presence, security policy, tech stack
+//   jobs      — Careers page hiring signals (via Firecrawl)
+//   hibp      — Domain breach history (requires HIBP_API_KEY)
+//   ssllabs   — Official TLS grade (Qualys SSL Labs, no key required)
+//   abuseipdb — IP abuse confidence score, usage type (requires ABUSEIPDB_API_KEY)
 
 import { reconDns }      from './recon-dns.js';
 import { reconHttp }     from './recon-http.js';
@@ -21,35 +22,42 @@ import { reconJobs }     from './recon-jobs.js';
 import { reconHibp }     from './recon-hibp.js';
 import { reconPorts }    from './recon-ports.js';
 import { reconSslLabs }  from './recon-ssllabs.js';
+import { reconAbuseIpdb } from './recon-abuseipdb.js';
 
 export async function runReconPipeline(websiteUrl, companyName, options = {}) {
-  const { firecrawl = null, hibpKey = process.env.HIBP_API_KEY || null } = options;
+  const {
+    firecrawl = null,
+    hibpKey      = process.env.HIBP_API_KEY       || null,
+    abuseIpdbKey = process.env.ABUSEIPDB_API_KEY  || null,
+  } = options;
   const domain = extractDomain(websiteUrl);
 
   console.log(`[recon] Starting pipeline for ${domain}`);
 
-  const [dns, http, certs, ip, github, jobs, hibp, ports, ssllabs] = await Promise.allSettled([
-    safe('dns',      reconDns(websiteUrl)),
-    safe('http',     reconHttp(websiteUrl)),
-    safe('certs',    reconCerts(domain)),
-    safe('ip',       reconIp(domain)),
-    safe('github',   reconGithub(domain, companyName)),
-    safe('jobs',     firecrawl ? reconJobs(domain, firecrawl) : Promise.resolve({ source: 'jobs', skipped: true })),
-    safe('hibp',     reconHibp(domain, hibpKey)),
-    safe('ports',    reconPorts(domain)),
-    safe('ssllabs',  reconSslLabs(websiteUrl)),
+  const [dns, http, certs, ip, github, jobs, hibp, ports, ssllabs, abuseipdb] = await Promise.allSettled([
+    safe('dns',       reconDns(websiteUrl)),
+    safe('http',      reconHttp(websiteUrl)),
+    safe('certs',     reconCerts(domain)),
+    safe('ip',        reconIp(domain)),
+    safe('github',    reconGithub(domain, companyName)),
+    safe('jobs',      firecrawl ? reconJobs(domain, firecrawl) : Promise.resolve({ source: 'jobs', skipped: true })),
+    safe('hibp',      reconHibp(domain, hibpKey)),
+    safe('ports',     reconPorts(domain)),
+    safe('ssllabs',   reconSslLabs(websiteUrl)),
+    safe('abuseipdb', reconAbuseIpdb(domain, abuseIpdbKey)),
   ]);
 
   const pipeline = {
-    dns:      unwrap(dns,      'dns'),
-    http:     unwrap(http,     'http'),
-    certs:    unwrap(certs,    'certs'),
-    ip:       unwrap(ip,       'ip'),
-    github:   unwrap(github,   'github'),
-    jobs:     unwrap(jobs,     'jobs'),
-    hibp:     unwrap(hibp,     'hibp'),
-    ports:    unwrap(ports,    'ports'),
-    ssllabs:  unwrap(ssllabs,  'ssllabs'),
+    dns:       unwrap(dns,       'dns'),
+    http:      unwrap(http,      'http'),
+    certs:     unwrap(certs,     'certs'),
+    ip:        unwrap(ip,        'ip'),
+    github:    unwrap(github,    'github'),
+    jobs:      unwrap(jobs,      'jobs'),
+    hibp:      unwrap(hibp,      'hibp'),
+    ports:     unwrap(ports,     'ports'),
+    ssllabs:   unwrap(ssllabs,   'ssllabs'),
+    abuseipdb: unwrap(abuseipdb, 'abuseipdb'),
     domain,
     scanned_at: new Date().toISOString(),
   };
@@ -160,6 +168,15 @@ export function extractReconContext(pipeline) {
     ctx.has_exposed_db       = p.has_exposed_db      ?? false;
     ctx.has_ssh              = p.has_ssh             ?? false;
     ctx.has_telnet           = p.has_telnet          ?? false;
+  }
+
+  // AbuseIPDB
+  if (pipeline.abuseipdb && !pipeline.abuseipdb.skipped && !pipeline.abuseipdb.error) {
+    const a = pipeline.abuseipdb;
+    ctx.abuse_confidence_score = a.abuse_confidence_score ?? 0;
+    ctx.ip_usage_type          = a.usage_type             ?? null;
+    ctx.ip_total_reports       = a.total_reports          ?? 0;
+    ctx.ip_is_abusive          = (a.abuse_confidence_score ?? 0) >= 25;
   }
 
   return ctx;

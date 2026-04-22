@@ -7,6 +7,9 @@ FRONTEND_DIR="$REPO_DIR/frontend"
 PM2_NAME="proof360-api"
 SSM_PREFIX="/proof360"
 
+echo "==> Fixing ownership"
+chown -R ec2-user:ec2-user $REPO_DIR 2>/dev/null || true
+
 echo "==> Pulling latest"
 cd $REPO_DIR
 git config --global --add safe.directory $REPO_DIR 2>/dev/null || true
@@ -25,6 +28,7 @@ get_ssm() {
 FIRECRAWL_API_KEY=$(get_ssm "$SSM_PREFIX/FIRECRAWL_API_KEY")
 FIRECRAWL_API_URL=$(get_ssm "$SSM_PREFIX/FIRECRAWL_API_URL")
 ANTHROPIC_API_KEY=$(get_ssm "/ethikslabs/anthropic/api-key")
+ABUSEIPDB_API_KEY=$(get_ssm "$SSM_PREFIX/ABUSEIPDB_API_KEY")
 PORT=$(get_ssm "$SSM_PREFIX/PORT")
 PORT=${PORT:-3002}
 
@@ -34,6 +38,7 @@ PORT=$PORT
 FIRECRAWL_API_KEY=$FIRECRAWL_API_KEY
 FIRECRAWL_API_URL=$FIRECRAWL_API_URL
 ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY
+ABUSEIPDB_API_KEY=$ABUSEIPDB_API_KEY
 LOG_LEVEL=info
 EOF
 

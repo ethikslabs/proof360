@@ -371,6 +371,25 @@ export const GAP_DEFINITIONS = [
       'Test your TLS configuration at ssllabs.com/ssltest — aim for A or A+',
     ],
   },
+  {
+    id: 'ip_reputation',
+    severity: 'high',
+    label: 'Server IP flagged for abuse',
+    category: 'infrastructure',
+    triggerCondition: (ctx) => ctx.ip_is_abusive === true,
+    claimTemplate: (ctx) => ({
+      question: 'Has this company\'s server IP been flagged for malicious activity?',
+      evidence: [
+        `Abuse confidence score: ${ctx.abuse_confidence_score ?? 0}%.`,
+        ctx.ip_total_reports ? `${ctx.ip_total_reports} abuse reports filed against this IP.` : '',
+      ].filter(Boolean).join(' '),
+    }),
+    remediation: [
+      'Rotate to a clean IP address — if you\'re on a shared host, move to a dedicated instance or a different cloud provider range',
+      'Review server logs for signs of compromise — an abusive IP often means the server has been used for spam or attacks',
+      'Check AbuseIPDB for the full report history at abuseipdb.com',
+    ],
+  },
 ];
 
 // Enterprise signals schema — collected on every session for dataset moat
