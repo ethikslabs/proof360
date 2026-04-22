@@ -198,7 +198,11 @@ export async function extractSignals({ website_url, deck_file }, log = () => {})
     const [pages, recon_context] = await Promise.all([
       scrapePages(firecrawl, baseUrl, log),
       Promise.race([
-        runReconPipeline(website_url, null, { firecrawl, abuseIpdbKey: process.env.ABUSEIPDB_API_KEY || null }),
+        runReconPipeline(website_url, null, {
+          firecrawl,
+          abuseIpdbKey: process.env.ABUSEIPDB_API_KEY || null,
+          onSourceComplete: (source, line) => log(line),
+        }),
         new Promise((resolve) => setTimeout(() => {
           log({ text: '  ✗  Recon timed out after 20s — continuing without it', type: 'err' });
           resolve(null);
