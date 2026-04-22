@@ -9,16 +9,18 @@
 //   ip     — IP/ASN/hosting provider (ipapi.co)
 //   github — GitHub org presence, security policy, tech stack
 //   jobs   — Careers page hiring signals (via Firecrawl)
-//   hibp   — Domain breach history (requires HIBP_API_KEY)
+//   hibp     — Domain breach history (requires HIBP_API_KEY)
+//   ssllabs  — Official TLS grade (Qualys SSL Labs, no key required)
 
-import { reconDns }    from './recon-dns.js';
-import { reconHttp }   from './recon-http.js';
-import { reconCerts }  from './recon-certs.js';
-import { reconIp }     from './recon-ip.js';
-import { reconGithub } from './recon-github.js';
-import { reconJobs }   from './recon-jobs.js';
-import { reconHibp }   from './recon-hibp.js';
-import { reconPorts }  from './recon-ports.js';
+import { reconDns }      from './recon-dns.js';
+import { reconHttp }     from './recon-http.js';
+import { reconCerts }    from './recon-certs.js';
+import { reconIp }       from './recon-ip.js';
+import { reconGithub }   from './recon-github.js';
+import { reconJobs }     from './recon-jobs.js';
+import { reconHibp }     from './recon-hibp.js';
+import { reconPorts }    from './recon-ports.js';
+import { reconSslLabs }  from './recon-ssllabs.js';
 
 export async function runReconPipeline(websiteUrl, companyName, options = {}) {
   const { firecrawl = null, hibpKey = process.env.HIBP_API_KEY || null } = options;
@@ -26,26 +28,28 @@ export async function runReconPipeline(websiteUrl, companyName, options = {}) {
 
   console.log(`[recon] Starting pipeline for ${domain}`);
 
-  const [dns, http, certs, ip, github, jobs, hibp, ports] = await Promise.allSettled([
-    safe('dns',    reconDns(websiteUrl)),
-    safe('http',   reconHttp(websiteUrl)),
-    safe('certs',  reconCerts(domain)),
-    safe('ip',     reconIp(domain)),
-    safe('github', reconGithub(domain, companyName)),
-    safe('jobs',   firecrawl ? reconJobs(domain, firecrawl) : Promise.resolve({ source: 'jobs', skipped: true })),
-    safe('hibp',   reconHibp(domain, hibpKey)),
-    safe('ports',  reconPorts(domain)),
+  const [dns, http, certs, ip, github, jobs, hibp, ports, ssllabs] = await Promise.allSettled([
+    safe('dns',      reconDns(websiteUrl)),
+    safe('http',     reconHttp(websiteUrl)),
+    safe('certs',    reconCerts(domain)),
+    safe('ip',       reconIp(domain)),
+    safe('github',   reconGithub(domain, companyName)),
+    safe('jobs',     firecrawl ? reconJobs(domain, firecrawl) : Promise.resolve({ source: 'jobs', skipped: true })),
+    safe('hibp',     reconHibp(domain, hibpKey)),
+    safe('ports',    reconPorts(domain)),
+    safe('ssllabs',  reconSslLabs(websiteUrl)),
   ]);
 
   const pipeline = {
-    dns:    unwrap(dns,    'dns'),
-    http:   unwrap(http,   'http'),
-    certs:  unwrap(certs,  'certs'),
-    ip:     unwrap(ip,     'ip'),
-    github: unwrap(github, 'github'),
-    jobs:   unwrap(jobs,   'jobs'),
-    hibp:   unwrap(hibp,   'hibp'),
-    ports:  unwrap(ports,  'ports'),
+    dns:      unwrap(dns,      'dns'),
+    http:     unwrap(http,     'http'),
+    certs:    unwrap(certs,    'certs'),
+    ip:       unwrap(ip,       'ip'),
+    github:   unwrap(github,   'github'),
+    jobs:     unwrap(jobs,     'jobs'),
+    hibp:     unwrap(hibp,     'hibp'),
+    ports:    unwrap(ports,    'ports'),
+    ssllabs:  unwrap(ssllabs,  'ssllabs'),
     domain,
     scanned_at: new Date().toISOString(),
   };
@@ -134,6 +138,17 @@ export function extractReconContext(pipeline) {
     ctx.breach_count        = b.breach_count        ?? 0;
     ctx.breach_severity     = b.breach_severity     ?? 'none';
     ctx.breach_is_recent    = b.breach_is_recent    ?? false;
+  }
+
+  // SSL Labs
+  if (pipeline.ssllabs && !pipeline.ssllabs.skipped) {
+    const s = pipeline.ssllabs;
+    ctx.ssl_grade       = s.ssl_grade       ?? null;
+    ctx.ssl_grade_num   = s.ssl_grade_num   ?? null;
+    ctx.has_old_tls     = s.has_old_tls     ?? null;
+    ctx.hsts_preloaded  = s.hsts_preloaded  ?? false;
+    ctx.heartbleed      = s.heartbleed      ?? false;
+    ctx.poodle          = s.poodle          ?? false;
   }
 
   // Ports

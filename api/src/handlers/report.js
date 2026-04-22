@@ -239,6 +239,7 @@ function buildSignals(session, recon) {
   if (recon.dmarc_policy) signals.push({ key: 'dmarc_policy', label: 'DMARC', value: recon.dmarc_policy, type: 'dns' });
   if (recon.spf_policy)   signals.push({ key: 'spf_policy',   label: 'SPF',   value: recon.spf_policy,   type: 'dns' });
   if (recon.mx_provider)  signals.push({ key: 'mx_provider',  label: 'MX provider', value: recon.mx_provider, type: 'dns' });
+  if (recon.ssl_grade)    signals.push({ key: 'ssl_grade',    label: 'SSL grade',   value: recon.ssl_grade,   type: 'tls' });
 
   return signals;
 }

@@ -353,10 +353,17 @@ export const GAP_DEFINITIONS = [
     category: 'infrastructure',
     triggerCondition: (ctx) =>
       ctx.tls_is_current === false ||
+      ctx.has_old_tls === true ||
+      (ctx.ssl_grade_num !== null && ctx.ssl_grade_num < 8) ||
       (ctx.cert_expiry_days !== null && ctx.cert_expiry_days < 14),
     claimTemplate: (ctx) => ({
       question: 'Does this company have TLS correctly configured with a current protocol version?',
-      evidence: `TLS version: ${ctx.tls_version}. Cert expiry days: ${ctx.cert_expiry_days}. Is current: ${ctx.tls_is_current}.`,
+      evidence: [
+        ctx.ssl_grade ? `SSL Labs grade: ${ctx.ssl_grade}.` : '',
+        ctx.has_old_tls ? 'TLS 1.0/1.1 still enabled.' : '',
+        `TLS version: ${ctx.tls_version}.`,
+        `Cert expiry days: ${ctx.cert_expiry_days}.`,
+      ].filter(Boolean).join(' '),
     }),
     remediation: [
       'Disable TLS 1.0 and 1.1 — they are deprecated and flagged in every security audit. TLS 1.2 is the minimum, 1.3 is preferred',
