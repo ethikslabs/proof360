@@ -11,6 +11,25 @@ const LINE_COLORS = {
   blank: 'transparent',
 };
 
+const RECON_COLORS = {
+  err:   '#F87171',
+  ok:    '#4ADE80',
+  query: '#7DD3FC',
+  muted: '#3F3F5A',
+};
+
+const SOURCES = ['dns','http','certs','ip','github','jobs','hibp','ports','ssllabs','abuseipdb'];
+
+function reconTag(source) {
+  return `[${source}]`.padEnd(12);
+}
+
+const INITIAL_RECON = SOURCES.map(source => ({
+  source,
+  text:  `${reconTag(source)}⏳`,
+  color: 'muted',
+}));
+
 /* ─── Terminal pane — renders real SSE lines ─────────────────────────────── */
 function TerminalPane({ domain, lines, active }) {
   const [blink, setBlink] = useState(true);
@@ -87,6 +106,100 @@ function TerminalPane({ domain, lines, active }) {
             verticalAlign: 'text-bottom', marginLeft: 2,
           }} />
         )}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Scanner body — scrolling drip lines for left pane ─────────────────── */
+function ScannerBody({ domain, lines, active }) {
+  const [blink, setBlink] = useState(true);
+  const bodyRef = useRef(null);
+
+  useEffect(() => {
+    const blinker = setInterval(() => setBlink(b => !b), 530);
+    return () => clearInterval(blinker);
+  }, []);
+
+  useEffect(() => {
+    if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+  }, [lines]);
+
+  return (
+    <div
+      ref={bodyRef}
+      style={{
+        flex: 1,
+        padding: '20px',
+        overflowY: 'auto',
+        scrollbarWidth: 'none',
+        fontSize: 12,
+        lineHeight: 1.8,
+      }}
+    >
+      {lines.length === 0 && (
+        <div style={{ color: '#3F3F5A' }}>
+          $ proof360 --url {domain || '...'}
+        </div>
+      )}
+      {lines.map((line, i) => (
+        <div key={i} style={{ color: LINE_COLORS[line.type] || '#F7F4F0', minHeight: '1.8em' }}>
+          {line.text}
+        </div>
+      ))}
+      {active && (
+        <span style={{
+          display: 'inline-block', width: 7, height: '1em',
+          background: blink ? '#E07B39' : 'transparent',
+          verticalAlign: 'text-bottom', marginLeft: 2,
+        }} />
+      )}
+    </div>
+  );
+}
+
+/* ─── Findings pane — right terminal, recon sources ─────────────────────── */
+function FindingsPane({ entries }) {
+  return (
+    <div style={{
+      background: '#0C0C12',
+      border: '1px solid #1A1A2E',
+      borderRadius: 10,
+      overflow: 'hidden',
+      fontFamily: '"IBM Plex Mono", monospace',
+      flex: 1,
+    }}>
+      {/* Title bar */}
+      <div style={{
+        background: '#111120',
+        borderBottom: '1px solid #1A1A2E',
+        padding: '10px 16px',
+        display: 'flex', alignItems: 'center', gap: 7,
+      }}>
+        {['#FF5F57', '#FFBD2E', '#28C840'].map(c => (
+          <div key={c} style={{ width: 10, height: 10, borderRadius: '50%', background: c }} />
+        ))}
+        <span style={{ marginLeft: 14, fontSize: 11, color: '#3F3F5A', letterSpacing: '0.06em' }}>
+          FINDINGS
+        </span>
+      </div>
+      {/* Body — fixed 10 rows, no scroll */}
+      <div style={{
+        padding: '20px',
+        fontSize: 12,
+        lineHeight: 1.8,
+      }}>
+        <div style={{ color: '#3F3F5A', marginBottom: 8, fontSize: 11 }}>
+          $ awaiting intelligence...
+        </div>
+        {entries.map(entry => (
+          <div
+            key={entry.source}
+            style={{ color: RECON_COLORS[entry.color] || '#3F3F5A', minHeight: '1.8em' }}
+          >
+            {entry.text}
+          </div>
+        ))}
       </div>
     </div>
   );
