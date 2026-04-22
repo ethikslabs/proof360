@@ -9,6 +9,7 @@ SSM_PREFIX="/proof360"
 
 echo "==> Pulling latest"
 cd $REPO_DIR
+git config --global --add safe.directory $REPO_DIR 2>/dev/null || true
 git pull origin main
 
 echo "==> Loading secrets from SSM"
@@ -58,3 +59,12 @@ sudo systemctl reload nginx
 
 echo "==> Done"
 pm2 status $PM2_NAME
+
+echo "==> Verifying API health"
+sleep 3
+STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$PORT/api/v1/session/__healthcheck__/infer-status 2>/dev/null)
+if [ "$STATUS" = "404" ]; then
+  echo "API responding (404 = session not found = healthy)"
+else
+  echo "WARNING: Unexpected status $STATUS — check pm2 logs $PM2_NAME"
+fi
