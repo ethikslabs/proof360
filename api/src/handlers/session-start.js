@@ -1,7 +1,8 @@
-import { createSession, updateSession } from '../services/session-store.js';
+import { createSession, updateSession, appendLog } from '../services/session-store.js';
 import { extractSignals } from '../services/signal-extractor.js';
 import { buildInferences } from '../services/inference-builder.js';
 import { emitPulse } from '../services/pulse-emitter.js';
+import { extractReconContext } from '../services/recon-pipeline.js';
 
 export async function sessionStartHandler(request, reply) {
   const { website_url, deck_file } = request.body || {};
@@ -23,18 +24,20 @@ export async function sessionStartHandler(request, reply) {
   });
 
   // Fire async signal extraction pipeline — don't block the response
-  extractAndInfer(session.id, { website_url, deck_file });
+  extractAndInfer(session.id, { website_url, deck_file }, (line) => appendLog(session.id, line));
 
   return reply.status(201).send({ session_id: session.id });
 }
 
-async function extractAndInfer(sessionId, { website_url, deck_file }) {
+async function extractAndInfer(sessionId, { website_url, deck_file }, log) {
   try {
     const { signals, sources_read, enterprise_signals, competitor_mentions, recon_context } =
-      await extractSignals({ website_url, deck_file });
+      await extractSignals({ website_url, deck_file }, log);
 
-    const inferenceResult = buildInferences(signals, sources_read, website_url);
+    const reconFlat = extractReconContext(recon_context);
+    const inferenceResult = buildInferences(signals, sources_read, website_url, reconFlat);
 
+    log({ type: '__done__' });
     updateSession(sessionId, {
       infer_status: 'complete',
       raw_signals: signals,
@@ -53,6 +56,8 @@ async function extractAndInfer(sessionId, { website_url, deck_file }) {
     console.error(JSON.stringify({
       event: 'extraction_failed', session_id: sessionId, error: err.message,
     }));
+    log({ text: `  ✗  Extraction failed: ${err.message}`, type: 'err' });
+    log({ type: '__done__' });
     updateSession(sessionId, { infer_status: 'failed' });
   }
 }

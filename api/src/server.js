@@ -11,6 +11,7 @@ import { reportHandler } from './handlers/report.js';
 import { captureEmailHandler } from './handlers/capture-email.js';
 import { earlySignalHandler } from './handlers/early-signal.js';
 import { chatHandler } from './handlers/chat.js';
+import { sessionLogHandler } from './handlers/session-log.js';
 
 const PORT = parseInt(process.env.PORT || '3002', 10);
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
@@ -21,6 +22,7 @@ await app.register(cors, { origin: true });
 
 // --- Phase 1: Cold read ---
 app.post('/api/v1/session/start', sessionStartHandler);
+app.get('/api/v1/session/:id/log', sessionLogHandler);
 app.get('/api/v1/session/:id/infer-status', inferStatusHandler);
 app.get('/api/v1/session/:id/inferences', inferencesHandler);
 
