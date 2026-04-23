@@ -7,8 +7,11 @@ FRONTEND_DIR="$REPO_DIR/frontend"
 PM2_NAME="proof360-api"
 SSM_PREFIX="/proof360"
 
-echo "==> Fixing ownership"
-chown -R ec2-user:ec2-user $REPO_DIR 2>/dev/null || true
+# If running as root (e.g. via SSM), re-invoke as ec2-user so git ownership checks pass
+if [ "$(id -u)" = "0" ]; then
+  chown -R ec2-user:ec2-user $REPO_DIR 2>/dev/null || true
+  exec su - ec2-user -c "cd $REPO_DIR && bash scripts/deploy.sh"
+fi
 
 echo "==> Pulling latest"
 cd $REPO_DIR
