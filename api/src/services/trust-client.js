@@ -1,10 +1,23 @@
-// Trust360 engine client — POST /trust
-// Each gap gets one call. High MOS (>= 7) = gap confirmed.
+// Trust evaluation client
+// Routing: NIM (Nemotron) → Trust360 → confirmed=true fallback
+// NIM is preferred when NVIDIA_API_KEY is set. Silent fallback on failure.
+
+import { nimEvaluateClaim, isNIMAvailable } from './nim-client.js';
 
 const TRUST360_URL = process.env.TRUST360_URL || 'http://localhost:3000';
 const TIMEOUT_MS = 20_000;
 
 export async function evaluateClaim({ question, evidence, metadata }) {
+  // Try NIM first
+  if (await isNIMAvailable()) {
+    try {
+      return await nimEvaluateClaim({ question, evidence, metadata });
+    } catch (err) {
+      console.warn('[trust] NIM failed, falling back to Trust360:', err.message);
+    }
+  }
+
+  // Trust360 fallback
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
@@ -16,12 +29,8 @@ export async function evaluateClaim({ question, evidence, metadata }) {
       signal: controller.signal,
     });
 
-    if (!res.ok) {
-      const status = res.status;
-      // 206 = partial consensus — still usable
-      if (status !== 206) {
-        throw new Error(`Trust360 returned ${status}`);
-      }
+    if (!res.ok && res.status !== 206) {
+      throw new Error(`Trust360 returned ${res.status}`);
     }
 
     return await res.json();
@@ -42,9 +51,10 @@ export async function evaluateClaims(claims) {
         variance: result.consensus.variance,
         agreement: result.consensus.agreement,
         traceId: result.traceId,
+        provider: result.provider ?? 'trust360',
       };
     } catch (err) {
-      // Trust360 unavailable — confirm gap as fallback (spec: brief-api.md)
+      // All paths failed — confirm gap as fallback (spec: brief-api.md)
       results[claim.metadata.gapId] = {
         confirmed: true,
         mos: 8,

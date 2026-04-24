@@ -1,0 +1,117 @@
+<h2>One persona or three?</h2>
+<p class="subtitle">How do Sophia, Leonardo, and Edison appear inline on the page?</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="one-active" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0A1628;padding:16px;min-height:180px;border-radius:8px 8px 0 0;">
+      <!-- Persona pill switcher -->
+      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;">
+        <div style="background:linear-gradient(135deg,#7c3aed,#9d4edd);border-radius:20px;padding:5px 14px;display:flex;align-items:center;gap:6px;">
+          <div style="width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,0.3);font-size:9px;display:flex;align-items:center;justify-content:center;">S</div>
+          <span style="color:#fff;font-size:11px;font-weight:600;">Sophia</span>
+        </div>
+        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:5px 14px;display:flex;align-items:center;gap:6px;">
+          <div style="width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,0.1);font-size:9px;display:flex;align-items:center;justify-content:center;color:#6b7280;">L</div>
+          <span style="color:#6b7280;font-size:11px;">Leonardo</span>
+        </div>
+        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:5px 14px;display:flex;align-items:center;gap:6px;">
+          <div style="width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,0.1);font-size:9px;display:flex;align-items:center;justify-content:center;color:#6b7280;">E</div>
+          <span style="color:#6b7280;font-size:11px;">Edison</span>
+        </div>
+      </div>
+      <!-- Active persona chat -->
+      <div style="background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.25);border-radius:10px;padding:12px;">
+        <div style="display:flex;gap:8px;margin-bottom:10px;align-items:flex-start;">
+          <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#9d4edd);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:white;font-weight:700;">S</div>
+          <div>
+            <div style="height:6px;background:rgba(124,58,237,0.35);border-radius:3px;width:160px;margin-bottom:5px;"></div>
+            <div style="height:6px;background:rgba(124,58,237,0.25);border-radius:3px;width:120px;"></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:10px;">
+          <div style="flex:1;height:28px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:6px;"></div>
+          <div style="width:28px;height:28px;background:rgba(124,58,237,0.4);border-radius:6px;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>One active, pill switcher</h3>
+      <p>Three pills at the top — tap to switch persona. One chat thread visible at a time. Each persona remembers their own conversation. Clean, focused.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="three-intros" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0A1628;padding:16px;min-height:180px;border-radius:8px 8px 0 0;overflow:hidden;">
+      <!-- Three compact persona cards stacked -->
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.3);border-radius:8px;padding:10px;display:flex;align-items:center;gap:10px;">
+          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#9d4edd);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:white;font-weight:700;">S</div>
+          <div style="flex:1;">
+            <div style="color:#a78bfa;font-size:10px;font-weight:600;margin-bottom:3px;">SOPHIA · Narrative</div>
+            <div style="height:5px;background:rgba(124,58,237,0.3);border-radius:3px;width:90%;"></div>
+          </div>
+          <div style="color:#7c3aed;font-size:16px;">›</div>
+        </div>
+        <div style="background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.2);border-radius:8px;padding:10px;display:flex;align-items:center;gap:10px;">
+          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#d97706,#f59e0b);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:white;font-weight:700;">L</div>
+          <div style="flex:1;">
+            <div style="color:#fbbf24;font-size:10px;font-weight:600;margin-bottom:3px;">LEONARDO · Market</div>
+            <div style="height:5px;background:rgba(234,179,8,0.25);border-radius:3px;width:80%;"></div>
+          </div>
+          <div style="color:#d97706;font-size:16px;">›</div>
+        </div>
+        <div style="background:rgba(20,184,166,0.08);border:1px solid rgba(20,184,166,0.2);border-radius:8px;padding:10px;display:flex;align-items:center;gap:10px;">
+          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#0d9488,#14b8a6);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:white;font-weight:700;">E</div>
+          <div style="flex:1;">
+            <div style="color:#2dd4bf;font-size:10px;font-weight:600;margin-bottom:3px;">EDISON · Technical</div>
+            <div style="height:5px;background:rgba(20,184,166,0.25);border-radius:3px;width:85%;"></div>
+          </div>
+          <div style="color:#14b8a6;font-size:16px;">›</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>All three visible, tap to open</h3>
+      <p>Each persona shows their intro line and a "›" to expand into chat. Founder sees all three at once — picks who to talk to. More discovery, feels like a team.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="auto-sophia" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0A1628;padding:16px;min-height:180px;border-radius:8px 8px 0 0;">
+      <!-- Sophia opens first, others accessible -->
+      <div style="background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);border-radius:10px;padding:12px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#9d4edd);display:flex;align-items:center;justify-content:center;font-size:12px;color:white;font-weight:700;">S</div>
+          <div>
+            <div style="color:#a78bfa;font-size:10px;font-weight:700;">SOPHIA</div>
+            <div style="color:#6b7280;font-size:9px;">Narrative lens</div>
+          </div>
+        </div>
+        <div style="height:6px;background:rgba(124,58,237,0.3);border-radius:3px;width:95%;margin-bottom:4px;"></div>
+        <div style="height:6px;background:rgba(124,58,237,0.2);border-radius:3px;width:80%;margin-bottom:10px;"></div>
+        <div style="display:flex;gap:6px;">
+          <div style="flex:1;height:26px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:5px;"></div>
+          <div style="width:26px;height:26px;background:rgba(124,58,237,0.5);border-radius:5px;"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <div style="flex:1;background:rgba(234,179,8,0.07);border:1px solid rgba(234,179,8,0.15);border-radius:6px;padding:6px 10px;display:flex;align-items:center;gap:6px;">
+          <div style="width:16px;height:16px;border-radius:50%;background:linear-gradient(135deg,#d97706,#f59e0b);font-size:8px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;">L</div>
+          <span style="color:#fbbf24;font-size:10px;">Leonardo</span>
+        </div>
+        <div style="flex:1;background:rgba(20,184,166,0.07);border:1px solid rgba(20,184,166,0.15);border-radius:6px;padding:6px 10px;display:flex;align-items:center;gap:6px;">
+          <div style="width:16px;height:16px;border-radius:50%;background:linear-gradient(135deg,#0d9488,#14b8a6);font-size:8px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;">E</div>
+          <span style="color:#2dd4bf;font-size:10px;">Edison</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Sophia opens, others compact below</h3>
+      <p>Sophia is always the first voice — her narrative framing lands immediately. Leonardo and Edison sit as compact chips below. Tap to switch. Opinionated default, still flexible.</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:24px;">Click to select, then let me know in the terminal.</p>

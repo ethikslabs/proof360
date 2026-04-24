@@ -2,6 +2,8 @@ import { useState } from 'react';
 import ScorePreviewRow from './ScorePreviewRow';
 import GapCardEvidence from './GapCardEvidence';
 import VendorMatrix from './VendorMatrix';
+import ConfidenceChip from '../ConfidenceChip.jsx';
+import { shouldShowConfidenceChip } from '../confidenceUtils.js';
 
 const SEVERITY = {
   critical: { pill: 'bg-[#FAECE7] text-[#C2432A]', label: 'Critical' },
@@ -9,7 +11,7 @@ const SEVERITY = {
   low:      { pill: 'bg-[#EAF3DE] text-[#3A7A3A]', label: 'Low' },
 };
 
-export default function GapCard({ gap, trustScore, defaultOpen }) {
+export default function GapCard({ gap, trustScore, defaultOpen, overallConfidence }) {
   const [open, setOpen] = useState(defaultOpen);
   const sev = SEVERITY[gap.severity] || SEVERITY.low;
   const hasVendorIntel = gap.vendor_intelligence?.vendors?.length > 0;
@@ -24,6 +26,9 @@ export default function GapCard({ gap, trustScore, defaultOpen }) {
           <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${sev.pill}`}>
             {sev.label}
           </span>
+          {shouldShowConfidenceChip(gap.confidence, overallConfidence) && (
+            <ConfidenceChip level={gap.confidence} />
+          )}
           <span className="text-sm font-medium text-gray-800">{gap.title}</span>
         </div>
         <div className="flex items-center gap-3">

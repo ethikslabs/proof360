@@ -49,7 +49,7 @@ export async function runGapAnalysis(context) {
       evidence: [{ source: gapEvidenceSource(gap), citation: gapEvidenceCitation(gap) }],
       time_estimate: '',
       framework_impact: generateFrameworkImpact(gap.id, context),
-      remediation: gap.remediation || [],
+      remediation: generateRemediation(gap, context),
     }));
 
   // 5. Compute trust score
@@ -68,25 +68,31 @@ export async function runGapAnalysis(context) {
   return { gaps, vendors, trust_score, readiness };
 }
 
-const DNS_GAPS       = new Set(['dmarc', 'spf']);
-const HTTP_GAPS      = new Set(['security_headers', 'tls_configuration']);
-const CERT_GAPS      = new Set(['staging_exposure']);
-const HIBP_GAPS      = new Set(['domain_breach']);
+const DNS_GAPS        = new Set(['dmarc', 'spf']);
+const HTTP_GAPS       = new Set(['security_headers', 'tls_configuration']);
+const CERT_GAPS       = new Set(['staging_exposure']);
+const HIBP_GAPS       = new Set(['domain_breach']);
+const ANSWER_GAPS     = new Set(['mfa', 'sso', 'edr', 'cyber_insurance', 'vendor_questionnaire']);
+const SECTOR_GAPS     = new Set(['hipaa_security', 'pci_dss', 'apra_prudential', 'essential_eight']);
 
 function gapEvidenceSource(gap) {
-  if (DNS_GAPS.has(gap.id))  return 'dns';
-  if (HTTP_GAPS.has(gap.id)) return 'http';
-  if (CERT_GAPS.has(gap.id)) return 'ct_logs';
-  if (HIBP_GAPS.has(gap.id)) return 'hibp';
-  return 'self-reported';
+  if (DNS_GAPS.has(gap.id))    return 'dns_scan';
+  if (HTTP_GAPS.has(gap.id))   return 'http_scan';
+  if (CERT_GAPS.has(gap.id))   return 'cert_scan';
+  if (HIBP_GAPS.has(gap.id))   return 'breach_db';
+  if (ANSWER_GAPS.has(gap.id)) return 'assessment';
+  if (SECTOR_GAPS.has(gap.id)) return 'sector_inference';
+  return 'signal_inference';
 }
 
 function gapEvidenceCitation(gap) {
-  if (DNS_GAPS.has(gap.id))  return 'Passive DNS lookup — live record at time of assessment';
-  if (HTTP_GAPS.has(gap.id)) return 'Passive HTTP/TLS scan — live headers at time of assessment';
-  if (CERT_GAPS.has(gap.id)) return 'Certificate Transparency log scan — crt.sh at time of assessment';
-  if (HIBP_GAPS.has(gap.id)) return 'Have I Been Pwned domain breach database — checked at time of assessment';
-  return 'Inferred from session signals';
+  if (DNS_GAPS.has(gap.id))    return 'Passive DNS lookup — live record at time of assessment';
+  if (HTTP_GAPS.has(gap.id))   return 'Passive HTTP/TLS scan — live headers at time of assessment';
+  if (CERT_GAPS.has(gap.id))   return 'Certificate Transparency log scan — crt.sh at time of assessment';
+  if (HIBP_GAPS.has(gap.id))   return 'Have I Been Pwned domain breach database — checked at time of assessment';
+  if (ANSWER_GAPS.has(gap.id)) return 'Derived from your assessment responses';
+  if (SECTOR_GAPS.has(gap.id)) return 'Inferred from your sector, customer type, and geographic market';
+  return 'Inferred from public signals — no evidence found of this control';
 }
 
 function mosToConfidence(mos) {
@@ -105,13 +111,17 @@ function generateWhy(gap, context) {
     vendor_questionnaire: `A stalled deal due to a security questionnaire signals that your trust posture is blocking revenue right now.`,
     edr: `Without endpoint detection and response, you have limited visibility into threats on your team's devices.`,
     sso: `Without SSO, user access management is fragmented. Enterprise IT teams expect centralised identity management.`,
-    dmarc: `Your domain has no enforced DMARC policy, meaning anyone can send email that appears to come from your domain. This enables phishing attacks impersonating your brand — a critical trust failure with enterprise buyers.`,
+    dmarc: context.dmarc_policy === 'none'
+      ? `Your domain has a DMARC record but the policy is set to \`p=none\` — monitoring only. No emails are blocked or quarantined regardless of sender. Anyone can send email that appears to come from your domain. Enterprise email security tools flag \`p=none\` as an unresolved issue; it needs to be \`p=quarantine\` or \`p=reject\` to count.`
+      : `Your domain has no enforced DMARC policy, meaning anyone can send email that appears to come from your domain. This enables phishing attacks impersonating your brand — a critical trust failure with enterprise buyers.`,
     spf: `Your domain's SPF record is missing or permits any sender, leaving it open to email spoofing. Enterprise security teams check this before engaging with a new vendor.`,
     hipaa_security: `You are handling health data without demonstrated HIPAA Security Rule compliance. This is a federal legal requirement, not a best practice — failure exposes the company to OCR investigation, breach notification obligations, and civil liability.`,
     pci_dss: `You handle payment card data without demonstrated PCI DSS compliance. Non-compliance can result in card scheme fines, acquirer termination, and full breach liability without the protection of a compliance safe harbour.`,
     apra_prudential: `As an Australian financial services entity, APRA CPS 234 is not optional — it is a prudential standard with regulatory consequences. APRA expects board-owned information security capability, annual testing, and documented third-party risk.`,
     essential_eight: `The ACSC Essential Eight is the Australian government's mandated security baseline. For any company selling to government or operating in regulated AU markets, ML1 compliance is the minimum expected posture.`,
-    security_headers: `Your web application is missing critical HTTP security headers. HSTS and CSP are baseline controls that prevent a class of browser-based attacks — enterprise security teams run automated header checks on every new vendor.`,
+    security_headers: context.cdn_provider === 'Cloudflare'
+      ? `Your web application is missing critical HTTP security headers — HSTS and CSP are absent. You're running Cloudflare, which means you can add these via Transform Rules without touching your application code. Enterprise security teams run automated header checks on every new vendor; this is a quick fix.`
+      : `Your web application is missing critical HTTP security headers. HSTS and CSP are baseline controls that prevent a class of browser-based attacks — enterprise security teams run automated header checks on every new vendor.`,
     staging_exposure: `Your staging or development environment is publicly accessible via a subdomain visible in CT logs. Exposed staging environments frequently contain debug credentials, test data, and lower security controls — a direct path to production.`,
     domain_breach: `Your company domain has appeared in known data breach databases. Enterprise procurement teams and cyber insurers run HIBP checks as standard due diligence — a domain in breach data raises immediate questions about credential hygiene.`,
     tls_configuration: `Your TLS configuration is outdated or your certificate is near expiry. Buyers performing technical due diligence will flag TLS 1.0/1.1 and short-expiry certificates as signs of low operational maturity.`,
@@ -140,4 +150,39 @@ function generateRisk(gap, context) {
     tls_configuration: `An expired or near-expiry certificate causes browser warnings that erode customer trust and can trigger zero-tolerance rejections from enterprise security scanners. Outdated TLS versions are flagged by PCI DSS and SOC 2 auditors.`,
   };
   return risks[gap.id] || `This gap increases risk to your enterprise deal readiness.`;
+}
+
+function generateRemediation(gap, context) {
+  // DMARC: context-aware based on current policy
+  if (gap.id === 'dmarc') {
+    if (context.dmarc_policy === 'none') {
+      // They already have a record at p=none — skip "add a record", start from where they are
+      return [
+        'Your DMARC record exists but is set to p=none — monitoring only, zero enforcement',
+        'Review your DMARC aggregate reports (rua address in your TXT record) for 2 weeks to map all legitimate sending sources',
+        'Update the policy to p=quarantine — unauthorised emails go to spam instead of inboxes',
+        'Once stable with no false positives, move to p=reject — the only setting that actually blocks domain impersonation',
+      ];
+    }
+    // No record at all
+    return [
+      'Add a DMARC TXT record to DNS: _dmarc.yourdomain.com → "v=DMARC1; p=none; rua=mailto:dmarc@yourdomain.com"',
+      'Leave it on p=none for 2 weeks and review the aggregate reports to identify all legitimate email senders',
+      'Move to p=quarantine — sends unauthenticated mail to spam',
+      'Set p=reject once clean — this is the only configuration that actually prevents spoofing of your domain',
+    ];
+  }
+
+  // Security headers: context-aware based on CDN
+  if (gap.id === 'security_headers' && context.cdn_provider === 'Cloudflare') {
+    return [
+      'In Cloudflare dashboard → Rules → Transform Rules → Modify Response Header',
+      'Add HSTS: Strict-Transport-Security: max-age=31536000; includeSubDomains',
+      'Add CSP: Content-Security-Policy: default-src \'self\' (then expand as needed)',
+      'Add X-Frame-Options: DENY and X-Content-Type-Options: nosniff',
+      'Test with securityheaders.com — aim for a B or above',
+    ];
+  }
+
+  return gap.remediation || [];
 }

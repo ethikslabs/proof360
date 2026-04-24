@@ -1,8 +1,11 @@
 // api/src/handlers/chat.js
-import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 import { buildSystemPrompt } from '../services/persona-prompts.js';
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const client = new OpenAI({
+  baseURL: process.env.AI_GATEWAY_URL || 'http://localhost:3003/v1',
+  apiKey: 'gateway',
+});
 
 const VALID_PERSONAS = ['sophia', 'leonardo', 'edison'];
 
@@ -37,25 +40,27 @@ export async function chatHandler(request, reply) {
   let headersWritten = false;
 
   try {
-    const stream = client.messages.stream({
+    const stream = await client.chat.completions.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 300,
-      system: systemPrompt,
-      messages: apiMessages,
+      messages: [{ role: 'system', content: systemPrompt }, ...apiMessages],
+      stream: true,
     });
 
-    for await (const event of stream) {
-      if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta') {
+    for await (const chunk of stream) {
+      const delta = chunk.choices[0]?.delta?.content;
+      if (delta) {
         if (!headersWritten) {
           reply.raw.writeHead(200, {
             'Content-Type': 'text/plain; charset=utf-8',
             'Transfer-Encoding': 'chunked',
             'Cache-Control': 'no-cache',
             'X-Accel-Buffering': 'no',
+            'Access-Control-Allow-Origin': '*',
           });
           headersWritten = true;
         }
-        reply.raw.write(event.delta.text);
+        reply.raw.write(delta);
       }
     }
 

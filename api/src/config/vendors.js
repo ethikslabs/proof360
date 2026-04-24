@@ -1,20 +1,33 @@
 // Vendor catalog — partner data, quadrant positions, distributor routing
 // Single source of truth for vendor graph, scoring, and distributor logic.
 // distributor: "dicker" | "ingram" | "direct"
+// marketplace_aws: true — listed on AWS Marketplace, can bill against AWS commitment
+// aws_native: true — built by AWS, no separate vendor relationship needed
 // Dicker AU catalog verified 2026-03-18. Ingram AU catalog verified 2026-03-18.
 
 export const VENDORS = {
 
   // ── GRC & COMPLIANCE AUTOMATION ─────────────────────────────────────────
 
+  aws_security_hub: {
+    id: 'aws_security_hub', display_name: 'AWS Security Hub', initials: 'SH',
+    closes: ['soc2', 'compliance', 'essential_eight', 'incident_response'],
+    distributor: 'direct', aws_native: true, marketplace_aws: false,
+    cost_range: 'Included in AWS', timeline: '1 day',
+    is_partner: false, deal_label: null,
+    best_for: 'AWS-native stacks — aggregates GuardDuty, Inspector, Macie into one compliance view',
+    summary: 'Centralised security and compliance visibility across your AWS environment. Maps to CIS, PCI DSS, NIST, and Essential Eight controls out of the box.',
+    referral_url: 'https://aws.amazon.com/security-hub/',
+  },
+
   vanta: {
     id: 'vanta', display_name: 'Vanta', initials: 'V',
-    closes: ['soc2', 'incident_response'],
-    distributor: 'direct',
+    closes: ['soc2', 'incident_response', 'pci_dss', 'hipaa_security', 'essential_eight'],
+    distributor: 'direct', marketplace_aws: true,
     cost_range: '$7-15k/yr', timeline: '6-9 months',
     is_partner: true, deal_label: '20% off first year',
     best_for: 'Seed to Series B, AWS-native stacks',
-    summary: 'Fastest to SOC 2. Connects to your existing stack in an afternoon.',
+    summary: 'Fastest to SOC 2. Connects to your existing AWS stack in an afternoon. Available on AWS Marketplace.',
     referral_url: 'https://vanta.com/?ref=proof360',
   },
   vanta_msp: {
@@ -29,8 +42,8 @@ export const VENDORS = {
   },
   drata: {
     id: 'drata', display_name: 'Drata', initials: 'D',
-    closes: ['soc2', 'incident_response'],
-    distributor: 'direct',
+    closes: ['soc2', 'incident_response', 'pci_dss'],
+    distributor: 'direct', marketplace_aws: true,
     cost_range: '$8-18k/yr', timeline: '6-12 months',
     is_partner: true, deal_label: '15% off first year',
     best_for: 'Larger teams, complex environments',
@@ -109,10 +122,21 @@ export const VENDORS = {
 
   // ── IDENTITY & IAM ───────────────────────────────────────────────────────
 
+  aws_iam_identity_center: {
+    id: 'aws_iam_identity_center', display_name: 'AWS IAM Identity Center', initials: 'IC',
+    closes: ['mfa', 'sso', 'identity'],
+    distributor: 'direct', aws_native: true, marketplace_aws: false,
+    cost_range: 'Included in AWS', timeline: '1-2 days',
+    is_partner: false, deal_label: null,
+    best_for: 'AWS-native stacks — centralised SSO and MFA across AWS accounts and SAML apps',
+    summary: 'AWS-native SSO and MFA. If your team is already in AWS, this is the zero-friction path to centralised identity with no additional license cost.',
+    referral_url: 'https://aws.amazon.com/iam/identity-center/',
+  },
+
   okta: {
     id: 'okta', display_name: 'Okta', initials: 'O',
     closes: ['mfa', 'sso', 'identity'],
-    distributor: 'direct',
+    distributor: 'direct', marketplace_aws: true,
     cost_range: '$3-8k/yr', timeline: '2-4 weeks',
     is_partner: false, deal_label: null,
     best_for: 'Enterprise identity, broad integrations',
@@ -122,7 +146,7 @@ export const VENDORS = {
   cisco_duo: {
     id: 'cisco_duo', display_name: 'Cisco Duo', initials: 'CD',
     closes: ['mfa', 'identity'],
-    distributor: 'ingram',
+    distributor: 'ingram', marketplace_aws: true,
     cost_range: '$2-5k/yr', timeline: '1-2 weeks',
     is_partner: true, deal_label: null,
     best_for: 'Fast MFA rollout, SME-friendly, up and running in a day',
@@ -182,9 +206,20 @@ export const VENDORS = {
 
   // ── NETWORK SECURITY ─────────────────────────────────────────────────────
 
+  aws_waf: {
+    id: 'aws_waf', display_name: 'AWS WAF', initials: 'WF',
+    closes: ['waf', 'network_perimeter', 'security_headers', 'dmarc'],
+    distributor: 'direct', aws_native: true, marketplace_aws: false,
+    cost_range: 'Pay-per-use (AWS)', timeline: '1 day',
+    is_partner: false, deal_label: null,
+    best_for: 'AWS-hosted apps — WAF and response header policies without a separate vendor',
+    summary: 'AWS-native WAF with managed rule groups. Add security headers via CloudFront response policies. No separate vendor relationship — billed directly through AWS.',
+    referral_url: 'https://aws.amazon.com/waf/',
+  },
+
   cloudflare: {
     id: 'cloudflare', display_name: 'Cloudflare', initials: 'CF',
-    closes: ['network_perimeter', 'waf', 'ddos', 'zero_trust'],
+    closes: ['network_perimeter', 'waf', 'ddos', 'zero_trust', 'dmarc', 'security_headers'],
     distributor: 'ingram',
     cost_range: '$2-6k/yr', timeline: '2-4 weeks',
     is_partner: true, deal_label: null,
@@ -238,7 +273,7 @@ export const VENDORS = {
   crowdstrike: {
     id: 'crowdstrike', display_name: 'CrowdStrike', initials: 'CS',
     closes: ['edr', 'endpoint_protection'],
-    distributor: 'dicker',
+    distributor: 'dicker', marketplace_aws: true,
     cost_range: '$3-8k/yr', timeline: '2-3 weeks',
     is_partner: false, deal_label: null,
     best_for: 'Enterprise EDR, strong detection',
@@ -277,6 +312,17 @@ export const VENDORS = {
   },
 
   // ── DATA RESILIENCE ──────────────────────────────────────────────────────
+
+  aws_backup: {
+    id: 'aws_backup', display_name: 'AWS Backup', initials: 'BK',
+    closes: ['backup', 'recovery', 'data_resilience'],
+    distributor: 'direct', aws_native: true, marketplace_aws: false,
+    cost_range: 'Pay-per-use (AWS)', timeline: '1 day',
+    is_partner: false, deal_label: null,
+    best_for: 'AWS-native stacks — centralised backup across EC2, RDS, S3, EFS with no separate vendor',
+    summary: 'Centralised backup across your entire AWS estate. Policy-driven, audit-ready, and billed through your existing AWS account.',
+    referral_url: 'https://aws.amazon.com/backup/',
+  },
 
   veeam: {
     id: 'veeam', display_name: 'Veeam', initials: 'VE',
@@ -388,12 +434,13 @@ export const VENDOR_CATEGORIES = {
       y_top: 'More expensive', y_bottom: 'Cheaper',
     },
     vendor_positions: {
-      vanta:         { x: 0.72, y: 0.28 },
-      vanta_msp:     { x: 0.70, y: 0.30 },
-      drata:         { x: 0.62, y: 0.38 },
-      secureframe:   { x: 0.55, y: 0.52 },
-      apollo_secure: { x: 0.65, y: 0.65 },
-      trustwave:     { x: 0.40, y: 0.45 },
+      aws_security_hub: { x: 0.80, y: 0.88 },
+      vanta:            { x: 0.72, y: 0.28 },
+      vanta_msp:        { x: 0.70, y: 0.30 },
+      drata:            { x: 0.62, y: 0.38 },
+      secureframe:      { x: 0.55, y: 0.52 },
+      apollo_secure:    { x: 0.65, y: 0.65 },
+      trustwave:        { x: 0.40, y: 0.45 },
     },
   },
   'Founder trust': {
@@ -420,6 +467,7 @@ export const VENDOR_CATEGORIES = {
       y_top: 'Enterprise-focused', y_bottom: 'Startup-focused',
     },
     vendor_positions: {
+      aws_iam_identity_center: { x: 0.45, y: 0.70 },
       okta:      { x: 0.75, y: 0.25 },
       cisco_duo: { x: 0.35, y: 0.65 },
       microsoft: { x: 0.70, y: 0.35 },
@@ -432,6 +480,7 @@ export const VENDOR_CATEGORIES = {
       y_top: 'Broader platform', y_bottom: 'Point solution',
     },
     vendor_positions: {
+      aws_waf:        { x: 0.62, y: 0.55 },
       cloudflare:     { x: 0.58, y: 0.42 },
       cisco_umbrella: { x: 0.52, y: 0.50 },
       palo_alto:      { x: 0.82, y: 0.25 },
@@ -458,11 +507,12 @@ export const VENDOR_CATEGORIES = {
       y_top: 'Enterprise-focused', y_bottom: 'SMB-focused',
     },
     vendor_positions: {
-      veeam:    { x: 0.55, y: 0.40 },
-      cohesity: { x: 0.65, y: 0.30 },
-      netapp:   { x: 0.45, y: 0.25 },
-      nutanix:  { x: 0.60, y: 0.35 },
-      veritas:  { x: 0.35, y: 0.30 },
+      aws_backup: { x: 0.88, y: 0.60 },
+      veeam:      { x: 0.55, y: 0.40 },
+      cohesity:   { x: 0.65, y: 0.30 },
+      netapp:     { x: 0.45, y: 0.25 },
+      nutanix:    { x: 0.60, y: 0.35 },
+      veritas:    { x: 0.35, y: 0.30 },
     },
   },
 };

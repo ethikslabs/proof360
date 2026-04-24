@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
+import { FeatureFlagProvider } from './contexts/FeatureFlagContext';
+import AdminPreread from './pages/AdminPreread';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -21,21 +23,24 @@ import FounderDashboard from './pages/FounderDashboard';
 export default function App() {
   return (
     <BrowserRouter>
-      <ScrollToTop />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/audit" element={<Audit />} />
-        <Route path="/audit/reading" element={<AuditReading />} />
-        <Route path="/audit/cold-read" element={<AuditColdRead />} />
-        <Route path="/processing" element={<Processing />} />
-        <Route path="/report/:sessionId" element={<Report />} />
-        <Route path="/portal" element={<Portal />} />
-        <Route path="/portal/callback" element={<Portal />} />
-        <Route path="/portal/dashboard" element={<PortalDashboard />} />
-        <Route path="/portal/leads/:leadId" element={<PortalLeadDetail />} />
-        <Route path="/account/login" element={<FounderAuth />} />
-        <Route path="/account" element={<FounderDashboard />} />
-      </Routes>
+      <FeatureFlagProvider>
+        <ScrollToTop />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/audit" element={<Audit />} />
+          <Route path="/audit/reading" element={<AuditReading />} />
+          <Route path="/audit/cold-read" element={<AuditColdRead />} />
+          <Route path="/processing" element={<Processing />} />
+          <Route path="/report/:sessionId" element={<Report />} />
+          <Route path="/portal" element={<Portal />} />
+          <Route path="/portal/callback" element={<Portal />} />
+          <Route path="/portal/dashboard" element={<PortalDashboard />} />
+          <Route path="/portal/leads/:leadId" element={<PortalLeadDetail />} />
+          <Route path="/account/login" element={<FounderAuth />} />
+          <Route path="/account" element={<FounderDashboard />} />
+          <Route path="/admin/preread" element={<AdminPreread />} />
+        </Routes>
+      </FeatureFlagProvider>
     </BrowserRouter>
   );
 }

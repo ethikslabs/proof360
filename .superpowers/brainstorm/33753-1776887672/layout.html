@@ -1,0 +1,148 @@
+<h2>Two-console scanning page — layout options</h2>
+<p class="subtitle">Left console shows live scan activity. Right console shows findings as they land. Which layout feels right?</p>
+
+<div class="cards">
+
+  <!-- Option A: Dark | Light split -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;overflow:hidden;border-radius:6px 6px 0 0;">
+      <div style="display:flex;height:220px;font-family:'IBM Plex Mono',monospace;font-size:10px;">
+        <!-- Left: dark terminal -->
+        <div style="flex:1;background:#0C0C12;padding:12px;border-right:1px solid #1A1A2E;display:flex;flex-direction:column;gap:6px;overflow:hidden;">
+          <div style="display:flex;gap:5px;margin-bottom:6px;">
+            <div style="width:7px;height:7px;border-radius:50%;background:#FF5F57;"></div>
+            <div style="width:7px;height:7px;border-radius:50%;background:#FFBD2E;"></div>
+            <div style="width:7px;height:7px;border-radius:50%;background:#28C840;"></div>
+            <span style="color:#3F3F5A;margin-left:8px;font-size:9px;letter-spacing:0.05em;">SCANNER</span>
+          </div>
+          <div style="color:#4ADE80;font-size:9px;">[dns]&nbsp;&nbsp;&nbsp;&nbsp; ✓ DMARC: p=none</div>
+          <div style="color:#4ADE80;font-size:9px;">[http]&nbsp;&nbsp;&nbsp; ✓ Headers: 1/6</div>
+          <div style="color:#7DD3FC;font-size:9px;">[certs]&nbsp;&nbsp; ↳ 47 subdomains</div>
+          <div style="color:#F87171;font-size:9px;">[hibp]&nbsp;&nbsp;&nbsp; ✗ 2 breaches found</div>
+          <div style="color:#3F3F5A;font-size:9px;">[ssl]&nbsp;&nbsp;&nbsp;&nbsp; ⏳ grading...</div>
+          <div style="color:#3F3F5A;font-size:9px;">[ports]&nbsp;&nbsp; ⏳ scanning...</div>
+          <div style="display:inline-block;width:5px;height:10px;background:#E07B39;margin-top:2px;"></div>
+        </div>
+        <!-- Right: light results -->
+        <div style="flex:1;background:#F7F8FA;padding:12px;display:flex;flex-direction:column;gap:6px;overflow:hidden;">
+          <div style="font-size:9px;color:#667085;letter-spacing:0.06em;font-family:'Outfit',sans-serif;margin-bottom:4px;">FINDINGS</div>
+          <div style="background:#fff;border:1px solid #E4E7EC;border-radius:6px;padding:8px;">
+            <div style="font-size:9px;color:#667085;letter-spacing:0.05em;">EMAIL SECURITY</div>
+            <div style="font-size:10px;color:#101828;font-weight:600;font-family:'Outfit',sans-serif;margin-top:2px;">DMARC not enforced</div>
+            <div style="font-size:8px;color:#E07B39;margin-top:2px;">⚠ p=none — spoofing risk</div>
+          </div>
+          <div style="background:#fff;border:1px solid #E4E7EC;border-radius:6px;padding:8px;">
+            <div style="font-size:9px;color:#667085;letter-spacing:0.05em;">SECURITY HEADERS</div>
+            <div style="font-size:10px;color:#101828;font-weight:600;font-family:'Outfit',sans-serif;margin-top:2px;">1 of 6 headers set</div>
+            <div style="font-size:8px;color:#F87171;margin-top:2px;">✗ CSP, HSTS missing</div>
+          </div>
+          <div style="background:#fff;border:1px solid #FEE2E2;border-left:3px solid #F87171;border-radius:6px;padding:8px;">
+            <div style="font-size:9px;color:#667085;letter-spacing:0.05em;">DATA BREACH</div>
+            <div style="font-size:10px;color:#101828;font-weight:600;font-family:'Outfit',sans-serif;margin-top:2px;">2 breaches on record</div>
+            <div style="font-size:8px;color:#F87171;margin-top:2px;">✗ 2019, 2021</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Dark scanner / Light results</h3>
+      <p>Terminal stays dark and focused. Results panel is bright cards on light grey. Clear contrast between activity and findings. Matches the existing proof360 aesthetic.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Full dark both sides -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;overflow:hidden;border-radius:6px 6px 0 0;">
+      <div style="display:flex;height:220px;font-family:'IBM Plex Mono',monospace;font-size:10px;background:#0C0C12;">
+        <!-- Left: dark terminal -->
+        <div style="flex:1;padding:12px;border-right:1px solid #1A1A2E;display:flex;flex-direction:column;gap:6px;overflow:hidden;">
+          <div style="display:flex;gap:5px;margin-bottom:6px;">
+            <div style="width:7px;height:7px;border-radius:50%;background:#FF5F57;"></div>
+            <div style="width:7px;height:7px;border-radius:50%;background:#FFBD2E;"></div>
+            <div style="width:7px;height:7px;border-radius:50%;background:#28C840;"></div>
+            <span style="color:#3F3F5A;margin-left:8px;font-size:9px;letter-spacing:0.05em;">SCANNER</span>
+          </div>
+          <div style="color:#4ADE80;font-size:9px;">[dns]&nbsp;&nbsp;&nbsp;&nbsp; ✓ DMARC: p=none</div>
+          <div style="color:#4ADE80;font-size:9px;">[http]&nbsp;&nbsp;&nbsp; ✓ Headers: 1/6</div>
+          <div style="color:#7DD3FC;font-size:9px;">[certs]&nbsp;&nbsp; ↳ 47 subdomains</div>
+          <div style="color:#F87171;font-size:9px;">[hibp]&nbsp;&nbsp;&nbsp; ✗ 2 breaches found</div>
+          <div style="color:#3F3F5A;font-size:9px;">[ssl]&nbsp;&nbsp;&nbsp;&nbsp; ⏳ grading...</div>
+          <div style="display:inline-block;width:5px;height:10px;background:#E07B39;margin-top:2px;"></div>
+        </div>
+        <!-- Right: dark results terminal -->
+        <div style="flex:1;padding:12px;display:flex;flex-direction:column;gap:6px;overflow:hidden;">
+          <div style="display:flex;gap:5px;margin-bottom:6px;">
+            <div style="width:7px;height:7px;border-radius:50%;background:#FF5F57;"></div>
+            <div style="width:7px;height:7px;border-radius:50%;background:#FFBD2E;"></div>
+            <div style="width:7px;height:7px;border-radius:50%;background:#28C840;"></div>
+            <span style="color:#3F3F5A;margin-left:8px;font-size:9px;letter-spacing:0.05em;">FINDINGS</span>
+          </div>
+          <div style="color:#3F3F5A;font-size:9px;">──────────────────────</div>
+          <div style="color:#F7F4F0;font-size:9px;">EMAIL_SECURITY</div>
+          <div style="color:#F87171;font-size:9px;">&nbsp;&nbsp;→ dmarc_policy: none</div>
+          <div style="color:#F87171;font-size:9px;">&nbsp;&nbsp;→ spoofing_risk: true</div>
+          <div style="color:#3F3F5A;font-size:9px;">──────────────────────</div>
+          <div style="color:#F7F4F0;font-size:9px;">DATA_BREACH</div>
+          <div style="color:#F87171;font-size:9px;">&nbsp;&nbsp;→ breach_count: 2</div>
+          <div style="color:#F87171;font-size:9px;">&nbsp;&nbsp;→ years: [2019, 2021]</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Full dark, dual terminal</h3>
+      <p>Both panes are dark terminals. Findings appear as structured key-value output. Maximum hacker-terminal feel. Immersive, intense. Results feel raw and technical.</p>
+    </div>
+  </div>
+
+  <!-- Option C: Asymmetric — wide scanner, narrow results -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;overflow:hidden;border-radius:6px 6px 0 0;">
+      <div style="display:flex;height:220px;font-family:'IBM Plex Mono',monospace;font-size:10px;">
+        <!-- Left: wide dark terminal (60%) -->
+        <div style="flex:1.6;background:#0C0C12;padding:12px;border-right:1px solid #1A1A2E;display:flex;flex-direction:column;gap:5px;overflow:hidden;">
+          <div style="display:flex;gap:5px;margin-bottom:6px;">
+            <div style="width:7px;height:7px;border-radius:50%;background:#FF5F57;"></div>
+            <div style="width:7px;height:7px;border-radius:50%;background:#FFBD2E;"></div>
+            <div style="width:7px;height:7px;border-radius:50%;background:#28C840;"></div>
+            <span style="color:#3F3F5A;margin-left:8px;font-size:9px;letter-spacing:0.05em;">SCANNER — ethiks360.com</span>
+            <span style="margin-left:auto;width:6px;height:6px;border-radius:50%;background:#4ADE80;box-shadow:0 0 4px #4ADE80;flex-shrink:0;"></span>
+          </div>
+          <div style="color:#7DD3FC;font-size:9px;">$ proof360 --url ethiks360.com --passive</div>
+          <div style="color:#4ADE80;font-size:9px;">  ✓ [dns]&nbsp;&nbsp;&nbsp; DMARC p=none · SPF strict · MX→Outlook</div>
+          <div style="color:#4ADE80;font-size:9px;">  ✓ [http]&nbsp;&nbsp; score 1/6 · no CSP · HSTS missing</div>
+          <div style="color:#7DD3FC;font-size:9px;">  ↳ [certs]&nbsp; 47 subdomains · 3 staging exposed</div>
+          <div style="color:#F87171;font-size:9px;">  ✗ [hibp]&nbsp;&nbsp; 2 breaches · 2019 · 2021</div>
+          <div style="color:#3F3F5A;font-size:9px;">  ⏳ [ssl]&nbsp;&nbsp;&nbsp; awaiting Qualys grade...</div>
+          <div style="color:#3F3F5A;font-size:9px;">  ⏳ [ports]&nbsp;&nbsp; scanning open ports...</div>
+          <div style="color:#3F3F5A;font-size:9px;">  ⏳ [github]&nbsp; searching org...</div>
+          <div style="display:inline-block;width:5px;height:10px;background:#E07B39;margin-top:2px;"></div>
+        </div>
+        <!-- Right: narrow results (40%) -->
+        <div style="flex:1;background:#fff;padding:10px;display:flex;flex-direction:column;gap:5px;overflow:hidden;border-left:2px solid #E07B39;">
+          <div style="font-size:8px;color:#667085;letter-spacing:0.08em;font-family:'Outfit',sans-serif;margin-bottom:2px;text-transform:uppercase;">Live findings</div>
+          <div style="background:#FFF7ED;border-left:2px solid #E07B39;border-radius:3px;padding:6px;">
+            <div style="font-size:8px;color:#667085;font-family:'Outfit',sans-serif;">EMAIL</div>
+            <div style="font-size:9px;color:#101828;font-weight:700;font-family:'Outfit',sans-serif;">DMARC not enforced</div>
+          </div>
+          <div style="background:#FFF1F2;border-left:2px solid #F87171;border-radius:3px;padding:6px;">
+            <div style="font-size:8px;color:#667085;font-family:'Outfit',sans-serif;">BREACH</div>
+            <div style="font-size:9px;color:#101828;font-weight:700;font-family:'Outfit',sans-serif;">2 breaches on record</div>
+          </div>
+          <div style="background:#F7F8FA;border-left:2px solid #E4E7EC;border-radius:3px;padding:6px;opacity:0.5;">
+            <div style="font-size:8px;color:#667085;font-family:'Outfit',sans-serif;">TLS</div>
+            <div style="font-size:9px;color:#667085;font-family:'Outfit',sans-serif;">pending...</div>
+          </div>
+          <div style="background:#F7F8FA;border-left:2px solid #E4E7EC;border-radius:3px;padding:6px;opacity:0.5;">
+            <div style="font-size:8px;color:#667085;font-family:'Outfit',sans-serif;">PORTS</div>
+            <div style="font-size:9px;color:#667085;font-family:'Outfit',sans-serif;">pending...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Wide scanner, narrow live findings</h3>
+      <p>Scanner gets more space (60/40 split). Results panel is compact — accent-colour left-border cards, pending slots shown greyed out. The scan log is the hero; findings are a live sidebar.</p>
+    </div>
+  </div>
+
+</div>

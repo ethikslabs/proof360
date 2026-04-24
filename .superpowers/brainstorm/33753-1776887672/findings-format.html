@@ -1,0 +1,96 @@
+<h2>Right terminal — how do findings appear?</h2>
+<p class="subtitle">Each recon source completes and drops its result. What format feels right?</p>
+
+<div class="cards">
+
+  <!-- Option A: One-liner per source -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;overflow:hidden;border-radius:6px 6px 0 0;">
+      <div style="background:#0C0C12;height:200px;padding:14px;font-family:'IBM Plex Mono',monospace;font-size:10px;display:flex;flex-direction:column;gap:5px;overflow:hidden;">
+        <div style="display:flex;gap:5px;margin-bottom:8px;">
+          <div style="width:7px;height:7px;border-radius:50%;background:#FF5F57;"></div>
+          <div style="width:7px;height:7px;border-radius:50%;background:#FFBD2E;"></div>
+          <div style="width:7px;height:7px;border-radius:50%;background:#28C840;"></div>
+          <span style="color:#3F3F5A;margin-left:8px;font-size:9px;letter-spacing:0.05em;">FINDINGS — ethiks360.com</span>
+        </div>
+        <div style="color:#3F3F5A;font-size:9px;">$ awaiting intelligence...</div>
+        <div style="height:4px;"></div>
+        <div style="color:#F87171;font-size:9px;">[dns]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; DMARC not enforced · spoofing risk</div>
+        <div style="color:#F87171;font-size:9px;">[http]&nbsp;&nbsp;&nbsp;&nbsp; 1/6 headers · no CSP · HSTS missing</div>
+        <div style="color:#7DD3FC;font-size:9px;">[certs]&nbsp;&nbsp;&nbsp; 47 subdomains · 3 staging exposed</div>
+        <div style="color:#F87171;font-size:9px;">[hibp]&nbsp;&nbsp;&nbsp;&nbsp; 2 breaches · 2019 · 2021</div>
+        <div style="color:#4ADE80;font-size:9px;">[ip]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; AWS ap-southeast-2 · clean</div>
+        <div style="color:#3F3F5A;font-size:9px;">[ssl]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ⏳</div>
+        <div style="color:#3F3F5A;font-size:9px;">[github]&nbsp;&nbsp; ⏳</div>
+        <div style="display:inline-block;width:5px;height:10px;background:#E07B39;margin-top:2px;"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — One-liner per source</h3>
+      <p>Each source lands as a single line. Colour-coded: red = risk, blue = info, green = clean. Fast to scan. Pending sources show ⏳ until they resolve. Dense but readable.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Grouped sections -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;overflow:hidden;border-radius:6px 6px 0 0;">
+      <div style="background:#0C0C12;height:200px;padding:14px;font-family:'IBM Plex Mono',monospace;font-size:10px;display:flex;flex-direction:column;gap:4px;overflow:hidden;">
+        <div style="display:flex;gap:5px;margin-bottom:8px;">
+          <div style="width:7px;height:7px;border-radius:50%;background:#FF5F57;"></div>
+          <div style="width:7px;height:7px;border-radius:50%;background:#FFBD2E;"></div>
+          <div style="width:7px;height:7px;border-radius:50%;background:#28C840;"></div>
+          <span style="color:#3F3F5A;margin-left:8px;font-size:9px;letter-spacing:0.05em;">FINDINGS — ethiks360.com</span>
+        </div>
+        <div style="color:#E07B39;font-size:9px;letter-spacing:0.08em;">── EMAIL SECURITY ─────────</div>
+        <div style="color:#F87171;font-size:9px;">&nbsp;&nbsp;dmarc_policy&nbsp;&nbsp; none</div>
+        <div style="color:#F87171;font-size:9px;">&nbsp;&nbsp;spf_policy&nbsp;&nbsp;&nbsp;&nbsp; strict</div>
+        <div style="color:#F87171;font-size:9px;">&nbsp;&nbsp;mx_provider&nbsp;&nbsp;&nbsp; Microsoft 365</div>
+        <div style="height:3px;"></div>
+        <div style="color:#E07B39;font-size:9px;letter-spacing:0.08em;">── DATA BREACH ────────────</div>
+        <div style="color:#F87171;font-size:9px;">&nbsp;&nbsp;breach_count&nbsp;&nbsp; 2</div>
+        <div style="color:#F87171;font-size:9px;">&nbsp;&nbsp;breach_years&nbsp;&nbsp; 2019 · 2021</div>
+        <div style="height:3px;"></div>
+        <div style="color:#3F3F5A;font-size:9px;letter-spacing:0.08em;">── TLS ────────────────────</div>
+        <div style="color:#3F3F5A;font-size:9px;">&nbsp;&nbsp;awaiting ssl labs...</div>
+        <div style="display:inline-block;width:5px;height:10px;background:#E07B39;margin-top:2px;"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Grouped by category</h3>
+      <p>Findings arrive and are grouped into categories (Email, Breach, TLS, etc.) with key-value pairs under each. More structured. Feels like a proper intelligence report being typed out live.</p>
+    </div>
+  </div>
+
+  <!-- Option C: Score-first with detail -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;overflow:hidden;border-radius:6px 6px 0 0;">
+      <div style="background:#0C0C12;height:200px;padding:14px;font-family:'IBM Plex Mono',monospace;font-size:10px;display:flex;flex-direction:column;gap:5px;overflow:hidden;">
+        <div style="display:flex;gap:5px;margin-bottom:8px;">
+          <div style="width:7px;height:7px;border-radius:50%;background:#FF5F57;"></div>
+          <div style="width:7px;height:7px;border-radius:50%;background:#FFBD2E;"></div>
+          <div style="width:7px;height:7px;border-radius:50%;background:#28C840;"></div>
+          <span style="color:#3F3F5A;margin-left:8px;font-size:9px;letter-spacing:0.05em;">FINDINGS — ethiks360.com</span>
+        </div>
+        <div style="color:#3F3F5A;font-size:9px;margin-bottom:4px;">gaps found so far:</div>
+        <div style="background:#1A0A0A;border-left:2px solid #F87171;padding:5px 8px;border-radius:0 3px 3px 0;">
+          <div style="color:#F87171;font-size:9px;font-weight:bold;">✗ DMARC not enforced</div>
+          <div style="color:#52525B;font-size:8px;margin-top:1px;">p=none — anyone can spoof @ethiks360.com</div>
+        </div>
+        <div style="background:#1A0A0A;border-left:2px solid #F87171;padding:5px 8px;border-radius:0 3px 3px 0;">
+          <div style="color:#F87171;font-size:9px;font-weight:bold;">✗ 2 data breaches on record</div>
+          <div style="color:#52525B;font-size:8px;margin-top:1px;">2019 · 2021 · credentials likely circulating</div>
+        </div>
+        <div style="background:#111820;border-left:2px solid #7DD3FC;padding:5px 8px;border-radius:0 3px 3px 0;">
+          <div style="color:#7DD3FC;font-size:9px;">↳ 3 staging subdomains exposed</div>
+          <div style="color:#52525B;font-size:8px;margin-top:1px;">dev · staging · test — visible in cert logs</div>
+        </div>
+        <div style="color:#3F3F5A;font-size:9px;margin-top:2px;">⏳ tls · ports · github pending...</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Gap-first with context</h3>
+      <p>Only significant findings shown. Each one is a mini-finding block: gap title + one-line explanation. Pending sources shown as a single summary line. Right pane tells a story, not just data.</p>
+    </div>
+  </div>
+
+</div>

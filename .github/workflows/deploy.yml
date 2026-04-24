@@ -1,0 +1,67 @@
+name: Deploy proof360
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'api/**'
+      - 'frontend/**'
+      - 'scripts/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+env:
+  AWS_REGION:    ap-southeast-2
+  EC2_INSTANCE:  i-010dc648d4676168e
+
+jobs:
+  deploy:
+    name: Deploy to proof360.au
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_REGION }}
+
+      - name: Deploy to EC2 via SSM
+        id: ssm-command
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids ${{ env.EC2_INSTANCE }} \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=["cd /home/ec2-user/proof360 && bash scripts/deploy.sh"]' \
+            --region ${{ env.AWS_REGION }} \
+            --query "Command.CommandId" \
+            --output text)
+          echo "command_id=$COMMAND_ID" >> $GITHUB_OUTPUT
+          echo "SSM command: $COMMAND_ID"
+
+      - name: Wait for deploy to complete
+        run: |
+          COMMAND_ID=${{ steps.ssm-command.outputs.command_id }}
+          for i in {1..20}; do
+            sleep 6
+            STATUS=$(aws ssm get-command-invocation \
+              --command-id $COMMAND_ID \
+              --instance-id ${{ env.EC2_INSTANCE }} \
+              --region ${{ env.AWS_REGION }} \
+              --query "Status" --output text 2>/dev/null || echo "Pending")
+            echo "Status: $STATUS"
+            if [[ "$STATUS" == "Success" ]]; then
+              echo "Deploy complete."
+              exit 0
+            elif [[ "$STATUS" == "Failed" || "$STATUS" == "Cancelled" ]]; then
+              aws ssm get-command-invocation \
+                --command-id $COMMAND_ID \
+                --instance-id ${{ env.EC2_INSTANCE }} \
+                --region ${{ env.AWS_REGION }} \
+                --query "StandardErrorContent" --output text
+              exit 1
+            fi
+          done
+          echo "Timed out waiting for deploy."
+          exit 1

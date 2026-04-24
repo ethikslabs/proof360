@@ -4,6 +4,9 @@ import { demoReport } from '../data/demo-report';
 import { getReport } from '../api/client';
 import PersonaChat from '../components/PersonaChat';
 import { Proof360Mark } from '../components/Proof360Mark';
+import ConfidenceRibbon from '../components/report/ConfidenceRibbon.jsx';
+import ProgramMatchCard from '../components/ProgramMatchCard.jsx';
+import { useFeatureFlags } from '../contexts/FeatureFlagContext.jsx';
 
 /* ─── Engagement store (localStorage) ───────────────────────────────────── */
 function useEngagements(sessionId) {
@@ -1630,6 +1633,7 @@ export default function Report() {
   const { sessionId } = useParams();
   const navigate      = useNavigate();
   const [searchParams] = useSearchParams();
+  const flags         = useFeatureFlags();
   const isDemo        = sessionId === 'demo';
   const bypassUnlock  = isDemo || searchParams.get('unlock') === 'true';
 
@@ -1887,6 +1891,13 @@ export default function Report() {
         </div>
       </div>
 
+      {/* ── Confidence ribbon ── */}
+      {report.confidence?.overall && report.confidence.overall !== 'high' && (
+        <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 24px' }}>
+          <ConfidenceRibbon confidence={report.confidence} />
+        </div>
+      )}
+
       {/* ── Body ── */}
       <main className="report-in" style={{ maxWidth: 800, margin: '0 auto', padding: '40px 24px 100px' }}>
 
@@ -1921,6 +1932,7 @@ export default function Report() {
                 sessionId={sessionId}
                 onEngage={handleEngage}
                 engagedVendorIds={engagedVendorIds}
+                overallConfidence={report.confidence?.overall}
               />
             ))}
           </div>
@@ -1932,6 +1944,13 @@ export default function Report() {
         </section>
 
         <AwsActivateBlock activate={report.aws_activate} />
+
+        {/* ── Program match (Layer 2, feature-flagged) ── */}
+        {!locked && flags?.layer2_cards?.program_match && (
+          <div style={{ marginTop: 40 }}>
+            <ProgramMatchCard sessionId={sessionId} />
+          </div>
+        )}
 
         {report.next_steps?.length > 0 && <PathForward steps={report.next_steps} />}
 

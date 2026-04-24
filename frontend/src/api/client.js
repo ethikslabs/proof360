@@ -1,9 +1,9 @@
 const BASE = import.meta.env.VITE_API_BASE_URL ?? '';
 
-async function request(method, path, body) {
+async function request(method, path, body, extraHeaders) {
   const opts = {
     method,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...extraHeaders },
   };
   if (body) opts.body = JSON.stringify(body);
 
@@ -29,3 +29,9 @@ export const getStatus = (id) => request('GET', `/api/v1/session/${id}/status`);
 export const getReport = (id) => request('GET', `/api/v1/session/${id}/report`);
 export const captureEmail = (id, body) => request('POST', `/api/v1/session/${id}/capture-email`, body);
 export const getEarlySignal = (id) => request('GET', `/api/v1/session/${id}/early-signal`);
+
+// overnight-v1: Feature flags, program match, admin pre-read
+export const getFeatures = () => request('GET', '/api/features');
+export const getProgramMatch = (sessionId) => request('GET', `/api/program-match/${sessionId}`);
+export const submitPreread = (body, adminKey) => request('POST', '/api/admin/preread', body, { 'x-admin-key': adminKey });
+export const getPrereadStatus = (batchId, adminKey) => request('GET', `/api/admin/preread/${batchId}`, null, { 'x-admin-key': adminKey });

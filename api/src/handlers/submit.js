@@ -79,6 +79,12 @@ async function analyzeAsync(sessionId, session, corrections, followup_answers) {
     });
   } catch (err) {
     console.error(`Gap analysis failed for session ${sessionId}:`, err);
+    emitPulse({
+      type: 'alert',
+      severity: 'warning',
+      tags: ['pipeline', 'error'],
+      payload: { action: 'gap_analysis_failed', session_id: sessionId, error: err.message },
+    });
     updateSession(sessionId, { analysis_status: 'failed' });
   }
 }

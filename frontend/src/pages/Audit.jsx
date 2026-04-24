@@ -20,16 +20,25 @@ export default function Audit() {
     return () => link.remove();
   }, []);
 
+  function normaliseUrl(raw) {
+    const trimmed = raw.trim();
+    if (!trimmed) return trimmed;
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    return `https://${trimmed}`;
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (!url && !file) { setError('Paste a URL to get started.'); return; }
     setError('');
     setLoading(true);
+    const normalisedUrl = normaliseUrl(url);
+    if (normalisedUrl !== url) setUrl(normalisedUrl);
     try {
       const body = {};
-      if (url) body.website_url = url;
+      if (normalisedUrl) body.website_url = normalisedUrl;
       const { session_id } = await startSession(body);
-      navigate(`/audit/reading?session=${session_id}&url=${encodeURIComponent(url)}`);
+      navigate(`/audit/reading?session=${session_id}&url=${encodeURIComponent(normalisedUrl)}`);
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
       setLoading(false);
@@ -117,7 +126,7 @@ export default function Audit() {
           {/* Form */}
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <input
-              type="url"
+              type="text"
               value={url}
               onChange={e => setUrl(e.target.value)}
               placeholder="https://yourcompany.com"

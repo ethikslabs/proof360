@@ -1,0 +1,68 @@
+<h2>Where does the persona chat live?</h2>
+<p class="subtitle">This appears in both the Report page (when score lands) and the Founder account (persistent). How should it surface?</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="floating" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0A1628;padding:20px;min-height:160px;position:relative;border-radius:8px 8px 0 0;">
+      <div style="background:#1e2d45;border-radius:8px;padding:12px;margin-bottom:8px;opacity:0.4;">
+        <div style="height:8px;background:#334;border-radius:4px;width:80%;margin-bottom:6px;"></div>
+        <div style="height:8px;background:#334;border-radius:4px;width:60%;"></div>
+      </div>
+      <div style="background:#1e2d45;border-radius:8px;padding:12px;opacity:0.4;">
+        <div style="height:8px;background:#334;border-radius:4px;width:70%;margin-bottom:6px;"></div>
+        <div style="height:8px;background:#334;border-radius:4px;width:50%;"></div>
+      </div>
+      <div style="position:absolute;bottom:16px;right:16px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#14b8a6,#0d9488);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 20px rgba(20,184,166,0.5);">
+        💬
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Floating button</h3>
+      <p>Fixed circle in the corner — always accessible, doesn't disrupt the page layout. Opens a slide-up or side drawer. Clean. Feels like a support chat.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="inline" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0A1628;padding:20px;min-height:160px;border-radius:8px 8px 0 0;">
+      <div style="background:#1e2d45;border-radius:8px;padding:12px;margin-bottom:8px;opacity:0.4;">
+        <div style="height:8px;background:#334;border-radius:4px;width:80%;margin-bottom:6px;"></div>
+        <div style="height:8px;background:#334;border-radius:4px;width:60%;"></div>
+      </div>
+      <div style="background:linear-gradient(135deg,rgba(20,184,166,0.15),rgba(20,184,166,0.05));border:1px solid rgba(20,184,166,0.3);border-radius:10px;padding:14px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#14b8a6,#7c3aed);flex-shrink:0;"></div>
+          <span style="color:#14b8a6;font-size:12px;font-weight:600;">SOPHIA</span>
+        </div>
+        <div style="height:7px;background:rgba(20,184,166,0.3);border-radius:4px;width:90%;margin-bottom:5px;"></div>
+        <div style="height:7px;background:rgba(20,184,166,0.2);border-radius:4px;width:75%;"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Inline section</h3>
+      <p>Embedded in the page flow — part of the report or account view, not separate. Persona introduces themselves in context, right after the score or in their own named section.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="tab" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0A1628;padding:20px;min-height:160px;border-radius:8px 8px 0 0;">
+      <div style="display:flex;gap:6px;margin-bottom:14px;">
+        <div style="background:rgba(20,184,166,0.2);border:1px solid rgba(20,184,166,0.5);border-radius:6px;padding:6px 14px;color:#14b8a6;font-size:11px;font-weight:600;">SOPHIA</div>
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:6px 14px;color:#6b7280;font-size:11px;">LEONARDO</div>
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:6px 14px;color:#6b7280;font-size:11px;">EDISON</div>
+      </div>
+      <div style="background:#1e2d45;border-radius:8px;padding:14px;min-height:70px;">
+        <div style="height:7px;background:#334;border-radius:4px;width:85%;margin-bottom:6px;"></div>
+        <div style="height:7px;background:#334;border-radius:4px;width:70%;margin-bottom:6px;"></div>
+        <div style="height:7px;background:#334;border-radius:4px;width:55%;"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Persona tabs / switcher</h3>
+      <p>Dedicated section with a tab or pill for each persona. Switch between Sophia / Leonardo / Edison — each shows their own take and has their own thread. Full presence.</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:24px;">Click to select, then let me know in the terminal.</p>

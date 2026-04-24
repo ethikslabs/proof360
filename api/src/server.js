@@ -12,6 +12,10 @@ import { captureEmailHandler } from './handlers/capture-email.js';
 import { earlySignalHandler } from './handlers/early-signal.js';
 import { chatHandler } from './handlers/chat.js';
 import { sessionLogHandler } from './handlers/session-log.js';
+import { featuresHandler } from './handlers/features.js';
+import { programMatchHandler } from './handlers/program-match.js';
+import { adminPrereadHandler, adminPrereadStatusHandler } from './handlers/admin-preread.js';
+import { healthHandler } from './handlers/health.js';
 
 const PORT = parseInt(process.env.PORT || '3002', 10);
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
@@ -41,11 +45,36 @@ app.post('/api/v1/session/:id/capture-email', captureEmailHandler);
 // --- Persona chat ---
 app.post('/api/v1/chat', chatHandler);
 
+// --- Health ---
+app.get('/api/health', healthHandler);
+
+// --- overnight-v1 routes ---
+app.get('/api/features', featuresHandler);
+app.get('/api/program-match/:session_id', programMatchHandler);
+app.post('/api/admin/preread', adminPrereadHandler);
+app.get('/api/admin/preread/:batch_id', adminPrereadStatusHandler);
+
 // Start stale session cleanup on 30-second interval
 const staleInterval = setInterval(checkStaleSessions, 30_000);
 
 app.addHook('onClose', () => {
   clearInterval(staleInterval);
+});
+
+import { createConnection } from 'node:net';
+
+// --- Port guard ---
+await new Promise((resolve) => {
+  const probe = createConnection({ port: PORT, host: 'localhost' });
+  probe.once('connect', () => {
+    probe.destroy();
+    process.stderr.write(`[proof360] Port ${PORT} already in use — kill it with: kill $(lsof -ti:${PORT})\n`);
+    process.exit(1);
+  });
+  probe.once('error', () => {
+    probe.destroy();
+    resolve();
+  });
 });
 
 app.listen({ port: PORT, host: '0.0.0.0' }, (err) => {

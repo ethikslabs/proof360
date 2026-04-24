@@ -1,7 +1,7 @@
 // Inference builder — transforms raw signals into the cold read object
 // Pure function. No HTTP awareness, no side effects.
 
-export function buildInferences(signals, sources_read, website_url) {
+export function buildInferences(signals, sources_read, website_url, recon = {}) {
   const inferences = [];
   const correctable_fields = [];
   const followup_questions = [];
@@ -36,28 +36,59 @@ export function buildInferences(signals, sources_read, website_url) {
   }
 
   // Build correctable fields for high-value signals
+  // Recon cloud_provider overrides Claude's inferred infrastructure — it's an IP lookup, not a guess
+  const reconInfra = recon.cloud_provider || null;
+
   const correctableTypes = ['customer_type', 'data_sensitivity', 'infrastructure'];
   for (const type of correctableTypes) {
     const signal = signals.find((s) => s.type === type);
     if (signal) {
+      const isInfra = type === 'infrastructure';
+      // For infrastructure: Claude often guesses wrong from logos/integrations on the page.
+      // Prefer recon cloud_provider (IP-derived fact) if available.
+      // If neither is reliable, show as unknown so founder corrects it.
+      let inferredValue;
+      if (isInfra) {
+        const isUnreliable = ['Multi-cloud', 'Unknown', 'unknown'].includes(signal.value);
+        inferredValue = isUnreliable
+          ? (reconInfra || 'Unknown — please correct')
+          : signal.value + (signal.confidence === 'probable' ? ' (probable)' : '');
+      } else {
+        inferredValue = signal.value + (signal.confidence === 'probable' ? ' (probable)' : '');
+      }
       correctable_fields.push({
         key: signal.type,
         label: fieldLabel(signal.type),
-        inferred_value: signal.value + (signal.confidence === 'probable' ? ' (probable)' : ''),
+        inferred_value: inferredValue,
       });
     }
   }
 
   // Always include infrastructure as correctable
+  // If we know the CDN/edge layer (e.g. Cloudflare) but not the underlying host, surface that
+  const edgeProvider = recon.cdn_provider || recon.waf_detected || null;
+  const infraDisplay = reconInfra || (edgeProvider ? `Behind ${edgeProvider}` : 'Unknown');
   if (!correctable_fields.find((f) => f.key === 'infrastructure')) {
     correctable_fields.push({
       key: 'infrastructure',
       label: 'Infrastructure',
-      inferred_value: 'AWS (probable)',
+      inferred_value: infraDisplay,
     });
   }
 
   // Follow-up questions only for signal types NOT inferred
+  // Ask about infrastructure when recon couldn't detect it (Cloudflare proxy hides cloud provider)
+  if (!reconInfra) {
+    const edgeContext = edgeProvider
+      ? `Your site is behind ${edgeProvider} — we can see the edge layer but not the underlying host.`
+      : "We couldn't detect your hosting provider — it may be behind a proxy.";
+    followup_questions.push({
+      question_id: 'q_infrastructure',
+      context: edgeContext,
+      question: 'Where is your application hosted?',
+      options: ['AWS', 'GCP', 'Azure', 'Cloudflare Workers', 'Multi-cloud', 'On-premise', 'Not sure'],
+    });
+  }
   if (!inferredTypes.has('identity_model')) {
     followup_questions.push({
       question_id: 'q_identity',
@@ -102,8 +133,8 @@ export function buildInferences(signals, sources_read, website_url) {
 function inferenceLabel(signal) {
   const labels = {
     product_type: signal.value + ' product',
-    customer_type: 'Targeting ' + signal.value.toLowerCase() + ' buyers',
-    data_sensitivity: 'Processes ' + signal.value.toLowerCase(),
+    customer_type: 'Targeting ' + String(signal.value).toLowerCase() + ' buyers',
+    data_sensitivity: 'Processes ' + String(signal.value).toLowerCase(),
     stage: signal.value + ' stage',
     use_case: signal.value,
   };

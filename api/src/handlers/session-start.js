@@ -5,7 +5,7 @@ import { emitPulse } from '../services/pulse-emitter.js';
 import { extractReconContext } from '../services/recon-pipeline.js';
 
 export async function sessionStartHandler(request, reply) {
-  const { website_url, deck_file } = request.body || {};
+  const { website_url, deck_file, source } = request.body || {};
 
   if (!website_url && !deck_file) {
     return reply.status(400).send({
@@ -14,7 +14,7 @@ export async function sessionStartHandler(request, reply) {
     });
   }
 
-  const session = createSession({ website_url, deck_file });
+  const session = createSession({ website_url, deck_file, source: source || 'user' });
 
   emitPulse({
     type: 'event',
@@ -56,6 +56,12 @@ async function extractAndInfer(sessionId, { website_url, deck_file }, log) {
     console.error(JSON.stringify({
       event: 'extraction_failed', session_id: sessionId, error: err.message,
     }));
+    emitPulse({
+      type: 'alert',
+      severity: 'warning',
+      tags: ['pipeline', 'error'],
+      payload: { action: 'extraction_failed', session_id: sessionId, error: err.message },
+    });
     log({ text: `  ✗  Extraction failed: ${err.message}`, type: 'err' });
     log({ type: '__done__' });
     updateSession(sessionId, { infer_status: 'failed' });

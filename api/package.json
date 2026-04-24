@@ -4,14 +4,17 @@
   "type": "module",
   "scripts": {
     "start": "node --env-file=.env src/server.js",
-    "dev": "node --env-file=.env --watch src/server.js"
+    "dev": "node --env-file=.env --watch src/server.js",
+    "test:log": "node scripts/test-log.js"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.39.0",
     "@fastify/cors": "^11.0.1",
     "@mendable/firecrawl-js": "^1.23.0",
     "fastify": "^5.3.3",
     "openai": "^6.34.0",
     "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "fast-check": "^4.7.0"
   }
 }

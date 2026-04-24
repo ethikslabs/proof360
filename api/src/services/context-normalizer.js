@@ -14,6 +14,7 @@ export function normalizeContext(session, corrections = {}, followup_answers = {
 
   // Map follow-up answers to context fields
   const answerMap = {
+    q_infrastructure: 'infrastructure',
     q_identity: 'identity_model',
     q_insurance: 'insurance_status',
     q_questionnaire: 'questionnaire_experience',

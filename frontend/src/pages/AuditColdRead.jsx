@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getInferences, submitSession } from '../api/client';
+import { getInferences, submitSession, startSession } from '../api/client';
+import { useFeatureFlags } from '../contexts/FeatureFlagContext.jsx';
+import ConfidenceRibbon from '../components/report/ConfidenceRibbon.jsx';
 
 /* ─── Constants ──────────────────────────────────────────────────────────── */
 const NAVY  = '#0B2545';
@@ -10,6 +12,22 @@ const OFFWHITE = '#F7F8FA';
 const BORDER = '#E4E7EC';
 const TEXT   = '#101828';
 const MUTED  = '#667085';
+
+/* ─── Pure helpers (re-exported for property testing) ────────────────────── */
+import { buildShareableUrl, parseShareableUrl } from '../utils/shareable-url.js';
+export { buildShareableUrl, parseShareableUrl };
+
+/**
+ * Validate whether a string is a parseable URL with http(s) scheme.
+ */
+function isValidUrl(str) {
+  try {
+    const u = new URL(str);
+    return u.protocol === 'http:' || u.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
 
 /* ─── Demo mock data ─────────────────────────────────────────────────────── */
 const DEMO_DATA = {
@@ -178,23 +196,199 @@ function ConfirmCard({ card, status, onConfirm, onNotQuite }) {
   );
 }
 
+/* ─── Share CTA section ──────────────────────────────────────────────────── */
+function ShareCTA({ sessionId, originalUrl }) {
+  const [copied, setCopied] = useState(false);
+  const shareableUrl = buildShareableUrl(sessionId, originalUrl);
+  const fullUrl = `${window.location.origin}${shareableUrl}`;
+
+  function handleCopy() {
+    navigator.clipboard.writeText(fullUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  function handleEmail() {
+    const subject = encodeURIComponent('Proof360 Cold Read');
+    const body = encodeURIComponent(`Check out this trust posture read: ${fullUrl}`);
+    window.open(`mailto:?subject=${subject}&body=${body}`, '_self');
+  }
+
+  function handleLinkedIn() {
+    const encoded = encodeURIComponent(fullUrl);
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encoded}`, '_blank');
+  }
+
+  const btnStyle = {
+    padding: '8px 16px',
+    background: 'none',
+    color: NAVY,
+    border: `1px solid ${BORDER}`,
+    borderRadius: 7,
+    fontSize: 12,
+    fontWeight: 500,
+    cursor: 'pointer',
+    fontFamily: '"Outfit", sans-serif',
+  };
+
+  return (
+    <div style={{
+      marginTop: 20,
+      padding: '16px 20px',
+      background: OFFWHITE,
+      borderRadius: 10,
+      border: `1px solid ${BORDER}`,
+      animation: 'fadeUp 0.5s ease both',
+    }}>
+      <p style={{
+        fontSize: 12, fontWeight: 600, color: MUTED,
+        fontFamily: '"IBM Plex Mono", monospace',
+        marginBottom: 10, letterSpacing: '0.05em',
+      }}>
+        SHARE THIS READ
+      </p>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <button onClick={handleCopy} style={btnStyle}>
+          {copied ? '✓ Copied' : 'Copy link'}
+        </button>
+        <button onClick={handleEmail} style={btnStyle}>
+          Email
+        </button>
+        <button onClick={handleLinkedIn} style={btnStyle}>
+          LinkedIn
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── URL input form ─────────────────────────────────────────────────────── */
+function UrlInputForm({ initialUrl, onSubmit }) {
+  const [url, setUrl] = useState(initialUrl || '');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  async function handleFormSubmit(e) {
+    e.preventDefault();
+    const trimmed = url.trim();
+    if (!trimmed) return;
+
+    // Try adding https:// if no protocol
+    let normalized = trimmed;
+    if (!/^https?:\/\//i.test(normalized)) {
+      normalized = `https://${normalized}`;
+    }
+
+    if (!isValidUrl(normalized)) {
+      setError('Please enter a valid URL');
+      return;
+    }
+
+    setError('');
+    setSubmitting(true);
+    try {
+      await onSubmit(normalized);
+    } catch (err) {
+      setError(err.message || 'Something went wrong');
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', fontFamily: '"Outfit", sans-serif', background: WHITE }}>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
+      <nav style={{
+        padding: '0 32px', height: 52,
+        display: 'flex', alignItems: 'center',
+        borderBottom: `1px solid ${BORDER}`,
+      }}>
+        <span style={{ fontSize: 16, fontWeight: 700, color: NAVY, letterSpacing: '-0.01em' }}>
+          Proof<span style={{ color: AMBER }}>360</span>
+        </span>
+      </nav>
+      <div style={{
+        maxWidth: 480, margin: '0 auto',
+        padding: '80px 24px',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20,
+      }}>
+        <h1 style={{
+          fontSize: 28, fontWeight: 700, color: NAVY,
+          letterSpacing: '-0.03em', textAlign: 'center',
+        }}>
+          Run a cold read
+        </h1>
+        <p style={{ fontSize: 14, color: MUTED, textAlign: 'center' }}>
+          Enter a company URL to see their public trust posture.
+        </p>
+        <form onSubmit={handleFormSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <input
+            type="text"
+            value={url}
+            onChange={e => setUrl(e.target.value)}
+            placeholder="https://example.com"
+            autoFocus
+            style={{
+              width: '100%', padding: '12px 16px',
+              fontSize: 15, color: TEXT,
+              border: `1px solid ${BORDER}`,
+              borderRadius: 8, outline: 'none',
+              fontFamily: '"Outfit", sans-serif',
+              boxSizing: 'border-box',
+            }}
+          />
+          {error && <p style={{ fontSize: 13, color: '#F87171' }}>{error}</p>}
+          <button
+            type="submit"
+            disabled={submitting}
+            style={{
+              padding: '12px 0',
+              background: submitting ? MUTED : AMBER,
+              color: WHITE,
+              fontSize: 15, fontWeight: 700,
+              border: 'none', borderRadius: 8,
+              cursor: submitting ? 'not-allowed' : 'pointer',
+              fontFamily: '"Outfit", sans-serif',
+            }}
+          >
+            {submitting ? 'Starting...' : 'Run cold read →'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Main component ─────────────────────────────────────────────────────── */
 export default function AuditColdRead() {
   const [params]   = useSearchParams();
-  const sessionId  = params.get('session');
-  const isDemo     = params.get('demo') === 'true';
-  const navigate   = useNavigate();
+  const sessionParam = params.get('session');
+  const urlParam     = params.get('url');
+  const isDemo       = params.get('demo') === 'true';
+  const navigate     = useNavigate();
+  const flags        = useFeatureFlags();
+  const mountedRef   = useRef(false);
 
+  // Core state
   const [data,       setData]       = useState(null);
   const [error,      setError]      = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [loading,    setLoading]    = useState(false);
+  const [loadingUrl, setLoadingUrl] = useState('');
+  const [showForm,   setShowForm]   = useState(false);
+  const [prefillUrl, setPrefillUrl] = useState('');
+  const [currentSessionId, setCurrentSessionId] = useState(sessionParam || null);
+  const [originalUrl, setOriginalUrl] = useState(urlParam || '');
 
-  // 333 state
+  // 333 confirmation card state
   const [activeCard,  setActiveCard]  = useState(0);
-  const [statuses,    setStatuses]    = useState({}); // key → 'confirmed' | 'corrected' | 'pending'
-  const [corrections, setCorrections] = useState({}); // key → corrected string
+  const [statuses,    setStatuses]    = useState({});
+  const [corrections, setCorrections] = useState({});
   const [allDone,     setAllDone]     = useState(false);
 
+  // Font loading
   useEffect(() => {
     const link = document.createElement('link');
     link.rel   = 'stylesheet';
@@ -203,13 +397,86 @@ export default function AuditColdRead() {
     return () => link.remove();
   }, []);
 
+  // ─── Mount logic: session-first lookup, auto-submit, or show form ──────
   useEffect(() => {
+    if (mountedRef.current) return;
+    mountedRef.current = true;
+
     if (isDemo) { setData(DEMO_DATA); return; }
-    if (!sessionId) return;
-    getInferences(sessionId)
-      .then(setData)
-      .catch(() => setError("We couldn't load your results. Please try again."));
-  }, [sessionId, isDemo]);
+
+    // 1. Session param → try loading existing result
+    if (sessionParam) {
+      setLoading(true);
+      setLoadingUrl(urlParam || '');
+      getInferences(sessionParam)
+        .then((result) => {
+          setData(result);
+          setCurrentSessionId(sessionParam);
+          setLoading(false);
+        })
+        .catch((err) => {
+          // Session not found / expired → fall back
+          if (urlParam) {
+            // Fall back to step 2: auto-submit with url param
+            autoSubmitUrl(urlParam);
+          } else {
+            // No url param → show form
+            setLoading(false);
+            setShowForm(true);
+          }
+        });
+      return;
+    }
+
+    // 2. Only url param → validate and auto-submit
+    if (urlParam) {
+      if (isValidUrl(urlParam)) {
+        autoSubmitUrl(urlParam);
+      } else {
+        // Invalid URL → show form with pre-fill
+        setShowForm(true);
+        setPrefillUrl(urlParam);
+      }
+      return;
+    }
+
+    // 3. No params → show standard input form
+    setShowForm(true);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function autoSubmitUrl(url) {
+    setLoading(true);
+    setLoadingUrl(url);
+    setOriginalUrl(url);
+    try {
+      const { session_id } = await startSession({ website_url: url, source: 'share_link' });
+      setCurrentSessionId(session_id);
+      // Navigate to the reading/polling flow
+      navigate(`/audit/reading?session=${session_id}&url=${encodeURIComponent(url)}`);
+    } catch (err) {
+      setLoading(false);
+      setError(err.message || 'Failed to start cold read');
+      setShowForm(true);
+      setPrefillUrl(url);
+    }
+  }
+
+  async function handleFormStartColdRead(url) {
+    setOriginalUrl(url);
+    setLoading(true);
+    setLoadingUrl(url);
+    setShowForm(false);
+    try {
+      const { session_id } = await startSession({ website_url: url, source: 'share_link' });
+      setCurrentSessionId(session_id);
+      navigate(`/audit/reading?session=${session_id}&url=${encodeURIComponent(url)}`);
+    } catch (err) {
+      setLoading(false);
+      setShowForm(true);
+      setPrefillUrl(url);
+      throw err; // Let the form handle the error display
+    }
+  }
 
   const cards = data ? buildCards(data) : [];
 
@@ -238,29 +505,48 @@ export default function AuditColdRead() {
     if (isDemo) { navigate('/report/demo'); return; }
     setSubmitting(true);
     try {
-      await submitSession(sessionId, { corrections, followup_answers: {} });
-      navigate(`/processing?session=${sessionId}`);
+      await submitSession(currentSessionId, { corrections, followup_answers: {} });
+      navigate(`/processing?session=${currentSessionId}`);
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
       setSubmitting(false);
     }
   }
 
+  // ─── Render: URL input form ────────────────────────────────────────────
+  if (showForm && !data) {
+    return <UrlInputForm initialUrl={prefillUrl} onSubmit={handleFormStartColdRead} />;
+  }
+
+  // ─── Render: Loading state ─────────────────────────────────────────────
+  if (loading && !data) return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: '"Outfit", sans-serif', background: WHITE }}>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <div style={{ width: 20, height: 20, border: `2px solid #1A1A2E`, borderTopColor: AMBER, borderRadius: '50%', animation: 'spin 0.8s linear infinite', marginBottom: 16 }} />
+      <p style={{ fontSize: 14, color: MUTED, fontFamily: '"IBM Plex Mono", monospace' }}>
+        Running cold read for {loadingUrl}...
+      </p>
+    </div>
+  );
+
+  // ─── Render: Error without data ────────────────────────────────────────
   if (error && !data) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"Outfit", sans-serif', background: '#FFFFFF' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"Outfit", sans-serif', background: WHITE }}>
       <p style={{ color: MUTED }}>{error}</p>
     </div>
   );
 
+  // ─── Render: Spinner while waiting for data ────────────────────────────
   if (!data) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FFFFFF' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: WHITE }}>
       <div style={{ width: 20, height: 20, border: `2px solid #1A1A2E`, borderTopColor: AMBER, borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 
+  // ─── Render: Data loaded — confirmation cards + share CTA + ribbon ─────
   return (
-    <div style={{ background: '#FFFFFF', minHeight: '100vh', fontFamily: '"Outfit", sans-serif' }}>
+    <div style={{ background: WHITE, minHeight: '100vh', fontFamily: '"Outfit", sans-serif' }}>
       <style>{`
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         @keyframes fadeUp {
@@ -283,6 +569,11 @@ export default function AuditColdRead() {
           Step 2 of 3
         </span>
       </nav>
+
+      {/* Confidence Ribbon — shown when overall !== "high" */}
+      {data.confidence && data.confidence.overall !== 'high' && (
+        <ConfidenceRibbon confidence={data.confidence} />
+      )}
 
       {/* Content */}
       <div style={{
@@ -380,6 +671,11 @@ export default function AuditColdRead() {
           >
             Skip — show my report anyway
           </button>
+        )}
+
+        {/* Share CTA — gated by cold_read.shareable_url feature flag */}
+        {flags?.cold_read?.shareable_url && currentSessionId && originalUrl && (
+          <ShareCTA sessionId={currentSessionId} originalUrl={originalUrl} />
         )}
       </div>
     </div>
