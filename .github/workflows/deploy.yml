@@ -40,6 +40,7 @@ jobs:
         run: |
           aws s3 sync api/     s3://${{ env.S3_BUCKET }}/${{ env.S3_PREFIX }}/api/
           aws s3 sync frontend/dist/ s3://${{ env.S3_BUCKET }}/${{ env.S3_PREFIX }}/frontend/dist/
+          aws s3 cp ecosystem.config.cjs s3://${{ env.S3_BUCKET }}/${{ env.S3_PREFIX }}/ecosystem.config.cjs
 
       - name: Deploy to EC2 via SSM
         id: ssm-command
@@ -57,6 +58,7 @@ jobs:
           mkdir -p $API_DIR $DIST_DIR
           aws s3 sync s3://$S3_BUCKET/$S3_PREFIX/api/ $API_DIR/ --region $REGION
           aws s3 sync s3://$S3_BUCKET/$S3_PREFIX/frontend/dist/ $DIST_DIR/ --region $REGION
+          aws s3 cp s3://$S3_BUCKET/$S3_PREFIX/ecosystem.config.cjs $REPO_ROOT/ecosystem.config.cjs --region $REGION
 
           echo "=== Installing dependencies ==="
           cd $API_DIR
@@ -78,8 +80,8 @@ jobs:
           EOF
 
           echo "=== Restarting PM2 ==="
-          pm2 startOrRestart $API_DIR/ecosystem.config.cjs --update-env
-          pm2 save
+          HOME=/home/ec2-user pm2 startOrRestart $REPO_ROOT/ecosystem.config.cjs --update-env
+          HOME=/home/ec2-user pm2 save
 
           echo "=== Reloading Nginx ==="
           sudo systemctl reload nginx
