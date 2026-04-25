@@ -3,6 +3,7 @@ module.exports = {
     name: 'proof360',
     script: 'src/server.js',
     cwd: '/home/ec2-user/proof360/api',
+    node_args: '--env-file=.env',
     instances: 1,
     autorestart: true,
     max_memory_restart: '256M',
