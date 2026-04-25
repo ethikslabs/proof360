@@ -6,13 +6,14 @@ on:
     paths:
       - 'api/**'
       - 'frontend/**'
-      - 'scripts/**'
       - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
 env:
-  AWS_REGION:    ap-southeast-2
-  EC2_INSTANCE:  i-010dc648d4676168e
+  AWS_REGION:   ap-southeast-2
+  S3_BUCKET:    ethikslabs-core
+  S3_PREFIX:    deploy/proof360
+  EC2_INSTANCE: i-010dc648d4676168e
 
 jobs:
   deploy:
@@ -20,6 +21,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -27,22 +30,85 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region:            ${{ env.AWS_REGION }}
 
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm install
+          npm run build
+
+      - name: Upload to S3
+        run: |
+          aws s3 sync api/     s3://${{ env.S3_BUCKET }}/${{ env.S3_PREFIX }}/api/
+          aws s3 sync frontend/dist/ s3://${{ env.S3_BUCKET }}/${{ env.S3_PREFIX }}/frontend/dist/
+
       - name: Deploy to EC2 via SSM
         id: ssm-command
         run: |
+          cat > /tmp/ec2-deploy.sh << 'DEPLOY'
+          set -e
+          REGION="ap-southeast-2"
+          S3_BUCKET="ethikslabs-core"
+          S3_PREFIX="deploy/proof360"
+          REPO_ROOT="/home/ec2-user/proof360"
+          API_DIR="$REPO_ROOT/api"
+          DIST_DIR="$REPO_ROOT/frontend/dist"
+
+          echo "=== Syncing from S3 ==="
+          mkdir -p $API_DIR $DIST_DIR
+          aws s3 sync s3://$S3_BUCKET/$S3_PREFIX/api/ $API_DIR/ --region $REGION
+          aws s3 sync s3://$S3_BUCKET/$S3_PREFIX/frontend/dist/ $DIST_DIR/ --region $REGION
+
+          echo "=== Installing dependencies ==="
+          cd $API_DIR
+          npm install --omit=dev --silent
+
+          echo "=== Injecting secrets ==="
+          get_ssm() {
+            aws ssm get-parameter --region $REGION --name "$1" \
+              --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo ""
+          }
+          PORT=$(get_ssm "/proof360/PORT"); PORT=${PORT:-3002}
+          cat > $API_DIR/.env << EOF
+          PORT=$PORT
+          FIRECRAWL_API_KEY=$(get_ssm "/proof360/FIRECRAWL_API_KEY")
+          FIRECRAWL_API_URL=$(get_ssm "/proof360/FIRECRAWL_API_URL")
+          ANTHROPIC_API_KEY=$(get_ssm "/ethikslabs/anthropic/api-key")
+          ABUSEIPDB_API_KEY=$(get_ssm "/proof360/ABUSEIPDB_API_KEY")
+          LOG_LEVEL=info
+          EOF
+
+          echo "=== Restarting PM2 ==="
+          pm2 startOrRestart $API_DIR/ecosystem.config.cjs --update-env
+          pm2 save
+
+          echo "=== Reloading Nginx ==="
+          sudo systemctl reload nginx
+
+          echo "=== Verifying health ==="
+          sleep 3
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$PORT/health 2>/dev/null)
+          [ "$STATUS" = "200" ] && echo "API healthy" || echo "WARNING: /health returned $STATUS"
+
+          echo "=== Deploy complete ==="
+          DEPLOY
+
+          aws s3 cp /tmp/ec2-deploy.sh \
+            s3://${{ env.S3_BUCKET }}/${{ env.S3_PREFIX }}/ec2-deploy.sh
+
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids ${{ env.EC2_INSTANCE }} \
             --document-name "AWS-RunShellScript" \
-            --parameters 'commands=["cd /home/ec2-user/proof360 && bash scripts/deploy.sh"]' \
+            --parameters "commands=[\"bash <(aws s3 cp s3://${{ env.S3_BUCKET }}/${{ env.S3_PREFIX }}/ec2-deploy.sh - --region ${{ env.AWS_REGION }})\"]" \
             --region ${{ env.AWS_REGION }} \
             --query "Command.CommandId" \
             --output text)
           echo "command_id=$COMMAND_ID" >> $GITHUB_OUTPUT
-          echo "SSM command: $COMMAND_ID"
 
       - name: Wait for deploy to complete
+        id: wait-deploy
         run: |
           COMMAND_ID=${{ steps.ssm-command.outputs.command_id }}
+          START_TIME=$SECONDS
           for i in {1..20}; do
             sleep 6
             STATUS=$(aws ssm get-command-invocation \
@@ -52,7 +118,9 @@ jobs:
               --query "Status" --output text 2>/dev/null || echo "Pending")
             echo "Status: $STATUS"
             if [[ "$STATUS" == "Success" ]]; then
-              echo "Deploy complete."
+              DURATION=$(( SECONDS - START_TIME ))
+              echo "duration_s=$DURATION" >> $GITHUB_OUTPUT
+              echo "deploy_status=success" >> $GITHUB_OUTPUT
               exit 0
             elif [[ "$STATUS" == "Failed" || "$STATUS" == "Cancelled" ]]; then
               aws ssm get-command-invocation \
@@ -60,8 +128,25 @@ jobs:
                 --instance-id ${{ env.EC2_INSTANCE }} \
                 --region ${{ env.AWS_REGION }} \
                 --query "StandardErrorContent" --output text
+              DURATION=$(( SECONDS - START_TIME ))
+              echo "duration_s=$DURATION" >> $GITHUB_OUTPUT
+              echo "deploy_status=failed" >> $GITHUB_OUTPUT
               exit 1
             fi
           done
-          echo "Timed out waiting for deploy."
-          exit 1
+          echo "deploy_status=failed" >> $GITHUB_OUTPUT
+          echo "Timed out." && exit 1
+
+      - name: Notify ARGUS
+        if: always()
+        run: |
+          NOC_SECRET=$(aws ssm get-parameter \
+            --name /ethikslabs/argus/noc-secret \
+            --with-decryption \
+            --region ${{ env.AWS_REGION }} \
+            --query "Parameter.Value" --output text)
+          curl -s -X POST https://ethikslabs.com/argus-api/api/deploy-notify \
+            -H "Content-Type: application/json" \
+            -H "x-argus-noc-secret: $NOC_SECRET" \
+            -d "{\"repo\":\"proof360\",\"status\":\"${{ steps.wait-deploy.outputs.deploy_status }}\",\"duration_s\":${{ steps.wait-deploy.outputs.duration_s || 0 }}}" \
+            || echo "ARGUS notify failed (non-blocking)"

@@ -9,6 +9,15 @@
 
 ---
 
+## Visual Identity
+
+| Field | Value |
+|-------|-------|
+| Glyph | 🔍 |
+| Color | `#4f46e5` |
+
+---
+
 ## What This Repo Owns
 
 proof360 cold-reads a company's trust posture from their public URL, asks targeted follow-up questions, and delivers a scored gap report with vendor recommendations. It is the front door to the 360 stack — the first thing a founder or enterprise prospect encounters.
@@ -23,10 +32,10 @@ proof360 cold-reads a company's trust posture from their public URL, asks target
 ## Role in the 360 Stack
 
 ```
-ops360 (control plane)
+IMPERIUM (control plane)
 └── proof360 (entity onramp — live)
     ├── calls trust360 (parallel, gap confirmation)
-    ├── emits pulses to jp-system dashboard API (fire-and-forget)
+    ├── pulse-emitter.js (fire-and-forget — no-ops if DASHBOARD_API_URL unset)
     └── → VERITAS (future — trust credential query, not yet built)
 ```
 
@@ -114,7 +123,6 @@ Sessions are in-memory only (24h TTL, 90s stale timeout per stage). `signals_obj
 ## Related
 
 - `trust360/` — trust evaluation engine (called by proof360 for gap confirmation)
-- `jp-system/` — dashboard API receives proof360 pulses
 - `VERITAS/` — future trust credential layer
 - `WHY.md` — origin story and the Ethiks360 context — why any of this exists
 
@@ -157,5 +165,28 @@ mcp://proof360/
 
 ---
 
-*Last updated: 2026-04-23*
+## Commercial
+
+| Field | Value |
+|-------|-------|
+| Status | active |
+| Founder | john-coates |
+| ABN / UEN | pending |
+| Capital path | revenue |
+| Revenue model | Reseller embed fees + vendor partner lead routing commission |
+| IP boundary | Assessment UX, gap scoring engine, vendor matching algorithm, signals_object dataset moat |
+| Stack dependency | VECTOR (inference), VERITAS (future attestation), ARGUS (monitoring), trust360 (gap confirmation) |
+| First customer | external: proof360.au (live, public) |
+
+### Traction
+| Metric | Value | Source |
+|--------|-------|--------|
+| Uptime | live | ARGUS |
+| Sessions run | live | manual (leads.ndjson) |
+| Leads captured | live | manual (leads.ndjson) |
+| Partner tenants | pending wiring | manual |
+
+---
+
+*Last updated: 2026-04-25*
 *Authority: john-coates*

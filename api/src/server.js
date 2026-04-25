@@ -46,6 +46,7 @@ app.post('/api/v1/session/:id/capture-email', captureEmailHandler);
 app.post('/api/v1/chat', chatHandler);
 
 // --- Health ---
+app.get('/health', healthHandler);
 app.get('/api/health', healthHandler);
 
 // --- overnight-v1 routes ---

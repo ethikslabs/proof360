@@ -4,7 +4,7 @@ set -e
 REPO_DIR="/home/ec2-user/proof360"
 API_DIR="$REPO_DIR/api"
 FRONTEND_DIR="$REPO_DIR/frontend"
-PM2_NAME="proof360-api"
+PM2_NAME="proof360"
 SSM_PREFIX="/proof360"
 
 # If running as root (e.g. via SSM), re-invoke as ec2-user so git ownership checks pass
@@ -56,9 +56,9 @@ npm run build
 
 echo "==> Restarting API"
 if pm2 describe $PM2_NAME > /dev/null 2>&1; then
-  pm2 restart $PM2_NAME --update-env
+  pm2 startOrRestart $API_DIR/ecosystem.config.cjs --update-env
 else
-  pm2 start src/server.js --name $PM2_NAME --cwd $API_DIR
+  pm2 start $API_DIR/ecosystem.config.cjs
 fi
 pm2 save
 
@@ -70,9 +70,9 @@ pm2 status $PM2_NAME
 
 echo "==> Verifying API health"
 sleep 3
-STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$PORT/api/v1/session/__healthcheck__/infer-status 2>/dev/null)
-if [ "$STATUS" = "404" ]; then
-  echo "API responding (404 = session not found = healthy)"
+STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$PORT/health 2>/dev/null)
+if [ "$STATUS" = "200" ]; then
+  echo "API healthy"
 else
-  echo "WARNING: Unexpected status $STATUS — check pm2 logs $PM2_NAME"
+  echo "WARNING: /health returned $STATUS — check pm2 logs $PM2_NAME"
 fi
