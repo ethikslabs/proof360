@@ -42,16 +42,7 @@ export async function chatHandler(request, reply) {
       score: context?.score,
       message: lastUserMsg.replace(/@john\b/i, '').trim(),
     });
-    reply.raw.writeHead(200, {
-      'Content-Type': 'text/plain; charset=utf-8',
-      'Transfer-Encoding': 'chunked',
-      'Cache-Control': 'no-cache',
-      'X-Accel-Buffering': 'no',
-      'Access-Control-Allow-Origin': '*',
-    });
-    reply.raw.write("📨 John's been notified — he'll reply here shortly.");
-    reply.raw.end();
-    return;
+    return reply.type('text/plain').send("📨 John's been notified — he'll reply here shortly.");
   }
 
   // Delay writeHead until first token — so API failures before streaming begins
