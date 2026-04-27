@@ -517,7 +517,7 @@ export default function Report() {
   const derivedState       = report?.derived_state || null;
   const gaps               = derivedState?.gaps || report?.gaps || [];
   const trustScore         = derivedState?.trust_score ?? report?.trust_score ?? null;
-  const vendorRecs         = derivedState?.vendor_recommendations || [];
+  const vendorRecs         = derivedState?.vendor_recommendations || report?.vendor_recommendations || [];
   const confidence         = derivedState?.confidence_ribbon || null;
   const signals            = derivedState?.signals || [];
   const directionalHints   = derivedState?.directional_hints || report?.headline;

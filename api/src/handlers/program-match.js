@@ -1,7 +1,5 @@
 import { getSession } from '../services/session-store.js';
-import { loadSignals } from '../services/signal-store.js';
 import { AWS_PROGRAMS, evaluateTrigger, KNOWN_SIGNAL_FIELDS } from '../config/aws-programs.js';
-import { query } from '../db/pool.js';
 
 /**
  * Build a human-readable eligibility reason from matched triggers.
@@ -89,54 +87,17 @@ export function evaluatePrograms(signals, catalogue) {
     }));
 }
 
-export async function programMatchHandler(request, reply) {
+export function programMatchHandler(request, reply) {
   const { session_id } = request.params;
 
-  // Read signals from Postgres as canonical source
-  // Build signals map from Postgres rows: { [field]: current_value }
-  let signalsObj = null;
-
-  try {
-    const signalRows = await loadSignals(session_id);
-    if (signalRows.length > 0) {
-      signalsObj = {};
-      for (const row of signalRows) {
-        signalsObj[row.field] = row.current_value;
-      }
-    }
-  } catch (err) {
-    console.error(JSON.stringify({
-      event: 'pg_read_error', handler: 'program-match',
-      session_id, error: err.message,
-    }));
+  const session = getSession(session_id);
+  if (!session) {
+    return reply.status(404).send({ error: 'session_not_found' });
   }
 
-  // Fallback: try in-memory session for active pipelines
+  const signalsObj = session.signals || session.signals_object;
   if (!signalsObj) {
-    const session = getSession(session_id);
-    if (!session) {
-      // Check if session exists in Postgres at all
-      try {
-        const sessRes = await query('SELECT id FROM sessions WHERE id = $1', [session_id]);
-        if (sessRes.rows.length === 0) {
-          return reply.status(404).send({ error: 'session_not_found' });
-        }
-      } catch {
-        // Postgres unavailable — fall through to assessment_incomplete
-      }
-      return reply.status(202).send({
-        status: 'assessment_incomplete',
-        message: 'Assessment still running',
-      });
-    }
-    signalsObj = session.signals || session.signals_object;
-  }
-
-  if (!signalsObj) {
-    return reply.status(202).send({
-      status: 'assessment_incomplete',
-      message: 'Assessment still running',
-    });
+    return reply.status(202).send({ status: 'assessment_incomplete', message: 'Assessment still running' });
   }
 
   const programs = evaluatePrograms(signalsObj, AWS_PROGRAMS);

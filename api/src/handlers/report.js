@@ -20,7 +20,7 @@ export async function reportHandler(request, reply) {
     return reply.send({
       trust_score: session.trust_score,
       gaps:        session.gaps        || [],
-      vendors:     session.vendors     || {},
+      vendor_recommendations: session.vendors || [],
       company_name: session.company_name || '',
       website:     session.website_url || '',
       assessed_at: new Date(session.created_at).toISOString(),
