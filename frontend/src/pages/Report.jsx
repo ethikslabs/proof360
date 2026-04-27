@@ -883,7 +883,10 @@ export default function Report() {
       </div>
 
       {/* ── Persona chat ── */}
-      <PersonaChat sessionId={sessionId} />
+      <PersonaChat
+        sessionId={sessionId}
+        context={{ company_name: companyName, score: trustScore, gaps, session_id: sessionId }}
+      />
 
       {/* ── Transparency panel ── */}
       <TransparencyPanel

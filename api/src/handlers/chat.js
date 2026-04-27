@@ -1,5 +1,6 @@
 // api/src/handlers/chat.js
 import { buildSystemPrompt } from '../services/persona-prompts.js';
+import { notifyJohn } from '../services/john-relay.js';
 
 const GATEWAY_URL = process.env.AI_GATEWAY_URL || 'http://localhost:3003/v1';
 const VALID_PERSONAS = ['sophia', 'leonardo', 'edison'];
@@ -31,6 +32,27 @@ export async function chatHandler(request, reply) {
   const systemPrompt = buildSystemPrompt(persona, context);
   const sessionId = context?.session_id || null;
   const correlationId = sessionId || 'proof360';
+
+  // @john detection — skip VECTOR, notify John via Telegram, return inline response
+  const lastUserMsg = apiMessages[apiMessages.length - 1]?.content || '';
+  if (/@john\b/i.test(lastUserMsg)) {
+    notifyJohn({
+      sessionId,
+      companyName: context?.company_name,
+      score: context?.score,
+      message: lastUserMsg.replace(/@john\b/i, '').trim(),
+    });
+    reply.raw.writeHead(200, {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Transfer-Encoding': 'chunked',
+      'Cache-Control': 'no-cache',
+      'X-Accel-Buffering': 'no',
+      'Access-Control-Allow-Origin': '*',
+    });
+    reply.raw.write("📨 John's been notified — he'll reply here shortly.");
+    reply.raw.end();
+    return;
+  }
 
   // Delay writeHead until first token — so API failures before streaming begins
   // can still return a clean JSON 500 rather than a broken chunked response.

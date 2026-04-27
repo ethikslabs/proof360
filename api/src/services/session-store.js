@@ -62,6 +62,9 @@ export function createSession({ website_url, deck_file, source = 'user' }) {
     // Confidence (overnight-v1 — populated after extraction)
     confidence: null,
 
+    // John relay — @john messages injected from Telegram
+    john_messages: [],
+
     // Metadata
     created_at: Date.now(),
   };
