@@ -49,7 +49,7 @@ export async function nimComplete({ messages, temperature = 0.1, session_id }) {
   const correlationId = session_id || 'proof360';
   const res = await fetch(`${GATEWAY_URL}/chat/completions`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Correlation-ID': correlationId },
+    headers: { 'Content-Type': 'application/json', 'X-Correlation-ID': correlationId, 'X-Tenant-ID': 'proof360' },
     body: JSON.stringify({
       model: NIM_MODEL,
       messages,
