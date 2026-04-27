@@ -530,12 +530,7 @@ export default function Report() {
       navigate('/account');
       return;
     }
-    // If already logged in as partner, go to portal
-    if (localStorage.getItem('portal_auth')) {
-      navigate('/portal/dashboard');
-      return;
-    }
-    // Not logged in — stash report, go to unified login with auto-detect intent
+    // Not logged in as founder — stash report, go to founder login
     sessionStorage.setItem('pending_founder_report', JSON.stringify(summary));
     sessionStorage.setItem('auth0_intent', 'auto');
     navigate('/portal');

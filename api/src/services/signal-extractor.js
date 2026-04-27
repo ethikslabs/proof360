@@ -27,14 +27,15 @@ async function scrapePages(firecrawl, baseUrl, log, session_id) {
         formats: ['markdown'],
         timeout: 15000,
       });
-      if (result.success && result.markdown) {
+      if (result.success && result.markdown && !(result.statusCode >= 400)) {
         log({ text: `  ✓  ${label} · read`, type: 'ok' });
         if (session_id) {
           recordConsumption({ session_id, source: 'firecrawl', units: 1, unit_type: 'credits', success: true });
         }
         return { label, content: result.markdown.slice(0, 3000) };
       } else {
-        log({ text: `  ↳  ${label} · no content returned`, type: 'muted' });
+        const reason = result.statusCode >= 400 ? `${result.statusCode}` : 'no content returned';
+        log({ text: `  ↳  ${label} · ${reason}`, type: 'muted' });
         if (session_id) {
           recordConsumption({ session_id, source: 'firecrawl', units: 1, unit_type: 'credits', success: false, error: 'no content returned' });
         }
