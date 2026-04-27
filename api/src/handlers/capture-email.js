@@ -1,7 +1,6 @@
 import { getSession, updateSession } from '../services/session-store.js';
 import { appendFileSync } from 'fs';
 import { emitPulse } from '../services/pulse-emitter.js';
-import { query } from '../db/pool.js';
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -71,14 +70,6 @@ export async function captureEmailHandler(request, reply) {
     // Non-fatal — log but don't fail the request
     console.error(JSON.stringify({ event: 'lead_log_failed', session_id: id, error: err.message }));
   }
-
-  // Parallel Postgres write — fire-and-forget, don't block the response
-  query(
-    'INSERT INTO leads (session_id, email, source) VALUES ($1, $2, $3)',
-    [id, email, request.body.source || null]
-  ).catch(err => {
-    console.error(JSON.stringify({ event: 'lead_pg_write_failed', session_id: id, error: err.message }));
-  });
 
   // Send report email via SES — fire-and-forget
   sendReportEmail(email, id);

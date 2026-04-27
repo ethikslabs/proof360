@@ -1,9 +1,4 @@
-// inferences.js — GET /api/v1/session/:id/inferences
-// Transitional read pattern: active pipelines (infer_status=processing) use in-memory,
-// completed sessions read from Postgres as canonical source.
-
 import { getSession, updateSession } from '../services/session-store.js';
-import { query } from '../db/pool.js';
 
 export function computeConfidence(session) {
   const attempted = session.sources_read?.attempted ?? 0;
@@ -43,23 +38,7 @@ export async function inferencesHandler(request, reply) {
 
   // For completed sessions, prefer in-memory if available (has full pipeline state),
   // otherwise fall back to Postgres
-  let session = memSession;
-
-  if (!session) {
-    // Try Postgres — session may have expired from in-memory TTL
-    try {
-      const sessRes = await query('SELECT * FROM sessions WHERE id = $1', [id]);
-      if (sessRes.rows.length > 0) {
-        session = sessRes.rows[0];
-        session._fromPg = true;
-      }
-    } catch (err) {
-      console.error(JSON.stringify({
-        event: 'pg_read_error', handler: 'inferences',
-        session_id: id, error: err.message,
-      }));
-    }
-  }
+  const session = memSession;
 
   if (!session) {
     return reply.status(404).send({ error: 'Session not found', code: 'SESSION_NOT_FOUND' });
