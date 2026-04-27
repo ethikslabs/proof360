@@ -1,5 +1,6 @@
 import { GAP_DEFINITIONS, SEVERITY_WEIGHTS } from '../config/gaps.js';
 import { selectVendors } from './vendor-selector.js';
+import { buildVendorIntelligence } from './vendor-intelligence-builder.js';
 import { generateFrameworkImpact } from '../config/framework-impact.js';
 
 export async function runGapAnalysis(context, { session_id } = {}) {
@@ -15,23 +16,27 @@ export async function runGapAnalysis(context, { session_id } = {}) {
   // 3. Build confirmed gap objects
   const gaps = triggered
     .filter((gap) => claimResults[gap.id]?.confirmed)
-    .map((gap) => ({
-      gap_id: gap.id,
-      category: gap.category,
-      severity: gap.severity === 'critical' ? 'critical' : gap.severity === 'high' ? 'moderate' : 'low',
-      title: gap.label,
-      why: generateWhy(gap, context),
-      risk: generateRisk(gap, context),
-      control: gap.label,
-      closure_strategies: [],
-      vendor_implementations: [],
-      score_impact: SEVERITY_WEIGHTS[gap.severity],
-      confidence: mosToConfidence(claimResults[gap.id]?.mos),
-      evidence: [{ source: gapEvidenceSource(gap), citation: gapEvidenceCitation(gap) }],
-      time_estimate: '',
-      framework_impact: generateFrameworkImpact(gap.id, context),
-      remediation: generateRemediation(gap, context),
-    }));
+    .map((gap) => {
+      const gapObj = {
+        gap_id: gap.id,
+        category: gap.category,
+        severity: gap.severity === 'critical' ? 'critical' : gap.severity === 'high' ? 'moderate' : 'low',
+        title: gap.label,
+        why: generateWhy(gap, context),
+        risk: generateRisk(gap, context),
+        control: gap.label,
+        closure_strategies: [],
+        vendor_implementations: [],
+        score_impact: SEVERITY_WEIGHTS[gap.severity],
+        confidence: mosToConfidence(claimResults[gap.id]?.mos),
+        evidence: [{ source: gapEvidenceSource(gap), citation: gapEvidenceCitation(gap) }],
+        time_estimate: '',
+        framework_impact: generateFrameworkImpact(gap.id, context),
+        remediation: generateRemediation(gap, context),
+      };
+      gapObj.vendor_intelligence = buildVendorIntelligence(gapObj, context);
+      return gapObj;
+    });
 
   // 5. Compute trust score
   const totalPenalty = gaps.reduce(

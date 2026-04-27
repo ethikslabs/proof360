@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { demoReport } from '../data/demo-report';
-import { getReport } from '../api/client';
+import { getReport, captureEmail } from '../api/client';
 import PersonaChat from '../components/PersonaChat';
+import VendorMatrix from '../components/report/VendorMatrix';
 
 /* ─── VECTOR design tokens ───────────────────────────────────────────────── */
 const BG      = '#0a0d14';
@@ -396,64 +397,11 @@ function GapCard({ gap, index, vendors, vendorIntelligence, open, onToggle }) {
             </>
           )}
 
-          {/* Rich vendor intelligence — demo / future v2 data shape */}
           {vendorIntelligence?.vendors?.length > 0 && (
             <>
               <Label color={TEAL}>Close this gap — {vendorIntelligence.category_name}</Label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {vendorIntelligence.vendors.map(v => (
-                  <div key={v.vendor_id} style={{
-                    background: v.is_pick ? 'rgba(94,234,212,0.06)' : CARD2,
-                    border: `1px solid ${v.is_pick ? 'rgba(94,234,212,0.28)' : BORDER}`,
-                    borderRadius: 10, padding: '14px 16px',
-                    display: 'flex', flexDirection: 'column', gap: 6,
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                      <VendorLogo vendorId={v.vendor_id} domain={v.domain} name={v.display_name} size={28} />
-                      <span style={{ fontSize: 14, fontWeight: 700, color: TEXT }}>{v.display_name}</span>
-                      {v.is_pick && (
-                        <span style={{ fontSize: 8, fontWeight: 800, letterSpacing: '1.5px', color: TEAL, background: 'rgba(94,234,212,0.12)', border: '1px solid rgba(94,234,212,0.28)', borderRadius: 4, padding: '2px 7px', fontFamily: 'monospace' }}>
-                          OUR PICK
-                        </span>
-                      )}
-                      {v.is_partner && !v.is_pick && (
-                        <span style={{ fontSize: 8, fontWeight: 700, letterSpacing: '1px', color: MUTED, background: CARD, border: `1px solid ${BORDER}`, borderRadius: 4, padding: '2px 7px', fontFamily: 'monospace' }}>
-                          PARTNER
-                        </span>
-                      )}
-                      {v.deal_label && (
-                        <span style={{ fontSize: 9, color: '#22c55e', background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 4, padding: '2px 8px', fontFamily: 'monospace', marginLeft: 'auto' }}>
-                          {v.deal_label}
-                        </span>
-                      )}
-                    </div>
-                    {v.best_for && (
-                      <p style={{ fontSize: 10, color: MUTED, fontFamily: 'monospace', letterSpacing: '0.5px' }}>
-                        Best for: {v.best_for}
-                      </p>
-                    )}
-                    {v.summary && (
-                      <p style={{ fontSize: 12, color: SUBTLE, lineHeight: 1.6 }}>{v.summary}</p>
-                    )}
-                    {v.referral_url && (
-                      <a
-                        href={v.referral_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          alignSelf: 'flex-start',
-                          fontSize: 11, fontWeight: 600,
-                          color: v.is_pick ? TEAL : MUTED,
-                          textDecoration: 'none',
-                          borderBottom: `1px solid ${v.is_pick ? 'rgba(94,234,212,0.35)' : BORDER}`,
-                          paddingBottom: 1,
-                        }}
-                      >
-                        Get started →
-                      </a>
-                    )}
-                  </div>
-                ))}
+              <div style={{ background: '#fff', borderRadius: 10, overflow: 'hidden', marginTop: 4 }}>
+                <VendorMatrix vendorIntelligence={vendorIntelligence} />
               </div>
             </>
           )}
@@ -513,6 +461,10 @@ export default function Report() {
   const [openGapIdx,    setOpenGapIdx]   = useState(null);
   const [contextOpen,   setContextOpen]  = useState(true);
   const [stageOverride, setStageOverride] = useState(null);
+  const [emailUnlocked, setEmailUnlocked] = useState(isDemo);
+  const [emailInput,    setEmailInput]   = useState('');
+  const [emailSending,  setEmailSending] = useState(false);
+  const [emailError,    setEmailError]   = useState('');
 
   const derivedState       = report?.derived_state || null;
   const gaps               = derivedState?.gaps || report?.gaps || [];
@@ -540,9 +492,26 @@ export default function Report() {
   useEffect(() => {
     if (isDemo) return;
     getReport(sessionId)
-      .then(r => setReport(r))
+      .then(r => {
+        setReport(r);
+        if (r.layer2_locked === false) setEmailUnlocked(true);
+      })
       .catch(() => setError("We couldn't load your report. Please try again."));
   }, [sessionId, isDemo]);
+
+  async function handleEmailSubmit(e) {
+    e.preventDefault();
+    setEmailSending(true);
+    setEmailError('');
+    try {
+      await captureEmail(sessionId, { email: emailInput });
+      setEmailUnlocked(true);
+    } catch {
+      setEmailError('Something went wrong. Try again.');
+    } finally {
+      setEmailSending(false);
+    }
+  }
 
   function saveAndTrack() {
     const summary = {
@@ -781,7 +750,7 @@ export default function Report() {
             </p>
             {gaps.map((gap, i) => {
               const gapVendors = vendorRecs.filter(v => v.closes_gaps?.includes(gap.id));
-              return <GapCard key={gap.id || gap.gap_id || i} gap={gap} index={i} vendors={gapVendors} vendorIntelligence={gap.vendor_intelligence} open={openGapIdx === i} onToggle={() => setOpenGapIdx(openGapIdx === i ? null : i)} />;
+              return <GapCard key={gap.id || gap.gap_id || i} gap={gap} index={i} vendors={gapVendors} vendorIntelligence={emailUnlocked ? gap.vendor_intelligence : undefined} open={openGapIdx === i} onToggle={() => setOpenGapIdx(openGapIdx === i ? null : i)} />;
             })}
           </div>
         )}
@@ -835,6 +804,59 @@ export default function Report() {
                 </a>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* ── Email gate — vendor recommendations ── */}
+        {gaps.length > 0 && !emailUnlocked && (
+          <div style={{
+            marginTop: 24, padding: '32px 28px',
+            background: 'rgba(94,234,212,0.04)',
+            border: `1px solid rgba(94,234,212,0.2)`,
+            borderRadius: 16, animation: 'rise 0.5s ease 0.2s both',
+          }}>
+            <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '2.5px', color: TEAL, fontFamily: 'monospace', marginBottom: 10 }}>
+              VENDOR RECOMMENDATIONS
+            </p>
+            <p style={{ fontSize: 18, fontWeight: 700, color: TEXT, marginBottom: 8, letterSpacing: '-0.02em' }}>
+              See exactly how to close each gap
+            </p>
+            <p style={{ fontSize: 13, color: MUTED, lineHeight: 1.7, marginBottom: 20, maxWidth: 460 }}>
+              Get a shortlist of the right vendors for each gap — with quadrant maps, pricing context, and a direct path to fixing your score. We'll also email you the report.
+            </p>
+            <form onSubmit={handleEmailSubmit} style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <input
+                type="email"
+                placeholder="your@email.com"
+                value={emailInput}
+                onChange={e => setEmailInput(e.target.value)}
+                required
+                style={{
+                  flex: 1, minWidth: 220,
+                  background: '#0d1117', border: `1px solid ${BORDER2}`,
+                  borderRadius: 8, padding: '10px 14px',
+                  fontSize: 13, color: TEXT, outline: 'none',
+                  fontFamily: 'inherit',
+                }}
+              />
+              <button
+                type="submit"
+                disabled={emailSending}
+                style={{
+                  background: TEAL, color: '#0a0d14',
+                  border: 'none', borderRadius: 8,
+                  padding: '10px 22px', fontSize: 13, fontWeight: 700,
+                  cursor: emailSending ? 'default' : 'pointer',
+                  opacity: emailSending ? 0.7 : 1,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {emailSending ? 'Sending…' : 'Get vendor recommendations →'}
+              </button>
+            </form>
+            {emailError && (
+              <p style={{ fontSize: 12, color: '#f87171', marginTop: 8 }}>{emailError}</p>
+            )}
           </div>
         )}
 

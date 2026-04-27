@@ -381,7 +381,15 @@ export default function AuditReading() {
       return;
     }
     const next = queueRef.current.shift();
-    setLines(prev => [...prev, next]);
+    if (next.type === 'recon') {
+      setReconLines(prev => prev.map(entry =>
+        entry.source === next.source
+          ? { source: next.source, text: next.text, color: next.color }
+          : entry
+      ));
+    } else {
+      setLines(prev => [...prev, next]);
+    }
     timerRef.current = setTimeout(drainQueue, 150);
   }
 
@@ -407,15 +415,8 @@ export default function AuditReading() {
         if (!timerRef.current && queueRef.current.length === 0) {
           setBeatVisible(true);
         }
-      } else if (line.type === 'recon') {
-        // Update right pane in-place — find by source, replace at that index
-        setReconLines(prev => prev.map(entry =>
-          entry.source === line.source
-            ? { source: line.source, text: line.text, color: line.color }
-            : entry
-        ));
       } else {
-        linesReceivedRef.current++;
+        if (line.type !== 'recon') linesReceivedRef.current++;
         enqueueLine(line);
       }
     };
