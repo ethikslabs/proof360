@@ -97,3 +97,9 @@ app.listen({ port: PORT, host: '0.0.0.0' }, (err) => {
   }
   app.log.info(`Proof360 API listening on port ${PORT}`);
 });
+
+// Graceful shutdown — lets PM2 SIGTERM drain in-flight requests before
+// the new process starts, preventing EADDRINUSE on rapid restarts.
+process.on('SIGTERM', () => {
+  app.close().then(() => process.exit(0)).catch(() => process.exit(1));
+});
