@@ -106,9 +106,9 @@ jobs:
           node --env-file=$API_DIR/.env $API_DIR/scripts/run-migrations.js || echo "Migrations skipped (Postgres not configured)"
 
           echo "=== Restarting PM2 ==="
+          HOME=/home/ec2-user pm2 delete proof360 2>/dev/null || true
           fuser -k 3002/tcp 2>/dev/null || true
           sleep 2
-          HOME=/home/ec2-user pm2 delete proof360 2>/dev/null || true
           HOME=/home/ec2-user pm2 start $REPO_ROOT/ecosystem.config.cjs
           HOME=/home/ec2-user pm2 save
 
