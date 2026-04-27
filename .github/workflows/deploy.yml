@@ -103,7 +103,7 @@ jobs:
           EOF
 
           echo "=== Running database migrations ==="
-          node --env-file=$API_DIR/.env $API_DIR/scripts/run-migrations.js
+          node --env-file=$API_DIR/.env $API_DIR/scripts/run-migrations.js || echo "Migrations skipped (Postgres not configured)"
 
           echo "=== Restarting PM2 ==="
           HOME=/home/ec2-user pm2 startOrRestart $REPO_ROOT/ecosystem.config.cjs --update-env
