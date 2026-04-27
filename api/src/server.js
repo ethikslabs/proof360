@@ -90,22 +90,6 @@ app.addHook('onClose', () => {
   clearInterval(staleInterval);
 });
 
-import { createConnection } from 'node:net';
-
-// --- Port guard ---
-await new Promise((resolve) => {
-  const probe = createConnection({ port: PORT, host: 'localhost' });
-  probe.once('connect', () => {
-    probe.destroy();
-    process.stderr.write(`[proof360] Port ${PORT} already in use — kill it with: kill $(lsof -ti:${PORT})\n`);
-    process.exit(1);
-  });
-  probe.once('error', () => {
-    probe.destroy();
-    resolve();
-  });
-});
-
 app.listen({ port: PORT, host: '0.0.0.0' }, (err) => {
   if (err) {
     app.log.error(err);
