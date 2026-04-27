@@ -117,6 +117,9 @@ jobs:
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$PORT/api/health 2>/dev/null)
           [ "$STATUS" = "200" ] && echo "API healthy" || echo "WARNING: /api/health returned $STATUS"
 
+          echo "=== Registering Telegram webhook ==="
+          curl -s "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook?url=https://proof360.au/api/telegram/webhook" | grep -o '"ok":[^,}]*'
+
           echo "=== Deploy complete ==="
           DEPLOY
 
