@@ -56,8 +56,8 @@ jobs:
 
           echo "=== Syncing from S3 ==="
           mkdir -p $API_DIR $DIST_DIR
-          aws s3 sync s3://$S3_BUCKET/$S3_PREFIX/api/ $API_DIR/ --region $REGION
-          aws s3 sync s3://$S3_BUCKET/$S3_PREFIX/frontend/dist/ $DIST_DIR/ --region $REGION
+          aws s3 sync s3://$S3_BUCKET/$S3_PREFIX/api/ $API_DIR/ --region $REGION --exact-timestamps
+          aws s3 sync s3://$S3_BUCKET/$S3_PREFIX/frontend/dist/ $DIST_DIR/ --region $REGION --exact-timestamps
           aws s3 cp s3://$S3_BUCKET/$S3_PREFIX/ecosystem.config.cjs $REPO_ROOT/ecosystem.config.cjs --region $REGION
 
           echo "=== Installing dependencies ==="
