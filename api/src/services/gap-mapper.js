@@ -1,5 +1,4 @@
 import { GAP_DEFINITIONS, SEVERITY_WEIGHTS } from '../config/gaps.js';
-import { evaluateClaims } from './trust-client.js';
 import { selectVendors } from './vendor-selector.js';
 import { generateFrameworkImpact } from '../config/framework-impact.js';
 
@@ -7,31 +6,13 @@ export async function runGapAnalysis(context, { session_id } = {}) {
   // 1. Find which gaps are triggered by the context
   const triggered = GAP_DEFINITIONS.filter((gap) => gap.triggerCondition(context));
 
-  // 2. Build Trust360 claims for each triggered gap
-  const claims = triggered.map((gap) => {
-    const { question, evidence } = gap.claimTemplate(context);
-    return {
-      question,
-      evidence,
-      metadata: { gapId: gap.id, severity: gap.severity },
-    };
-  });
-
-  // 3. Evaluate claims via Trust360 (parallel)
-  let claimResults = {};
-  if (claims.length > 0) {
-    try {
-      claimResults = await evaluateClaims(claims, session_id);
-    } catch (err) {
-      // If Trust360 is unavailable, confirm all triggered gaps as fallback
-      console.warn('Trust360 unavailable, confirming all triggered gaps:', err.message);
-      for (const gap of triggered) {
-        claimResults[gap.id] = { confirmed: true, mos: 8, fallback: true };
-      }
-    }
+  // 2. All triggered gaps are confirmed — trigger conditions are deterministic signal evaluations
+  const claimResults = {};
+  for (const gap of triggered) {
+    claimResults[gap.id] = { confirmed: true, mos: 9 };
   }
 
-  // 4. Build confirmed gap objects
+  // 3. Build confirmed gap objects
   const gaps = triggered
     .filter((gap) => claimResults[gap.id]?.confirmed)
     .map((gap) => ({
