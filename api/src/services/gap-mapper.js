@@ -3,7 +3,7 @@ import { evaluateClaims } from './trust-client.js';
 import { selectVendors } from './vendor-selector.js';
 import { generateFrameworkImpact } from '../config/framework-impact.js';
 
-export async function runGapAnalysis(context) {
+export async function runGapAnalysis(context, { session_id } = {}) {
   // 1. Find which gaps are triggered by the context
   const triggered = GAP_DEFINITIONS.filter((gap) => gap.triggerCondition(context));
 
@@ -21,7 +21,7 @@ export async function runGapAnalysis(context) {
   let claimResults = {};
   if (claims.length > 0) {
     try {
-      claimResults = await evaluateClaims(claims);
+      claimResults = await evaluateClaims(claims, session_id);
     } catch (err) {
       // If Trust360 is unavailable, confirm all triggered gaps as fallback
       console.warn('Trust360 unavailable, confirming all triggered gaps:', err.message);

@@ -81,7 +81,7 @@ export default function PortalLeadDetail() {
   useEffect(() => {
     const stored = localStorage.getItem('portal_auth');
     if (!stored) { navigate('/portal'); return; }
-    setAuth(JSON.parse(stored));
+    setAuth(JSON.parse(stored)); // eslint-disable-line react-hooks/set-state-in-effect
     const _auth = JSON.parse(localStorage.getItem('portal_auth') || '{}');
     const engs = JSON.parse(localStorage.getItem('portal_engagements') || '{}');
     const k = `${leadId}_${_auth.tenant}`;
@@ -155,7 +155,7 @@ export default function PortalLeadDetail() {
           <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none', opacity: 0.4, flexShrink: 0 }}>
             <Proof360Mark size={15} />
             <span style={{ fontSize: 11, fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em', fontFamily: "'DM Sans', sans-serif" }}>
-              Proof<span style={{ color: '#E07B39' }}>360</span>
+              Proof<span style={{ color: '#5eead4' }}>360</span>
             </span>
           </Link>
           <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.18)', margin: '0 10px' }}>›</span>

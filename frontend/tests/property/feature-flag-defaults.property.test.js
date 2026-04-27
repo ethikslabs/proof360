@@ -69,7 +69,7 @@ describe('Property 9: Feature flag safe defaults', () => {
     });
 
     fc.assert(
-      fc.property(featureFlagArb, (_serverFlags) => {
+      fc.property(featureFlagArb, () => {
         // Regardless of what the server might return, SAFE_DEFAULTS must always
         // preserve these invariants (used when server is unreachable):
 

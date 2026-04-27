@@ -24,15 +24,15 @@ export async function sessionStartHandler(request, reply) {
   });
 
   // Fire async signal extraction pipeline — don't block the response
-  extractAndInfer(session.id, { website_url, deck_file }, (line) => appendLog(session.id, line));
+  extractAndInfer(session.id, { website_url, deck_file, session_id: session.id }, (line) => appendLog(session.id, line));
 
   return reply.status(201).send({ session_id: session.id });
 }
 
-async function extractAndInfer(sessionId, { website_url, deck_file }, log) {
+async function extractAndInfer(sessionId, { website_url, deck_file, session_id }, log) {
   try {
-    const { signals, sources_read, enterprise_signals, competitor_mentions, recon_context } =
-      await extractSignals({ website_url, deck_file }, log);
+    const { signals, sources_read, enterprise_signals, competitor_mentions, recon_context, company_summary } =
+      await extractSignals({ website_url, deck_file, session_id }, log);
 
     const reconFlat = extractReconContext(recon_context);
     const inferenceResult = buildInferences(signals, sources_read, website_url, reconFlat);
@@ -51,6 +51,7 @@ async function extractAndInfer(sessionId, { website_url, deck_file }, log) {
       enterprise_signals,
       competitor_mentions,
       recon_context: recon_context || null,
+      company_summary: company_summary || null,
     });
   } catch (err) {
     console.error(JSON.stringify({

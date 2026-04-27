@@ -3,6 +3,8 @@
 // Extracts: public repo count, primary language, security policy presence,
 // days since last commit, dependabot status.
 
+import { record as recordConsumption } from './consumption-emitter.js';
+
 const GH_API = 'https://api.github.com';
 const HEADERS = {
   'User-Agent': 'proof360-recon/1.0',
@@ -10,15 +12,21 @@ const HEADERS = {
 };
 const TIMEOUT_MS = 8000;
 
-export async function reconGithub(domain, companyName) {
+export async function reconGithub(domain, companyName, session_id) {
   const orgName = await detectOrgName(domain, companyName);
-  if (!orgName) return { source: 'github', found: false };
+  if (!orgName) {
+    recordConsumption({ session_id, source: 'github', units: 1, unit_type: 'api_calls', success: true, error: null });
+    return { source: 'github', found: false };
+  }
 
   const [orgResult, reposResult, secPolicyResult] = await Promise.allSettled([
     ghGet(`/orgs/${orgName}`),
     ghGet(`/orgs/${orgName}/repos?sort=pushed&per_page=30&type=public`),
     checkSecurityPolicy(orgName),
   ]);
+
+  const anyFailed = [orgResult, reposResult].some(r => r.status === 'rejected');
+  recordConsumption({ session_id, source: 'github', units: 1, unit_type: 'api_calls', success: !anyFailed, error: anyFailed ? 'partial_failure' : null });
 
   const org    = orgResult.status    === 'fulfilled' && !orgResult.value?.message   ? orgResult.value    : null;
   const repos  = reposResult.status  === 'fulfilled' && Array.isArray(reposResult.value) ? reposResult.value : [];

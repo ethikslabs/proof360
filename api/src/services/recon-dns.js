@@ -1,4 +1,5 @@
 import { promises as dns } from 'dns';
+import { record as recordConsumption } from './consumption-emitter.js';
 
 function extractDomain(url) {
   try {
@@ -63,7 +64,7 @@ function inferMxProvider(mxRecords) {
   return 'custom';
 }
 
-export async function reconDns(url) {
+export async function reconDns(url, session_id) {
   const domain = extractDomain(url);
   if (!domain) return null;
 
@@ -78,6 +79,10 @@ export async function reconDns(url) {
   const dmarc = dmarcTxt.status === 'fulfilled' ? dmarcTxt.value : [];
   const mx = mxRecords.status === 'fulfilled' ? mxRecords.value : [];
   const caa = caaRecords.status === 'fulfilled' ? caaRecords.value : [];
+
+  const anyFailed = [rootTxt, dmarcTxt, mxRecords, caaRecords].some(r => r.status === 'rejected');
+
+  recordConsumption({ session_id, source: 'dns', units: 1, unit_type: 'api_calls', success: !anyFailed, error: null });
 
   const dmarc_policy = parseDmarcPolicy(dmarc);
   const spf_policy = parseSpfPolicy(root);

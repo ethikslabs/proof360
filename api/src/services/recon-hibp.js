@@ -14,6 +14,8 @@
 // - Cyber insurers price premiums partly based on breach history
 // - An old breach that was disclosed + remediated is recoverable — a hidden one is not
 
+import { record as recordConsumption } from './consumption-emitter.js';
+
 const HIBP_BASE = 'https://haveibeenpwned.com/api/v3';
 const TIMEOUT_MS = 10000;
 
@@ -24,7 +26,7 @@ const HIGH_SEVERITY_BREACHES = new Set([
   'Heroku', 'MailChimp', 'SendGrid', 'Stripe', 'Twilio',
 ]);
 
-export async function reconHibp(domain, apiKey) {
+export async function reconHibp(domain, apiKey, session_id) {
   if (!apiKey) {
     return {
       source: 'hibp',
@@ -43,6 +45,9 @@ export async function reconHibp(domain, apiKey) {
     hibpGet(`${HIBP_BASE}/breacheddomain/${domain}`, headers),
     hibpGet(`${HIBP_BASE}/breaches?domain=${domain}`, headers),
   ]);
+
+  const anyFailed = [accountsResult, breachesResult].some(r => r.status === 'rejected');
+  recordConsumption({ session_id, source: 'hibp', units: 1, unit_type: 'api_calls', success: !anyFailed, error: anyFailed ? 'api_error' : null });
 
   // breacheddomain returns array of email addresses or 404 if clean
   const accounts = accountsResult.status === 'fulfilled'

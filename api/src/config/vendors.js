@@ -3,6 +3,10 @@
 // distributor: "dicker" | "ingram" | "direct"
 // marketplace_aws: true — listed on AWS Marketplace, can bill against AWS commitment
 // aws_native: true — built by AWS, no separate vendor relationship needed
+// routing(context) — per-vendor routing function for engagement system
+//   context shape: { signals, tenant, session, derived_state }
+//   returns: { primary: { party, type, label, ... }, alternatives: [] }
+//   Three branch types: john (internal), distributor (tenant match), vendor (direct)
 // Dicker AU catalog verified 2026-03-18. Ingram AU catalog verified 2026-03-18.
 
 export const VENDORS = {
@@ -18,6 +22,19 @@ export const VENDORS = {
     best_for: 'AWS-native stacks — aggregates GuardDuty, Inspector, Macie into one compliance view',
     summary: 'Centralised security and compliance visibility across your AWS environment. Maps to CIS, PCI DSS, NIST, and Essential Eight controls out of the box.',
     referral_url: 'https://aws.amazon.com/security-hub/',
+    routing: (context) => ({
+      primary: {
+        party: 'vendor', type: 'direct',
+        label: 'Enable in AWS Console',
+        url: 'https://aws.amazon.com/security-hub/',
+      },
+      alternatives: [{
+        party: 'john', type: 'internal',
+        label: 'Book guided setup via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      }],
+    }),
   },
 
   vanta: {
@@ -29,6 +46,19 @@ export const VENDORS = {
     best_for: 'Seed to Series B, AWS-native stacks',
     summary: 'Fastest to SOC 2. Connects to your existing AWS stack in an afternoon. Available on AWS Marketplace.',
     referral_url: 'https://vanta.com/?ref=proof360',
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360 — 20% off first year',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'vendor', type: 'direct',
+        label: 'Go direct to Vanta',
+        url: 'https://vanta.com/?ref=proof360',
+      }],
+    }),
   },
   vanta_msp: {
     id: 'vanta_msp', display_name: 'Vanta (MSP)', initials: 'VM',
@@ -39,7 +69,21 @@ export const VENDORS = {
     best_for: 'MSPs and multi-tenant compliance delivery',
     summary: 'Vanta MSP program — manage compliance across multiple client accounts.',
     referral_url: 'https://vanta.com/?ref=proof360',
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360 — 20% off first year',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'vendor', type: 'direct',
+        label: 'Go direct to Vanta MSP',
+        url: 'https://vanta.com/?ref=proof360',
+      }],
+    }),
   },
+
   drata: {
     id: 'drata', display_name: 'Drata', initials: 'D',
     closes: ['soc2', 'incident_response', 'pci_dss'],
@@ -49,6 +93,19 @@ export const VENDORS = {
     best_for: 'Larger teams, complex environments',
     summary: 'More customisation, longer setup. Better for Series B and beyond.',
     referral_url: 'https://drata.com/?ref=proof360',
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360 — 15% off first year',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'vendor', type: 'direct',
+        label: 'Go direct to Drata',
+        url: 'https://drata.com/?ref=proof360',
+      }],
+    }),
   },
   secureframe: {
     id: 'secureframe', display_name: 'Secureframe', initials: 'SF',
@@ -59,6 +116,15 @@ export const VENDORS = {
     best_for: 'Mid-market, broader framework coverage',
     summary: 'Good mid-market option. Strong for companies needing multiple frameworks.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [],
+    }),
   },
   apollo_secure: {
     id: 'apollo_secure', display_name: 'Apollo Secure', initials: 'AP',
@@ -69,6 +135,19 @@ export const VENDORS = {
     best_for: 'Fast compliance for startups and scale-ups, AU-based',
     summary: 'Automated security and compliance for startups. AU-based.',
     referral_url: 'https://www.apollosecure.com/',
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'vendor', type: 'direct',
+        label: 'Go direct to Apollo Secure',
+        url: 'https://www.apollosecure.com/',
+      }],
+    }),
   },
   trustwave: {
     id: 'trustwave', display_name: 'Trustwave', initials: 'TW',
@@ -79,6 +158,19 @@ export const VENDORS = {
     best_for: 'Managed security services, compliance',
     summary: 'Managed SOC and compliance services. Strong AU presence.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Dicker Data',
+        contact: 'partner@dickerdata.com.au',
+      }],
+    }),
   },
   docusign: {
     id: 'docusign', display_name: 'DocuSign', initials: 'DS',
@@ -89,6 +181,19 @@ export const VENDORS = {
     best_for: 'Audit trail, contract compliance',
     summary: 'eSignature and agreement cloud. Closes audit trail gaps.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Ingram Micro',
+        contact: 'partner@ingrammicro.com.au',
+      }],
+    }),
   },
 
   // ── FOUNDER TRUST ────────────────────────────────────────────────────────
@@ -105,6 +210,19 @@ export const VENDORS = {
     best_for: 'Founders preparing for investor due diligence or enterprise sales',
     summary: 'Leadership and founder trust profiling. 10-question snapshot free in report. Full 100+ question profile available as paid deep-dive.',
     referral_url: 'https://lxplatform.io/',
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360 — free 10-question profile',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'vendor', type: 'direct',
+        label: 'Go direct to ReachLX',
+        url: 'https://lxplatform.io/',
+      }],
+    }),
   },
 
   // ── AI GOVERNANCE ────────────────────────────────────────────────────────
@@ -118,7 +236,21 @@ export const VENDORS = {
     best_for: 'AI startups needing governance, EU AI Act, NIST AI RMF compliance',
     summary: 'AI governance platform — AI registry, risk controls, responsible AI compliance. NIST, EU AI Act, OAIC aligned.',
     referral_url: 'https://www.cognitiveview.com/',
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'vendor', type: 'direct',
+        label: 'Go direct to CognitiveView',
+        url: 'https://www.cognitiveview.com/',
+      }],
+    }),
   },
+
 
   // ── IDENTITY & IAM ───────────────────────────────────────────────────────
 
@@ -131,6 +263,19 @@ export const VENDORS = {
     best_for: 'AWS-native stacks — centralised SSO and MFA across AWS accounts and SAML apps',
     summary: 'AWS-native SSO and MFA. If your team is already in AWS, this is the zero-friction path to centralised identity with no additional license cost.',
     referral_url: 'https://aws.amazon.com/iam/identity-center/',
+    routing: (context) => ({
+      primary: {
+        party: 'vendor', type: 'direct',
+        label: 'Enable in AWS Console',
+        url: 'https://aws.amazon.com/iam/identity-center/',
+      },
+      alternatives: [{
+        party: 'john', type: 'internal',
+        label: 'Book guided setup via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      }],
+    }),
   },
 
   okta: {
@@ -142,6 +287,15 @@ export const VENDORS = {
     best_for: 'Enterprise identity, broad integrations',
     summary: 'Industry standard for enterprise IAM.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [],
+    }),
   },
   cisco_duo: {
     id: 'cisco_duo', display_name: 'Cisco Duo', initials: 'CD',
@@ -152,6 +306,19 @@ export const VENDORS = {
     best_for: 'Fast MFA rollout, SME-friendly, up and running in a day',
     summary: 'Lightweight MFA that works with whatever you already have. No rip-and-replace.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Ingram Micro',
+        contact: 'partner@ingrammicro.com.au',
+      }],
+    }),
   },
   cisco_umbrella: {
     id: 'cisco_umbrella', display_name: 'Cisco Umbrella', initials: 'CU',
@@ -162,6 +329,19 @@ export const VENDORS = {
     best_for: 'DNS security, cloud-delivered SASE, remote workforce protection',
     summary: 'Cloud-delivered network security. Blocks threats at the DNS layer before they reach your network.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Ingram Micro',
+        contact: 'partner@ingrammicro.com.au',
+      }],
+    }),
   },
   microsoft: {
     id: 'microsoft', display_name: 'Microsoft', initials: 'MS',
@@ -172,6 +352,19 @@ export const VENDORS = {
     best_for: 'Microsoft 365 environments, Entra ID',
     summary: 'Entra ID covers identity, MFA, and SSO for M365 stacks.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Dicker Data',
+        contact: 'partner@dickerdata.com.au',
+      }],
+    }),
   },
   rsa: {
     id: 'rsa', display_name: 'RSA', initials: 'RS',
@@ -182,6 +375,19 @@ export const VENDORS = {
     best_for: 'Enterprise MFA, regulated industries',
     summary: 'Enterprise-grade MFA and identity assurance.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Dicker Data',
+        contact: 'partner@dickerdata.com.au',
+      }],
+    }),
   },
   keeper: {
     id: 'keeper', display_name: 'Keeper', initials: 'KP',
@@ -192,6 +398,19 @@ export const VENDORS = {
     best_for: 'Credential security, password management',
     summary: 'Enterprise password manager and secrets vault.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Ingram Micro',
+        contact: 'partner@ingrammicro.com.au',
+      }],
+    }),
   },
   jamf: {
     id: 'jamf', display_name: 'Jamf', initials: 'JF',
@@ -202,7 +421,21 @@ export const VENDORS = {
     best_for: 'Apple-first environments, device identity',
     summary: 'Device management and identity for Apple fleets.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Ingram Micro',
+        contact: 'partner@ingrammicro.com.au',
+      }],
+    }),
   },
+
 
   // ── NETWORK SECURITY ─────────────────────────────────────────────────────
 
@@ -215,6 +448,19 @@ export const VENDORS = {
     best_for: 'AWS-hosted apps — WAF and response header policies without a separate vendor',
     summary: 'AWS-native WAF with managed rule groups. Add security headers via CloudFront response policies. No separate vendor relationship — billed directly through AWS.',
     referral_url: 'https://aws.amazon.com/waf/',
+    routing: (context) => ({
+      primary: {
+        party: 'vendor', type: 'direct',
+        label: 'Enable in AWS Console',
+        url: 'https://aws.amazon.com/waf/',
+      },
+      alternatives: [{
+        party: 'john', type: 'internal',
+        label: 'Book guided setup via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      }],
+    }),
   },
 
   cloudflare: {
@@ -226,6 +472,19 @@ export const VENDORS = {
     best_for: 'Network security, zero trust access',
     summary: 'Network perimeter, zero trust, and DDoS in one platform.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Ingram Micro',
+        contact: 'partner@ingrammicro.com.au',
+      }],
+    }),
   },
   fortinet: {
     id: 'fortinet', display_name: 'Fortinet', initials: 'FT',
@@ -236,6 +495,19 @@ export const VENDORS = {
     best_for: 'Firewall, SD-WAN, enterprise network security',
     summary: 'Broad network security platform. Strong in AU enterprise.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Ingram Micro',
+        contact: 'partner@ingrammicro.com.au',
+      }],
+    }),
   },
   palo_alto: {
     id: 'palo_alto', display_name: 'Palo Alto', initials: 'PA',
@@ -246,6 +518,19 @@ export const VENDORS = {
     best_for: 'Broader security suite, enterprise',
     summary: 'Full security platform. Better for larger environments.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Ingram Micro',
+        contact: 'partner@ingrammicro.com.au',
+      }],
+    }),
   },
   sonicwall: {
     id: 'sonicwall', display_name: 'SonicWall', initials: 'SW',
@@ -256,6 +541,19 @@ export const VENDORS = {
     best_for: 'SMB firewall, cost-effective network security',
     summary: 'Firewall and network security for SMB and mid-market.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Dicker Data',
+        contact: 'partner@dickerdata.com.au',
+      }],
+    }),
   },
   juniper: {
     id: 'juniper', display_name: 'Juniper', initials: 'JN',
@@ -266,6 +564,19 @@ export const VENDORS = {
     best_for: 'Enterprise networking, campus and cloud',
     summary: 'Enterprise network infrastructure with security integration.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Dicker Data',
+        contact: 'partner@dickerdata.com.au',
+      }],
+    }),
   },
 
   // ── ENDPOINT PROTECTION ──────────────────────────────────────────────────
@@ -279,6 +590,19 @@ export const VENDORS = {
     best_for: 'Enterprise EDR, strong detection',
     summary: 'Leading endpoint protection. Enterprise-grade detection.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Dicker Data',
+        contact: 'partner@dickerdata.com.au',
+      }],
+    }),
   },
   trellix: {
     id: 'trellix', display_name: 'Trellix', initials: 'TX',
@@ -289,6 +613,19 @@ export const VENDORS = {
     best_for: 'Endpoint and XDR, enterprise',
     summary: 'Extended detection and response across endpoints and email.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Ingram Micro',
+        contact: 'partner@ingrammicro.com.au',
+      }],
+    }),
   },
   trendmicro: {
     id: 'trendmicro', display_name: 'Trend Micro', initials: 'TM',
@@ -299,6 +636,19 @@ export const VENDORS = {
     best_for: 'Cloud and endpoint security, SMB to enterprise',
     summary: 'Layered endpoint and email security. Strong AU support.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Dicker Data',
+        contact: 'partner@dickerdata.com.au',
+      }],
+    }),
   },
   sophos: {
     id: 'sophos', display_name: 'Sophos', initials: 'SP',
@@ -309,7 +659,21 @@ export const VENDORS = {
     best_for: 'SMB endpoint + firewall, managed detection',
     summary: 'Unified endpoint and network security. Good SMB fit.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Ingram Micro',
+        contact: 'partner@ingrammicro.com.au',
+      }],
+    }),
   },
+
 
   // ── DATA RESILIENCE ──────────────────────────────────────────────────────
 
@@ -322,6 +686,19 @@ export const VENDORS = {
     best_for: 'AWS-native stacks — centralised backup across EC2, RDS, S3, EFS with no separate vendor',
     summary: 'Centralised backup across your entire AWS estate. Policy-driven, audit-ready, and billed through your existing AWS account.',
     referral_url: 'https://aws.amazon.com/backup/',
+    routing: (context) => ({
+      primary: {
+        party: 'vendor', type: 'direct',
+        label: 'Enable in AWS Console',
+        url: 'https://aws.amazon.com/backup/',
+      },
+      alternatives: [{
+        party: 'john', type: 'internal',
+        label: 'Book guided setup via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      }],
+    }),
   },
 
   veeam: {
@@ -333,6 +710,19 @@ export const VENDORS = {
     best_for: 'Backup and recovery, hybrid and cloud',
     summary: 'Leading backup platform. Covers on-prem, cloud, and hybrid.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Ingram Micro',
+        contact: 'partner@ingrammicro.com.au',
+      }],
+    }),
   },
   cohesity: {
     id: 'cohesity', display_name: 'Cohesity', initials: 'CH',
@@ -343,6 +733,19 @@ export const VENDORS = {
     best_for: 'Data management, ransomware recovery',
     summary: 'Modern data management and backup with ransomware protection.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Ingram Micro',
+        contact: 'partner@ingrammicro.com.au',
+      }],
+    }),
   },
   netapp: {
     id: 'netapp', display_name: 'NetApp', initials: 'NA',
@@ -353,6 +756,19 @@ export const VENDORS = {
     best_for: 'Enterprise storage, hybrid cloud data',
     summary: 'Enterprise data storage and protection.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Dicker Data',
+        contact: 'partner@dickerdata.com.au',
+      }],
+    }),
   },
   nutanix: {
     id: 'nutanix', display_name: 'Nutanix', initials: 'NX',
@@ -363,6 +779,19 @@ export const VENDORS = {
     best_for: 'HCI, infrastructure resilience',
     summary: 'Hyperconverged infrastructure with built-in resilience.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Ingram Micro',
+        contact: 'partner@ingrammicro.com.au',
+      }],
+    }),
   },
   veritas: {
     id: 'veritas', display_name: 'Veritas', initials: 'VR',
@@ -373,6 +802,19 @@ export const VENDORS = {
     best_for: 'Enterprise backup, compliance archiving',
     summary: 'Enterprise backup and compliance data management.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Dicker Data',
+        contact: 'partner@dickerdata.com.au',
+      }],
+    }),
   },
 
   // ── SECURITY OPERATIONS ──────────────────────────────────────────────────
@@ -386,6 +828,19 @@ export const VENDORS = {
     best_for: 'SIEM, email security, compliance signals',
     summary: 'Cybersecurity operations and email threat protection.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Dicker Data',
+        contact: 'partner@dickerdata.com.au',
+      }],
+    }),
   },
   proofpoint: {
     id: 'proofpoint', display_name: 'ProofPoint', initials: 'PP',
@@ -396,6 +851,19 @@ export const VENDORS = {
     best_for: 'Email security, phishing protection',
     summary: 'Leading email security and threat intelligence.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Ingram Micro',
+        contact: 'partner@ingrammicro.com.au',
+      }],
+    }),
   },
   blancco: {
     id: 'blancco', display_name: 'Blancco', initials: 'BL',
@@ -406,6 +874,19 @@ export const VENDORS = {
     best_for: 'Data erasure, device lifecycle compliance',
     summary: 'Certified data erasure for compliance and device disposal.',
     referral_url: null,
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Ingram Micro',
+        contact: 'partner@ingrammicro.com.au',
+      }],
+    }),
   },
 
   // ── CYBER INSURANCE ──────────────────────────────────────────────────────
@@ -419,6 +900,15 @@ export const VENDORS = {
     best_for: 'AU-based tech companies — fast quoting, specialist cyber underwriting',
     summary: 'Specialist cyber insurance broker. We make the introduction, they handle everything. Most policies quoted and bound within 2 weeks.',
     referral_url: 'https://meetings.hubspot.com/john3174?embed=true',
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Book intro via Proof360',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [],
+    }),
   },
 
 };

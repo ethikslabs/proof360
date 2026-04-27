@@ -118,7 +118,7 @@ function VendorChip({ vendorId, name, tc }) {
   );
 }
 
-function LeadRow({ lead, tenant, tenantKey, engagement, onEngage, onClick, index }) {
+function LeadRow({ lead, tenant, tenantKey, engagement, onEngage, index }) {
   const [expanded, setExpanded] = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [thread, setThread] = useState([]);
@@ -133,7 +133,7 @@ function LeadRow({ lead, tenant, tenantKey, engagement, onEngage, onClick, index
   const st = STATUSES[status];
 
   useEffect(() => {
-    setThread(JSON.parse(localStorage.getItem(threadKey) || '[]'));
+    setThread(JSON.parse(localStorage.getItem(threadKey) || '[]')); // eslint-disable-line react-hooks/set-state-in-effect
     const onStorage = e => { if (e.key === threadKey) setThread(JSON.parse(e.newValue || '[]')); };
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
@@ -189,7 +189,6 @@ function LeadRow({ lead, tenant, tenantKey, engagement, onEngage, onClick, index
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
             {lead.gaps.map(g => {
               const isMatch = isDistributor || matchedGapTitles.has(g.title);
-              const sc = SEV_COLORS[g.severity] || SEV_COLORS.low;
               return (
                 <span key={g.gap_id} style={{
                   fontSize: 11, padding: '2px 8px', borderRadius: 4,
@@ -352,9 +351,9 @@ export default function PortalDashboard() {
   useEffect(() => {
     const stored = localStorage.getItem('portal_auth');
     if (!stored) { navigate('/portal'); return; }
-    setAuth(JSON.parse(stored));
+    setAuth(JSON.parse(stored)); // eslint-disable-line react-hooks/set-state-in-effect
     const eng = localStorage.getItem('portal_engagements');
-    if (eng) setEngagements(JSON.parse(eng));
+    if (eng) setEngagements(JSON.parse(eng)); // eslint-disable-line react-hooks/set-state-in-effect
     const interval = setInterval(() => {}, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -436,7 +435,7 @@ export default function PortalDashboard() {
             <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none', opacity: 0.45, flexShrink: 0 }}>
               <Proof360Mark size={16} />
               <span style={{ fontSize: 11, fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em', fontFamily: "'DM Sans', sans-serif" }}>
-                Proof<span style={{ color: '#E07B39' }}>360</span>
+                Proof<span style={{ color: '#5eead4' }}>360</span>
               </span>
             </Link>
             <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.2)', margin: '0 12px' }}>›</span>
@@ -499,6 +498,33 @@ export default function PortalDashboard() {
 
       {/* Light content area */}
       <div style={{ maxWidth: 960, margin: '0 auto', padding: '0 28px' }}>
+
+        {/* HX context block — re-orient partner in <3 seconds */}
+        <div style={{
+          background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 10,
+          padding: '16px 20px', marginTop: 20, marginBottom: 4,
+          display: 'flex', alignItems: 'flex-start', gap: 16,
+        }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: 9, background: `${tc}15`,
+            border: `1px solid ${tc}30`, display: 'flex', alignItems: 'center',
+            justifyContent: 'center', flexShrink: 0, fontSize: 16,
+          }}>◎</div>
+          <div style={{ flex: 1 }}>
+            <p style={{
+              fontSize: 9, fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '0.1em',
+              textTransform: 'uppercase', color: '#9ca3af', marginBottom: 5,
+            }}>HOW THIS WORKS</p>
+            <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.65, marginBottom: allLeads.length > 0 ? 6 : 0 }}>
+              Founders run free security audits on proof360.au. When their gaps match your product catalog, they appear here as a lead — with their trust score, specific gap details, and company context. Engage a lead to reveal their email and start a conversation.
+            </p>
+            {allLeads.length > 0 && (
+              <p style={{ fontSize: 12, color: tc, fontWeight: 600 }}>
+                Right now: {insightText}.
+              </p>
+            )}
+          </div>
+        </div>
 
         {/* Filter tabs — in light area, fully readable */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 20, paddingBottom: 16 }}>

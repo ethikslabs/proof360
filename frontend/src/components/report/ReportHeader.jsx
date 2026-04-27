@@ -1,14 +1,12 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Proof360Mark } from '../Proof360Mark';
 
 export default function ReportHeader({ isDemo, onSaveTrack, canSave }) {
-  const [founderAuth, setFounderAuth] = useState(null);
-
-  useEffect(() => {
+  const [founderAuth] = useState(() => {
     const a = localStorage.getItem('founder_auth');
-    if (a) setFounderAuth(JSON.parse(a));
-  }, []);
+    return a ? JSON.parse(a) : null;
+  });
 
   return (
     <div className="flex items-center justify-between px-8 py-4 border-b border-gray-100">

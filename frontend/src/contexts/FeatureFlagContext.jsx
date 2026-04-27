@@ -9,7 +9,7 @@ import { getFeatures } from '../api/client.js';
  * - layer2_cards: only vendor_route true (pre-existing card)
  * - cold_read: all false (new overnight-v1 features disabled)
  */
-export const SAFE_DEFAULTS = {
+export const SAFE_DEFAULTS = { // eslint-disable-line react-refresh/only-export-components
   surfaces: {
     founder: true,
     buyer: false,
@@ -55,6 +55,6 @@ export function FeatureFlagProvider({ children }) {
   );
 }
 
-export function useFeatureFlags() {
+export function useFeatureFlags() { // eslint-disable-line react-refresh/only-export-components
   return useContext(FeatureFlagContext);
 }

@@ -30,6 +30,7 @@ export async function runReconPipeline(websiteUrl, companyName, options = {}) {
     hibpKey          = process.env.HIBP_API_KEY       || null,
     abuseIpdbKey     = process.env.ABUSEIPDB_API_KEY  || null,
     onSourceComplete = null,
+    session_id       = null,
   } = options;
   const domain = extractDomain(websiteUrl);
 
@@ -38,21 +39,21 @@ export async function runReconPipeline(websiteUrl, companyName, options = {}) {
   // Jobs has two branches (firecrawl present or skipped); both resolve through
   // safe() then the shared .then() below — no special handling needed.
   const jobsPromise = firecrawl
-    ? reconJobs(domain, firecrawl)
+    ? reconJobs(domain, firecrawl, session_id)
     : Promise.resolve({ source: 'jobs', skipped: true, reason: 'no firecrawl' });
 
   const [dns, http, certs, ip, github, jobs, hibp, ports, ssllabs, abuseipdb] =
     await Promise.allSettled([
-      safe('dns',       reconDns(websiteUrl)).then(r      => { onSourceComplete?.('dns',       formatReconLine('dns',       r)); return r; }),
-      safe('http',      reconHttp(websiteUrl)).then(r     => { onSourceComplete?.('http',      formatReconLine('http',      r)); return r; }),
-      safe('certs',     reconCerts(domain)).then(r        => { onSourceComplete?.('certs',     formatReconLine('certs',     r)); return r; }),
-      safe('ip',        reconIp(domain)).then(r           => { onSourceComplete?.('ip',        formatReconLine('ip',        r)); return r; }),
-      safe('github',    reconGithub(domain, companyName)).then(r => { onSourceComplete?.('github',   formatReconLine('github',   r)); return r; }),
+      safe('dns',       reconDns(websiteUrl, session_id)).then(r      => { onSourceComplete?.('dns',       formatReconLine('dns',       r)); return r; }),
+      safe('http',      reconHttp(websiteUrl, session_id)).then(r     => { onSourceComplete?.('http',      formatReconLine('http',      r)); return r; }),
+      safe('certs',     reconCerts(domain, session_id)).then(r        => { onSourceComplete?.('certs',     formatReconLine('certs',     r)); return r; }),
+      safe('ip',        reconIp(domain, session_id)).then(r           => { onSourceComplete?.('ip',        formatReconLine('ip',        r)); return r; }),
+      safe('github',    reconGithub(domain, companyName, session_id)).then(r => { onSourceComplete?.('github',   formatReconLine('github',   r)); return r; }),
       safe('jobs',      jobsPromise).then(r               => { onSourceComplete?.('jobs',      formatReconLine('jobs',      r)); return r; }),
-      safe('hibp',      reconHibp(domain, hibpKey)).then(r       => { onSourceComplete?.('hibp',      formatReconLine('hibp',      r)); return r; }),
-      safe('ports',     reconPorts(domain)).then(r        => { onSourceComplete?.('ports',     formatReconLine('ports',     r)); return r; }),
-      safe('ssllabs',   reconSslLabs(websiteUrl)).then(r  => { onSourceComplete?.('ssllabs',  formatReconLine('ssllabs',  r)); return r; }),
-      safe('abuseipdb', reconAbuseIpdb(domain, abuseIpdbKey)).then(r => { onSourceComplete?.('abuseipdb', formatReconLine('abuseipdb', r)); return r; }),
+      safe('hibp',      reconHibp(domain, hibpKey, session_id)).then(r       => { onSourceComplete?.('hibp',      formatReconLine('hibp',      r)); return r; }),
+      safe('ports',     reconPorts(domain, session_id)).then(r        => { onSourceComplete?.('ports',     formatReconLine('ports',     r)); return r; }),
+      safe('ssllabs',   reconSslLabs(websiteUrl, session_id)).then(r  => { onSourceComplete?.('ssllabs',  formatReconLine('ssllabs',  r)); return r; }),
+      safe('abuseipdb', reconAbuseIpdb(domain, abuseIpdbKey, session_id)).then(r => { onSourceComplete?.('abuseipdb', formatReconLine('abuseipdb', r)); return r; }),
     ]);
 
   const pipeline = {

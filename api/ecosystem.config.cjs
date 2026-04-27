@@ -2,6 +2,7 @@ module.exports = {
   apps: [{
     name: 'proof360',
     script: 'src/server.js',
+    exec_mode: 'fork',
     instances: 1,
     autorestart: true,
     max_memory_restart: '256M',

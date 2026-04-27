@@ -4,11 +4,13 @@
 // Full scan takes 60–90s — this module is designed to run in parallel
 // with other recon sources so the latency is absorbed.
 
+import { record as recordConsumption } from './consumption-emitter.js';
+
 const API_BASE = 'https://api.ssllabs.com/api/v3';
 const POLL_INTERVAL_MS = 8000;
 const MAX_WAIT_MS = 120_000;
 
-export async function reconSslLabs(websiteUrl) {
+export async function reconSslLabs(websiteUrl, session_id) {
   const domain = extractDomain(websiteUrl);
   if (!domain) return { source: 'ssllabs', skipped: true, reason: 'invalid domain' };
 
@@ -26,11 +28,14 @@ export async function reconSslLabs(websiteUrl) {
     }
 
     if (result.status !== 'READY') {
+      recordConsumption({ session_id, source: 'ssllabs', units: 1, unit_type: 'api_calls', success: false, error: `scan did not complete (${result.status})` });
       return { source: 'ssllabs', skipped: true, reason: `scan did not complete (${result.status})` };
     }
 
+    recordConsumption({ session_id, source: 'ssllabs', units: 1, unit_type: 'api_calls', success: true, error: null });
     return parseResult(domain, result);
   } catch (err) {
+    recordConsumption({ session_id, source: 'ssllabs', units: 1, unit_type: 'api_calls', success: false, error: err.message });
     return { source: 'ssllabs', skipped: true, reason: err.message };
   }
 }

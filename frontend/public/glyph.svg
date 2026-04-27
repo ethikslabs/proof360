@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 100 100" fill="none">
+<style>
+  @keyframes orbit-1 { from{transform:rotate(0deg)   translateX(38px) rotate(0deg)}   to{transform:rotate(360deg)  translateX(38px) rotate(-360deg)} }
+  @keyframes orbit-2 { from{transform:rotate(120deg) translateX(38px) rotate(-120deg)} to{transform:rotate(480deg)  translateX(38px) rotate(-480deg)} }
+  @keyframes orbit-3 { from{transform:rotate(240deg) translateX(38px) rotate(-240deg)} to{transform:rotate(600deg)  translateX(38px) rotate(-600deg)} }
+  .o1 { transform-origin:50px 50px; animation:orbit-1 10s linear infinite; }
+  .o2 { transform-origin:50px 50px; animation:orbit-2 10s linear infinite; }
+  .o3 { transform-origin:50px 50px; animation:orbit-3 10s linear infinite; }
+</style>
+<defs>
+  <radialGradient id="pg2" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#5eead4"/>
+    <stop offset="100%" stop-color="#0d9488" stop-opacity="0.4"/>
+  </radialGradient>
+</defs>
+<!-- orbit dots -->
+<g class="o1"><circle cx="0" cy="0" r="3.5" fill="#5eead4" opacity="0.9" transform="translate(50,50)"/></g>
+<g class="o2"><circle cx="0" cy="0" r="3.5" fill="#5eead4" opacity="0.9" transform="translate(50,50)"/></g>
+<g class="o3"><circle cx="0" cy="0" r="3.5" fill="#5eead4" opacity="0.9" transform="translate(50,50)"/></g>
+<!-- compass body -->
+<circle cx="50" cy="50" r="18" fill="url(#pg2)" opacity="0.3"/>
+<circle cx="50" cy="50" r="18" fill="none" stroke="#5eead4" stroke-width="0.8" stroke-opacity="0.4"/>
+<!-- spinning needle -->
+<g><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="5s" repeatCount="indefinite"/>
+  <path d="M50,32 L53,50 L50,46 L47,50 Z" fill="#5eead4"/>
+  <path d="M50,68 L53,50 L50,54 L47,50 Z" fill="#5eead4" opacity="0.3"/>
+</g>
+<!-- E/W nubs -->
+<circle cx="68" cy="50" r="2.5" fill="#5eead4" opacity="0.3"/>
+<circle cx="32" cy="50" r="2.5" fill="#5eead4" opacity="0.3"/>
+<!-- centre dot -->
+<circle cx="50" cy="50" r="3" fill="#5eead4"/>
+<!-- tick marks -->
+<line x1="50" y1="34" x2="50" y2="37" stroke="#5eead4" stroke-width="1" stroke-opacity="0.5"/>
+<line x1="50" y1="63" x2="50" y2="66" stroke="#5eead4" stroke-width="1" stroke-opacity="0.5"/>
+<line x1="34" y1="50" x2="37" y2="50" stroke="#5eead4" stroke-width="1" stroke-opacity="0.5"/>
+<line x1="63" y1="50" x2="66" y2="50" stroke="#5eead4" stroke-width="1" stroke-opacity="0.5"/>
+</svg>

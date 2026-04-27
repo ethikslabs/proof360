@@ -8,7 +8,7 @@ const RIBBON_CONFIG = {
  * Maps a confidence level to its display text.
  * Returns null for "high" or unknown levels.
  */
-export function confidenceLevelToText(level) {
+export function confidenceLevelToText(level) { // eslint-disable-line react-refresh/only-export-components
   if (!level || level === 'high') return null;
   return RIBBON_CONFIG[level]?.text ?? null;
 }

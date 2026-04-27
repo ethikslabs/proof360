@@ -110,7 +110,26 @@
       "Bash(python3 -m json.tool)",
       "Bash(python3 -c ':*)",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d.get\\(''''StatusDetails'''',''''''''\\)\\); print\\(d.get\\(''''StandardOutputContent'''',''''''''\\)[-1000:]\\); print\\(d.get\\(''''StandardErrorContent'''',''''''''\\)\\)\")",
-      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d.get\\(''''StandardOutputContent'''',''''''''\\)\\)\")"
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d.get\\(''''StandardOutputContent'''',''''''''\\)\\)\")",
+      "Bash(bash *)",
+      "Bash(sed -n '436,440p' /Users/johncoates/Library/CloudStorage/Dropbox/Projects/proof360/frontend/src/pages/AuditColdRead.jsx)",
+      "Bash(sed -n '352,356p' /Users/johncoates/Library/CloudStorage/Dropbox/Projects/proof360/frontend/src/pages/PortalDashboard.jsx)",
+      "Bash(sed -n '82,86p' /Users/johncoates/Library/CloudStorage/Dropbox/Projects/proof360/frontend/src/pages/PortalLeadDetail.jsx)",
+      "Bash(docker info *)",
+      "Bash(docker run *)",
+      "Bash(psql --version)",
+      "Read(//Applications/Docker.app/**)",
+      "Bash(open /Applications/Docker.app)",
+      "Bash(docker exec *)",
+      "Bash(echo \"API PID: $!\")",
+      "Bash(npm run *)",
+      "Bash(echo \"Frontend PID: $!\")",
+      "Bash(PGPASSWORD=localdev psql *)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d, indent=2\\)\\)\")",
+      "Bash(echo \"PID: $!\")",
+      "Bash(python3 -c ' *)",
+      "Bash(pkill -f \"node --env-file=.env.*server.js\")",
+      "Bash(python3 *)"
     ]
   }
 }

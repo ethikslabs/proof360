@@ -1,8 +1,35 @@
 import { getSession, updateSession } from '../services/session-store.js';
 import { appendFileSync } from 'fs';
 import { emitPulse } from '../services/pulse-emitter.js';
+import { query } from '../db/pool.js';
+import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const ses = new SESClient({ region: process.env.SES_REGION || 'ap-southeast-2' });
+const SES_FROM = process.env.SES_FROM_ADDRESS || 'noreply@proof360.au';
+const REPORT_BASE_URL = process.env.REPORT_BASE_URL || 'https://proof360.au';
+
+/**
+ * Send Layer 2 report URL via SES. Fire-and-forget — failures logged, not thrown.
+ */
+async function sendReportEmail(email, sessionId) {
+  const reportUrl = `${REPORT_BASE_URL}/report/${sessionId}`;
+  try {
+    await ses.send(new SendEmailCommand({
+      Source: SES_FROM,
+      Destination: { ToAddresses: [email] },
+      Message: {
+        Subject: { Data: 'Your Proof360 Report' },
+        Body: {
+          Text: { Data: reportUrl },
+        },
+      },
+    }));
+  } catch (err) {
+    console.error(JSON.stringify({ event: 'ses_send_failed', session_id: sessionId, error: err.message }));
+  }
+}
 
 export async function captureEmailHandler(request, reply) {
   const { id } = request.params;
@@ -30,7 +57,7 @@ export async function captureEmailHandler(request, reply) {
     payload: { action: 'lead_captured', session_id: id },
   });
 
-  // Log lead to file (MVP — no email sending)
+  // Log lead to file (NDJSON write retained as safety net)
   const lead = {
     session_id: id,
     email,
@@ -44,6 +71,17 @@ export async function captureEmailHandler(request, reply) {
     // Non-fatal — log but don't fail the request
     console.error(JSON.stringify({ event: 'lead_log_failed', session_id: id, error: err.message }));
   }
+
+  // Parallel Postgres write — fire-and-forget, don't block the response
+  query(
+    'INSERT INTO leads (session_id, email, source) VALUES ($1, $2, $3)',
+    [id, email, request.body.source || null]
+  ).catch(err => {
+    console.error(JSON.stringify({ event: 'lead_pg_write_failed', session_id: id, error: err.message }));
+  });
+
+  // Send report email via SES — fire-and-forget
+  sendReportEmail(email, id);
 
   return reply.send({ success: true });
 }

@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { startSession } from '../api/client';
-import { Proof360Mark } from '../components/Proof360Mark';
 
 export default function Audit() {
   const [url, setUrl] = useState('');
@@ -54,6 +53,7 @@ export default function Audit() {
 
   const NAVY  = '#0B2545';
   const AMBER = '#E07B39';
+  const TEAL  = '#5eead4';
   const WHITE = '#FFFFFF';
   const MUTED = '#667085';
   const BORDER = '#E4E7EC';
@@ -71,7 +71,7 @@ export default function Audit() {
         .audit-input { transition: border-color 0.2s; }
         .audit-input:focus { border-color: #0B2545 !important; }
         .submit-btn { transition: background 0.2s, transform 0.15s; }
-        .submit-btn:hover:not(:disabled) { background: #C96D2E !important; transform: translateY(-1px); }
+        .submit-btn:hover:not(:disabled) { background: #2dd4bf !important; transform: translateY(-1px); }
         .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
       `}</style>
 
@@ -82,9 +82,9 @@ export default function Audit() {
         borderBottom: `1px solid ${BORDER}`, background: WHITE,
       }}>
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 9 }}>
-          <Proof360Mark size={28} />
+          <img src="/glyph.svg" width={28} height={28} alt="" />
           <span style={{ fontFamily: '"Outfit", sans-serif', fontSize: 17, fontWeight: 700, color: NAVY, letterSpacing: '-0.01em' }}>
-            Proof<span style={{ color: AMBER }}>360</span>
+            Proof<span style={{ color: TEAL }}>360</span>
           </span>
         </Link>
         <Link to="/report/demo" style={{ fontSize: 13, color: MUTED, textDecoration: 'none' }}>
@@ -169,8 +169,8 @@ export default function Audit() {
               className="submit-btn"
               style={{
                 width: '100%', padding: '14px',
-                background: loading ? NAVY : AMBER,
-                color: WHITE, fontSize: 15, fontWeight: 600,
+                background: loading ? NAVY : TEAL,
+                color: loading ? WHITE : NAVY, fontSize: 15, fontWeight: 600,
                 border: 'none', borderRadius: 8, cursor: 'pointer',
                 fontFamily: '"Outfit", sans-serif', letterSpacing: '0.01em',
                 marginTop: 4,

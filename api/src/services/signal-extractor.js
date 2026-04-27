@@ -1,7 +1,7 @@
 import FirecrawlApp from '@mendable/firecrawl-js';
-import OpenAI from 'openai';
 import { ENTERPRISE_SIGNALS_SCHEMA } from '../config/gaps.js';
 import { runReconPipeline } from './recon-pipeline.js';
+import { record as recordConsumption } from './consumption-emitter.js';
 
 const PAGES_TO_CHECK = [
   { path: '/', label: 'homepage' },
@@ -20,7 +20,7 @@ function normalizeUrl(url) {
   return parsed.origin;
 }
 
-async function scrapePages(firecrawl, baseUrl, log) {
+async function scrapePages(firecrawl, baseUrl, log, session_id) {
   const tasks = PAGES_TO_CHECK.map(async ({ path, label }) => {
     try {
       const result = await firecrawl.scrapeUrl(baseUrl + path, {
@@ -29,13 +29,22 @@ async function scrapePages(firecrawl, baseUrl, log) {
       });
       if (result.success && result.markdown) {
         log({ text: `  ✓  ${label} · read`, type: 'ok' });
+        if (session_id) {
+          recordConsumption({ session_id, source: 'firecrawl', units: 1, unit_type: 'credits', success: true });
+        }
         return { label, content: result.markdown.slice(0, 3000) };
       } else {
         log({ text: `  ↳  ${label} · no content returned`, type: 'muted' });
+        if (session_id) {
+          recordConsumption({ session_id, source: 'firecrawl', units: 1, unit_type: 'credits', success: false, error: 'no content returned' });
+        }
       }
     } catch (err) {
       const reason = err?.message?.includes('timeout') ? 'timeout' : (err?.message || 'failed');
       log({ text: `  ✗  ${label} · ${reason}`, type: 'err' });
+      if (session_id) {
+        recordConsumption({ session_id, source: 'firecrawl', units: 1, unit_type: 'credits', success: false, error: reason });
+      }
     }
     return null;
   });
@@ -46,8 +55,9 @@ async function scrapePages(firecrawl, baseUrl, log) {
     .map((r) => r.value);
 }
 
-async function extractWithClaude(pages, log = () => {}) {
-  const client = new OpenAI({ baseURL: process.env.AI_GATEWAY_URL || 'http://localhost:3003/v1', apiKey: 'gateway' });
+async function extractWithClaude(pages, log = () => {}, session_id = null) {
+  const gatewayUrl = process.env.AI_GATEWAY_URL || 'http://localhost:3003/v1';
+  const correlationId = session_id || 'proof360';
 
   const content = pages.map((p) => `### ${p.label}\n${p.content}`).join('\n\n');
 
@@ -74,16 +84,40 @@ Respond with ONLY valid JSON matching this exact schema (no markdown, no explana
     "soc2_mentioned": boolean,
     "pricing_enterprise_tier": boolean
   },
-  "confidence": "confident" | "likely" | "probable"
+  "confidence": "confident" | "likely" | "probable",
+  "company_summary": "2-3 sentence market read: what they build, who they sell to, and where they operate. Be specific — name the sector, geography, and buyer type. Plain English, no jargon."
 }`;
 
   let response;
   try {
-    response = await client.chat.completions.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
-      messages: [{ role: 'user', content: prompt }],
+    const res = await fetch(`${gatewayUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Correlation-ID': correlationId,
+        'X-Tenant-ID': 'proof360',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: prompt }],
+        tenant_id: 'proof360',
+        session_id: session_id || null,
+        correlation_id: session_id || null,
+        sovereignty_override: true,
+        sovereignty_justification: 'proof360 signal extraction — structured JSON classification requiring Claude instruction-following fidelity',
+      }),
     });
+
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      const err = new Error(`Claude API error: HTTP ${res.status}`);
+      err.status = res.status;
+      err._body = body.slice(0, 200);
+      throw err;
+    }
+
+    response = await res.json();
   } catch (err) {
     log({ text: `  ✗  Claude API error: ${err.message}`, type: 'err' });
     if (err.status) log({ text: `  ↳  HTTP ${err.status}`, type: 'err' });
@@ -166,7 +200,7 @@ const SIGNAL_READABLE = {
   insurance_status:  (v) => `Insurance: ${v}`,
 };
 
-export async function extractSignals({ website_url, deck_file }, log = () => {}) {
+export async function extractSignals({ website_url, deck_file, session_id }, log = () => {}) {
   // No Firecrawl key — fall back to simulation (gateway handles AI credentials)
   if (!process.env.FIRECRAWL_API_KEY) {
     await new Promise((r) => setTimeout(r, 2000));
@@ -196,12 +230,13 @@ export async function extractSignals({ website_url, deck_file }, log = () => {})
 
     // Run scraping + recon in parallel
     const [pages, recon_context] = await Promise.all([
-      scrapePages(firecrawl, baseUrl, log),
+      scrapePages(firecrawl, baseUrl, log, session_id),
       Promise.race([
         runReconPipeline(website_url, null, {
           firecrawl,
           abuseIpdbKey: process.env.ABUSEIPDB_API_KEY || null,
           onSourceComplete: (source, line) => log(line),
+          session_id,
         }),
         new Promise((resolve) => setTimeout(() => {
           log({ text: '  ✗  Recon timed out after 20s — continuing without it', type: 'err' });
@@ -230,7 +265,7 @@ export async function extractSignals({ website_url, deck_file }, log = () => {})
     log({ text: '  ↳  Sending to Claude Haiku for analysis', type: 'muted' });
 
     const sources_read = pages.map((p) => p.label);
-    const extracted = await extractWithClaude(pages, log);
+    const extracted = await extractWithClaude(pages, log, session_id);
     const signals = mapToSignals(extracted);
 
     for (const signal of signals) {
@@ -254,7 +289,8 @@ export async function extractSignals({ website_url, deck_file }, log = () => {})
       return { ...fallbackSignals(website_url, deck_file), recon_context };
     }
 
-    return { signals, sources_read, enterprise_signals, competitor_mentions, recon_context };
+    const company_summary = extracted.company_summary || null;
+    return { signals, sources_read, enterprise_signals, competitor_mentions, recon_context, company_summary };
   } catch (err) {
     console.error('[signal-extractor] pipeline error:', err.message, err.stack);
     // Only emit to terminal if not already emitted by the specific handler above

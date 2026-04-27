@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Proof360Mark } from '../components/Proof360Mark';
 
-const AUTH0_DOMAIN    = import.meta.env.VITE_AUTH0_DOMAIN    || 'dev-nfpt3dibp2qzchiq.au.auth0.com';
+const AUTH0_DOMAIN    = import.meta.env.VITE_AUTH0_DOMAIN    || '';
 const AUTH0_CLIENT_ID = import.meta.env.VITE_AUTH0_CLIENT_ID || 'bh2RJb3CO25HFF6rqOVzd9uk2WUKiCGM';
 const REDIRECT_URI = typeof window !== 'undefined' ? `${window.location.origin}/portal/callback` : '';
 
@@ -79,7 +79,7 @@ export default function FounderAuth() {
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
           <Proof360Mark size={28} />
           <span style={{ fontSize: 17, fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em' }}>
-            Proof<span style={{ color: '#E07B39' }}>360</span>
+            Proof<span style={{ color: '#5eead4' }}>360</span>
           </span>
         </Link>
 
@@ -99,7 +99,7 @@ export default function FounderAuth() {
               { icon: '◉', label: 'Remediation pipeline tracker' },
             ].map(item => (
               <div key={item.label} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                <span style={{ fontSize: 14, color: '#E07B39', marginTop: 1, flexShrink: 0 }}>{item.icon}</span>
+                <span style={{ fontSize: 14, color: '#5eead4', marginTop: 1, flexShrink: 0 }}>{item.icon}</span>
                 <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', lineHeight: 1.5 }}>{item.label}</span>
               </div>
             ))}

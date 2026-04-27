@@ -18,12 +18,13 @@ Do not include any other text.`;
 
 // Evaluate a trust claim via NIM.
 // Returns { consensus: { mos, variance, agreement }, traceId } — same shape as Trust360.
-export async function nimEvaluateClaim({ question, evidence, metadata }) {
+export async function nimEvaluateClaim({ question, evidence, metadata, session_id }) {
   const raw = await nimComplete({
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: _buildPrompt(question, evidence) },
     ],
+    session_id,
   });
 
   return _parseResponse(raw, metadata);
@@ -43,11 +44,20 @@ export async function isNIMAvailable() {
 }
 
 // Raw chat completions — routed through gateway
-export async function nimComplete({ messages, temperature = 0.1 }) {
+// All VECTOR calls carry { tenant_id, session_id, correlation_id } per v3 contract.
+export async function nimComplete({ messages, temperature = 0.1, session_id }) {
+  const correlationId = session_id || 'proof360';
   const res = await fetch(`${GATEWAY_URL}/chat/completions`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: NIM_MODEL, messages, temperature }),
+    headers: { 'Content-Type': 'application/json', 'X-Correlation-ID': correlationId },
+    body: JSON.stringify({
+      model: NIM_MODEL,
+      messages,
+      temperature,
+      tenant_id: 'proof360',
+      session_id: session_id || null,
+      correlation_id: session_id || null,
+    }),
     signal: AbortSignal.timeout(TIMEOUT_MS),
   });
 

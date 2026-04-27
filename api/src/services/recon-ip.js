@@ -3,20 +3,23 @@
 // 1000 req/day free, no key required.
 
 import dns from 'dns/promises';
+import { record as recordConsumption } from './consumption-emitter.js';
 
 const IPAPI_URL = 'https://ipapi.co/{IP}/json/';
 const TIMEOUT_MS = 6000;
 
-export async function reconIp(domain) {
+export async function reconIp(domain, session_id) {
   // Resolve to IPv4
   let addresses;
   try {
     addresses = await dns.resolve4(domain);
   } catch {
+    recordConsumption({ session_id, source: 'ip', units: 1, unit_type: 'api_calls', success: false, error: 'dns_resolution_failed' });
     return { source: 'ip', error: 'dns_resolution_failed' };
   }
 
   if (!addresses || addresses.length === 0) {
+    recordConsumption({ session_id, source: 'ip', units: 1, unit_type: 'api_calls', success: false, error: 'no_a_record' });
     return { source: 'ip', error: 'no_a_record' };
   }
 
@@ -26,6 +29,7 @@ export async function reconIp(domain) {
   const isCfProxy = isCloudflareIp(ip);
 
   let enrichment = null;
+  let enrichmentSuccess = true;
   try {
     const res = await fetch(IPAPI_URL.replace('{IP}', ip), {
       headers: { 'User-Agent': 'proof360-recon/1.0' },
@@ -34,10 +38,15 @@ export async function reconIp(domain) {
     if (res.ok) {
       const data = await res.json();
       if (!data.error) enrichment = data;
+    } else {
+      enrichmentSuccess = false;
     }
   } catch {
+    enrichmentSuccess = false;
     // enrichment unavailable — continue with just IP
   }
+
+  recordConsumption({ session_id, source: 'ip', units: 1, unit_type: 'api_calls', success: enrichmentSuccess, error: enrichmentSuccess ? null : 'enrichment_failed' });
 
   const org  = enrichment?.org  || '';
   const asn  = enrichment?.asn  || '';

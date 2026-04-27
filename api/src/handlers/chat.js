@@ -1,12 +1,7 @@
 // api/src/handlers/chat.js
-import OpenAI from 'openai';
 import { buildSystemPrompt } from '../services/persona-prompts.js';
 
-const client = new OpenAI({
-  baseURL: process.env.AI_GATEWAY_URL || 'http://localhost:3003/v1',
-  apiKey: 'gateway',
-});
-
+const GATEWAY_URL = process.env.AI_GATEWAY_URL || 'http://localhost:3003/v1';
 const VALID_PERSONAS = ['sophia', 'leonardo', 'edison'];
 
 export async function chatHandler(request, reply) {
@@ -34,33 +29,75 @@ export async function chatHandler(request, reply) {
   }
 
   const systemPrompt = buildSystemPrompt(persona, context);
+  const sessionId = context?.session_id || null;
+  const correlationId = sessionId || 'proof360';
 
   // Delay writeHead until first token — so API failures before streaming begins
   // can still return a clean JSON 500 rather than a broken chunked response.
   let headersWritten = false;
 
   try {
-    const stream = await client.chat.completions.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 300,
-      messages: [{ role: 'system', content: systemPrompt }, ...apiMessages],
-      stream: true,
+    const res = await fetch(`${GATEWAY_URL}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Correlation-ID': correlationId,
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 300,
+        messages: [{ role: 'system', content: systemPrompt }, ...apiMessages],
+        stream: true,
+        tenant_id: 'proof360',
+        session_id: sessionId,
+        correlation_id: sessionId,
+      }),
     });
 
-    for await (const chunk of stream) {
-      const delta = chunk.choices[0]?.delta?.content;
-      if (delta) {
-        if (!headersWritten) {
-          reply.raw.writeHead(200, {
-            'Content-Type': 'text/plain; charset=utf-8',
-            'Transfer-Encoding': 'chunked',
-            'Cache-Control': 'no-cache',
-            'X-Accel-Buffering': 'no',
-            'Access-Control-Allow-Origin': '*',
-          });
-          headersWritten = true;
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      request.log.error({ status: res.status, body: body.slice(0, 200) }, 'VECTOR gateway error');
+      return reply.status(500).send({ error: 'chat_failed' });
+    }
+
+    // Parse SSE stream from fetch response
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      // Keep the last partial line in the buffer
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const payload = line.slice(6).trim();
+        if (payload === '[DONE]') continue;
+
+        try {
+          const chunk = JSON.parse(payload);
+          const delta = chunk.choices?.[0]?.delta?.content;
+          if (delta) {
+            if (!headersWritten) {
+              reply.raw.writeHead(200, {
+                'Content-Type': 'text/plain; charset=utf-8',
+                'Transfer-Encoding': 'chunked',
+                'Cache-Control': 'no-cache',
+                'X-Accel-Buffering': 'no',
+                'Access-Control-Allow-Origin': '*',
+              });
+              headersWritten = true;
+            }
+            reply.raw.write(delta);
+          }
+        } catch {
+          // skip malformed SSE chunks
         }
-        reply.raw.write(delta);
       }
     }
 

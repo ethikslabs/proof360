@@ -3,6 +3,8 @@
 // The question being answered: "Is this company investing in security?
 // Are they actively closing compliance gaps? What stack are they on?"
 
+import { record as recordConsumption } from './consumption-emitter.js';
+
 const CAREER_PATHS = [
   '/careers', '/jobs', '/join', '/work-with-us',
   '/about/careers', '/company/jobs', '/company/careers',
@@ -41,7 +43,7 @@ const LEADERSHIP_SIGNALS = [
   'chief security', 'chief technology', 'cto',
 ];
 
-export async function reconJobs(domain, firecrawl) {
+export async function reconJobs(domain, firecrawl, session_id) {
   if (!firecrawl) return { source: 'jobs', skipped: true, reason: 'no_firecrawl' };
 
   let content = null;
@@ -63,6 +65,8 @@ export async function reconJobs(domain, firecrawl) {
       // path not found or timed out — try next
     }
   }
+
+  recordConsumption({ session_id, source: 'jobs', units: 1, unit_type: 'api_calls', success: !!content, error: content ? null : 'no_careers_page' });
 
   if (!content) return { source: 'jobs', found: false };
 

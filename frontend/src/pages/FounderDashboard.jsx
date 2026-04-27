@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import PersonaChat from '../components/PersonaChat';
-import { Proof360Mark } from '../components/Proof360Mark';
-
 const VENDOR_LOGOS = {
   vanta:       { src: '/logos/vanta-partner.svg', style: { height: 22, width: 22, borderRadius: '50%' } },
   aws:         { src: '/logos/aws-partner.png',   style: { height: 22, width: 'auto' } },
@@ -25,11 +23,46 @@ const STAGE_MAP = Object.fromEntries(PIPELINE_STAGES.map(s => [s.key, s]));
 
 const now = Date.now();
 const DEMO_ENGAGEMENTS = [
-  { id: 'demo_e1', lead_id: 'lead_stackfield', tenant_id: 'vanta',       session_id: 'demo', company_name: 'Stackfield', vendor_id: 'vanta',       vendor_name: 'Vanta',               gap_id: 'soc2',              gap_title: 'SOC 2 certification gap',  defaultStatus: 'meeting_booked', engaged_at: new Date(now - 2 * 3600000).toISOString() },
-  { id: 'demo_e2', lead_id: 'lead_stackfield', tenant_id: 'crowdstrike', session_id: 'demo', company_name: 'Stackfield', vendor_id: 'crowdstrike', vendor_name: 'CrowdStrike',          gap_id: 'edr',               gap_title: 'Endpoint protection gap',  defaultStatus: 'contacted',      engaged_at: new Date(now - 5 * 3600000).toISOString() },
-  { id: 'demo_e3', lead_id: 'lead_stackfield', tenant_id: 'cisco',       session_id: 'demo', company_name: 'Stackfield', vendor_id: 'cisco_duo',   vendor_name: 'Cisco Duo',            gap_id: 'mfa',               gap_title: 'MFA not enforced',         defaultStatus: 'new',            engaged_at: new Date(now - 45 * 60000).toISOString() },
-  { id: 'demo_e4', lead_id: 'lead_stackfield', tenant_id: 'cloudflare',  session_id: 'demo', company_name: 'Stackfield', vendor_id: 'cloudflare',  vendor_name: 'Cloudflare',           gap_id: 'network_perimeter', gap_title: 'Network perimeter gap',    defaultStatus: 'in_progress',    engaged_at: new Date(now - 27 * 3600000).toISOString() },
-  { id: 'demo_e5', lead_id: 'lead_stackfield', tenant_id: 'austbrokers', session_id: 'demo', company_name: 'Stackfield', vendor_id: 'austbrokers', vendor_name: 'Austbrokers CyberPro', gap_id: 'cyber_insurance',   gap_title: 'No cyber insurance',       defaultStatus: 'sold',           engaged_at: new Date(now - 3 * 86400000).toISOString() },
+  {
+    id: 'demo_e1', lead_id: 'lead_stackfield', tenant_id: 'vanta', session_id: 'demo',
+    company_name: 'Stackfield', vendor_id: 'vanta', vendor_name: 'Vanta',
+    gap_id: 'soc2', gap_title: 'SOC 2 certification gap',
+    gap_why: 'Your public signals show no SOC 2 report referenced anywhere. Enterprise buyers — especially in financial services and SaaS — require this before contracts above $50k. Without it, deals stall at legal review.',
+    vendor_why: 'Vanta automates evidence collection and maps your existing controls to SOC 2 requirements. Median time to Type I is 8 weeks. Their platform stays live after the audit, so you stay compliant as you grow.',
+    defaultStatus: 'meeting_booked', engaged_at: new Date(now - 2 * 3600000).toISOString(),
+  },
+  {
+    id: 'demo_e2', lead_id: 'lead_stackfield', tenant_id: 'crowdstrike', session_id: 'demo',
+    company_name: 'Stackfield', vendor_id: 'crowdstrike', vendor_name: 'CrowdStrike',
+    gap_id: 'edr', gap_title: 'No endpoint detection & response',
+    gap_why: 'We found no endpoint protection signals in your public tech stack — no job listings for endpoint security, no security-tooling references in public repos. Regulated buyers run vendor risk assessments that check for EDR coverage.',
+    vendor_why: 'CrowdStrike Falcon is the enterprise-standard EDR. It deploys in under an hour and shows up on vendor risk questionnaires as a recognisable signal. Insurance providers also discount premiums when you can show EDR coverage.',
+    defaultStatus: 'contacted', engaged_at: new Date(now - 5 * 3600000).toISOString(),
+  },
+  {
+    id: 'demo_e3', lead_id: 'lead_stackfield', tenant_id: 'cisco', session_id: 'demo',
+    company_name: 'Stackfield', vendor_id: 'cisco_duo', vendor_name: 'Cisco Duo',
+    gap_id: 'mfa', gap_title: 'MFA not enforced',
+    gap_why: 'Your DNS and HTTP signals indicate no MFA enforcement on your public-facing login. This is now a baseline requirement for cyber insurance and a pass/fail question on most enterprise vendor risk forms.',
+    vendor_why: 'Cisco Duo is the most widely-accepted MFA solution in enterprise vendor questionnaires. Rolling it out across your team takes less than a day and immediately closes this gap on your next audit.',
+    defaultStatus: 'new', engaged_at: new Date(now - 45 * 60000).toISOString(),
+  },
+  {
+    id: 'demo_e4', lead_id: 'lead_stackfield', tenant_id: 'cloudflare', session_id: 'demo',
+    company_name: 'Stackfield', vendor_id: 'cloudflare', vendor_name: 'Cloudflare',
+    gap_id: 'network_perimeter', gap_title: 'Network perimeter exposure',
+    gap_why: 'Port scans found services exposed directly to the internet that should be behind a gateway or WAF. This is a common finding that enterprise security teams flag as a blocker during procurement.',
+    vendor_why: 'Cloudflare Zero Trust puts a proxy in front of your exposed services in minutes — no code changes, no downtime. Their free tier covers the basics; enterprise adds DLP and device posture.',
+    defaultStatus: 'in_progress', engaged_at: new Date(now - 27 * 3600000).toISOString(),
+  },
+  {
+    id: 'demo_e5', lead_id: 'lead_stackfield', tenant_id: 'austbrokers', session_id: 'demo',
+    company_name: 'Stackfield', vendor_id: 'austbrokers', vendor_name: 'Austbrokers CyberPro',
+    gap_id: 'cyber_insurance', gap_title: 'No cyber insurance',
+    gap_why: 'No cyber insurance policy was detected. Large enterprise buyers increasingly require proof of coverage before signing — and breaches happen regardless of how strong your controls are. Insurance is the backstop.',
+    vendor_why: 'Austbrokers CyberPro specialise in tech company cyber insurance and understand startup balance sheets. They can bind a policy in 48 hours and provide the certificate of currency that buyers ask for.',
+    defaultStatus: 'sold', engaged_at: new Date(now - 3 * 86400000).toISOString(),
+  },
 ];
 
 function timeAgo(iso) {
@@ -122,14 +155,15 @@ export default function FounderDashboard() {
   const [openThread, setOpenThread]   = useState(null);
   const [threads, setThreads]         = useState({});
   const [drafts, setDrafts]           = useState({});
+  const [openDetail, setOpenDetail]   = useState(new Set());
 
   useEffect(() => {
     const stored = localStorage.getItem('founder_auth');
     if (!stored) { navigate('/account/login'); return; }
-    setAuth(JSON.parse(stored));
+    setAuth(JSON.parse(stored)); // eslint-disable-line react-hooks/set-state-in-effect
 
     const savedReports = JSON.parse(localStorage.getItem('founder_reports') || '[]');
-    setReports(savedReports);
+    setReports(savedReports); // eslint-disable-line react-hooks/set-state-in-effect
 
     const raw = JSON.parse(localStorage.getItem('proof360_engagements') || '[]');
     if (raw.length === 0) {
@@ -229,21 +263,32 @@ export default function FounderDashboard() {
       <nav style={{ background: '#0A1628', borderBottom: '1px solid rgba(255,255,255,0.08)', position: 'sticky', top: 0, zIndex: 100 }}>
         <div style={{ maxWidth: 860, margin: '0 auto', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 54 }}>
           <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Proof360Mark size={22} />
+            <img src="/glyph.svg" width={22} height={22} alt="" />
             <span style={{ fontSize: 15, fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em' }}>
-              Proof<span style={{ color: '#E07B39' }}>360</span>
+              Proof<span style={{ color: '#5eead4' }}>360</span>
             </span>
           </Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', fontFamily: "'IBM Plex Mono', monospace" }}>
-              {auth.user?.email}
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+                background: '#5eead4', color: '#0A1628',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 12, fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace",
+              }}>
+                {(auth.user?.email || 'U')[0].toUpperCase()}
+              </div>
+              <div>
+                <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.08em', fontFamily: "'IBM Plex Mono', monospace", marginBottom: 1 }}>FOUNDER ACCOUNT</p>
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)', fontFamily: "'IBM Plex Mono', monospace" }}>{auth.user?.email}</p>
+              </div>
+            </div>
             <button onClick={logout} style={{
-              fontSize: 12, color: 'rgba(255,255,255,0.5)', background: 'none', border: 'none',
+              fontSize: 12, color: 'rgba(255,255,255,0.4)', background: 'none', border: 'none',
               cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'color 0.15s',
             }}
               onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.8)'}
-              onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}
             >Sign out</button>
           </div>
         </div>
@@ -253,12 +298,46 @@ export default function FounderDashboard() {
 
         {/* Header */}
         <div className="fade-in" style={{ marginBottom: 28 }}>
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: '#111827', letterSpacing: '-0.025em', marginBottom: 5 }}>
-            {firstName ? `Welcome back, ${firstName}` : 'Your account'}
-          </h1>
-          <p style={{ fontSize: 14, color: '#6b7280', lineHeight: 1.6 }}>
-            Your trust remediation pipeline — all vendor engagements in one place.
-          </p>
+
+          {/* HX context block — answers: what is this / why am I here / what do I do */}
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '20px 22px', marginBottom: 16 }}>
+            {/* What is Proof360 — always first, always visible */}
+            <p style={{ fontSize: 9, fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '0.12em', textTransform: 'uppercase', color: '#9ca3af', marginBottom: 7 }}>
+              PROOF360 — TRUST READINESS PLATFORM
+            </p>
+            <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', lineHeight: 1.55, marginBottom: 6, letterSpacing: '-0.01em' }}>
+              Proof360 scans your company's public signals and scores your security posture — the same checks enterprise partners run before they say yes to a deal.
+            </p>
+            <p style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.6, marginBottom: mostRecentReport ? 16 : 12 }}>
+              When gaps are found, Proof360 matches you directly with the vendors who close them. This page is your remediation pipeline — track every conversation in one place.
+            </p>
+
+            {mostRecentReport ? (
+              <>
+                <div style={{ height: 1, background: '#f1f5f9', margin: '0 -2px 16px' }} />
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+                  <div style={{
+                    background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8,
+                    padding: '10px 14px', flex: 1,
+                  }}>
+                    <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', color: '#15803d', fontFamily: "'IBM Plex Mono', monospace", marginBottom: 5, textTransform: 'uppercase' }}>
+                      Your last scan · {(mostRecentReport.company_name || '').toUpperCase()} · Score {mostRecentReport.trust_score}/100 · {timeAgo(mostRecentReport.saved_at)}
+                    </p>
+                    <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 8 }}>
+                      Found <strong>{mostRecentReport.gaps_count} {mostRecentReport.gaps_count === 1 ? 'gap' : 'gaps'}</strong>. Every vendor in the list below was matched to close one — that's the only reason they're here.
+                    </p>
+                    <Link to={`/report/${mostRecentReport.sessionId}`} style={{ fontSize: 12, color: '#15803d', fontWeight: 700, textDecoration: 'none', borderBottom: '1px solid #86efac', paddingBottom: 1 }}>
+                      View full report →
+                    </Link>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <Link to="/audit" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#5eead4', fontWeight: 700, textDecoration: 'none', borderBottom: '1px solid #5eead4', paddingBottom: 1 }}>
+                Run your first scan — takes 90 seconds →
+              </Link>
+            )}
+          </div>
           {isDemo && (
             <div style={{
               marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 10,
@@ -268,7 +347,7 @@ export default function FounderDashboard() {
               <span style={{ fontSize: 11, color: '#92400e' }}>
                 Demo data — book meetings from a report to populate your real pipeline
               </span>
-              <Link to="/report/demo" style={{ fontSize: 11, color: '#E07B39', fontWeight: 700, textDecoration: 'none' }}>
+              <Link to="/report/demo" style={{ fontSize: 11, color: '#5eead4', fontWeight: 700, textDecoration: 'none' }}>
                 View demo →
               </Link>
             </div>
@@ -302,7 +381,7 @@ export default function FounderDashboard() {
         {/* Engagements */}
         <div className="fade-in" style={{ animationDelay: '0.1s' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#E07B39', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#5eead4', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
               {activeStage === 'all' ? 'All engagements' : STAGE_MAP[activeStage]?.label} · {filtered.length}
             </p>
             <Link to="/audit" style={{ fontSize: 13, color: '#0A1628', textDecoration: 'none', fontWeight: 600 }}>
@@ -317,7 +396,7 @@ export default function FounderDashboard() {
             }}>
               <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 10 }}>No engagements in this stage</p>
               <button onClick={() => setActiveStage('all')} style={{
-                fontSize: 13, color: '#E07B39', background: 'none', border: 'none',
+                fontSize: 13, color: '#5eead4', background: 'none', border: 'none',
                 cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontWeight: 600,
               }}>Show all →</button>
             </div>
@@ -334,7 +413,10 @@ export default function FounderDashboard() {
                     onMouseEnter={e => e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.07)'}
                     onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
                   >
-                    <div style={{ padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 14 }}>
+                    <div
+                      onClick={() => setOpenDetail(prev => { const next = new Set(prev); if (next.has(engKey)) next.delete(engKey); else next.add(engKey); return next; })}
+                      style={{ padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer' }}
+                    >
                       <VendorAvatar vendorId={eng.vendor_id} name={eng.vendor_name} size={40} />
 
                       <div style={{ flex: 1, minWidth: 0 }}>
@@ -342,15 +424,18 @@ export default function FounderDashboard() {
                           <span style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{eng.vendor_name}</span>
                           <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, color: stage.color, background: stage.bg, border: `1px solid ${stage.border}`, letterSpacing: '0.03em' }}>{stage.label}</span>
                         </div>
-                        <p style={{ fontSize: 12, color: '#6b7280' }}>{eng.gap_title || 'Trust gap remediation'}</p>
+                        <p style={{ fontSize: 12, color: '#6b7280', marginBottom: 2 }}>{eng.gap_title || 'Trust gap remediation'}</p>
+                        <p style={{ fontSize: 10, color: '#9ca3af', fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '0.02em' }}>
+                          {openDetail.has(engKey) ? '▲ hide context' : '▼ why this vendor'}
+                        </p>
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                      <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                         <button
                           onClick={() => setOpenThread(isThreadOpen ? null : engKey)}
                           style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', background: isThreadOpen ? '#0A1628' : '#f3f4f6', border: '1px solid', borderColor: isThreadOpen ? '#0A1628' : '#e5e7eb', borderRadius: 6, fontSize: 11, fontWeight: 600, color: isThreadOpen ? '#fff' : '#6b7280', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}
                         >
-                          {unread > 0 && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#E07B39', flexShrink: 0 }} />}
+                          {unread > 0 && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#5eead4', flexShrink: 0 }} />}
                           {engThread.length > 0 ? `${engThread.length} msg` : 'Message'}
                         </button>
                         <select value={eng.status} onChange={e => updateStatus(eng.id, e.target.value)} style={{ fontSize: 12, color: '#374151', background: '#f9fafb', border: '1px solid #d1d5db', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
@@ -359,6 +444,24 @@ export default function FounderDashboard() {
                         <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: "'IBM Plex Mono', monospace", whiteSpace: 'nowrap' }}>{timeAgo(eng.engaged_at)}</span>
                       </div>
                     </div>
+
+                    {/* Why this vendor — context panel */}
+                    {openDetail.has(engKey) && eng.gap_why && (
+                      <div style={{ borderTop: '1px solid #f0f0f0', padding: '16px 18px 20px', background: '#f9fafb' }}>
+                        <div style={{ marginBottom: 14 }}>
+                          <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '2px', color: '#9ca3af', fontFamily: "'IBM Plex Mono', monospace", marginBottom: 7, textTransform: 'uppercase' }}>
+                            Why this gap matters
+                          </p>
+                          <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.7 }}>{eng.gap_why}</p>
+                        </div>
+                        <div style={{ paddingTop: 14, borderTop: '1px solid #e5e7eb' }}>
+                          <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '2px', color: '#9ca3af', fontFamily: "'IBM Plex Mono', monospace", marginBottom: 7, textTransform: 'uppercase' }}>
+                            Why {eng.vendor_name}
+                          </p>
+                          <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.7 }}>{eng.vendor_why}</p>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Thread panel */}
                     {isThreadOpen && (
@@ -400,7 +503,7 @@ export default function FounderDashboard() {
         {/* Saved reports */}
         {reports.length > 0 && (
           <div className="fade-in" style={{ marginTop: 36, animationDelay: '0.15s' }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#E07B39', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#5eead4', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>
               Saved reports
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

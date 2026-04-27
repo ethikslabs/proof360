@@ -4,7 +4,7 @@ import { TENANTS } from '../data/portal-leads';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 const MS_CLIENT_ID    = import.meta.env.VITE_MS_CLIENT_ID || '';
-const AUTH0_DOMAIN    = import.meta.env.VITE_AUTH0_DOMAIN    || 'dev-nfpt3dibp2qzchiq.au.auth0.com';
+const AUTH0_DOMAIN    = import.meta.env.VITE_AUTH0_DOMAIN    || '';
 const AUTH0_CLIENT_ID = import.meta.env.VITE_AUTH0_CLIENT_ID || 'bh2RJb3CO25HFF6rqOVzd9uk2WUKiCGM';
 const REDIRECT_URI = typeof window !== 'undefined' ? `${window.location.origin}/portal/callback` : '';
 
@@ -149,7 +149,7 @@ export default function Portal() {
   }
 
   async function loginWithAuth0(intent = 'portal') {
-    if (!AUTH0_DOMAIN) { setShowDemo(true); return; }
+    if (!AUTH0_DOMAIN) { setRedirecting(null); return; }
     sessionStorage.setItem('auth0_intent', intent);
     const { verifier, challenge } = await generatePKCE();
     sessionStorage.setItem('auth0_pkce_verifier', verifier);
@@ -169,11 +169,10 @@ export default function Portal() {
       const intent = sessionStorage.getItem('auth0_intent') || 'portal';
       sessionStorage.removeItem('auth0_intent');
 
-      if (intent === 'founder') {
-        localStorage.setItem('founder_auth', JSON.stringify({
-          user: { name: data.name, email, picture: data.picture || null },
-        }));
-        // Persist any pending report saved before login
+      const tenantKey = tenantFromEmail(email);
+
+      // Merge any pending founder report regardless of routing outcome
+      function mergePendingReport() {
         const pending = sessionStorage.getItem('pending_founder_report');
         if (pending) {
           sessionStorage.removeItem('pending_founder_report');
@@ -183,11 +182,30 @@ export default function Portal() {
             [...existing.filter(r => r.sessionId !== parsed.sessionId), parsed]
           ));
         }
+      }
+
+      // 'auto' = came from "Save & track" — detect by domain
+      if (intent === 'auto') {
+        if (tenantKey) {
+          localStorage.setItem('portal_auth', JSON.stringify({ user: { name: data.name, email, avatar: null }, tenant: tenantKey }));
+          navigate('/portal/dashboard');
+        } else {
+          localStorage.setItem('founder_auth', JSON.stringify({ user: { name: data.name, email, picture: data.picture || null } }));
+          mergePendingReport();
+          navigate('/account');
+        }
+        return;
+      }
+
+      if (intent === 'founder') {
+        localStorage.setItem('founder_auth', JSON.stringify({
+          user: { name: data.name, email, picture: data.picture || null },
+        }));
+        mergePendingReport();
         navigate('/account');
         return;
       }
 
-      const tenantKey = tenantFromEmail(email);
       if (!tenantKey) {
         alert(`No partner account registered for ${email}. Contact your Proof360 partner manager.`);
         return;
@@ -262,8 +280,8 @@ export default function Portal() {
             {redirecting === 'microsoft' ? 'Redirecting…' : 'Sign in with Microsoft'}
           </button>
 
-          <button className="auth-btn" disabled={!!redirecting} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, padding: '10px 16px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: 500, cursor: 'pointer', opacity: redirecting && redirecting !== 'auth0' ? 0.35 : 1, transition: 'all 0.15s', fontFamily: "'DM Sans', sans-serif" }}
-            onClick={() => { setRedirecting('auth0'); loginWithAuth0(); }}>
+          <button className="auth-btn" disabled={!!redirecting || !AUTH0_DOMAIN} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, padding: '10px 16px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: 500, cursor: AUTH0_DOMAIN ? 'pointer' : 'default', opacity: (!AUTH0_DOMAIN || (redirecting && redirecting !== 'auth0')) ? 0.35 : 1, transition: 'all 0.15s', fontFamily: "'DM Sans', sans-serif" }}
+            onClick={() => { if (!AUTH0_DOMAIN) return; setRedirecting('auth0'); loginWithAuth0(); }}>
             {redirecting === 'auth0' ? <span style={{ ...spin, borderTopColor: '#00d9b8' }}/> : <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#00297a"/><circle cx="12" cy="12" r="4.5" fill="white"/></svg>}
             {redirecting === 'auth0' ? 'Redirecting…' : 'Sign in with Auth0'}
           </button>

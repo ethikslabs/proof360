@@ -3,6 +3,7 @@ import { createSession, getSession, deleteSession, updateSession, appendLog, _ge
 import { extractSignals } from '../services/signal-extractor.js';
 import { buildInferences } from '../services/inference-builder.js';
 import { extractReconContext } from '../services/recon-pipeline.js';
+import { query } from '../db/pool.js';
 
 // --- Module-level state ---
 
@@ -108,7 +109,7 @@ async function triggerColdRead(url, sessionId) {
   try {
     const log = (line) => appendLog(sessionId, line);
     const { signals, sources_read, enterprise_signals, competitor_mentions, recon_context } =
-      await extractSignals({ website_url: url }, log);
+      await extractSignals({ website_url: url, session_id: sessionId }, log);
 
     const reconFlat = extractReconContext(recon_context);
     const inferenceResult = buildInferences(signals, sources_read, url, reconFlat);
@@ -214,25 +215,47 @@ export async function adminPrereadStatusHandler(request, reply) {
     return reply.status(404).send({ error: 'batch_not_found' });
   }
 
-  const reads = batch.reads.map(r => {
-    const session = getSession(r.session_id);
+  const reads = await Promise.all(batch.reads.map(async (r) => {
+    // Read from Postgres as canonical source
+    let pgSession = null;
+    try {
+      const pgRes = await query('SELECT id, status, url, created_at FROM sessions WHERE id = $1', [r.session_id]);
+      if (pgRes.rows.length > 0) {
+        pgSession = pgRes.rows[0];
+      }
+    } catch (err) {
+      console.error(JSON.stringify({
+        event: 'pg_read_error', handler: 'admin-preread-status',
+        session_id: r.session_id, error: err.message,
+      }));
+    }
+
+    // In-memory session carries pipeline state (infer_status) not yet in Postgres
+    const memSession = getSession(r.session_id);
 
     let status = 'running';
     let shareableUrl = null;
     let confidence = null;
 
-    if (session) {
-      if (session.infer_status === 'complete') {
+    if (memSession) {
+      // Active pipeline — use in-memory for infer_status
+      if (memSession.infer_status === 'complete') {
         status = 'complete';
         shareableUrl = `/audit/cold-read?session=${r.session_id}&url=${encodeURIComponent(r.url)}`;
-      } else if (session.infer_status === 'failed') {
+      } else if (memSession.infer_status === 'failed') {
         status = 'failed';
       } else {
         status = 'running';
       }
-      confidence = session.confidence || null;
+      confidence = memSession.confidence || null;
+    } else if (pgSession) {
+      // Session expired from in-memory but exists in Postgres
+      // Postgres session with no in-memory pipeline state — treat as complete
+      // (if it was persisted, the pipeline finished)
+      status = 'complete';
+      shareableUrl = `/audit/cold-read?session=${r.session_id}&url=${encodeURIComponent(r.url)}`;
     } else {
-      // Session expired or deleted
+      // Neither in-memory nor Postgres — session lost
       status = 'failed';
     }
 
@@ -243,7 +266,7 @@ export async function adminPrereadStatusHandler(request, reply) {
       shareable_url: shareableUrl,
       confidence,
     };
-  });
+  }));
 
   return reply.send({ batch_id, reads });
 }

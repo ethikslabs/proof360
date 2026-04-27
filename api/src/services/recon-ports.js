@@ -3,6 +3,7 @@
 // when exposed: admin interfaces, unencrypted services, dev servers.
 
 import net from 'net';
+import { record as recordConsumption } from './consumption-emitter.js';
 
 // Ports that should never be publicly reachable on a production host.
 // Grouped by risk category for reporting.
@@ -44,7 +45,7 @@ function probePort(host, port) {
   });
 }
 
-export async function reconPorts(domain) {
+export async function reconPorts(domain, session_id) {
   // Probe all ports in parallel
   const results = await Promise.all(
     PROBE_PORTS.map(async ({ port, label, risk, note }) => {
@@ -52,6 +53,8 @@ export async function reconPorts(domain) {
       return open ? { port, label, risk, note } : null;
     })
   );
+
+  recordConsumption({ session_id, source: 'ports', units: 1, unit_type: 'api_calls', success: true, error: null });
 
   const open_ports = results.filter(Boolean);
   const risky = open_ports.filter(p => p.risk !== 'none' && p.risk !== 'low');

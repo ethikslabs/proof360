@@ -4,14 +4,18 @@
 
 import https from 'https';
 import { URL } from 'url';
+import { record as recordConsumption } from './consumption-emitter.js';
 
 const TIMEOUT_MS = 8000;
 const MAX_BODY_BYTES = 32768; // 32KB — enough for tech fingerprinting
 
-export async function reconHttp(websiteUrl) {
+export async function reconHttp(websiteUrl, session_id) {
   const base = websiteUrl.startsWith('http') ? websiteUrl : `https://${websiteUrl}`;
   const parsed = new URL(base);
   const domain = parsed.hostname;
+
+  let success = true;
+  let error = null;
 
   const [mainResult, secTxtResult, robotsResult] = await Promise.allSettled([
     fetchWithCert(`https://${domain}/`),
@@ -22,6 +26,13 @@ export async function reconHttp(websiteUrl) {
   const main   = mainResult.status   === 'fulfilled' ? mainResult.value   : null;
   const secTxt = secTxtResult.status === 'fulfilled' ? secTxtResult.value : null;
   const robots = robotsResult.status === 'fulfilled' ? robotsResult.value : null;
+
+  if (!main) {
+    success = false;
+    error = mainResult.reason?.message || 'main fetch failed';
+  }
+
+  recordConsumption({ session_id, source: 'http', units: 1, unit_type: 'api_calls', success, error });
 
   const headers = main?.headers || {};
 

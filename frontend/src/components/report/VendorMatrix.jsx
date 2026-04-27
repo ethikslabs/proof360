@@ -69,7 +69,7 @@ function PickCard({ pick, vendor }) {
 }
 
 export default function VendorMatrix({ vendorIntelligence }) {
-  const { category_name, quadrant_axes, vendors, pick, disclosure } = vendorIntelligence;
+  const { quadrant_axes, vendors, pick, disclosure } = vendorIntelligence;
   const [selected, setSelected] = useState(null);
 
   const pickVendor = vendors.find((v) => v.vendor_id === pick?.vendor_id);

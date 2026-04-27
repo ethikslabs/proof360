@@ -16,6 +16,12 @@ import { featuresHandler } from './handlers/features.js';
 import { programMatchHandler } from './handlers/program-match.js';
 import { adminPrereadHandler, adminPrereadStatusHandler } from './handlers/admin-preread.js';
 import { healthHandler } from './handlers/health.js';
+import { overrideHandler } from './handlers/override.js';
+import { resolveConflictHandler } from './handlers/resolve-conflict.js';
+import { recomputeHandler } from './handlers/recompute.js';
+import { publishHandler } from './handlers/publish.js';
+import { engageHandler } from './handlers/engage.js';
+import { resumeHandler } from './handlers/resume.js';
 
 const PORT = parseInt(process.env.PORT || '3002', 10);
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
@@ -41,6 +47,22 @@ app.get('/api/v1/session/:id/report', reportHandler);
 // --- Phase 4: Remaining ---
 app.get('/api/v1/session/:id/early-signal', earlySignalHandler);
 app.post('/api/v1/session/:id/capture-email', captureEmailHandler);
+
+// --- Phase 3: Override contract ---
+app.post('/api/v1/session/:id/override', overrideHandler);
+app.post('/api/v1/session/:id/resolve-conflict', resolveConflictHandler);
+
+// --- Phase 4: Recompute kernel ---
+app.post('/api/v1/session/:id/recompute', recomputeHandler);
+
+// --- Phase 5: Tier boundary + VERITAS attestation ---
+app.post('/api/v1/session/:id/publish', publishHandler);
+
+// --- Phase 6: Engagement system ---
+app.post('/api/v1/session/:id/engage', engageHandler);
+
+// --- Resume failed pipeline stage ---
+app.post('/api/v1/session/:id/resume', resumeHandler);
 
 // --- Persona chat ---
 app.post('/api/v1/chat', chatHandler);

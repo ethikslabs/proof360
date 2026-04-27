@@ -2,6 +2,8 @@
 // Passive intelligence: infrastructure breadth, staging/dev exposure,
 // related domains the company owns.
 
+import { record as recordConsumption } from './consumption-emitter.js';
+
 const CRTSH_URL = 'https://crt.sh/?q=%25.{DOMAIN}&output=json';
 const TIMEOUT_MS = 10000;
 
@@ -18,7 +20,7 @@ const SENSITIVE_PREFIXES = new Set([
   'vpn', 'bastion', 'jump',
 ]);
 
-export async function reconCerts(domain) {
+export async function reconCerts(domain, session_id) {
   const url = CRTSH_URL.replace('{DOMAIN}', domain);
   let certs;
 
@@ -27,9 +29,14 @@ export async function reconCerts(domain) {
       headers: { 'User-Agent': 'proof360-recon/1.0', 'Accept': 'application/json' },
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
-    if (!res.ok) return { source: 'certs', error: `crt.sh ${res.status}` };
+    if (!res.ok) {
+      recordConsumption({ session_id, source: 'certs', units: 1, unit_type: 'api_calls', success: false, error: `crt.sh ${res.status}` });
+      return { source: 'certs', error: `crt.sh ${res.status}` };
+    }
     certs = await res.json();
+    recordConsumption({ session_id, source: 'certs', units: 1, unit_type: 'api_calls', success: true, error: null });
   } catch (err) {
+    recordConsumption({ session_id, source: 'certs', units: 1, unit_type: 'api_calls', success: false, error: err.message });
     return { source: 'certs', error: err.message };
   }
 

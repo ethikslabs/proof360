@@ -70,14 +70,40 @@ jobs:
               --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo ""
           }
           PORT=$(get_ssm "/proof360/PORT"); PORT=${PORT:-3002}
+          PG_HOST=$(get_ssm "/proof360/postgres/host")
+          PG_PORT=$(get_ssm "/proof360/postgres/port"); PG_PORT=${PG_PORT:-5432}
+          PG_DATABASE=$(get_ssm "/proof360/postgres/database"); PG_DATABASE=${PG_DATABASE:-proof360}
+          PG_USER=$(get_ssm "/proof360/postgres/user")
+          PG_PASSWORD=$(get_ssm "/proof360/postgres/password")
           cat > $API_DIR/.env << EOF
           PORT=$PORT
           FIRECRAWL_API_KEY=$(get_ssm "/proof360/FIRECRAWL_API_KEY")
           FIRECRAWL_API_URL=$(get_ssm "/proof360/FIRECRAWL_API_URL")
           ANTHROPIC_API_KEY=$(get_ssm "/ethikslabs/anthropic/api-key")
           ABUSEIPDB_API_KEY=$(get_ssm "/proof360/ABUSEIPDB_API_KEY")
+          HIBP_API_KEY=$(get_ssm "/proof360/HIBP_API_KEY")
+          AI_GATEWAY_URL=$(get_ssm "/proof360/AI_GATEWAY_URL")
+          NIM_MODEL=$(get_ssm "/proof360/NIM_MODEL")
+          VERITAS_URL=$(get_ssm "/proof360/VERITAS_URL")
+          VERITAS_API_KEY=$(get_ssm "/proof360/VERITAS_API_KEY")
+          TRUST360_URL=$(get_ssm "/proof360/TRUST360_URL")
+          DASHBOARD_API_URL=$(get_ssm "/proof360/DASHBOARD_API_URL")
+          PROOF360_ADMIN_KEY=$(get_ssm "/proof360/PROOF360_ADMIN_KEY")
+          SES_REGION=$(get_ssm "/proof360/SES_REGION")
+          SES_FROM_ADDRESS=$(get_ssm "/proof360/SES_FROM_ADDRESS")
+          REPORT_BASE_URL=$(get_ssm "/proof360/REPORT_BASE_URL")
+          TELEGRAM_BOT_TOKEN=$(get_ssm "/proof360/TELEGRAM_BOT_TOKEN")
+          TELEGRAM_CHAT_ID=$(get_ssm "/proof360/TELEGRAM_CHAT_ID")
+          PG_HOST=$PG_HOST
+          PG_PORT=$PG_PORT
+          PG_DATABASE=$PG_DATABASE
+          PG_USER=$PG_USER
+          PG_PASSWORD=$PG_PASSWORD
           LOG_LEVEL=info
           EOF
+
+          echo "=== Running database migrations ==="
+          node --env-file=$API_DIR/.env $API_DIR/scripts/run-migrations.js
 
           echo "=== Restarting PM2 ==="
           HOME=/home/ec2-user pm2 startOrRestart $REPO_ROOT/ecosystem.config.cjs --update-env
@@ -88,8 +114,8 @@ jobs:
 
           echo "=== Verifying health ==="
           sleep 3
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$PORT/health 2>/dev/null)
-          [ "$STATUS" = "200" ] && echo "API healthy" || echo "WARNING: /health returned $STATUS"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$PORT/api/health 2>/dev/null)
+          [ "$STATUS" = "200" ] && echo "API healthy" || echo "WARNING: /api/health returned $STATUS"
 
           echo "=== Deploy complete ==="
           DEPLOY
