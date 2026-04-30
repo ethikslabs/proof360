@@ -66,13 +66,22 @@ jobs:
 
           echo "=== Injecting secrets ==="
           get_ssm() {
-            aws ssm get-parameter --region $REGION --name "$1" \
-              --with-decryption --query "Parameter.Value" --output text 2>/dev/null || echo ""
+            local value
+            if ! value=$(aws ssm get-parameter --region $REGION --name "$1" \
+              --with-decryption --query "Parameter.Value" --output text 2>&1); then
+              echo "ERROR: SSM parameter '$1' could not be retrieved: $value" >&2
+              exit 1
+            fi
+            if [ -z "$value" ]; then
+              echo "ERROR: SSM parameter '$1' is empty" >&2
+              exit 1
+            fi
+            echo "$value"
           }
-          PORT=$(get_ssm "/proof360/PORT"); PORT=${PORT:-3002}
+          PORT=$(get_ssm "/proof360/PORT")
           PG_HOST=$(get_ssm "/proof360/postgres/host")
-          PG_PORT=$(get_ssm "/proof360/postgres/port"); PG_PORT=${PG_PORT:-5432}
-          PG_DATABASE=$(get_ssm "/proof360/postgres/database"); PG_DATABASE=${PG_DATABASE:-proof360}
+          PG_PORT=$(get_ssm "/proof360/postgres/port")
+          PG_DATABASE=$(get_ssm "/proof360/postgres/database")
           PG_USER=$(get_ssm "/proof360/postgres/user")
           PG_PASSWORD=$(get_ssm "/proof360/postgres/password")
           cat > $API_DIR/.env << EOF
