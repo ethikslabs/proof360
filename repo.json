@@ -1,0 +1,13 @@
+{
+  "$schema": "../CONTROL/schemas/repo.schema.json",
+  "id": "proof360",
+  "state": "live",
+  "tasks": [
+    {
+      "id": "PROOF360-SCORING-001",
+      "status": "ready",
+      "boundary": "proof360 signal/scoring methodology convergence remains ready when John returns to it",
+      "added": "2026-04-30"
+    }
+  ]
+}
