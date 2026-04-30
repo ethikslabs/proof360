@@ -20,12 +20,21 @@ git pull origin main
 
 echo "==> Loading secrets from SSM"
 get_ssm() {
-  aws ssm get-parameter \
+  local value
+  if ! value=$(aws ssm get-parameter \
     --region ap-southeast-2 \
     --name "$1" \
     --with-decryption \
     --query "Parameter.Value" \
-    --output text 2>/dev/null || echo ""
+    --output text 2>&1); then
+    echo "ERROR: SSM parameter '$1' could not be retrieved: $value" >&2
+    exit 1
+  fi
+  if [ -z "$value" ]; then
+    echo "ERROR: SSM parameter '$1' is empty" >&2
+    exit 1
+  fi
+  echo "$value"
 }
 
 FIRECRAWL_API_KEY=$(get_ssm "$SSM_PREFIX/FIRECRAWL_API_KEY")
@@ -33,7 +42,6 @@ FIRECRAWL_API_URL=$(get_ssm "$SSM_PREFIX/FIRECRAWL_API_URL")
 ANTHROPIC_API_KEY=$(get_ssm "/ethikslabs/anthropic/api-key")
 ABUSEIPDB_API_KEY=$(get_ssm "$SSM_PREFIX/ABUSEIPDB_API_KEY")
 PORT=$(get_ssm "$SSM_PREFIX/PORT")
-PORT=${PORT:-3002}
 
 PG_HOST=$(get_ssm "$SSM_PREFIX/postgres/host")
 PG_PORT=$(get_ssm "$SSM_PREFIX/postgres/port")
