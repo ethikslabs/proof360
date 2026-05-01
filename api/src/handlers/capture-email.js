@@ -46,7 +46,7 @@ export async function captureEmailHandler(request, reply) {
   updateSession(id, {
     email,
     layer2_locked: false,
-    signals: session.signals ? { ...session.signals, email_captured: true } : null,
+    ...(session.signals ? { signals: { ...session.signals, email_captured: true } } : {}),
   });
 
   emitPulse({

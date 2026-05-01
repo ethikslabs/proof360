@@ -95,7 +95,7 @@ export function programMatchHandler(request, reply) {
     return reply.status(404).send({ error: 'session_not_found' });
   }
 
-  const signalsObj = session.signals || session.signals_object;
+  const signalsObj = session.signals;
   if (!signalsObj) {
     return reply.status(202).send({ status: 'assessment_incomplete', message: 'Assessment still running' });
   }

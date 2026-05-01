@@ -44,9 +44,6 @@ export function createSession({ website_url, deck_file, source = 'user' }) {
     // Report
     layer2_locked: true,
 
-    // Signals object (non-negotiable — brief-strategy.md)
-    signals_object: null,
-
     // Email gate
     email: null,
 
