@@ -30,7 +30,7 @@ export async function runGapAnalysis(context, { session_id } = {}) {
         score_impact: SEVERITY_WEIGHTS[gap.severity],
         confidence: mosToConfidence(claimResults[gap.id]?.mos),
         evidence: [{ source: gapEvidenceSource(gap), citation: gapEvidenceCitation(gap) }],
-        time_estimate: '',
+        time_estimate: gap.time_estimate || '',
         framework_impact: generateFrameworkImpact(gap.id, context),
         remediation: generateRemediation(gap, context),
       };
