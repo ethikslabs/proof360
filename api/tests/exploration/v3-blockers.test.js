@@ -1,11 +1,10 @@
-// Bug Condition Exploration Tests — v3 Session Lifecycle Structural Blockers
+// Regression Tests — v3 Session Lifecycle Structural Blockers
 // **Validates: Requirements 1.1, 1.4, 1.6, 1.7**
 //
 // These tests encode the EXPECTED (correct) behavior.
-// They MUST FAIL on unfixed code — failure confirms the bugs exist.
-// DO NOT fix the code or tests when they fail.
+// They preserve previously fixed v3 blocker behavior.
 
-import { describe, it } from 'node:test';
+import { describe, it, vi } from 'vitest';
 import assert from 'node:assert/strict';
 import { recompute } from '../../src/services/recompute.js';
 import { evaluateClaims } from '../../src/services/trust-client.js';
@@ -48,7 +47,7 @@ const TIER1_FORBIDDEN_GAP_KEYS = [
 
 // ── Tests ────────────────────────────────────────────────────────────────────
 
-describe('Bug Condition Exploration: v3 Structural Blockers', () => {
+describe('Regression: v3 Structural Blockers', () => {
 
   // Test 1: Tier 1 Field Leak
   // Blocker 1.6 — recompute leaks severity, framework_impact, remediation,
@@ -108,12 +107,9 @@ describe('Bug Condition Exploration: v3 Structural Blockers', () => {
   // Blocker 1.4 — trust-client.js returns { confirmed: true, mos: 8, fallback: true }
   // when all paths fail. Expected: should return { confirmed: false }.
   it('Test 3: trust-client returns { confirmed: false } when all paths fail (no fallback-confirm-all)', async () => {
-    // Override environment to ensure NIM is unavailable
-    const origNvidiaKey = process.env.NVIDIA_API_KEY;
-    const origTrust360Url = process.env.TRUST360_URL;
-    delete process.env.NVIDIA_API_KEY;
-    // Point Trust360 at a non-existent server to force failure
-    process.env.TRUST360_URL = 'http://127.0.0.1:1';
+    vi.useFakeTimers();
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('fetch failed')));
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     try {
       const claims = [
@@ -124,7 +120,9 @@ describe('Bug Condition Exploration: v3 Structural Blockers', () => {
         },
       ];
 
-      const results = await evaluateClaims(claims, 'test-session');
+      const resultsPromise = evaluateClaims(claims, 'test-session');
+      await vi.runAllTimersAsync();
+      const results = await resultsPromise;
       const result = results['test_gap_1'];
 
       assert.ok(result, 'should have a result for test_gap_1');
@@ -140,11 +138,9 @@ describe('Bug Condition Exploration: v3 Structural Blockers', () => {
         `Result should not have fallback: true. Got: ${JSON.stringify(result)}`
       );
     } finally {
-      // Restore environment
-      if (origNvidiaKey !== undefined) process.env.NVIDIA_API_KEY = origNvidiaKey;
-      else delete process.env.NVIDIA_API_KEY;
-      if (origTrust360Url !== undefined) process.env.TRUST360_URL = origTrust360Url;
-      else delete process.env.TRUST360_URL;
+      warnSpy.mockRestore();
+      vi.useRealTimers();
+      vi.unstubAllGlobals();
     }
   });
 

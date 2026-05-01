@@ -382,8 +382,14 @@ export function recompute({ signals, recon_outputs, session, gaps_config, vendor
     current_actor: s.current_actor || null,
   }));
 
-  // Full gap shape — founders see everything immediately (no gate)
   const tier1Gaps = gaps.map((g) => ({
+    id: g.id,
+    description: g.description,
+    confidence: g.confidence,
+    evidence_summary: g.evidence_summary,
+  }));
+
+  const tier2Gaps = gaps.map((g) => ({
     id: g.id,
     title: g.description,
     description: g.description,
@@ -428,9 +434,14 @@ export function recompute({ signals, recon_outputs, session, gaps_config, vendor
     vendor_count: vendor_recommendations.length,
   };
 
+  if (session.status !== 'tier2_published') {
+    return { derived_state: tier1 };
+  }
+
   return {
     derived_state: {
       ...tier1,
+      gaps: tier2Gaps,
       trust_score,
       vendor_recommendations,
       aws_programs: aws_programs_matched,

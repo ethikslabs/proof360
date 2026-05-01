@@ -4,7 +4,7 @@
 // These tests MUST PASS on unfixed code to establish the baseline.
 // They capture behavior that must NOT change during remediation.
 
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { recompute } from '../../src/services/recompute.js';
 import { AWS_PROGRAMS } from '../../src/config/aws-programs.js';
@@ -132,7 +132,8 @@ describe('Preservation Property 2: Unchanged Behaviors for Non-Remediation Paths
     // Tier 1 fields should also be present
     assert.ok(Array.isArray(ds.gaps), 'Tier 2 should also contain gaps');
     assert.ok(ds.density && typeof ds.density === 'object', 'Tier 2 should also contain density');
-    assert.ok(Array.isArray(ds.directional_hints), 'Tier 2 should also contain directional_hints');
+    assert.ok(ds.directional_hints && typeof ds.directional_hints === 'object', 'Tier 2 should also contain directional_hints');
+    assert.ok(Array.isArray(ds.directional_hints.items), 'Tier 2 directional_hints should contain an items array');
     assert.ok(ds.session_id, 'Tier 2 should contain session_id');
   });
 });
