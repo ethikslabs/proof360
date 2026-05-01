@@ -5,15 +5,11 @@ import { sessionStartHandler } from './handlers/session-start.js';
 import { inferStatusHandler } from './handlers/infer-status.js';
 import { inferencesHandler } from './handlers/inferences.js';
 import { followupQuestionsHandler } from './handlers/followup-questions.js';
-import { submitHandler } from './handlers/submit.js';
-import { statusHandler } from './handlers/status.js';
-import { reportHandler } from './handlers/report.js';
 import { captureEmailHandler } from './handlers/capture-email.js';
 import { earlySignalHandler } from './handlers/early-signal.js';
 import { chatHandler } from './handlers/chat.js';
 import { sessionLogHandler } from './handlers/session-log.js';
 import { featuresHandler } from './handlers/features.js';
-import { programMatchHandler } from './handlers/program-match.js';
 import { adminPrereadHandler, adminPrereadStatusHandler } from './handlers/admin-preread.js';
 import { healthHandler } from './handlers/health.js';
 import { overrideHandler } from './handlers/override.js';
@@ -21,7 +17,6 @@ import { resolveConflictHandler } from './handlers/resolve-conflict.js';
 import { recomputeHandler } from './handlers/recompute.js';
 import { publishHandler } from './handlers/publish.js';
 import { engageHandler } from './handlers/engage.js';
-import { resumeHandler } from './handlers/resume.js';
 import { telegramWebhookHandler } from './handlers/telegram-webhook.js';
 import { johnMessagesHandler } from './handlers/john-messages.js';
 
@@ -38,15 +33,10 @@ app.get('/api/v1/session/:id/log', sessionLogHandler);
 app.get('/api/v1/session/:id/infer-status', inferStatusHandler);
 app.get('/api/v1/session/:id/inferences', inferencesHandler);
 
-// --- Phase 2: Follow-up and submission ---
+// --- Phase 2: Follow-up ---
 app.get('/api/v1/session/:id/followup-questions', followupQuestionsHandler);
-app.post('/api/v1/session/:id/submit', submitHandler);
-app.get('/api/v1/session/:id/status', statusHandler);
 
-// --- Phase 3: Report ---
-app.get('/api/v1/session/:id/report', reportHandler);
-
-// --- Phase 4: Remaining ---
+// --- Phase 3: Override and recompute ---
 app.get('/api/v1/session/:id/early-signal', earlySignalHandler);
 app.post('/api/v1/session/:id/capture-email', captureEmailHandler);
 
@@ -63,9 +53,6 @@ app.post('/api/v1/session/:id/publish', publishHandler);
 // --- Phase 6: Engagement system ---
 app.post('/api/v1/session/:id/engage', engageHandler);
 
-// --- Resume failed pipeline stage ---
-app.post('/api/v1/session/:id/resume', resumeHandler);
-
 // --- Persona chat ---
 app.post('/api/v1/chat', chatHandler);
 
@@ -79,7 +66,6 @@ app.get('/api/health', healthHandler);
 
 // --- overnight-v1 routes ---
 app.get('/api/features', featuresHandler);
-app.get('/api/program-match/:session_id', programMatchHandler);
 app.post('/api/admin/preread', adminPrereadHandler);
 app.get('/api/admin/preread/:batch_id', adminPrereadStatusHandler);
 
