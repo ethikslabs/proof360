@@ -9,8 +9,8 @@ function isExpired(session) {
   return Date.now() - session.created_at > TTL_MS;
 }
 
-export function createSession({ website_url, deck_file, source = 'user' }) {
-  const id = uuidv4();
+export function createSession({ id: providedId, website_url, deck_file, source = 'user' }) {
+  const id = providedId || uuidv4();
   const session = {
     id,
     website_url: website_url || null,

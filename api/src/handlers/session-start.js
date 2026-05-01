@@ -3,6 +3,9 @@ import { extractSignals } from '../services/signal-extractor.js';
 import { buildInferences } from '../services/inference-builder.js';
 import { emitPulse } from '../services/pulse-emitter.js';
 import { extractReconContext } from '../services/recon-pipeline.js';
+import { query } from '../db/pool.js';
+
+const RECON_SOURCES = ['dns', 'http', 'certs', 'ip', 'github', 'jobs', 'hibp', 'ports', 'ssllabs', 'abuseipdb'];
 
 export async function sessionStartHandler(request, reply) {
   const { website_url, deck_file, source } = request.body || {};
@@ -14,7 +17,15 @@ export async function sessionStartHandler(request, reply) {
     });
   }
 
-  const session = createSession({ website_url, deck_file, source: source || 'user' });
+  // Create session in Postgres — canonical UUID source
+  const pgRes = await query(
+    `INSERT INTO sessions (url, status) VALUES ($1, 'active') RETURNING id`,
+    [website_url || null]
+  );
+  const sessionId = pgRes.rows[0].id;
+
+  // Mirror into in-memory store with the Postgres UUID (pipeline state adapters read from here)
+  const session = createSession({ id: sessionId, website_url, deck_file, source: source || 'user' });
 
   emitPulse({
     type: 'event',
@@ -23,7 +34,6 @@ export async function sessionStartHandler(request, reply) {
     payload: { action: 'assessment_started', session_id: session.id, website_url: session.website_url },
   });
 
-  // Fire async signal extraction pipeline — don't block the response
   extractAndInfer(session.id, { website_url, deck_file, session_id: session.id }, (line) => appendLog(session.id, line));
 
   return reply.status(201).send({ session_id: session.id });
@@ -53,6 +63,11 @@ async function extractAndInfer(sessionId, { website_url, deck_file, session_id }
       recon_context: recon_context || null,
       company_summary: company_summary || null,
     });
+
+    // Persist signals and recon to Postgres — non-blocking, failures don't affect in-memory pipeline
+    persistExtractionResults(sessionId, { signals, recon_context }).catch((err) => {
+      console.error(JSON.stringify({ event: 'pg_persist_failed', session_id: sessionId, error: err.message }));
+    });
   } catch (err) {
     console.error(JSON.stringify({
       event: 'extraction_failed', session_id: sessionId, error: err.message,
@@ -66,5 +81,32 @@ async function extractAndInfer(sessionId, { website_url, deck_file, session_id }
     log({ text: `  ✗  Extraction failed: ${err.message}`, type: 'err' });
     log({ type: '__done__' });
     updateSession(sessionId, { infer_status: 'failed' });
+  }
+}
+
+async function persistExtractionResults(sessionId, { signals, recon_context }) {
+  const now = new Date().toISOString();
+
+  for (const signal of signals) {
+    await query(
+      `INSERT INTO signals (session_id, field, inferred_value, inferred_source, inferred_at, status)
+       VALUES ($1, $2, $3, $4, $5, 'inferred')
+       ON CONFLICT (session_id, field) DO NOTHING`,
+      [sessionId, signal.type, String(signal.value), 'extractor', now]
+    );
+  }
+
+  if (recon_context) {
+    for (const source of RECON_SOURCES) {
+      const payload = recon_context[source];
+      if (payload && !payload.error) {
+        await query(
+          `INSERT INTO recon_outputs (session_id, source, payload, fetched_at, ttl_seconds)
+           VALUES ($1, $2, $3, now(), 3600)
+           ON CONFLICT (session_id, source) DO NOTHING`,
+          [sessionId, source, JSON.stringify(payload)]
+        );
+      }
+    }
   }
 }
