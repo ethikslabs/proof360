@@ -1,6 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { useFeatureFlags } from '../contexts/FeatureFlagContext';
 
 /* ─── VECTOR design tokens ─────────────────────────────────────────────────── */
 const BG     = '#0a0d14';
@@ -19,11 +18,6 @@ export default function Home() {
   });
   const [url, setUrl] = useState('');
   const navigate = useNavigate();
-  const features = useFeatureFlags();
-
-  const hasExtraPersonas = features?.surfaces
-    ? Object.entries(features.surfaces).some(([k, v]) => k !== 'founder' && k !== 'admin' && v === true)
-    : false;
 
   /* Scroll reveal — mirrors VECTOR's IntersectionObserver pattern */
   useEffect(() => {

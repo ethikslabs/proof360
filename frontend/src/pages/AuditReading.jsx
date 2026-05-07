@@ -79,10 +79,6 @@ const SOURCE_DETAIL = {
   abuseipdb: { why: 'Checks whether your IP address has been reported for malicious activity. A flagged IP can block email deliverability and fail automated threat intelligence screens.', provider: 'AbuseIPDB API' },
 };
 
-function reconTag(source) {
-  return `[${source}]`.padEnd(12);
-}
-
 const INITIAL_RECON = SOURCES.map(source => ({
   source,
   text: SOURCE_DESC[source] || source,

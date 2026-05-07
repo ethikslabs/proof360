@@ -248,7 +248,6 @@ export default function FounderDashboard() {
     acc[s.key] = engagements.filter(e => e.status === s.key).length;
     return acc;
   }, {});
-  const firstName = auth.user?.name?.split(' ')[0] || null;
 
   return (
     <div style={{ minHeight: '100vh', background: '#f3f4f6', fontFamily: "'DM Sans', sans-serif", paddingBottom: 70 }}>
