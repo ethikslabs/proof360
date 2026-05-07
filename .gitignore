@@ -15,3 +15,7 @@ frontend/dist/
 # Lead data — never commit
 api/leads.ndjson
 *.ndjson
+
+# Local design/superpowers scratch.
+.superpowers/
+_staging*/
