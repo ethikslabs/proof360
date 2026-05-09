@@ -422,6 +422,129 @@ export const GAP_DEFINITIONS = [
     ],
   },
   {
+    id: 'ai_governance',
+    severity: 'high',
+    label: 'AI governance gap',
+    category: 'governance',
+    why: "Enterprise buyers and regulators are asking how you govern your AI systems. Without an AI governance framework, you're exposed to EU AI Act liability, reputational risk, and procurement blocks from risk-conscious buyers.",
+    risk: 'EU AI Act non-compliance carries fines up to €30M or 6% global revenue. Enterprise buyers increasingly require documented AI risk controls before signing. OAIC can investigate AI-related privacy breaches.',
+    time_estimate: '4–8 weeks to establish a baseline AI governance framework',
+    triggerCondition: (ctx) => ctx.uses_ai === true,
+    claimTemplate: (ctx) => ({
+      question: 'Does this company have a documented AI governance framework?',
+      evidence: `AI usage detected: ${ctx.uses_ai}. Product type: ${ctx.product_type ?? 'unknown'}. Compliance status: ${ctx.compliance_status}.`,
+    }),
+    framework_impact: [
+      { framework: 'EU AI Act', control: 'Art. 9 — Risk management system for high-risk AI', blocker: true },
+      { framework: 'NIST AI RMF', control: 'GOVERN 1.1 — Policies for AI risk', blocker: false },
+      { framework: 'OAIC', control: 'Privacy Act — automated decision-making obligations', blocker: false },
+    ],
+    remediation: [
+      'Establish an AI registry — document every AI system in use, its purpose, data inputs, and risk classification',
+      'Define a responsible AI policy covering bias, explainability, and human oversight requirements',
+      'Map your AI systems against EU AI Act risk tiers — most B2B SaaS falls in limited or high-risk categories',
+    ],
+  },
+  {
+    id: 'data_privacy',
+    severity: 'high',
+    label: 'Data privacy compliance gap',
+    category: 'governance',
+    why: "If you handle personal data of Australian or EU individuals, you have legal obligations under the AU Privacy Act and GDPR. A privacy policy alone is not compliance — you need a full data handling framework.",
+    risk: 'OAIC can investigate and impose significant fines. GDPR fines up to €20M or 4% global revenue. Enterprise buyers require a Data Processing Agreement (DPA) before they will share customer data with you.',
+    time_estimate: '2–4 weeks to establish a baseline privacy framework',
+    triggerCondition: (ctx) => ctx.handles_personal_data === true,
+    claimTemplate: (ctx) => ({
+      question: 'Does this company have a compliant data privacy framework and published privacy policy?',
+      evidence: `Handles personal data: ${ctx.handles_personal_data}. Geo market: ${ctx.geo_market ?? 'unknown'}. Customer type: ${ctx.customer_type}.`,
+    }),
+    framework_impact: [
+      { framework: 'AU Privacy Act 1988', control: 'APP 1 — Open and transparent management of personal information', blocker: true },
+      { framework: 'GDPR', control: 'Art. 13/14 — Transparency obligations', blocker: true },
+      { framework: 'SOC 2', control: 'P1 — Privacy notice', blocker: false },
+    ],
+    remediation: [
+      'Publish a Privacy Policy that meets AU APP requirements — must cover what data you collect, why, and how it is stored and shared',
+      'Establish a Data Processing Agreement template for enterprise customers who share personal data with you',
+      'Conduct a data mapping exercise — know where every piece of personal data lives, who accesses it, and how long you retain it',
+    ],
+  },
+  {
+    id: 'penetration_testing',
+    severity: 'high',
+    label: 'Penetration testing gap',
+    category: 'governance',
+    why: "Enterprise security teams ask for pen test results in every vendor assessment. Without evidence of regular testing, you're asking buyers to trust a system you've never had independently attacked.",
+    risk: 'Deals blocked at procurement. SOC 2 Type II requires evidence of vulnerability management and testing. Cyber insurers increasingly require annual pen tests for coverage above $1M.',
+    time_estimate: '2–4 weeks for an initial external pen test',
+    triggerCondition: (ctx) =>
+      ctx.pen_test_completed !== true &&
+      ['none', 'planning', 'unknown'].includes(ctx.compliance_status),
+    claimTemplate: (ctx) => ({
+      question: 'Has this company conducted an independent penetration test in the last 12 months?',
+      evidence: `Pen test completed: ${ctx.pen_test_completed ?? false}. Compliance status: ${ctx.compliance_status}.`,
+    }),
+    framework_impact: [
+      { framework: 'SOC 2', control: 'CC4.1 — Risk assessment and penetration testing', blocker: true },
+      { framework: 'ISO 27001', control: 'A.8.8 — Management of technical vulnerabilities', blocker: true },
+      { framework: 'Essential Eight', control: 'Vulnerability scanning — required from ML1', blocker: true },
+    ],
+    remediation: [
+      'Engage a certified pen tester for an external network and web application test — scope to your public-facing attack surface first',
+      'Remediate critical and high findings before sharing results with customers',
+      'Run pen tests annually and after major architecture changes — the cadence is what auditors check, not just the report',
+    ],
+  },
+  {
+    id: 'backup_dr',
+    severity: 'high',
+    label: 'Backup and disaster recovery gap',
+    category: 'infrastructure',
+    why: "Without tested backup and recovery, a ransomware attack or infrastructure failure can destroy your business. Enterprise buyers ask for your RTO and RPO before signing — if you don't know what those are, you fail the review.",
+    risk: 'A single ransomware event without backup means data loss and extended downtime. SOC 2 availability criteria require documented and tested recovery procedures. Cyber insurance claims are denied when no backup existed.',
+    time_estimate: '1 day to enable automated backup, 1–2 weeks to document and test DR procedures',
+    triggerCondition: (ctx) => ctx.has_backup !== true,
+    claimTemplate: (ctx) => ({
+      question: 'Does this company have automated backup and a tested disaster recovery procedure?',
+      evidence: `Backup status: ${ctx.has_backup ?? 'unknown'}. Infrastructure: ${ctx.infrastructure ?? 'unknown'}.`,
+    }),
+    framework_impact: [
+      { framework: 'SOC 2', control: 'A1.2 — Environmental protections and recovery', blocker: true },
+      { framework: 'ISO 27001', control: 'A.8.13 — Information backup', blocker: true },
+      { framework: 'Essential Eight', control: 'Regular backups — required from ML1', blocker: true },
+    ],
+    remediation: [
+      'Enable automated daily backups — AWS Backup covers your entire AWS estate with one policy, zero marginal cost at small scale',
+      'Define your RTO (how fast you recover) and RPO (how much data you can lose) — enterprise buyers will ask for these numbers',
+      'Run a recovery test quarterly — untested backups are not backups. Auditors will ask when you last restored from backup.',
+    ],
+  },
+  {
+    id: 'aws_program_eligibility',
+    severity: 'medium',
+    label: 'AWS program opportunity gap',
+    category: 'commercial',
+    why: "AWS has programs that give you credits, co-sell support, and Marketplace distribution — but you have to apply. Most B2B SaaS companies on AWS are leaving significant commercial advantage on the table by not being enrolled.",
+    risk: 'Missed AWS credits (up to $100k+ for startups). No co-sell pipeline with AWS sales team. No Marketplace listing means enterprise buyers cannot buy you using their AWS committed spend.',
+    time_estimate: '1–2 weeks to apply and get enrolled',
+    triggerCondition: (ctx) =>
+      (ctx.infrastructure === 'aws' || ctx.cloud_provider === 'aws') &&
+      ctx.aws_program_enrolled !== true,
+    claimTemplate: (ctx) => ({
+      question: 'Is this company enrolled in relevant AWS partner and startup programs?',
+      evidence: `Infrastructure: ${ctx.infrastructure ?? 'unknown'}. Cloud provider: ${ctx.cloud_provider ?? 'unknown'}. AWS program enrolled: ${ctx.aws_program_enrolled ?? false}.`,
+    }),
+    framework_impact: [
+      { framework: 'AWS Partner Network', control: 'ISV Accelerate — co-sell eligibility', blocker: false },
+      { framework: 'AWS Marketplace', control: 'Listing — enterprise EDP consumption', blocker: false },
+    ],
+    remediation: [
+      'Apply for AWS Activate if under Series B — up to $100k in credits, plus business support and training',
+      'Enroll in AWS ISV Accelerate to get co-sell support from AWS field sales — they bring deals to you',
+      'List on AWS Marketplace so enterprise customers can buy you against their AWS committed spend (EDP) — removes a procurement blocker',
+    ],
+  },
+  {
     id: 'ip_reputation',
     severity: 'high',
     label: 'Server IP flagged for abuse',

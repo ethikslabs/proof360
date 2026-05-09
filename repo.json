@@ -4,10 +4,34 @@
   "state": "live",
   "tasks": [
     {
+      "id": "PROOF360-QA-ONBOARDING-001",
+      "status": "ready",
+      "boundary": "Redesign proof360 onboarding flow as Q&A rather than a gap report presentation. Instead of showing the report, ask the founder questions — business model, cloud provider, team size, compliance posture — and let the scored report emerge from their answers. Each confirmation morphs the recommendations in real time.",
+      "approved_by": "john-coates",
+      "source": "edge:commercial_signal",
+      "added": "2026-05-08"
+    },
+    {
       "id": "PROOF360-SCORING-001",
       "status": "in_progress",
       "boundary": "proof360 signal/scoring methodology convergence remains ready when John returns to it",
       "added": "2026-04-30"
+    },
+    {
+      "id": "PROOF360-SIGNAL-EXTRACT-001",
+      "status": "ready",
+      "boundary": "Wire signal-extractor.js to detect 5 new signals: uses_ai, handles_personal_data, pen_test_completed, has_backup, aws_program_enrolled. Without these, the 5 new gaps (ai_governance, data_privacy, penetration_testing, backup_dr, aws_program_eligibility) cannot fire on live cold-reads.",
+      "approved_by": "john-coates",
+      "source": "edge:task_enhancement",
+      "added": "2026-05-09"
+    },
+    {
+      "id": "PROOF360-GAP-DELTA-001",
+      "status": "ready",
+      "boundary": "Before any gap catalog or vendor catalog change ships, explicitly enumerate what is missing and what vendor closes it — do not declare a catalog complete without naming the delta. Codify this as a review step in the gap authoring process.",
+      "approved_by": "john-coates",
+      "source": "edge:standardisation",
+      "added": "2026-05-09"
     }
   ]
 }

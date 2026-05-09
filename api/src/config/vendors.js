@@ -39,18 +39,25 @@ export const VENDORS = {
 
   vanta: {
     id: 'vanta', display_name: 'Vanta', initials: 'V',
-    closes: ['soc2', 'incident_response', 'pci_dss', 'hipaa_security', 'essential_eight'],
+    closes: ['soc2', 'incident_response', 'pci_dss', 'hipaa_security', 'essential_eight', 'data_privacy', 'ai_governance', 'penetration_testing', 'backup_dr'],
     distributor: 'direct', marketplace_aws: true,
     cost_range: '$7-15k/yr', timeline: '6-9 months',
     is_partner: true, deal_label: '20% off first year',
     best_for: 'Seed to Series B, AWS-native stacks',
     summary: 'Fastest to SOC 2. Connects to your existing AWS stack in an afternoon. Available on AWS Marketplace.',
     referral_url: 'https://vanta.com/?ref=proof360',
+    partnership_reason: "Vanta is what we use ourselves and what we deploy first for every B2B SaaS client heading toward SOC 2. It connects to your AWS stack in an afternoon, maps controls automatically, and generates the evidence your auditor needs continuously — not in a sprint before the audit. It's on AWS Marketplace so enterprise customers can purchase it against their EDP commitment, removing a procurement blocker. We negotiated 20% off the first year for Proof360 clients.",
     routing: (context) => ({
       primary: {
         party: 'john', type: 'internal',
-        label: 'Book via Proof360 — 20% off first year',
+        label: 'Get via Proof360 — 20% off first year',
         template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      managed: {
+        party: 'john', type: 'managed_service',
+        label: 'Have Ethiks360 manage your Vanta implementation',
+        template: 'hubspot_msp',
         url: 'https://meetings.hubspot.com/john3174',
       },
       alternatives: [{
@@ -62,18 +69,19 @@ export const VENDORS = {
   },
   vanta_msp: {
     id: 'vanta_msp', display_name: 'Vanta (MSP)', initials: 'VM',
-    closes: ['soc2', 'incident_response', 'compliance'],
+    closes: ['soc2', 'incident_response', 'compliance', 'data_privacy', 'ai_governance', 'penetration_testing'],
     distributor: 'direct',
     cost_range: null, timeline: null,
     is_partner: true, deal_label: '20% off first year',
     best_for: 'MSPs and multi-tenant compliance delivery',
     summary: 'Vanta MSP program — manage compliance across multiple client accounts.',
     referral_url: 'https://vanta.com/?ref=proof360',
+    partnership_reason: "Ethiks360 runs Vanta across our managed client portfolio. As a Vanta MSP partner we manage compliance posture across multiple accounts — continuously, not in quarterly sprints. If you want SOC 2 managed rather than self-served, this is the path: we own the implementation, track the evidence, and manage the auditor relationship on your behalf.",
     routing: (context) => ({
       primary: {
-        party: 'john', type: 'internal',
-        label: 'Book via Proof360 — 20% off first year',
-        template: 'hubspot_booking',
+        party: 'john', type: 'managed_service',
+        label: 'Have Ethiks360 manage your compliance via Vanta',
+        template: 'hubspot_msp',
         url: 'https://meetings.hubspot.com/john3174',
       },
       alternatives: [{
@@ -93,11 +101,18 @@ export const VENDORS = {
     best_for: 'Larger teams, complex environments',
     summary: 'More customisation, longer setup. Better for Series B and beyond.',
     referral_url: 'https://drata.com/?ref=proof360',
+    partnership_reason: "We recommend Drata when you need more control over the implementation than Vanta offers — typically larger teams, multiple compliance frameworks running in parallel, or an existing security team that wants to own the configuration. It takes longer to set up but gives you more flexibility. We get 15% off the first year for Proof360 clients.",
     routing: (context) => ({
       primary: {
         party: 'john', type: 'internal',
-        label: 'Book via Proof360 — 15% off first year',
+        label: 'Get via Proof360 — 15% off first year',
         template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      managed: {
+        party: 'john', type: 'managed_service',
+        label: 'Have Ethiks360 manage your Drata implementation',
+        template: 'hubspot_msp',
         url: 'https://meetings.hubspot.com/john3174',
       },
       alternatives: [{
@@ -128,7 +143,7 @@ export const VENDORS = {
   },
   apollo_secure: {
     id: 'apollo_secure', display_name: 'Apollo Secure', initials: 'AP',
-    closes: ['soc2', 'compliance', 'security_baseline'],
+    closes: ['soc2', 'compliance', 'security_baseline', 'data_privacy', 'penetration_testing'],
     distributor: 'direct',
     cost_range: null, timeline: null,
     is_partner: false, deal_label: null,
@@ -151,7 +166,7 @@ export const VENDORS = {
   },
   trustwave: {
     id: 'trustwave', display_name: 'Trustwave', initials: 'TW',
-    closes: ['soc2', 'compliance'],
+    closes: ['soc2', 'compliance', 'penetration_testing'],
     distributor: 'dicker',
     cost_range: null, timeline: null,
     is_partner: false, deal_label: null,
@@ -210,10 +225,11 @@ export const VENDORS = {
     best_for: 'Founders preparing for investor due diligence or enterprise sales',
     summary: 'Leadership and founder trust profiling. 10-question snapshot free in report. Full 100+ question profile available as paid deep-dive.',
     referral_url: 'https://lxplatform.io/',
+    partnership_reason: "No other platform addresses the question investors and enterprise buyers actually ask first: who are the founders and can we trust them? ReachLX is the only structured assessment for that. The 10-question snapshot is free in every Proof360 report — the full 100+ question profile is what Series A prep actually requires. We partner with them because the founder trust gap is real, measurable, and almost nobody closes it before they're in the room.",
     routing: (context) => ({
       primary: {
         party: 'john', type: 'internal',
-        label: 'Book via Proof360 — free 10-question profile',
+        label: 'Get free 10-question profile via Proof360',
         template: 'hubspot_booking',
         url: 'https://meetings.hubspot.com/john3174',
       },
@@ -306,11 +322,18 @@ export const VENDORS = {
     best_for: 'Fast MFA rollout, SME-friendly, up and running in a day',
     summary: 'Lightweight MFA that works with whatever you already have. No rip-and-replace.',
     referral_url: null,
+    partnership_reason: "Ethiks360 is a Cisco MSP. Duo is what we deploy for MFA at every client — it works alongside whatever identity system you already have, requires no infrastructure changes, and is operational within a day. It's backed by Cisco Talos, the world's largest commercial threat intelligence operation. We route it through our Ingram Micro agreement.",
     routing: (context) => ({
       primary: {
         party: 'john', type: 'internal',
-        label: 'Book via Proof360',
+        label: 'Get via Proof360',
         template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      managed: {
+        party: 'john', type: 'managed_service',
+        label: 'Have Ethiks360 deploy and manage Cisco Duo',
+        template: 'hubspot_msp',
         url: 'https://meetings.hubspot.com/john3174',
       },
       alternatives: [{
@@ -329,11 +352,18 @@ export const VENDORS = {
     best_for: 'DNS security, cloud-delivered SASE, remote workforce protection',
     summary: 'Cloud-delivered network security. Blocks threats at the DNS layer before they reach your network.',
     referral_url: null,
+    partnership_reason: "Part of our Cisco MSP relationship. Umbrella sits at the DNS layer and blocks malicious traffic before it reaches your network or your users' devices — no hardware, no agents, just a DNS change. It's how we protect remote-first teams and distributed workforces across our managed client base.",
     routing: (context) => ({
       primary: {
         party: 'john', type: 'internal',
-        label: 'Book via Proof360',
+        label: 'Get via Proof360',
         template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      managed: {
+        party: 'john', type: 'managed_service',
+        label: 'Have Ethiks360 deploy and manage Cisco Umbrella',
+        template: 'hubspot_msp',
         url: 'https://meetings.hubspot.com/john3174',
       },
       alternatives: [{
@@ -465,18 +495,25 @@ export const VENDORS = {
 
   cloudflare: {
     id: 'cloudflare', display_name: 'Cloudflare', initials: 'CF',
-    closes: ['network_perimeter', 'waf', 'ddos', 'zero_trust', 'dmarc', 'security_headers'],
+    closes: ['network_perimeter', 'waf', 'ddos', 'zero_trust', 'dmarc', 'security_headers', 'data_privacy', 'ai_governance'],
     distributor: 'ingram',
     cost_range: '$2-6k/yr', timeline: '2-4 weeks',
     is_partner: true, deal_label: null,
     best_for: 'Network security, zero trust access',
     summary: 'Network perimeter, zero trust, and DDoS in one platform.',
     referral_url: null,
+    partnership_reason: "Ethiks360 is a Cloudflare MSSP. Every client in our managed portfolio sits behind Cloudflare at the edge. It closes WAF, DDoS protection, zero trust access, DMARC enforcement, security headers, AI Gateway governance, and data privacy controls — in one platform, at a price point that beats assembling those capabilities separately. It's the most cost-effective enterprise security investment a B2B SaaS company can make.",
     routing: (context) => ({
       primary: {
         party: 'john', type: 'internal',
-        label: 'Book via Proof360',
+        label: 'Get via Proof360',
         template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      managed: {
+        party: 'john', type: 'managed_service',
+        label: 'Have Ethiks360 manage your Cloudflare deployment',
+        template: 'hubspot_msp',
         url: 'https://meetings.hubspot.com/john3174',
       },
       alternatives: [{
@@ -679,7 +716,7 @@ export const VENDORS = {
 
   aws_backup: {
     id: 'aws_backup', display_name: 'AWS Backup', initials: 'BK',
-    closes: ['backup', 'recovery', 'data_resilience'],
+    closes: ['backup', 'recovery', 'data_resilience', 'backup_dr'],
     distributor: 'direct', aws_native: true, marketplace_aws: false,
     cost_range: 'Pay-per-use (AWS)', timeline: '1 day',
     is_partner: false, deal_label: null,
@@ -703,7 +740,7 @@ export const VENDORS = {
 
   veeam: {
     id: 'veeam', display_name: 'Veeam', initials: 'VE',
-    closes: ['backup', 'recovery'],
+    closes: ['backup', 'recovery', 'backup_dr'],
     distributor: 'ingram',
     cost_range: null, timeline: null,
     is_partner: false, deal_label: null,
@@ -889,6 +926,39 @@ export const VENDORS = {
     }),
   },
 
+  // ── AWS PROGRAMS ─────────────────────────────────────────────────────────
+
+  aws_programs: {
+    id: 'aws_programs', display_name: 'AWS Programs', initials: 'AP',
+    closes: ['aws_program_eligibility'],
+    distributor: 'direct', aws_native: true, marketplace_aws: false,
+    cost_range: 'Free to apply', timeline: '1–2 weeks',
+    is_partner: true, deal_label: 'Via Proof360 AWS Partner attribution',
+    best_for: 'B2B SaaS on AWS — credits, co-sell pipeline, and Marketplace distribution',
+    summary: 'AWS Activate (up to $100k credits), ISV Accelerate (co-sell with AWS sales), and Marketplace listing (sell against enterprise EDP commitments). Applied via Proof360 AWS Partner attribution.',
+    referral_url: 'https://aws.amazon.com/partners/',
+    partnership_reason: "As an AWS Partner, Ethiks360 routes clients into the right AWS programs at the right time. Activate gives you up to $100k in credits — most B2B SaaS companies leave this on the table. ISV Accelerate gets AWS's own sales team co-selling your product. Marketplace listing lets enterprise buyers purchase you using their committed AWS spend, which removes a procurement blocker that kills deals. We handle the applications and the attribution.",
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Apply via Proof360 AWS Partner link',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      managed: {
+        party: 'john', type: 'managed_service',
+        label: 'Have Ethiks360 manage your AWS program applications',
+        template: 'hubspot_msp',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'vendor', type: 'direct',
+        label: 'Go direct to AWS Partner Network',
+        url: 'https://aws.amazon.com/partners/',
+      }],
+    }),
+  },
+
   // ── CYBER INSURANCE ──────────────────────────────────────────────────────
 
   austbrokers: {
@@ -900,10 +970,11 @@ export const VENDORS = {
     best_for: 'AU-based tech companies — fast quoting, specialist cyber underwriting',
     summary: 'Specialist cyber insurance broker. We make the introduction, they handle everything. Most policies quoted and bound within 2 weeks.',
     referral_url: 'https://meetings.hubspot.com/john3174?embed=true',
+    partnership_reason: "AustBrokers CyberPro specialise in cyber insurance for Australian technology companies. They understand your stack, your threat model, and what underwriters actually care about — which means faster quotes and better coverage than a generalist broker. We work with them directly. We make the introduction, they handle the policy. Most clients are quoted and bound within two weeks.",
     routing: (context) => ({
       primary: {
         party: 'john', type: 'internal',
-        label: 'Book intro via Proof360',
+        label: 'Get introduced via Proof360',
         template: 'hubspot_booking',
         url: 'https://meetings.hubspot.com/john3174',
       },

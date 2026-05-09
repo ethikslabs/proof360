@@ -16,6 +16,11 @@ function baseContext(overrides = {}) {
     has_staging_exposure: false,
     domain_in_breach: false,
     ip_is_abusive: false,
+    uses_ai: false,
+    handles_personal_data: false,
+    pen_test_completed: true,
+    has_backup: true,
+    aws_program_enrolled: true,
     ...overrides,
   };
 }
