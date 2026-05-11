@@ -9,6 +9,7 @@ export function createGraphServer(port = Number(process.env.GRAPH_PORT ?? 4360))
   function broadcast(event) {
     const data = `data: ${JSON.stringify(event)}\n\n`;
     buffer.push(data);
+    if (buffer.length > 1000) buffer.shift();
     for (const res of clients) res.write(data);
   }
 
@@ -34,7 +35,9 @@ export function createGraphServer(port = Number(process.env.GRAPH_PORT ?? 4360))
       // Replay buffered events
       buffer.forEach(data => res.write(data));
       clients.add(res);
-      req.on('close', () => clients.delete(res));
+      const cleanup = () => clients.delete(res);
+      req.on('close', cleanup);
+      res.on('error', cleanup);
       return;
     }
 
@@ -49,7 +52,8 @@ export function createGraphServer(port = Number(process.env.GRAPH_PORT ?? 4360))
         const html = await readFile(new URL('../public/graph.html', import.meta.url), 'utf8');
         res.writeHead(200, { 'Content-Type': 'text/html' });
         return res.end(html);
-      } catch {
+      } catch (err) {
+        console.error(`[graph-server] /graph: ${err.message}`);
         res.writeHead(404); return res.end('graph.html not found — run after Task 4');
       }
     }
@@ -59,7 +63,8 @@ export function createGraphServer(port = Number(process.env.GRAPH_PORT ?? 4360))
         const js = await readFile(new URL('../public/graph.js', import.meta.url), 'utf8');
         res.writeHead(200, { 'Content-Type': 'application/javascript' });
         return res.end(js);
-      } catch {
+      } catch (err) {
+        console.error(`[graph-server] /graph.js: ${err.message}`);
         res.writeHead(404); return res.end('graph.js not found — run after Task 4');
       }
     }
@@ -69,7 +74,8 @@ export function createGraphServer(port = Number(process.env.GRAPH_PORT ?? 4360))
         const css = await readFile(new URL('../public/graph.css', import.meta.url), 'utf8');
         res.writeHead(200, { 'Content-Type': 'text/css' });
         return res.end(css);
-      } catch {
+      } catch (err) {
+        console.error(`[graph-server] /graph.css: ${err.message}`);
         res.writeHead(404); return res.end('graph.css not found — run after Task 4');
       }
     }
