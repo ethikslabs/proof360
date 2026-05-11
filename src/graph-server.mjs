@@ -50,7 +50,7 @@ export function createGraphServer(port = Number(process.env.GRAPH_PORT ?? 4360))
     if (path === '/graph' && req.method === 'GET') {
       try {
         const html = await readFile(new URL('../public/graph.html', import.meta.url), 'utf8');
-        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.writeHead(200, { 'Content-Type': 'text/html', 'Cache-Control': 'no-store' });
         return res.end(html);
       } catch (err) {
         console.error(`[graph-server] /graph: ${err.message}`);
@@ -61,7 +61,7 @@ export function createGraphServer(port = Number(process.env.GRAPH_PORT ?? 4360))
     if (path === '/graph.js' && req.method === 'GET') {
       try {
         const js = await readFile(new URL('../public/graph.js', import.meta.url), 'utf8');
-        res.writeHead(200, { 'Content-Type': 'application/javascript' });
+        res.writeHead(200, { 'Content-Type': 'application/javascript', 'Cache-Control': 'no-store' });
         return res.end(js);
       } catch (err) {
         console.error(`[graph-server] /graph.js: ${err.message}`);
@@ -69,10 +69,22 @@ export function createGraphServer(port = Number(process.env.GRAPH_PORT ?? 4360))
       }
     }
 
+    if (path === '/proxy-favicon' && req.method === 'GET') {
+      const domain = new URL(req.url, 'http://localhost').searchParams.get('domain');
+      if (!domain) { res.writeHead(400); return res.end(); }
+      try {
+        const upstream = await fetch(`https://logo.clearbit.com/${encodeURIComponent(domain)}`);
+        const buf = Buffer.from(await upstream.arrayBuffer());
+        const ct = upstream.headers.get('content-type') || 'image/png';
+        res.writeHead(200, { 'Content-Type': ct, 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=3600' });
+        return res.end(buf);
+      } catch { res.writeHead(502); return res.end(); }
+    }
+
     if (path === '/graph.css' && req.method === 'GET') {
       try {
         const css = await readFile(new URL('../public/graph.css', import.meta.url), 'utf8');
-        res.writeHead(200, { 'Content-Type': 'text/css' });
+        res.writeHead(200, { 'Content-Type': 'text/css', 'Cache-Control': 'no-store' });
         return res.end(css);
       } catch (err) {
         console.error(`[graph-server] /graph.css: ${err.message}`);

@@ -87,11 +87,9 @@ async function run() {
   // ── DONE ─────────────────────────────────────────────────────────────────
   emit(buildComplete(null));
   console.log('  scan complete — click "Export SVG receipt" in the browser');
-  console.log('  server stays alive for 60s\n');
+  console.log('  server stays alive — Ctrl+C to stop\n');
 
-  await delay(60_000);
-  server.close();
-  console.log('  server closed.');
+  await new Promise(() => {}); // stay alive indefinitely
 }
 
 run().catch(err => { console.error(err); server.close(); });

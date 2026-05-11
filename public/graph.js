@@ -101,9 +101,33 @@ function sendStop() {
   stopBtn.textContent = 'Stopping...';
 }
 
-function exportSvg() {
+async function exportSvg() {
   const svgEl = document.getElementById('graph-svg');
   const clone = svgEl.cloneNode(true);
+  clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+
+  // Dark background rect — CSS doesn't travel with the exported file
+  const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  bg.setAttribute('width', '100%');
+  bg.setAttribute('height', '100%');
+  bg.setAttribute('fill', 'white');
+  clone.insertBefore(bg, clone.firstChild);
+
+  // Embed favicon images as base64 so the exported SVG is self-contained
+  const imgEls = Array.from(clone.querySelectorAll('image[href]'));
+  await Promise.all(imgEls.map(async (img) => {
+    const href = img.getAttribute('href');
+    if (!href || href === '') return;
+    try {
+      const res = await fetch(href);
+      const buf = await res.arrayBuffer();
+      const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+      const ct = res.headers.get('content-type') || 'image/png';
+      img.setAttribute('href', `data:${ct};base64,${b64}`);
+    } catch { /* leave as-is if fetch fails */ }
+  }));
+
   const desc = document.createElementNS('http://www.w3.org/2000/svg', 'desc');
   desc.textContent = JSON.stringify({
     generated: new Date().toISOString(), tool: 'proof360',
@@ -111,7 +135,8 @@ function exportSvg() {
     edges: edges.map(e => ({ from: e.source?.id ?? e.source, to: e.target?.id ?? e.target })),
   });
   clone.prepend(desc);
-  const blob = new Blob([clone.outerHTML], { type: 'image/svg+xml' });
+  const serialized = new XMLSerializer().serializeToString(clone);
+  const blob = new Blob([serialized], { type: 'image/svg+xml' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `proof360-provenance-${Date.now()}.svg`;
@@ -119,33 +144,62 @@ function exportSvg() {
 }
 
 // D3 graph rendering
+const FAVICON_DOMAINS = {
+  firecrawl:    'firecrawl.dev',
+  perplexity:   'perplexity.ai',
+  aws_programs: 'aws.amazon.com',
+  github:       'github.com',
+  hibp:         'haveibeenpwned.com',
+  abuseipdb:    'abuseipdb.com',
+  ssl:          'ssllabs.com',
+};
+
+function faviconFor(node) {
+  if (node.id === 'entity' && node.label && node.label !== 'Target')
+    return `/proxy-favicon?domain=${encodeURIComponent(node.label)}`;
+  const d = FAVICON_DOMAINS[node.id];
+  return d ? `/proxy-favicon?domain=${d}` : null;
+}
+
 const NODE_COLOURS = {
   entity: '#94a3b8', api: '#2dd4bf', model: '#818cf8',
   mcp: '#f59e0b', document: '#fb923c',
 };
-const NODE_R = 24;
+const NODE_R = 32;
 let sim;
 
 function renderGraph() {
   const svgEl = d3.select('#graph-svg');
-  const W = svgEl.node().clientWidth || 600;
-  const H = svgEl.node().clientHeight || 400;
+  const W = svgEl.node().clientWidth || 800;
+  const H = svgEl.node().clientHeight || 600;
 
   svgEl.selectAll('g').remove();
   const g = svgEl.append('g');
 
+  // Spread new nodes across the panel instead of spawning at 0,0
+  for (const n of nodes) {
+    if (n.x === undefined) {
+      n.x = W / 2 + (Math.random() - 0.5) * W * 0.7;
+      n.y = H / 2 + (Math.random() - 0.5) * H * 0.7;
+    }
+  }
+
   if (!sim) {
     sim = d3.forceSimulation()
-      .force('link', d3.forceLink().id(d => d.id).distance(100))
-      .force('charge', d3.forceManyBody().strength(-350))
+      .force('link', d3.forceLink().id(d => d.id).distance(200))
+      .force('charge', d3.forceManyBody().strength(-800))
       .force('center', d3.forceCenter(W / 2, H / 2))
-      .force('y', d3.forceY(H / 2).strength(0.04))
-      .alphaDecay(0.02);
+      .force('collide', d3.forceCollide(NODE_R + 24))
+      .force('y', d3.forceY(H / 2).strength(0.02))
+      .alphaDecay(0.015);
+  } else {
+    sim.force('center', d3.forceCenter(W / 2, H / 2));
+    sim.force('collide', d3.forceCollide(NODE_R + 24));
   }
 
   sim.nodes(nodes);
   sim.force('link').links(edges);
-  sim.alpha(0.4).restart();
+  sim.alpha(0.5).restart();
 
   // Arrow marker
   const defs = svgEl.select('defs');
@@ -168,12 +222,20 @@ function renderGraph() {
       enter => {
         const ng = enter.append('g').attr('class', 'nd');
         ng.append('circle').attr('r', NODE_R).attr('fill', '#0C0C12');
-        ng.append('use').attr('width', 20).attr('height', 20).attr('x', -10).attr('y', -10);
-        ng.append('text').attr('y', NODE_R + 13).attr('text-anchor', 'middle')
-          .attr('font-size', 9).attr('fill', '#475569').attr('font-family', 'monospace');
+        ng.append('use').attr('width', 28).attr('height', 28).attr('x', -14).attr('y', -14);
+        ng.append('image').attr('width', 28).attr('height', 28).attr('x', -14).attr('y', -14)
+          .attr('clip-path', 'url(#favicon-clip)').attr('display', 'none');
+        ng.append('text').attr('y', NODE_R + 16).attr('text-anchor', 'middle')
+          .attr('font-size', 11).attr('fill', '#64748b').attr('font-family', 'monospace');
         return ng;
       }
     );
+
+  // Add favicon clip path to defs once
+  if (defs.select('#favicon-clip').empty()) {
+    defs.append('clipPath').attr('id', 'favicon-clip')
+      .append('circle').attr('r', 14);
+  }
 
   nodeSel.select('circle')
     .attr('stroke', d => d.status === 'error' ? '#f87171' : (NODE_COLOURS[d.nodeType] ?? '#334155'))
@@ -183,7 +245,13 @@ function renderGraph() {
   nodeSel.select('use')
     .attr('href', d => `#icon-${d.nodeType}`)
     .attr('color', d => d.status === 'error' ? '#f87171' : (NODE_COLOURS[d.nodeType] ?? '#94a3b8'))
-    .attr('opacity', d => d.status === 'loading' ? 0.45 : 1);
+    .attr('opacity', d => d.status === 'loading' ? 0.45 : 1)
+    .attr('display', d => faviconFor(d) ? 'none' : null);
+
+  nodeSel.select('image')
+    .attr('href', d => faviconFor(d) ?? '')
+    .attr('opacity', d => d.status === 'loading' ? 0.45 : 1)
+    .attr('display', d => faviconFor(d) ? null : 'none');
 
   nodeSel.select('text').text(d => d.label);
 
