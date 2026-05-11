@@ -1,7 +1,7 @@
-// NIM inference client — routes through ai-gateway (port 3003)
-// Gateway handles provider routing and credentials. No keys needed here.
+// NIM inference client — routes through VECTOR (port 3003)
+// VECTOR handles provider routing and credentials. No keys needed here.
 
-const GATEWAY_URL = process.env.AI_GATEWAY_URL || 'http://localhost:3003/v1';
+const VECTOR_URL = process.env.VECTOR_URL || 'http://localhost:3003/v1';
 const NIM_MODEL   = process.env.NIM_MODEL || 'nvidia/llama-3.1-nemotron-ultra-253b-v1';
 const TIMEOUT_MS  = 30_000;
 
@@ -33,7 +33,7 @@ export async function nimEvaluateClaim({ question, evidence, metadata, session_i
 // Check whether the gateway is reachable — used by trust-client.js before routing
 export async function isNIMAvailable() {
   try {
-    const healthUrl = GATEWAY_URL.replace(/\/v1\/?$/, '') + '/health';
+    const healthUrl = VECTOR_URL.replace(/\/v1\/?$/, '') + '/health';
     const res = await fetch(healthUrl, { signal: AbortSignal.timeout(3_000) });
     if (!res.ok) return false;
     const body = await res.json();
@@ -47,7 +47,7 @@ export async function isNIMAvailable() {
 // All VECTOR calls carry { tenant_id, session_id, correlation_id } per v3 contract.
 export async function nimComplete({ messages, temperature = 0.1, session_id }) {
   const correlationId = session_id || 'proof360';
-  const res = await fetch(`${GATEWAY_URL}/chat/completions`, {
+  const res = await fetch(`${VECTOR_URL}/chat/completions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Correlation-ID': correlationId, 'X-Tenant-ID': 'proof360' },
     body: JSON.stringify({

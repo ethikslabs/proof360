@@ -57,7 +57,7 @@ async function scrapePages(firecrawl, baseUrl, log, session_id) {
 }
 
 async function extractWithClaude(pages, log = () => {}, session_id = null) {
-  const gatewayUrl = process.env.AI_GATEWAY_URL || 'http://localhost:3003/v1';
+  const vectorUrl = process.env.VECTOR_URL || 'http://localhost:3003/v1';
   const correlationId = session_id || 'proof360';
 
   const content = pages.map((p) => `### ${p.label}\n${p.content}`).join('\n\n');
@@ -85,13 +85,25 @@ Respond with ONLY valid JSON matching this exact schema (no markdown, no explana
     "soc2_mentioned": boolean,
     "pricing_enterprise_tier": boolean
   },
+  "uses_ai": boolean,
+  "handles_personal_data": boolean,
+  "pen_test_completed": true | false | null,
+  "has_backup": true | false | null,
+  "aws_program_enrolled": true | false | null,
   "confidence": "confident" | "likely" | "probable",
   "company_summary": "2-3 sentence market read: what they build, who they sell to, and where they operate. Be specific — name the sector, geography, and buyer type. Plain English, no jargon."
-}`;
+}
+
+Signal rules:
+- uses_ai: true when the product or company messaging prominently features AI, ML, LLM, or AI-powered capabilities. false otherwise.
+- handles_personal_data: true when the company processes user PII, health records, financial data, or personal profiles — infer from privacy policy mentions, GDPR/CCPA references, or data-type descriptions. false otherwise.
+- pen_test_completed: true only when they explicitly mention penetration testing, third-party security audits, or security assessments. null when not mentioned.
+- has_backup: true only when they explicitly mention backup, disaster recovery, or data redundancy. null when not mentioned.
+- aws_program_enrolled: true only when they explicitly mention AWS Activate, AWS Startup program, or AWS credits. null when not mentioned.`;
 
   let response;
   try {
-    const res = await fetch(`${gatewayUrl}/chat/completions`, {
+    const res = await fetch(`${vectorUrl}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -99,14 +111,12 @@ Respond with ONLY valid JSON matching this exact schema (no markdown, no explana
         'X-Tenant-ID': 'proof360',
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model: 'amazon.nova-lite-v1:0',
         max_tokens: 1024,
         messages: [{ role: 'user', content: prompt }],
         tenant_id: 'proof360',
         session_id: session_id || null,
         correlation_id: session_id || null,
-        sovereignty_override: true,
-        sovereignty_justification: 'proof360 signal extraction — structured JSON classification requiring Claude instruction-following fidelity',
       }),
     });
 
@@ -159,6 +169,13 @@ function mapToSignals(extracted) {
     }
   }
 
+  // Boolean signals — include only when explicitly true; undefined means unknown (gap fires conservatively)
+  for (const key of ['uses_ai', 'handles_personal_data', 'pen_test_completed', 'has_backup', 'aws_program_enrolled']) {
+    if (extracted[key] === true) {
+      signals.push({ type: key, value: true, confidence });
+    }
+  }
+
   return signals;
 }
 
@@ -195,10 +212,15 @@ const SIGNAL_READABLE = {
   geo_market:        (v) => `Market: ${v}`,
   handles_payments:  (v) => v ? 'Handles payments' : null,
   use_case:          (v) => `Use case: ${v}`,
-  infrastructure:    (v) => `Infrastructure: ${v}`,
-  compliance_status: (v) => `Compliance: ${v}`,
-  identity_model:    (v) => `Identity model: ${v}`,
-  insurance_status:  (v) => `Insurance: ${v}`,
+  infrastructure:         (v) => `Infrastructure: ${v}`,
+  compliance_status:      (v) => `Compliance: ${v}`,
+  identity_model:         (v) => `Identity model: ${v}`,
+  insurance_status:       (v) => `Insurance: ${v}`,
+  uses_ai:                () => 'Uses AI',
+  handles_personal_data:  () => 'Handles personal data',
+  pen_test_completed:     () => 'Penetration tested',
+  has_backup:             () => 'Has backup/DR',
+  aws_program_enrolled:   () => 'AWS program enrolled',
 };
 
 export async function extractSignals({ website_url, deck_file, session_id }, log = () => {}) {

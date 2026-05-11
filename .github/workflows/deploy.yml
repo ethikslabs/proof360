@@ -91,7 +91,7 @@ jobs:
           ANTHROPIC_API_KEY=$(get_ssm "/ethikslabs/anthropic/api-key")
           ABUSEIPDB_API_KEY=$(get_ssm "/proof360/ABUSEIPDB_API_KEY")
           HIBP_API_KEY=$(get_ssm "/proof360/HIBP_API_KEY")
-          AI_GATEWAY_URL=$(get_ssm "/proof360/AI_GATEWAY_URL")
+          VECTOR_URL=$(get_ssm "/proof360/VECTOR_URL")
           NIM_MODEL=$(get_ssm "/proof360/NIM_MODEL")
           VERITAS_URL=$(get_ssm "/proof360/VERITAS_URL")
           VERITAS_API_KEY=$(get_ssm "/proof360/VERITAS_API_KEY")

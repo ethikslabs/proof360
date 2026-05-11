@@ -18,4 +18,5 @@ api/leads.ndjson
 
 # Local design/superpowers scratch.
 .superpowers/
+docs/superpowers/
 _staging*/

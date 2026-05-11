@@ -18,6 +18,9 @@ export function normalizeContext(session, corrections = {}, followup_answers = {
     q_identity: 'identity_model',
     q_insurance: 'insurance_status',
     q_questionnaire: 'questionnaire_experience',
+    q_pen_test: 'pen_test_completed',
+    q_backup: 'has_backup',
+    q_aws_program: 'aws_program_enrolled',
   };
 
   for (const [qid, answer] of Object.entries(followup_answers)) {
@@ -34,9 +37,13 @@ export function normalizeContext(session, corrections = {}, followup_answers = {
   }
 
   // Pass through sector signals from raw extraction — these inform industry-specific gaps
+  const PASSTHROUGH_SIGNALS = [
+    'sector', 'geo_market', 'handles_payments', 'data_sensitivity', 'stage', 'infrastructure', 'customer_type',
+    'uses_ai', 'handles_personal_data', 'pen_test_completed', 'has_backup', 'aws_program_enrolled',
+  ];
   for (const sig of session.raw_signals || []) {
-    if (['sector', 'geo_market', 'handles_payments', 'data_sensitivity', 'stage', 'infrastructure', 'customer_type'].includes(sig.type)) {
-      if (!context[sig.type]) context[sig.type] = sig.value;
+    if (PASSTHROUGH_SIGNALS.includes(sig.type)) {
+      if (context[sig.type] === undefined) context[sig.type] = sig.value;
     }
   }
 
@@ -68,6 +75,23 @@ function normalizeAnswer(key, answer) {
       'Yes, it stalled a deal': 'stalled_deal',
       'No': 'none',
       'Not sure': 'unknown',
+    },
+    pen_test_completed: {
+      'Yes': true,
+      'No': false,
+      'In progress': false,
+      'Not sure': null,
+    },
+    has_backup: {
+      'Yes': true,
+      'No': false,
+      'Partial': false,
+      'Not sure': null,
+    },
+    aws_program_enrolled: {
+      'Yes': true,
+      'No': false,
+      'Not sure': null,
     },
   };
 

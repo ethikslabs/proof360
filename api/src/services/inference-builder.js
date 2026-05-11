@@ -113,6 +113,30 @@ export function buildInferences(signals, sources_read, website_url, recon = {}) 
       options: ['Yes, completed it', 'Yes, it stalled a deal', 'No', 'Not sure'],
     });
   }
+  if (!inferredTypes.has('pen_test_completed')) {
+    followup_questions.push({
+      question_id: 'q_pen_test',
+      context: 'Penetration tests are increasingly required by enterprise buyers and insurers.',
+      question: 'Have you had an independent penetration test in the last 12 months?',
+      options: ['Yes', 'No', 'In progress', 'Not sure'],
+    });
+  }
+  if (!inferredTypes.has('has_backup')) {
+    followup_questions.push({
+      question_id: 'q_backup',
+      context: 'Automated backups and a tested recovery procedure are baseline expectations for B2B SaaS.',
+      question: 'Do you have automated backups with a tested recovery procedure?',
+      options: ['Yes', 'No', 'Partial', 'Not sure'],
+    });
+  }
+  if (!inferredTypes.has('aws_program_enrolled') && recon.cloud_provider === 'aws') {
+    followup_questions.push({
+      question_id: 'q_aws_program',
+      context: "Your infrastructure appears to be on AWS. AWS Activate gives startups up to $100k in credits.",
+      question: 'Are you enrolled in the AWS Activate startup program?',
+      options: ['Yes', 'No', 'Not sure'],
+    });
+  }
 
   const company_name = website_url ? extractCompanyName(website_url) : 'Your company';
   const source_summary = website_url

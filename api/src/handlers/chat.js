@@ -2,7 +2,7 @@
 import { buildSystemPrompt } from '../services/persona-prompts.js';
 import { notifyJohn } from '../services/john-relay.js';
 
-const GATEWAY_URL = process.env.AI_GATEWAY_URL || 'http://localhost:3003/v1';
+const VECTOR_URL = process.env.VECTOR_URL || 'http://localhost:3003/v1';
 const VALID_PERSONAS = ['sophia', 'leonardo', 'edison'];
 
 export async function chatHandler(request, reply) {
@@ -50,7 +50,7 @@ export async function chatHandler(request, reply) {
   let headersWritten = false;
 
   try {
-    const res = await fetch(`${GATEWAY_URL}/chat/completions`, {
+    const res = await fetch(`${VECTOR_URL}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
