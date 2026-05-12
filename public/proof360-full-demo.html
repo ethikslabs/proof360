@@ -186,13 +186,23 @@ details.gap-item[open] summary { background: #fafaf8; border-bottom: 1px solid v
 .gap-fix .fix-route { font-size: 10px; color: var(--d-muted); }
 .gap-fix-cta { padding: 6px 14px; background: transparent; border: 1px solid var(--d-border); color: var(--d-muted); font-family: inherit; font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; cursor: not-allowed; display: flex; align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0; }
 
-/* Vendor matrix */
-.scatter-wrap { margin-bottom: 20px; background: var(--d-card); border: 1px solid var(--d-border); border-radius: 3px; padding: 16px 18px; }
-.scatter-wrap svg { width: 100%; height: auto; display: block; }
-.scatter-axis text { font-family: 'IBM Plex Mono', monospace; font-size: 9px; fill: #94a3b8; }
-.scatter-axis line, .scatter-axis path { stroke: #e2e8f0; }
-.scatter-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; fill: #64748b; }
-.scatter-annot { font-family: 'Spectral', serif; font-style: italic; font-size: 10px; fill: #2d7f6e; }
+/* Vendor matrix / quadrant */
+.scatter-wrap { margin-bottom: 20px; background: var(--d-card); border: 1px solid var(--d-border); border-radius: 3px; padding: 14px 16px; }
+.q-section-lbl { font-size: 9px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; font-family: 'IBM Plex Mono', monospace; }
+.q-x-labels { display: flex; justify-content: space-between; font-size: 9px; color: #9ca3af; margin-bottom: 4px; font-family: 'IBM Plex Mono', monospace; }
+.q-area { position: relative; height: 140px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; margin-bottom: 8px; overflow: visible; }
+.q-y-lbl { position: absolute; font-size: 9px; color: #9ca3af; left: 6px; font-family: 'IBM Plex Mono', monospace; }
+.q-y-top { top: 5px; } .q-y-bot { bottom: 5px; }
+.q-cross-h { position: absolute; top: 50%; left: 0; right: 0; border-top: 1px dashed #e5e7eb; pointer-events: none; }
+.q-cross-v { position: absolute; left: 50%; top: 0; bottom: 0; border-left: 1px dashed #e5e7eb; pointer-events: none; }
+.q-node { position: absolute; transform: translate(-50%, -50%); text-align: center; }
+.q-node-circle { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: white; border: 2px solid #d1d5db; font-size: 10px; font-weight: 700; color: #6b7280; font-family: 'IBM Plex Mono', monospace; }
+.q-node.q-pick .q-node-circle { background: #111827; border-color: #111827; color: white; transform: scale(1.1); box-shadow: 0 0 0 3px rgba(17,24,39,0.15); }
+.q-pick-lbl { font-size: 9px; color: #9ca3af; font-family: 'IBM Plex Mono', monospace; margin-top: 2px; }
+.q-legend { display: flex; gap: 14px; flex-wrap: wrap; }
+.q-leg-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #6b7280; font-family: 'IBM Plex Mono', monospace; }
+.q-leg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.q-partner-tag { font-size: 8px; background: #ede9fe; color: #7c3aed; padding: 1px 5px; border-radius: 9px; margin-left: 2px; }
 .vendor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .vendor-card { background: var(--d-card); border: 1px solid var(--d-border); border-radius: 3px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
 .vendor-card-head { display: flex; align-items: center; gap: 12px; }
@@ -459,7 +469,7 @@ details.gap-item[open] summary { background: #fafaf8; border-bottom: 1px solid v
             <div class="gap-what">Your /security page states SOC 2 readiness. No public Type II certificate or audit report was found via crt.sh, Vanta Trust Center lookup, or direct web search. At Series B, enterprise procurement teams require this before signing — it's often a hard gate, not a soft preference.</div>
             <div class="gap-why">"We're working on SOC 2" is not the same as having it. Enterprise buyers hear this every week. A Type II report — meaning controls were tested over time, not just designed — is what actually unblocks procurement.</div>
             <div class="gap-fix">
-              <div class="vl md" style="--bg:#e8f5f1;--fg:#2d7f6e">V<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjEyIiBmaWxsPSIjMTc4NzVlIi8+PHBhdGggZD0iTTIyIDQyIEw0NCA3MiBMNzggMjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMTIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg==" onerror="this.remove()"></div>
+              <div class="vl md" style="--bg:#f5f3ff;--fg:#7C3AED">V<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0iIzdDM0FFRCIvPjxnIGZpbGw9IndoaXRlIj48cGF0aCBkPSJNNDAgNjAgQzM3IDQ2IDM5IDMwIDQ4IDIyIEM1NyAxNCA2NSAyMCA2NCAzMiBDNjMgNDQgNTggNTYgNTYgNjAgWiIvPjxlbGxpcHNlIGN4PSI1MCIgY3k9IjcyIiByeD0iMjIiIHJ5PSIxNCIvPjxlbGxpcHNlIGN4PSI1MiIgY3k9IjIyIiByeD0iMTAiIHJ5PSI5Ii8+PHBvbHlnb24gcG9pbnRzPSI0NCwxNiA0MCw0IDQ5LDE0Ii8+PHBvbHlnb24gcG9pbnRzPSI1OCwxNCA2MywzIDU2LDE2Ii8+PHJlY3QgeD0iMzEiIHk9IjgyIiB3aWR0aD0iNyIgaGVpZ2h0PSIxMyIgcng9IjMuNSIvPjxyZWN0IHg9IjQyIiB5PSI4MiIgd2lkdGg9IjciIGhlaWdodD0iMTMiIHJ4PSIzLjUiLz48cmVjdCB4PSI1NSIgeT0iODIiIHdpZHRoPSI3IiBoZWlnaHQ9IjEzIiByeD0iMy41Ii8+PHJlY3QgeD0iNjYiIHk9IjgyIiB3aWR0aD0iNyIgaGVpZ2h0PSIxMyIgcng9IjMuNSIvPjwvZz48L3N2Zz4=" onerror="this.remove()"></div>
               <div class="fix-text">
                 <div class="fix-by">Vanta — proof360 partner</div>
                 <div class="fix-deal">20% off first year · AWS Marketplace (EDP-eligible)</div>
@@ -617,7 +627,7 @@ details.gap-item[open] summary { background: #fafaf8; border-bottom: 1px solid v
       <div class="vendor-grid">
         <div class="vendor-card">
           <div class="vendor-card-head">
-            <div class="vl md" style="--bg:#e8f5f1;--fg:#2d7f6e">V<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjEyIiBmaWxsPSIjMTc4NzVlIi8+PHBhdGggZD0iTTIyIDQyIEw0NCA3MiBMNzggMjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMTIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg==" onerror="this.remove()"></div>
+            <div class="vl md" style="--bg:#f5f3ff;--fg:#7C3AED">V<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0iIzdDM0FFRCIvPjxnIGZpbGw9IndoaXRlIj48cGF0aCBkPSJNNDAgNjAgQzM3IDQ2IDM5IDMwIDQ4IDIyIEM1NyAxNCA2NSAyMCA2NCAzMiBDNjMgNDQgNTggNTYgNTYgNjAgWiIvPjxlbGxpcHNlIGN4PSI1MCIgY3k9IjcyIiByeD0iMjIiIHJ5PSIxNCIvPjxlbGxpcHNlIGN4PSI1MiIgY3k9IjIyIiByeD0iMTAiIHJ5PSI5Ii8+PHBvbHlnb24gcG9pbnRzPSI0NCwxNiA0MCw0IDQ5LDE0Ii8+PHBvbHlnb24gcG9pbnRzPSI1OCwxNCA2MywzIDU2LDE2Ii8+PHJlY3QgeD0iMzEiIHk9IjgyIiB3aWR0aD0iNyIgaGVpZ2h0PSIxMyIgcng9IjMuNSIvPjxyZWN0IHg9IjQyIiB5PSI4MiIgd2lkdGg9IjciIGhlaWdodD0iMTMiIHJ4PSIzLjUiLz48cmVjdCB4PSI1NSIgeT0iODIiIHdpZHRoPSI3IiBoZWlnaHQ9IjEzIiByeD0iMy41Ii8+PHJlY3QgeD0iNjYiIHk9IjgyIiB3aWR0aD0iNyIgaGVpZ2h0PSIxMyIgcng9IjMuNSIvPjwvZz48L3N2Zz4=" onerror="this.remove()"></div>
             <div class="vendor-info">
               <div class="vendor-name">Vanta <span class="vendor-partner">Partner</span></div>
               <div class="vendor-route">Direct · AWS Marketplace · Ingram AU</div>
@@ -758,7 +768,7 @@ details.gap-item[open] summary { background: #fafaf8; border-bottom: 1px solid v
       <div class="vendor-actions">
         <h3>Act on the gaps now</h3>
         <a class="va-card" href="https://vanta.com" target="_blank">
-          <div class="va-logo-wrap"><div class="vl lg" style="--bg:#e8f5f1;--fg:#2d7f6e">V<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjEyIiBmaWxsPSIjMTc4NzVlIi8+PHBhdGggZD0iTTIyIDQyIEw0NCA3MiBMNzggMjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMTIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg==" onerror="this.remove()"></div></div>
+          <div class="va-logo-wrap"><div class="vl lg" style="--bg:#f5f3ff;--fg:#7C3AED">V<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0iIzdDM0FFRCIvPjxnIGZpbGw9IndoaXRlIj48cGF0aCBkPSJNNDAgNjAgQzM3IDQ2IDM5IDMwIDQ4IDIyIEM1NyAxNCA2NSAyMCA2NCAzMiBDNjMgNDQgNTggNTYgNTYgNjAgWiIvPjxlbGxpcHNlIGN4PSI1MCIgY3k9IjcyIiByeD0iMjIiIHJ5PSIxNCIvPjxlbGxpcHNlIGN4PSI1MiIgY3k9IjIyIiByeD0iMTAiIHJ5PSI5Ii8+PHBvbHlnb24gcG9pbnRzPSI0NCwxNiA0MCw0IDQ5LDE0Ii8+PHBvbHlnb24gcG9pbnRzPSI1OCwxNCA2MywzIDU2LDE2Ii8+PHJlY3QgeD0iMzEiIHk9IjgyIiB3aWR0aD0iNyIgaGVpZ2h0PSIxMyIgcng9IjMuNSIvPjxyZWN0IHg9IjQyIiB5PSI4MiIgd2lkdGg9IjciIGhlaWdodD0iMTMiIHJ4PSIzLjUiLz48cmVjdCB4PSI1NSIgeT0iODIiIHdpZHRoPSI3IiBoZWlnaHQ9IjEzIiByeD0iMy41Ii8+PHJlY3QgeD0iNjYiIHk9IjgyIiB3aWR0aD0iNyIgaGVpZ2h0PSIxMyIgcng9IjMuNSIvPjwvZz48L3N2Zz4=" onerror="this.remove()"></div></div>
           <div class="va-body">
             <div class="va-name">Vanta</div>
             <div class="va-action">Start SOC 2 — closes the biggest gap</div>
@@ -878,7 +888,7 @@ details.gap-item[open] summary { background: #fafaf8; border-bottom: 1px solid v
     vendor_cisco:      'https://cdn.simpleicons.org/cisco/1BA0D7',
     firecrawl:         'https://logo.clearbit.com/firecrawl.dev',
     sonar:             'https://logo.clearbit.com/perplexity.ai',
-    vendor_vanta:      'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="12" fill="#17875e"/><path d="M22 42 L44 72 L78 28" fill="none" stroke="white" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg>'),
+    vendor_vanta:      'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#7C3AED"/><g fill="white"><path d="M40 60 C37 46 39 30 48 22 C57 14 65 20 64 32 C63 44 58 56 56 60 Z"/><ellipse cx="50" cy="72" rx="22" ry="14"/><ellipse cx="52" cy="22" rx="10" ry="9"/><polygon points="44,16 40,4 49,14"/><polygon points="58,14 63,3 56,16"/><rect x="31" y="82" width="7" height="13" rx="3.5"/><rect x="42" y="82" width="7" height="13" rx="3.5"/><rect x="55" y="82" width="7" height="13" rx="3.5"/><rect x="66" y="82" width="7" height="13" rx="3.5"/></g></svg>'),
     vendor_dicker:     'https://logo.clearbit.com/dickerdata.com.au',
     abuseipdb:         'https://logo.clearbit.com/abuseipdb.com',
     whois:             'https://logo.clearbit.com/whois.com',
@@ -948,7 +958,7 @@ details.gap-item[open] summary { background: #fafaf8; border-bottom: 1px solid v
     if (d.id === 'nvidia_nim') return '#76B900';
     if (d.id === 'vendor_cloudflare') return '#F6821F';
     if (d.id === 'vendor_cisco') return '#1BA0D7';
-    if (d.id === 'vendor_vanta') return '#FF5A29';
+    if (d.id === 'vendor_vanta') return '#7C3AED';
     if (d.id === 'vendor_dicker') return '#0891b2';
     const m = { entity:'#64748b', api:'#0891b2', model:'#6366f1', mcp:'#d97706', document:'#ea580c', spv:'#059669', vendor:'#b45309' };
     return m[d.nodeType] ?? '#334155';
@@ -1297,92 +1307,33 @@ details.gap-item[open] summary { background: #fafaf8; border-bottom: 1px solid v
   (function renderScatter() {
     const el = document.getElementById('vendor-scatter');
     if (!el) return;
-    const W = 480, H = 220, PAD = { top: 20, right: 24, bottom: 40, left: 48 };
-    const iW = W - PAD.left - PAD.right;
-    const iH = H - PAD.top - PAD.bottom;
     const vendors = [
-      { name: 'Cloudflare', x: 0.14, y: 0.40, color: '#F6821F', note: 'quick win' },
-      { name: 'Cisco Duo',  x: 0.44, y: 0.52, color: '#1BA0D7', note: '' },
-      { name: 'Vanta',      x: 0.50, y: 0.84, color: '#17875e', note: 'recommended' },
-      { name: 'Dicker Data',x: 0.76, y: 0.42, color: '#e67e22', note: '' },
+      { abbr:'V',  name:'Vanta',       x:0.72, y:0.28, pick:true,  partner:true  },
+      { abbr:'D',  name:'Drata',       x:0.62, y:0.38, pick:false, partner:true  },
+      { abbr:'SF', name:'Secureframe', x:0.55, y:0.52, pick:false, partner:false },
+      { abbr:'TW', name:'Trustwave',   x:0.40, y:0.45, pick:false, partner:false },
     ];
-    const xScale = v => PAD.left + v * iW;
-    const yScale = v => PAD.top + (1 - v) * iH;
-    const ns = 'http://www.w3.org/2000/svg';
-    const svg = document.createElementNS(ns, 'svg');
-    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-    svg.setAttribute('aria-label', 'Vendor positioning — deployment effort vs gap coverage');
-    // Quadrant bands
-    const qBand = document.createElementNS(ns, 'rect');
-    qBand.setAttribute('x', PAD.left); qBand.setAttribute('y', PAD.top);
-    qBand.setAttribute('width', iW/2); qBand.setAttribute('height', iH/2);
-    qBand.setAttribute('fill', '#f8fafc'); svg.appendChild(qBand);
-    const qBand2 = document.createElementNS(ns, 'rect');
-    qBand2.setAttribute('x', PAD.left + iW/2); qBand2.setAttribute('y', PAD.top);
-    qBand2.setAttribute('width', iW/2); qBand2.setAttribute('height', iH/2);
-    qBand2.setAttribute('fill', '#f0fdf4'); svg.appendChild(qBand2);
-    // Crosshair
-    [0.25, 0.5, 0.75].forEach(t => {
-      const xg = document.createElementNS(ns, 'line');
-      xg.setAttribute('x1', PAD.left + t*iW); xg.setAttribute('y1', PAD.top);
-      xg.setAttribute('x2', PAD.left + t*iW); xg.setAttribute('y2', PAD.top + iH);
-      xg.setAttribute('stroke', '#e2e8f0'); xg.setAttribute('stroke-width', '1');
-      svg.appendChild(xg);
-      const yg = document.createElementNS(ns, 'line');
-      yg.setAttribute('x1', PAD.left); yg.setAttribute('y1', PAD.top + t*iH);
-      yg.setAttribute('x2', PAD.left + iW); yg.setAttribute('y2', PAD.top + t*iH);
-      yg.setAttribute('stroke', '#e2e8f0'); yg.setAttribute('stroke-width', '1');
-      svg.appendChild(yg);
-    });
-    // Axes
-    const xAxis = document.createElementNS(ns, 'line');
-    xAxis.setAttribute('x1', PAD.left); xAxis.setAttribute('y1', PAD.top + iH);
-    xAxis.setAttribute('x2', PAD.left + iW); xAxis.setAttribute('y2', PAD.top + iH);
-    xAxis.setAttribute('stroke', '#cbd5e1'); xAxis.setAttribute('stroke-width', '1.5');
-    svg.appendChild(xAxis);
-    const yAxis = document.createElementNS(ns, 'line');
-    yAxis.setAttribute('x1', PAD.left); yAxis.setAttribute('y1', PAD.top);
-    yAxis.setAttribute('x2', PAD.left); yAxis.setAttribute('y2', PAD.top + iH);
-    yAxis.setAttribute('stroke', '#cbd5e1'); yAxis.setAttribute('stroke-width', '1.5');
-    svg.appendChild(yAxis);
-    // Axis labels
-    const xLbl = document.createElementNS(ns, 'text');
-    xLbl.setAttribute('x', PAD.left + iW/2); xLbl.setAttribute('y', H - 8);
-    xLbl.setAttribute('text-anchor', 'middle');
-    xLbl.setAttribute('font-family', 'IBM Plex Mono, monospace');
-    xLbl.setAttribute('font-size', '9'); xLbl.setAttribute('fill', '#94a3b8');
-    xLbl.textContent = 'Deployment effort →'; svg.appendChild(xLbl);
-    const yLbl = document.createElementNS(ns, 'text');
-    yLbl.setAttribute('transform', `rotate(-90,${PAD.left - 32},${PAD.top + iH/2})`);
-    yLbl.setAttribute('x', PAD.left - 32); yLbl.setAttribute('y', PAD.top + iH/2);
-    yLbl.setAttribute('text-anchor', 'middle');
-    yLbl.setAttribute('font-family', 'IBM Plex Mono, monospace');
-    yLbl.setAttribute('font-size', '9'); yLbl.setAttribute('fill', '#94a3b8');
-    yLbl.textContent = '↑ Gap coverage'; svg.appendChild(yLbl);
-    // Quadrant annotation
-    const annot = document.createElementNS(ns, 'text');
-    annot.setAttribute('x', PAD.left + iW * 0.26); annot.setAttribute('y', PAD.top + iH * 0.18);
-    annot.setAttribute('text-anchor', 'middle');
-    annot.setAttribute('font-family', 'Spectral, serif');
-    annot.setAttribute('font-style', 'italic');
-    annot.setAttribute('font-size', '9'); annot.setAttribute('fill', '#2d7f6e');
-    annot.textContent = 'high coverage · low effort'; svg.appendChild(annot);
-    // Dots + labels
+    el.innerHTML = `
+      <div class="q-section-lbl">Supported paths — GRC &amp; Compliance Automation</div>
+      <div class="q-x-labels"><span>Slower to audit-ready</span><span>Faster to audit-ready</span></div>
+      <div class="q-area" id="q-plot">
+        <span class="q-y-lbl q-y-top">More expensive</span>
+        <span class="q-y-lbl q-y-bot">Cheaper</span>
+        <div class="q-cross-h"></div>
+        <div class="q-cross-v"></div>
+      </div>
+      <div class="q-legend">${vendors.map(v =>
+        `<div class="q-leg-item"><span class="q-leg-dot" style="background:${v.pick?'#111827':'#d1d5db'}"></span><span>${v.name}</span>${v.partner?'<span class="q-partner-tag">partner</span>':''}</div>`
+      ).join('')}</div>`;
+    const plot = document.getElementById('q-plot');
     vendors.forEach(v => {
-      const cx = xScale(v.x), cy = yScale(v.y);
-      const circle = document.createElementNS(ns, 'circle');
-      circle.setAttribute('cx', cx); circle.setAttribute('cy', cy);
-      circle.setAttribute('r', '7');
-      circle.setAttribute('fill', v.color); circle.setAttribute('opacity', '0.85');
-      svg.appendChild(circle);
-      const lbl = document.createElementNS(ns, 'text');
-      lbl.setAttribute('x', cx + 10); lbl.setAttribute('y', cy + 4);
-      lbl.setAttribute('font-family', 'IBM Plex Mono, monospace');
-      lbl.setAttribute('font-size', '9'); lbl.setAttribute('fill', '#475569');
-      lbl.textContent = v.name + (v.note ? ` — ${v.note}` : '');
-      svg.appendChild(lbl);
+      const nd = document.createElement('div');
+      nd.className = 'q-node' + (v.pick ? ' q-pick' : '');
+      nd.style.left = (v.x * 100) + '%';
+      nd.style.top  = (v.y * 100) + '%';
+      nd.innerHTML = `<div class="q-node-circle">${v.abbr}</div>${v.pick ? '<div class="q-pick-lbl">our pick</div>' : ''}`;
+      plot.appendChild(nd);
     });
-    el.appendChild(svg);
   })();
 
   // ── REPORT REVEAL ───────────────────────────────────────────────────────
