@@ -453,7 +453,7 @@ details.gap-item[open] summary { background: #fafaf8; border-bottom: 1px solid v
             <div class="gap-what">Your /security page states SOC 2 readiness. No public Type II certificate or audit report was found via crt.sh, Vanta Trust Center lookup, or direct web search. At Series B, enterprise procurement teams require this before signing — it's often a hard gate, not a soft preference.</div>
             <div class="gap-why">"We're working on SOC 2" is not the same as having it. Enterprise buyers hear this every week. A Type II report — meaning controls were tested over time, not just designed — is what actually unblocks procurement.</div>
             <div class="gap-fix">
-              <div class="vl md" style="--bg:#e8f5f1;--fg:#2d7f6e">V<img src="https://cdn.simpleicons.org/vanta/2d7f6e" onerror="this.remove()"></div>
+              <div class="vl md" style="--bg:#e8f5f1;--fg:#2d7f6e">V<img src="https://logo.clearbit.com/vanta.com" onerror="this.remove()"></div>
               <div class="fix-text">
                 <div class="fix-by">Vanta — proof360 partner</div>
                 <div class="fix-deal">20% off first year · AWS Marketplace (EDP-eligible)</div>
@@ -610,7 +610,7 @@ details.gap-item[open] summary { background: #fafaf8; border-bottom: 1px solid v
       <div class="vendor-grid">
         <div class="vendor-card">
           <div class="vendor-card-head">
-            <div class="vl md" style="--bg:#e8f5f1;--fg:#2d7f6e">V<img src="https://cdn.simpleicons.org/vanta/2d7f6e" onerror="this.remove()"></div>
+            <div class="vl md" style="--bg:#e8f5f1;--fg:#2d7f6e">V<img src="https://logo.clearbit.com/vanta.com" onerror="this.remove()"></div>
             <div class="vendor-info">
               <div class="vendor-name">Vanta <span class="vendor-partner">Partner</span></div>
               <div class="vendor-route">Direct · AWS Marketplace · Ingram AU</div>
@@ -649,7 +649,7 @@ details.gap-item[open] summary { background: #fafaf8; border-bottom: 1px solid v
 
         <div class="vendor-card">
           <div class="vendor-card-head">
-            <div class="vl md" style="--bg:#ede9fe;--fg:#5b21b6">D<img src="https://cdn.simpleicons.org/drata/5b21b6" onerror="this.remove()"></div>
+            <div class="vl md" style="--bg:#ede9fe;--fg:#5b21b6">D<img src="https://logo.clearbit.com/drata.com" onerror="this.remove()"></div>
             <div class="vendor-info">
               <div class="vendor-name">Drata <span class="vendor-partner">Partner</span></div>
               <div class="vendor-route">Direct · AWS Marketplace</div>
@@ -751,7 +751,7 @@ details.gap-item[open] summary { background: #fafaf8; border-bottom: 1px solid v
       <div class="vendor-actions">
         <h3>Act on the gaps now</h3>
         <a class="va-card" href="https://vanta.com" target="_blank">
-          <div class="va-logo-wrap"><div class="vl lg" style="--bg:#e8f5f1;--fg:#2d7f6e">V<img src="https://cdn.simpleicons.org/vanta/2d7f6e" onerror="this.remove()"></div></div>
+          <div class="va-logo-wrap"><div class="vl lg" style="--bg:#e8f5f1;--fg:#2d7f6e">V<img src="https://logo.clearbit.com/vanta.com" onerror="this.remove()"></div></div>
           <div class="va-body">
             <div class="va-name">Vanta</div>
             <div class="va-action">Start SOC 2 — closes the biggest gap</div>
@@ -778,7 +778,7 @@ details.gap-item[open] summary { background: #fafaf8; border-bottom: 1px solid v
           <span class="va-arrow">→</span>
         </a>
         <a class="va-card" href="https://drata.com" target="_blank">
-          <div class="va-logo-wrap"><div class="vl lg" style="--bg:#ede9fe;--fg:#5b21b6">D<img src="https://cdn.simpleicons.org/drata/5b21b6" onerror="this.remove()"></div></div>
+          <div class="va-logo-wrap"><div class="vl lg" style="--bg:#ede9fe;--fg:#5b21b6">D<img src="https://logo.clearbit.com/drata.com" onerror="this.remove()"></div></div>
           <div class="va-body">
             <div class="va-name">Drata</div>
             <div class="va-action">Multi-framework compliance · 15% off</div>
@@ -874,6 +874,11 @@ details.gap-item[open] summary { background: #fafaf8; border-bottom: 1px solid v
     vendor_vanta:      'https://logo.clearbit.com/vanta.com',
     vendor_dicker:     'https://logo.clearbit.com/dickerdata.com.au',
     abuseipdb:         'https://logo.clearbit.com/abuseipdb.com',
+    doc_soc2:          'https://logo.clearbit.com/aicpa.org',
+    doc_iso27001:      'https://logo.clearbit.com/iso.org',
+    doc_apra:          'https://logo.clearbit.com/apra.gov.au',
+    doc_essential8:    'https://logo.clearbit.com/cyber.gov.au',
+    doc_gdpr:          'https://logo.clearbit.com/gdpr.eu',
   };
 
   // Per-node abbreviation shown when no brand logo — gives each node a distinct identity
@@ -999,7 +1004,7 @@ details.gap-item[open] summary { background: #fafaf8; border-bottom: 1px solid v
       enter => {
         const ng = enter.append('g').attr('class', 'nd').style('cursor', 'pointer');
         // Shape — distinct per nodeType (rounded-sq=api, diamond=model, hex=mcp, page=document, shield=vendor, circle=entity/spv)
-        ng.append('path').attr('class', 'nd-shape').attr('fill', '#0c0c10');
+        ng.append('path').attr('class', 'nd-shape').attr('fill', '#ffffff');
         // Per-node abbreviation label — shown when no brand logo
         ng.append('text').attr('class', 'nd-abbrev')
           .attr('text-anchor', 'middle').attr('dominant-baseline', 'central')
