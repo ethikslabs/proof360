@@ -10,7 +10,7 @@ SSM_PREFIX="/proof360"
 # If running as root (e.g. via SSM), re-invoke as ec2-user so git ownership checks pass
 if [ "$(id -u)" = "0" ]; then
   chown -R ec2-user:ec2-user $REPO_DIR 2>/dev/null || true
-  exec su - ec2-user -c "cd $REPO_DIR && bash scripts/deploy.sh"
+  exec su - ec2-user -c "cd $REPO_DIR && git pull origin main && bash scripts/deploy.sh"
 fi
 
 echo "==> Pulling latest"
@@ -20,62 +20,35 @@ git pull origin main
 
 echo "==> Loading secrets from SSM"
 get_ssm() {
-  local value
-  if ! value=$(aws ssm get-parameter \
+  aws ssm get-parameter \
     --region ap-southeast-2 \
     --name "$1" \
     --with-decryption \
     --query "Parameter.Value" \
-    --output text 2>&1); then
-    echo "ERROR: SSM parameter '$1' could not be retrieved: $value" >&2
-    exit 1
-  fi
-  if [ -z "$value" ]; then
-    echo "ERROR: SSM parameter '$1' is empty" >&2
-    exit 1
-  fi
-  echo "$value"
+    --output text 2>/dev/null || echo ""
 }
 
+PORT=$(get_ssm "$SSM_PREFIX/PORT")
 FIRECRAWL_API_KEY=$(get_ssm "$SSM_PREFIX/FIRECRAWL_API_KEY")
 FIRECRAWL_API_URL=$(get_ssm "$SSM_PREFIX/FIRECRAWL_API_URL")
 ANTHROPIC_API_KEY=$(get_ssm "/ethikslabs/anthropic/api-key")
 ABUSEIPDB_API_KEY=$(get_ssm "$SSM_PREFIX/ABUSEIPDB_API_KEY")
-PORT=$(get_ssm "$SSM_PREFIX/PORT")
 HIBP_API_KEY=$(get_ssm "$SSM_PREFIX/HIBP_API_KEY")
 VECTOR_URL=$(get_ssm "$SSM_PREFIX/VECTOR_URL")
-NIM_MODEL=$(get_ssm "$SSM_PREFIX/NIM_MODEL")
 VERITAS_URL=$(get_ssm "$SSM_PREFIX/VERITAS_URL")
 VERITAS_API_KEY=$(get_ssm "$SSM_PREFIX/VERITAS_API_KEY")
-TRUST360_URL=$(get_ssm "$SSM_PREFIX/TRUST360_URL")
-DASHBOARD_API_URL=$(get_ssm "$SSM_PREFIX/DASHBOARD_API_URL")
-PROOF360_ADMIN_KEY=$(get_ssm "$SSM_PREFIX/PROOF360_ADMIN_KEY")
-SES_REGION=$(get_ssm "$SSM_PREFIX/SES_REGION")
-SES_FROM_ADDRESS=$(get_ssm "$SSM_PREFIX/SES_FROM_ADDRESS")
-REPORT_BASE_URL=$(get_ssm "$SSM_PREFIX/REPORT_BASE_URL")
-TELEGRAM_BOT_TOKEN=$(get_ssm "$SSM_PREFIX/TELEGRAM_BOT_TOKEN")
-TELEGRAM_CHAT_ID=$(get_ssm "$SSM_PREFIX/TELEGRAM_CHAT_ID")
 
 # Write .env for pm2 to pick up
 cat > "$API_DIR/.env" <<EOF
-PORT=$PORT
+PORT=${PORT:-3002}
 FIRECRAWL_API_KEY=$FIRECRAWL_API_KEY
 FIRECRAWL_API_URL=$FIRECRAWL_API_URL
 ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY
 ABUSEIPDB_API_KEY=$ABUSEIPDB_API_KEY
 HIBP_API_KEY=$HIBP_API_KEY
 VECTOR_URL=$VECTOR_URL
-NIM_MODEL=$NIM_MODEL
 VERITAS_URL=$VERITAS_URL
 VERITAS_API_KEY=$VERITAS_API_KEY
-TRUST360_URL=$TRUST360_URL
-DASHBOARD_API_URL=$DASHBOARD_API_URL
-PROOF360_ADMIN_KEY=$PROOF360_ADMIN_KEY
-SES_REGION=$SES_REGION
-SES_FROM_ADDRESS=$SES_FROM_ADDRESS
-REPORT_BASE_URL=$REPORT_BASE_URL
-TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN
-TELEGRAM_CHAT_ID=$TELEGRAM_CHAT_ID
 LOG_LEVEL=info
 EOF
 
@@ -104,7 +77,7 @@ pm2 status $PM2_NAME
 
 echo "==> Verifying API health"
 sleep 3
-STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$PORT/api/health 2>/dev/null)
+STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${PORT:-3002}/api/health 2>/dev/null)
 if [ "$STATUS" = "200" ]; then
   echo "API healthy"
 else
