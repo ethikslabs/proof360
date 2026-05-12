@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440,initial-scale=1">
+<title>proof360 — acmecorp.io</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<style>
+:root {
+  --e-bg:    #0c0c10; --e-panel: #101018; --e-border: #1e2030;
+  --e-text:  #64748b; --e-bright: #cbd5e1; --e-teal: #2dd4bf;
+  --d-bg:    #f2ede4; --d-card: #ffffff; --d-border: #e0d9ce;
+  --d-text:  #2a221c; --d-muted: #7c6e62; --d-accent: #2d7f6e; --d-light: #e4f2ee;
+  --c-bg:    #1a1a17; --c-text: #f2ede4; --c-muted: rgba(242,237,228,0.5);
+  --c-accent: #2dd4bf; --c-border: rgba(242,237,228,0.12);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--e-bg); font-family: 'IBM Plex Mono', monospace; }
+.wordmark { font-family: 'Spectral', serif; font-weight: 600; letter-spacing: -0.02em; }
+.wordmark em { font-style: italic; font-weight: 400; }
+
+/* ── ACT 1: PROCESS ── */
+#act-process { height: 100vh; display: flex; flex-direction: column; background: var(--e-bg); color: var(--e-bright); position: relative; }
+.proc-bar { background: var(--e-panel); border-bottom: 1px solid var(--e-border); padding: 10px 24px; display: flex; align-items: center; gap: 20px; flex-shrink: 0; font-size: 11px; }
+.proc-bar .wordmark { font-size: 15px; color: var(--e-bright); }
+.proc-bar .wordmark em { color: var(--e-teal); }
+.proc-bar .divider { width: 1px; height: 14px; background: var(--e-border); flex-shrink: 0; }
+.phase-strip { display: flex; }
+.ph { padding: 4px 14px; border: 1px solid var(--e-border); border-right: none; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--e-text); transition: all 0.3s; white-space: nowrap; }
+.ph:last-child { border-right: 1px solid var(--e-border); }
+.ph.active { background: var(--e-teal); color: var(--e-bg); border-color: var(--e-teal); }
+.ph.done { color: var(--e-teal); border-color: var(--e-teal); }
+.ph.done::before { content: '✓ '; }
+.counters { display: flex; gap: 16px; margin-left: auto; color: var(--e-text); font-size: 11px; }
+.counters span b { color: var(--e-bright); }
+.proc-status { font-size: 11px; color: var(--e-teal); min-width: 280px; }
+.proc-main { display: flex; flex: 1; overflow: hidden; }
+#proc-graph { flex: 1; position: relative; overflow: hidden; }
+#proc-graph svg { width: 100%; height: 100%; }
+
+/* Node tooltip */
+#node-tip {
+  position: fixed; z-index: 100; pointer-events: none; opacity: 0;
+  transition: opacity 0.15s; background: var(--e-panel);
+  border: 1px solid var(--e-border); padding: 10px 14px; max-width: 240px;
+}
+#node-tip.show { pointer-events: all; opacity: 1; }
+#node-tip .tip-name { font-size: 12px; font-weight: 500; color: var(--e-bright); margin-bottom: 3px; }
+#node-tip .tip-desc { font-size: 10px; color: var(--e-text); line-height: 1.5; margin-bottom: 8px; font-family: 'Spectral', serif; font-style: italic; }
+#node-tip .tip-link { font-size: 10px; color: var(--e-teal); letter-spacing: 0.04em; cursor: pointer; text-decoration: none; display: inline-block; border: 1px solid var(--e-teal); padding: 3px 8px; }
+#node-tip .tip-link:hover { background: var(--e-teal); color: var(--e-bg); }
+
+/* Tape */
+#proc-tape { width: 340px; flex-shrink: 0; background: var(--e-panel); border-left: 1px solid var(--e-border); display: flex; flex-direction: column; }
+.tape-hd { padding: 10px 16px; border-bottom: 1px solid var(--e-border); display: flex; justify-content: space-between; align-items: center; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--e-text); }
+.tape-hd span { color: var(--e-teal); }
+.tape-body { flex: 1; overflow-y: auto; padding: 8px 0; display: flex; flex-direction: column-reverse; }
+.tape-body::-webkit-scrollbar { width: 4px; }
+.tape-body::-webkit-scrollbar-thumb { background: var(--e-border); }
+.tape-entry { padding: 6px 16px; border-bottom: 1px solid rgba(30,32,48,0.6); font-size: 10px; line-height: 1.5; }
+.tape-entry .t-ts { color: var(--e-text); font-size: 9px; }
+.tape-entry .t-src { font-weight: 500; margin-right: 6px; }
+.tape-entry .t-src.firecrawl { color: #f48120; }
+.tape-entry .t-src.dns, .tape-entry .t-src.ssl { color: var(--e-teal); }
+.tape-entry .t-src.hibp, .tape-entry .t-src.gaps { color: #f87171; }
+.tape-entry .t-src.perplexity { color: #a78bfa; }
+.tape-entry .t-src.vector { color: #fbbf24; }
+.tape-entry .t-src.corpus { color: #c4a2e5; }
+.tape-entry .t-src.spv { color: #34d399; }
+.tape-entry .t-src.founder, .tape-entry .t-src.system { color: var(--e-text); }
+.tape-entry .t-msg { color: var(--e-bright); }
+.tape-entry .t-why { color: var(--e-text); font-style: italic; font-size: 9px; display: block; margin-top: 2px; font-family: 'Spectral', serif; }
+
+/* Controls */
+.proc-controls { background: var(--e-panel); border-top: 1px solid var(--e-border); padding: 8px 24px; display: flex; align-items: center; gap: 16px; flex-shrink: 0; font-size: 11px; }
+.ctrl-btn { width: 28px; height: 28px; background: transparent; border: 1px solid var(--e-border); color: var(--e-bright); cursor: pointer; font-family: inherit; font-size: 12px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.ctrl-btn:hover { border-color: var(--e-teal); color: var(--e-teal); }
+.speed-btns { display: flex; }
+.speed-btns button { padding: 4px 8px; background: transparent; border: 1px solid var(--e-border); border-right: none; color: var(--e-text); cursor: pointer; font-family: inherit; font-size: 10px; }
+.speed-btns button:last-child { border-right: 1px solid var(--e-border); }
+.speed-btns button.on { background: var(--e-teal); color: var(--e-bg); border-color: var(--e-teal); }
+.scrub-wrap { flex: 1; display: flex; align-items: center; gap: 10px; }
+.scrub-wrap input[type=range] { flex: 1; -webkit-appearance: none; height: 2px; background: var(--e-border); outline: none; cursor: pointer; }
+.scrub-wrap input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--e-teal); border-radius: 50%; cursor: pointer; }
+.proc-time { color: var(--e-text); font-size: 10px; min-width: 100px; }
+#proc-complete { display: none; position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%); text-align: center; z-index: 10; }
+#proc-complete.show { display: block; animation: fadeUp 0.5s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+.complete-msg { font-size: 11px; color: var(--e-teal); letter-spacing: 0.06em; margin-bottom: 10px; }
+.btn-view-report { display: inline-block; padding: 12px 28px; background: var(--e-teal); color: var(--e-bg); font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; border: none; cursor: pointer; text-decoration: none; }
+.btn-view-report:hover { background: #5eead4; }
+
+/* ── ACT 2: REPORT ── */
+#act-report { display: none; background: var(--d-bg); font-family: 'IBM Plex Mono', monospace; color: var(--d-text); }
+#act-report.show { display: block; }
+.rep-bar { background: var(--d-card); border-bottom: 1px solid var(--d-border); padding: 12px 36px; display: flex; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 20; }
+.rep-bar .wordmark { font-size: 16px; color: var(--d-text); }
+.rep-bar .wordmark em { color: var(--d-accent); }
+.rep-meta { font-size: 11px; color: var(--d-muted); }
+.rep-stamp { margin-left: auto; font-size: 10px; color: var(--d-muted); }
+.rep-body { max-width: 900px; margin: 0 auto; padding: 36px 36px 0; }
+
+/* Hero */
+.rep-hero { background: var(--d-card); border: 1px solid var(--d-border); border-left: 4px solid var(--d-accent); padding: 24px 28px; margin-bottom: 28px; }
+.rep-hero h1 { font-family: 'Spectral', serif; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 4px; display: flex; align-items: center; gap: 12px; }
+.co-logo-sm { width: 28px; height: 28px; border-radius: 4px; object-fit: contain; background: white; border: 1px solid var(--d-border); padding: 2px; }
+.rep-hero .co-meta { font-size: 11px; color: var(--d-muted); margin-bottom: 14px; }
+.rep-hero .co-read { font-size: 12px; line-height: 1.65; color: var(--d-text); max-width: 700px; }
+.signal-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 14px; }
+.sig-pill { padding: 3px 9px; border-radius: 2px; font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; }
+.sig-pill.bad  { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+.sig-pill.warn { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+.sig-pill.ok   { background: var(--d-light); color: var(--d-accent); border: 1px solid #6ee7b7; }
+.sig-pill.dim  { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+
+/* Observations */
+.rep-section { margin-bottom: 32px; }
+.rep-section-title { font-family: 'Spectral', serif; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; color: var(--d-muted); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--d-border); }
+.obs-table { width: 100%; border-collapse: collapse; }
+.obs-table td { padding: 9px 0; border-bottom: 1px solid var(--d-border); font-size: 12px; vertical-align: middle; }
+.obs-table td:first-child { color: var(--d-muted); width: 160px; }
+.obs-table td:last-child { text-align: right; font-weight: 500; }
+.obs-src { display: flex; align-items: center; gap: 8px; }
+
+/* Logo with fallback — the main fix */
+.vl {
+  position: relative; border-radius: 6px; overflow: hidden;
+  background: var(--bg, #f1f5f9); display: flex; align-items: center;
+  justify-content: center; font-weight: 700; color: var(--fg, #64748b);
+  flex-shrink: 0; font-family: 'Spectral', serif;
+}
+.vl img { position: absolute; inset: 2px; width: calc(100% - 4px); height: calc(100% - 4px); object-fit: contain; border-radius: 4px; }
+.vl.sm  { width: 22px; height: 22px; font-size: 10px; border-radius: 4px; }
+.vl.md  { width: 40px; height: 40px; font-size: 16px; border-radius: 8px; }
+.vl.lg  { width: 52px; height: 52px; font-size: 20px; border-radius: 10px; }
+.vl.xs  { width: 14px; height: 14px; font-size: 7px; border-radius: 3px; vertical-align: middle; display: inline-flex; flex-shrink: 0; }
+.obs-grade { font-weight: 500; }
+.obs-grade.good { color: var(--d-accent); }
+.obs-grade.warn { color: #d97706; }
+.obs-grade.bad  { color: #dc2626; }
+
+/* Gap Categories */
+.gap-category { margin-bottom: 20px; }
+.gc-head {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 16px; background: var(--d-card);
+  border: 1px solid var(--d-border); border-bottom: none;
+  border-left: 3px solid var(--cat-color, #64748b);
+}
+.gc-icon { font-size: 14px; }
+.gc-name { font-family: 'Spectral', serif; font-size: 13px; font-weight: 600; color: var(--d-text); flex: 1; }
+.gc-scale { font-size: 10px; color: var(--cat-color, #64748b); letter-spacing: 0.04em; padding: 2px 8px; border: 1px solid var(--cat-color, #64748b); opacity: 0.8; }
+.gc-count { font-size: 10px; color: var(--d-muted); }
+
+/* Gap accordion items */
+details.gap-item { background: var(--d-card); border: 1px solid var(--d-border); border-top: none; border-left: 3px solid var(--cat-color, #64748b); }
+details.gap-item + details.gap-item { border-top: none; }
+details.gap-item summary {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 18px; cursor: pointer; list-style: none;
+  transition: background 0.15s;
+}
+details.gap-item summary::-webkit-details-marker { display: none; }
+details.gap-item summary:hover { background: #fafaf8; }
+.gap-sev { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; padding: 2px 7px; border-radius: 2px; white-space: nowrap; flex-shrink: 0; }
+.gap-sev.crit { background: #fee2e2; color: #991b1b; }
+.gap-sev.high { background: #fef3c7; color: #92400e; }
+.gap-sev.med  { background: #fefce8; color: #854d0e; }
+.gap-title-text { font-size: 13px; font-weight: 500; flex: 1; }
+.gap-close-time { font-size: 10px; color: var(--d-muted); white-space: nowrap; }
+.gap-chevron { font-size: 10px; color: var(--d-muted); transition: transform 0.2s; flex-shrink: 0; }
+details.gap-item[open] .gap-chevron { transform: rotate(180deg); }
+details.gap-item[open] summary { background: #fafaf8; border-bottom: 1px solid var(--d-border); }
+
+.gap-detail { padding: 18px 20px 20px 46px; display: flex; flex-direction: column; gap: 14px; }
+.gap-what { font-size: 12px; color: var(--d-text); line-height: 1.65; }
+.gap-why { font-size: 11px; color: var(--d-muted); line-height: 1.6; font-style: italic; font-family: 'Spectral', serif; padding-left: 12px; border-left: 2px solid var(--d-border); }
+.gap-fix { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--d-bg); border: 1px solid var(--d-border); border-radius: 3px; }
+.gap-fix .fix-text { flex: 1; }
+.gap-fix .fix-by { font-size: 11px; font-weight: 500; color: var(--d-text); }
+.gap-fix .fix-deal { font-size: 10px; color: var(--d-accent); margin-top: 1px; }
+.gap-fix .fix-route { font-size: 10px; color: var(--d-muted); }
+.gap-fix-cta { padding: 6px 14px; background: transparent; border: 1px solid var(--d-border); color: var(--d-muted); font-family: inherit; font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; cursor: not-allowed; display: flex; align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0; }
+
+/* Vendor matrix */
+.vendor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.vendor-card { background: var(--d-card); border: 1px solid var(--d-border); border-radius: 3px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+.vendor-card-head { display: flex; align-items: center; gap: 12px; }
+.vendor-info { flex: 1; }
+.vendor-name { font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+.vendor-partner { font-size: 9px; background: var(--d-light); color: var(--d-accent); padding: 2px 6px; border-radius: 2px; }
+.vendor-route { font-size: 10px; color: var(--d-muted); margin-top: 2px; }
+.vendor-closes { font-size: 11px; color: var(--d-muted); line-height: 1.5; }
+.vendor-deal { font-size: 10px; color: var(--d-accent); padding-top: 6px; border-top: 1px dotted var(--d-border); }
+.vendor-cta-locked { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border: 1px dashed var(--d-border); font-size: 10px; color: var(--d-muted); letter-spacing: 0.04em; }
+
+/* AWS Programs */
+.aws-row { background: var(--d-card); border: 1px solid var(--d-border); padding: 12px 16px; display: flex; align-items: center; gap: 14px; margin-bottom: 6px; border-radius: 2px; }
+.aws-row .aws-body { flex: 1; }
+.aws-row .aws-name { font-size: 13px; font-weight: 500; }
+.aws-row .aws-desc { font-size: 11px; color: var(--d-muted); margin-top: 2px; }
+.aws-tag { font-size: 10px; background: var(--d-light); color: var(--d-accent); padding: 2px 8px; border-radius: 2px; white-space: nowrap; }
+
+/* Evidence */
+.ev-table { width: 100%; border-collapse: collapse; }
+.ev-table td { padding: 8px 0; border-bottom: 1px solid var(--d-border); font-size: 11px; vertical-align: middle; }
+.ev-table td:first-child { color: var(--d-muted); width: 160px; }
+
+/* Save strip */
+.save-strip { position: sticky; bottom: 0; background: var(--c-bg); padding: 12px 36px; display: flex; align-items: center; gap: 16px; z-index: 20; border-top: 1px solid rgba(255,255,255,0.08); }
+.save-strip p { font-size: 11px; color: var(--c-muted); flex: 1; }
+.save-strip p b { color: var(--c-text); }
+.btn-save { padding: 8px 20px; background: var(--c-accent); color: var(--c-bg); border: none; font-family: inherit; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; white-space: nowrap; }
+
+/* ── ACT 3: CTA ── */
+#act-cta { display: none; background: var(--c-bg); color: var(--c-text); padding: 60px 36px; }
+#act-cta.show { display: block; }
+.cta-inner { max-width: 900px; margin: 0 auto; }
+.cta-label { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--c-accent); margin-bottom: 10px; }
+.cta-headline { font-family: 'Spectral', serif; font-size: 30px; font-weight: 600; line-height: 1.25; letter-spacing: -0.015em; margin-bottom: 8px; }
+.cta-sub { font-size: 12px; color: var(--c-muted); margin-bottom: 40px; line-height: 1.7; max-width: 540px; }
+.cta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
+.capture-box { display: flex; flex-direction: column; gap: 18px; }
+.capture-box h3 { font-family: 'Spectral', serif; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+.capture-box p { font-size: 11px; color: var(--c-muted); line-height: 1.65; }
+.capture-perks { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.capture-perks li { font-size: 11px; color: var(--c-muted); padding-left: 14px; position: relative; }
+.capture-perks li::before { content: '→'; position: absolute; left: 0; color: var(--c-accent); }
+.capture-input-row { display: flex; }
+.capture-input-row input { flex: 1; padding: 11px 14px; background: rgba(255,255,255,0.06); border: 1px solid var(--c-border); border-right: none; color: var(--c-text); font-family: inherit; font-size: 12px; outline: none; }
+.capture-input-row input::placeholder { color: var(--c-muted); }
+.capture-input-row input:focus { border-color: var(--c-accent); }
+.btn-register { padding: 11px 18px; background: var(--c-accent); color: var(--c-bg); border: none; font-family: inherit; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; white-space: nowrap; }
+.capture-note { font-size: 10px; color: var(--c-muted); font-style: italic; font-family: 'Spectral', serif; margin-top: 6px; }
+.vendor-actions { display: flex; flex-direction: column; gap: 0; }
+.vendor-actions h3 { font-family: 'Spectral', serif; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 12px; }
+.va-card { background: rgba(255,255,255,0.04); border: 1px solid var(--c-border); border-bottom: none; padding: 12px 14px; display: flex; align-items: center; gap: 14px; cursor: pointer; transition: background 0.15s; text-decoration: none; color: inherit; }
+.va-card:last-of-type { border-bottom: 1px solid var(--c-border); }
+.va-card:hover { background: rgba(255,255,255,0.07); }
+.va-logo-wrap { width: 38px; height: 38px; flex-shrink: 0; }
+.va-body { flex: 1; }
+.va-name { font-size: 12px; font-weight: 500; color: var(--c-text); }
+.va-action { font-size: 11px; color: var(--c-muted); margin-top: 1px; }
+.va-deal { font-size: 10px; color: var(--c-accent); }
+.va-arrow { color: var(--c-muted); font-size: 14px; }
+.cta-divider { border: none; border-top: 1px solid var(--c-border); margin: 40px 0; }
+.cta-share { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.cta-share p { font-size: 11px; color: var(--c-muted); margin-right: 4px; }
+.btn-share { padding: 7px 14px; background: transparent; border: 1px solid var(--c-border); color: var(--c-text); font-family: inherit; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; }
+.btn-share:hover { border-color: var(--c-text); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════ ACT 1: PROCESS -->
+<section id="act-process">
+  <div id="node-tip">
+    <div class="tip-name" id="tip-name"></div>
+    <div class="tip-desc" id="tip-desc"></div>
+    <a class="tip-link" id="tip-link" target="_blank" rel="noopener"></a>
+  </div>
+
+  <header class="proc-bar">
+    <span class="wordmark">proof<em>/360</em></span>
+    <div class="divider"></div>
+    <div class="phase-strip">
+      <div class="ph" data-ph="0">01 · Quick</div>
+      <div class="ph" data-ph="1">02 · Standard</div>
+      <div class="ph" data-ph="2">03 · Interactive</div>
+      <div class="ph" data-ph="3">04 · Deep</div>
+    </div>
+    <div class="proc-status" id="proc-status">Initialising read...</div>
+    <div class="counters">
+      <span><b id="c-src">0</b> sources</span>
+      <span><b id="c-mdl">0</b> models</span>
+      <span><b id="c-gap">0</b> gaps</span>
+    </div>
+  </header>
+
+  <div class="proc-main">
+    <div id="proc-graph">
+      <svg id="graph-svg">
+        <defs>
+          <symbol id="icon-api" viewBox="0 0 24 24">
+            <rect x="9" y="2" width="6" height="10" rx="1" fill="none" stroke="currentColor" stroke-width="2"/>
+            <line x1="7" y1="7" x2="4" y2="7" stroke="currentColor" stroke-width="2"/>
+            <line x1="17" y1="7" x2="20" y2="7" stroke="currentColor" stroke-width="2"/>
+            <path d="M6 12h12v6a3 3 0 01-3 3H9a3 3 0 01-3-3v-6z" fill="none" stroke="currentColor" stroke-width="2"/>
+          </symbol>
+          <symbol id="icon-model" viewBox="0 0 24 24">
+            <polygon points="12,2 15,9 22,9 16.5,13.5 18.5,21 12,17 5.5,21 7.5,13.5 2,9 9,9" fill="none" stroke="currentColor" stroke-width="2"/>
+          </symbol>
+          <symbol id="icon-mcp" viewBox="0 0 24 24">
+            <polygon points="12,2 20,7 20,17 12,22 4,17 4,7" fill="none" stroke="currentColor" stroke-width="2"/>
+          </symbol>
+          <symbol id="icon-entity" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+            <line x1="3" y1="9" x2="21" y2="9" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="9" y1="9" x2="9" y2="21" stroke="currentColor" stroke-width="1.5"/>
+          </symbol>
+          <symbol id="icon-spv" viewBox="0 0 24 24">
+            <line x1="2" y1="20" x2="22" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <rect x="5" y="8" width="3" height="12" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="10.5" y="8" width="3" height="12" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="16" y="8" width="3" height="12" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <polygon points="12,2 22,8 2,8" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          </symbol>
+        </defs>
+      </svg>
+      <div id="proc-complete">
+        <div class="complete-msg">Read complete · 10 sources · 4 models · 6 gaps · 4 vendors mapped</div>
+        <button class="btn-view-report" onclick="showReport()">View report →</button>
+      </div>
+    </div>
+    <div id="proc-tape">
+      <div class="tape-hd">Reading tape <span>live · annotated</span></div>
+      <div class="tape-body" id="tape-body"></div>
+    </div>
+  </div>
+
+  <div class="proc-controls">
+    <button class="ctrl-btn" id="btn-play">▶</button>
+    <button class="ctrl-btn" id="btn-restart" title="Restart">↺</button>
+    <div class="speed-btns">
+      <button data-spd="0.5">0.5×</button>
+      <button data-spd="1" class="on">1×</button>
+      <button data-spd="2">2×</button>
+      <button data-spd="4">4×</button>
+    </div>
+    <div class="scrub-wrap">
+      <input type="range" id="scrub" min="0" max="1000" value="0">
+      <span class="proc-time" id="proc-time">0.0s / 40.0s</span>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════ ACT 2: REPORT -->
+<section id="act-report">
+  <div class="rep-bar">
+    <span class="wordmark">proof<em>/360</em></span>
+    <span class="rep-meta">acmecorp.io · live read</span>
+    <span class="rep-stamp" id="rep-stamp"></span>
+  </div>
+
+  <div class="rep-body">
+
+    <!-- Hero -->
+    <div class="rep-hero">
+      <h1>
+        <div class="vl sm" style="--bg:#e0f2fe;--fg:#0369a1">A
+          <img src="https://logo.clearbit.com/acmecorp.io" onerror="this.remove()">
+        </div>
+        acmecorp.io
+      </h1>
+      <div class="co-meta">B2B SaaS · Series B · AU/US · AWS · ~120 employees · PII confirmed</div>
+      <div class="co-read">
+        Cloud-native B2B SaaS at Series B. AWS-hosted with CloudFront edge, Google Workspace for identity.
+        Claims SOC 2 readiness on public /security page — no certificate or audit report found.
+        DMARC unenforced (p=none) — domain spoofing currently possible. One historical breach on record (2021).
+        Cyber insurance and MFA enforcement both unverified via founder confirmation.
+      </div>
+      <div class="signal-row">
+        <span class="sig-pill bad">DMARC p=none</span>
+        <span class="sig-pill bad">SOC 2 unverified</span>
+        <span class="sig-pill warn">1 breach 2021</span>
+        <span class="sig-pill warn">MFA unverified</span>
+        <span class="sig-pill warn">No cyber insurance</span>
+        <span class="sig-pill ok">TLS Grade A</span>
+        <span class="sig-pill ok">AWS-native</span>
+        <span class="sig-pill dim">Series B</span>
+      </div>
+    </div>
+
+    <!-- Observations -->
+    <div class="rep-section">
+      <div class="rep-section-title">Direct observations — live recon, no inference</div>
+      <table class="obs-table">
+        <tr>
+          <td>DMARC / Email</td>
+          <td class="obs-src">
+            <div class="vl sm" style="--bg:#fef9c3;--fg:#713f12">D<img src="https://logo.clearbit.com/mxtoolbox.com" onerror="this.remove()"></div>
+            p=none — email spoofing not blocked. SPF pass. Google Workspace MX.
+          </td>
+          <td><span class="obs-grade bad">⚠ Unenforced</span></td>
+        </tr>
+        <tr>
+          <td>TLS / Certificate</td>
+          <td class="obs-src">
+            <div class="vl sm" style="--bg:#dbeafe;--fg:#1d4ed8">Q<img src="https://logo.clearbit.com/ssllabs.com" onerror="this.remove()"></div>
+            SSL Labs. 47 subdomains in cert transparency.
+          </td>
+          <td><span class="obs-grade good">A</span></td>
+        </tr>
+        <tr>
+          <td>Breach history</td>
+          <td class="obs-src">
+            <div class="vl sm" style="--bg:#fee2e2;--fg:#991b1b">H<img src="https://logo.clearbit.com/haveibeenpwned.com" onerror="this.remove()"></div>
+            1 breach — 2021, 3,400 accounts, email + hashed passwords. Resolved.
+          </td>
+          <td><span class="obs-grade warn">1 breach</span></td>
+        </tr>
+        <tr>
+          <td>IP reputation</td>
+          <td class="obs-src">
+            <div class="vl sm" style="--bg:#fce7f3;--fg:#9d174d">A<img src="https://logo.clearbit.com/abuseipdb.com" onerror="this.remove()"></div>
+            AbuseIPDB — 0 reports, confidence 0%.
+          </td>
+          <td><span class="obs-grade good">Clean</span></td>
+        </tr>
+        <tr>
+          <td>Infrastructure</td>
+          <td class="obs-src">
+            <div class="vl sm" style="--bg:#fff7ed;--fg:#c2410c">A<img src="https://cdn.simpleicons.org/amazonaws/FF9900" onerror="this.remove()"></div>
+            AWS us-east-1, CloudFront edge, Route 53 DNS.
+          </td>
+          <td><span class="obs-grade good">AWS-native</span></td>
+        </tr>
+        <tr>
+          <td>Web intelligence</td>
+          <td class="obs-src">
+            <div class="vl sm" style="--bg:#ede9fe;--fg:#5b21b6">P<img src="https://logo.clearbit.com/perplexity.ai" onerror="this.remove()"></div>
+            Perplexity/Sonar via VECTOR — 14 citations. Series B $12M confirmed.
+          </td>
+          <td><span class="obs-grade good">14 citations</span></td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Trust Gaps — categorised with accordion -->
+    <div class="rep-section">
+      <div class="rep-section-title">Trust gaps — 6 identified across 4 categories</div>
+
+      <!-- Compliance Programme -->
+      <div class="gap-category" style="--cat-color:#7c3aed">
+        <div class="gc-head">
+          <span class="gc-icon">⚖️</span>
+          <span class="gc-name">Compliance Programme</span>
+          <span class="gc-scale">4–6 months · requires auditor</span>
+          <span class="gc-count">1 gap</span>
+        </div>
+        <details class="gap-item" style="--cat-color:#7c3aed">
+          <summary>
+            <span class="gap-sev crit">Critical</span>
+            <span class="gap-title-text">SOC 2 Type II — no certificate found</span>
+            <span class="gap-close-time">4–6 months</span>
+            <span class="gap-chevron">▾</span>
+          </summary>
+          <div class="gap-detail">
+            <div class="gap-what">Your /security page states SOC 2 readiness. No public Type II certificate or audit report was found via crt.sh, Vanta Trust Center lookup, or direct web search. At Series B, enterprise procurement teams require this before signing — it's often a hard gate, not a soft preference.</div>
+            <div class="gap-why">"We're working on SOC 2" is not the same as having it. Enterprise buyers hear this every week. A Type II report — meaning controls were tested over time, not just designed — is what actually unblocks procurement.</div>
+            <div class="gap-fix">
+              <div class="vl md" style="--bg:#e8f5f1;--fg:#2d7f6e">V<img src="https://cdn.simpleicons.org/vanta/2d7f6e" onerror="this.remove()"></div>
+              <div class="fix-text">
+                <div class="fix-by">Vanta — proof360 partner</div>
+                <div class="fix-deal">20% off first year · AWS Marketplace (EDP-eligible)</div>
+                <div class="fix-route">Continuous compliance · connects to AWS in an afternoon · generates auditor evidence automatically</div>
+              </div>
+              <div class="gap-fix-cta">🔒 Connect</div>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- Access & Identity -->
+      <div class="gap-category" style="--cat-color:#2563eb">
+        <div class="gc-head">
+          <span class="gc-icon">🔐</span>
+          <span class="gc-name">Access &amp; Identity</span>
+          <span class="gc-scale">1 day · configuration change</span>
+          <span class="gc-count">1 gap</span>
+        </div>
+        <details class="gap-item" style="--cat-color:#2563eb">
+          <summary>
+            <span class="gap-sev crit">Critical</span>
+            <span class="gap-title-text">MFA enforcement — not confirmed for all employees</span>
+            <span class="gap-close-time">1 day</span>
+            <span class="gap-chevron">▾</span>
+          </summary>
+          <div class="gap-detail">
+            <div class="gap-what">Google Workspace detected via MX records. Founder confirmed MFA as partial — meaning some employees, not all. Every enterprise security questionnaire asks this. Partial enforcement is worse than none from an audit perspective because it implies you know about the gap.</div>
+            <div class="gap-why">One account without MFA is the account that gets phished. At 120 employees, the probability of credential theft in the next 12 months without universal MFA is not theoretical.</div>
+            <div class="gap-fix">
+              <div class="vl md" style="--bg:#e0f2fe;--fg:#0369a1">C<img src="https://cdn.simpleicons.org/cisco/1BA0D7" onerror="this.remove()"></div>
+              <div class="fix-text">
+                <div class="fix-by">Cisco Duo — proof360 partner</div>
+                <div class="fix-deal">Via Ingram MSP · operational in 1 day</div>
+                <div class="fix-route">Works alongside Google Workspace · no infrastructure changes · Cisco Talos threat intelligence</div>
+              </div>
+              <div class="gap-fix-cta">🔒 Connect</div>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- Financial Protection -->
+      <div class="gap-category" style="--cat-color:#059669">
+        <div class="gc-head">
+          <span class="gc-icon">🛡️</span>
+          <span class="gc-name">Financial Protection</span>
+          <span class="gc-scale">2–4 weeks · procurement decision</span>
+          <span class="gc-count">1 gap</span>
+        </div>
+        <details class="gap-item" style="--cat-color:#059669">
+          <summary>
+            <span class="gap-sev crit">Critical</span>
+            <span class="gap-title-text">Cyber insurance — no active policy evidenced</span>
+            <span class="gap-close-time">2–4 weeks</span>
+            <span class="gap-chevron">▾</span>
+          </summary>
+          <div class="gap-detail">
+            <div class="gap-what">No public mention of cyber insurance found. Founder confirmed none via the interactive loop. With PII confirmed, AWS-hosted infrastructure, and 1 breach on record, this is a standard Series B requirement — both for investor due diligence and enterprise procurement questionnaires.</div>
+            <div class="gap-why">At Series B with PII, institutional investors will ask. Enterprise buyers in financial services, health, and government verticals require it as a contract condition. Cover is typically $1–3M for this stage and costs $8–15k/year.</div>
+            <div class="gap-fix">
+              <div class="vl md" style="--bg:#ecfdf5;--fg:#065f46">C<img src="https://logo.clearbit.com/coalitioninc.com" onerror="this.remove()"></div>
+              <div class="fix-text">
+                <div class="fix-by">Coalition · Cowbell · Chubb</div>
+                <div class="fix-deal">Direct · AU-eligible · quote in 20 minutes online</div>
+                <div class="fix-route">Coalition and Cowbell are fastest for tech/SaaS · Chubb for enterprise coverage requirements</div>
+              </div>
+              <div class="gap-fix-cta">🔒 Connect</div>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- Email Security + Policy (combined quick-wins) -->
+      <div class="gap-category" style="--cat-color:#d97706">
+        <div class="gc-head">
+          <span class="gc-icon">⚡</span>
+          <span class="gc-name">Quick Fixes &amp; Policy</span>
+          <span class="gc-scale">Hours to weeks · no auditor needed</span>
+          <span class="gc-count">3 gaps</span>
+        </div>
+
+        <details class="gap-item" style="--cat-color:#d97706">
+          <summary>
+            <span class="gap-sev high">High</span>
+            <span class="gap-title-text">DMARC — p=none, domain spoofing unblocked</span>
+            <span class="gap-close-time">20 minutes</span>
+            <span class="gap-chevron">▾</span>
+          </summary>
+          <div class="gap-detail">
+            <div class="gap-what">DMARC is one DNS TXT record. It's currently set to p=none, which means any mail server on the internet can send email that appears to come from @acmecorp.io. Change it to p=quarantine (sends suspicious mail to spam) or p=reject (blocks it entirely). This is a 20-minute change, not a project.</div>
+            <div class="gap-why">This is the single highest-ROI security change you can make today. It directly blocks the phishing attack vector most commonly used against B2B SaaS customers — impersonating your domain to your own customers.</div>
+            <div class="gap-fix">
+              <div class="vl md" style="--bg:#fff7ed;--fg:#c2410c">C<img src="https://cdn.simpleicons.org/cloudflare/F6821F" onerror="this.remove()"></div>
+              <div class="fix-text">
+                <div class="fix-by">Cloudflare Email Security — proof360 partner</div>
+                <div class="fix-deal">Free tier covers this · email routing included</div>
+                <div class="fix-route">Or: add the TXT record directly in Route 53 — no vendor required. Change p=none → p=quarantine.</div>
+              </div>
+              <div class="gap-fix-cta">🔒 Connect</div>
+            </div>
+          </div>
+        </details>
+
+        <details class="gap-item" style="--cat-color:#d97706">
+          <summary>
+            <span class="gap-sev high">High</span>
+            <span class="gap-title-text">AI governance policy — no framework evidenced</span>
+            <span class="gap-close-time">2–4 weeks</span>
+            <span class="gap-chevron">▾</span>
+          </summary>
+          <div class="gap-detail">
+            <div class="gap-what">No AI usage policy or governance framework found on any public page. EU AI Act came into force August 2024 — if any customers are in the EU, this applies. At Series B with product development signals detected (GitHub repos, engineering hiring), AI governance is increasingly a board-level ask.</div>
+            <div class="gap-why">This is documentation work, not infrastructure. A policy that covers: what AI tools are used, on what data, with what controls, reviewed annually. 2–4 weeks to draft and publish. Missing it means you can't answer the question when asked.</div>
+            <div class="gap-fix">
+              <div class="vl md" style="--bg:#ede9fe;--fg:#5b21b6">C<img src="https://logo.clearbit.com/cognitiveview.com" onerror="this.remove()"></div>
+              <div class="fix-text">
+                <div class="fix-by">CognitiveView</div>
+                <div class="fix-deal">Direct · AI governance framework templates</div>
+                <div class="fix-route">EU AI Act compliance mapping · policy templates · audit trail</div>
+              </div>
+              <div class="gap-fix-cta">🔒 Connect</div>
+            </div>
+          </div>
+        </details>
+
+        <details class="gap-item" style="--cat-color:#d97706">
+          <summary>
+            <span class="gap-sev med">Medium</span>
+            <span class="gap-title-text">Backup &amp; DR policy — no public documentation</span>
+            <span class="gap-close-time">2–3 weeks</span>
+            <span class="gap-chevron">▾</span>
+          </summary>
+          <div class="gap-detail">
+            <div class="gap-what">No formal backup or disaster recovery policy was found. Given AWS-native infrastructure, S3 versioning and AWS Backup are likely in use — but no documented RTO/RPO targets, backup schedules, or recovery procedures were evidenced. Enterprise buyers ask for this in security questionnaires.</div>
+            <div class="gap-why">AWS Backup is already available in your account. This is policy documentation work around infrastructure that probably already exists. Set RTOs, document the runbook, test it once. Close time is mostly scheduling, not building.</div>
+            <div class="gap-fix">
+              <div class="vl md" style="--bg:#fff7ed;--fg:#c2410c">A<img src="https://cdn.simpleicons.org/amazonaws/FF9900" onerror="this.remove()"></div>
+              <div class="fix-text">
+                <div class="fix-by">AWS Backup — already in your account</div>
+                <div class="fix-deal">Free tier available · native to your existing AWS estate</div>
+                <div class="fix-route">Enable AWS Backup · set RTO/RPO targets · document the runbook · done</div>
+              </div>
+              <div class="gap-fix-cta">🔒 Connect</div>
+            </div>
+          </div>
+        </details>
+      </div>
+    </div><!-- /gaps -->
+
+    <!-- Vendor matrix -->
+    <div class="rep-section">
+      <div class="rep-section-title">Recommended vendor routes — register to engage</div>
+      <div class="vendor-grid">
+        <div class="vendor-card">
+          <div class="vendor-card-head">
+            <div class="vl md" style="--bg:#e8f5f1;--fg:#2d7f6e">V<img src="https://cdn.simpleicons.org/vanta/2d7f6e" onerror="this.remove()"></div>
+            <div class="vendor-info">
+              <div class="vendor-name">Vanta <span class="vendor-partner">Partner</span></div>
+              <div class="vendor-route">Direct · AWS Marketplace · Ingram AU</div>
+            </div>
+          </div>
+          <div class="vendor-closes">Closes: SOC 2 Type II · ISO 27001 · continuous compliance monitoring</div>
+          <div class="vendor-deal">20% off first year for proof360 clients · EDP-eligible on AWS Marketplace</div>
+          <div class="vendor-cta-locked">Connect via proof360 <span>🔒 Register to unlock</span></div>
+        </div>
+
+        <div class="vendor-card">
+          <div class="vendor-card-head">
+            <div class="vl md" style="--bg:#e0f2fe;--fg:#0369a1">C<img src="https://cdn.simpleicons.org/cisco/1BA0D7" onerror="this.remove()"></div>
+            <div class="vendor-info">
+              <div class="vendor-name">Cisco Duo <span class="vendor-partner">Partner</span></div>
+              <div class="vendor-route">Ingram MSP · Cisco MSSP pricing</div>
+            </div>
+          </div>
+          <div class="vendor-closes">Closes: MFA enforcement · device trust · identity security</div>
+          <div class="vendor-deal">MSP pricing via Ingram · Cisco Talos threat intelligence included</div>
+          <div class="vendor-cta-locked">Connect via proof360 <span>🔒 Register to unlock</span></div>
+        </div>
+
+        <div class="vendor-card">
+          <div class="vendor-card-head">
+            <div class="vl md" style="--bg:#fff7ed;--fg:#c2410c">C<img src="https://cdn.simpleicons.org/cloudflare/F6821F" onerror="this.remove()"></div>
+            <div class="vendor-info">
+              <div class="vendor-name">Cloudflare <span class="vendor-partner">Partner</span></div>
+              <div class="vendor-route">Direct · Cloudflare for Teams</div>
+            </div>
+          </div>
+          <div class="vendor-closes">Closes: DMARC enforcement · DNS security · Zero Trust network</div>
+          <div class="vendor-deal">Free tier covers DMARC fix · Email Security from $1/user/mo</div>
+          <div class="vendor-cta-locked">Connect via proof360 <span>🔒 Register to unlock</span></div>
+        </div>
+
+        <div class="vendor-card">
+          <div class="vendor-card-head">
+            <div class="vl md" style="--bg:#ede9fe;--fg:#5b21b6">D<img src="https://cdn.simpleicons.org/drata/5b21b6" onerror="this.remove()"></div>
+            <div class="vendor-info">
+              <div class="vendor-name">Drata <span class="vendor-partner">Partner</span></div>
+              <div class="vendor-route">Direct · AWS Marketplace</div>
+            </div>
+          </div>
+          <div class="vendor-closes">Closes: SOC 2 · multi-framework compliance · audit evidence</div>
+          <div class="vendor-deal">15% off first year for proof360 clients · AWS Marketplace listed</div>
+          <div class="vendor-cta-locked">Connect via proof360 <span>🔒 Register to unlock</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AWS Programs -->
+    <div class="rep-section">
+      <div class="rep-section-title">AWS programs — 2 eligible</div>
+      <div class="aws-row">
+        <div class="vl md" style="--bg:#fff7ed;--fg:#c2410c">A<img src="https://cdn.simpleicons.org/amazonaws/FF9900" onerror="this.remove()"></div>
+        <div class="aws-body">
+          <div class="aws-name">AWS Activate</div>
+          <div class="aws-desc">Up to $100k AWS credits for Series B startups. Eligible: AWS-hosted, Series B confirmed.</div>
+        </div>
+        <span class="aws-tag">Eligible</span>
+      </div>
+      <div class="aws-row">
+        <div class="vl md" style="--bg:#fff7ed;--fg:#c2410c">A<img src="https://cdn.simpleicons.org/amazonaws/FF9900" onerror="this.remove()"></div>
+        <div class="aws-body">
+          <div class="aws-name">AWS ISV Accelerate</div>
+          <div class="aws-desc">Co-sell programme — AWS field sellers refer acmecorp.io into enterprise accounts.</div>
+        </div>
+        <span class="aws-tag">Eligible</span>
+      </div>
+    </div>
+
+    <!-- Evidence -->
+    <div class="rep-section">
+      <div class="rep-section-title">How this was built</div>
+      <table class="ev-table">
+        <tr><td>Pages read</td><td>5 of 5 via Firecrawl (homepage, /pricing, /about, /security, /trust)</td></tr>
+        <tr>
+          <td>Signal extraction</td>
+          <td>
+            <span style="display:inline-flex;align-items:center;gap:6px">
+              <span class="vl sm" style="--bg:#fff7ed;--fg:#c2410c">A<img src="https://cdn.simpleicons.org/amazonaws/FF9900" onerror="this.remove()"></span>
+              amazon.nova-lite-v1:0 via VECTOR · Bedrock-sovereign · cheap, fast, structured output
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td>Web intelligence</td>
+          <td>
+            <span style="display:inline-flex;align-items:center;gap:6px">
+              <span class="vl sm" style="--bg:#ede9fe;--fg:#5b21b6">P<img src="https://logo.clearbit.com/perplexity.ai" onerror="this.remove()"></span>
+              Perplexity/Sonar via VECTOR · 14 citations · live web grounding
+            </span>
+          </td>
+        </tr>
+        <tr><td>Recon sources</td><td>8 of 10 called (ports and jobs skipped)</td></tr>
+        <tr><td>Founder input</td><td>5 fields · 3 confirmed · 2 not sure (shown as unverified, not negative evidence)</td></tr>
+        <tr><td>CORPUS</td><td>8 framework dossiers · SOC 2 TSC, ISO 27001, APRA CPS 234, ASD Essential 8</td></tr>
+        <tr><td>Generated</td><td id="gen-time">—</td></tr>
+      </table>
+    </div>
+  </div><!-- /rep-body -->
+
+  <div class="save-strip">
+    <p><b>This report is not saved.</b> Register to save, share with investors, re-run in 90 days, and unlock vendor connections.</p>
+    <button class="btn-save" onclick="document.getElementById('act-cta').scrollIntoView({behavior:'smooth'})">Save &amp; act →</button>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════ ACT 3: CTA -->
+<div id="act-cta">
+  <div class="cta-inner">
+    <div class="cta-label">The read is complete</div>
+    <h2 class="cta-headline">Six gaps. Three critical.<br>All of them fixable — most in days.</h2>
+    <p class="cta-sub">Register to save this report, unlock vendor connections with pre-negotiated proof360 deals, and re-run the read in 90 days to track your progress.</p>
+
+    <div class="cta-grid">
+      <div class="capture-box">
+        <div>
+          <h3>Save this report</h3>
+          <p>One email. No password. Your report is saved, your gaps tracked, and the vendor routes unlocked.</p>
+        </div>
+        <ul class="capture-perks">
+          <li>Report saved and shareable — send to your board or investors</li>
+          <li>Vendor connections unlocked — Vanta 20% off, Duo MSP pricing, Cloudflare partner</li>
+          <li>Re-run in 90 days to measure gap closure</li>
+          <li>AWS program applications tracked end-to-end</li>
+        </ul>
+        <div>
+          <div class="capture-input-row" id="save-row">
+            <input type="email" id="save-email" placeholder="your@company.com">
+            <button class="btn-register" onclick="handleSave()">Save report →</button>
+          </div>
+          <p class="capture-note" id="save-note">No password. No spam. A link to your saved report, that's it.</p>
+        </div>
+      </div>
+
+      <div class="vendor-actions">
+        <h3>Act on the gaps now</h3>
+        <a class="va-card" href="https://vanta.com" target="_blank">
+          <div class="va-logo-wrap"><div class="vl lg" style="--bg:#e8f5f1;--fg:#2d7f6e">V<img src="https://cdn.simpleicons.org/vanta/2d7f6e" onerror="this.remove()"></div></div>
+          <div class="va-body">
+            <div class="va-name">Vanta</div>
+            <div class="va-action">Start SOC 2 — closes the biggest gap</div>
+            <div class="va-deal">20% off first year · partner deal active</div>
+          </div>
+          <span class="va-arrow">→</span>
+        </a>
+        <a class="va-card" href="https://duo.com" target="_blank">
+          <div class="va-logo-wrap"><div class="vl lg" style="--bg:#e0f2fe;--fg:#0369a1">C<img src="https://cdn.simpleicons.org/cisco/1BA0D7" onerror="this.remove()"></div></div>
+          <div class="va-body">
+            <div class="va-name">Cisco Duo</div>
+            <div class="va-action">MFA for all employees — done in 1 day</div>
+            <div class="va-deal">Via Ingram MSP · partner pricing</div>
+          </div>
+          <span class="va-arrow">→</span>
+        </a>
+        <a class="va-card" href="https://cloudflare.com" target="_blank">
+          <div class="va-logo-wrap"><div class="vl lg" style="--bg:#fff7ed;--fg:#c2410c">C<img src="https://cdn.simpleicons.org/cloudflare/F6821F" onerror="this.remove()"></div></div>
+          <div class="va-body">
+            <div class="va-name">Cloudflare</div>
+            <div class="va-action">Fix DMARC — 20 minutes, free tier</div>
+            <div class="va-deal">Partner · direct · free to start</div>
+          </div>
+          <span class="va-arrow">→</span>
+        </a>
+        <a class="va-card" href="https://drata.com" target="_blank">
+          <div class="va-logo-wrap"><div class="vl lg" style="--bg:#ede9fe;--fg:#5b21b6">D<img src="https://cdn.simpleicons.org/drata/5b21b6" onerror="this.remove()"></div></div>
+          <div class="va-body">
+            <div class="va-name">Drata</div>
+            <div class="va-action">Multi-framework compliance · 15% off</div>
+            <div class="va-deal">AWS Marketplace · EDP-eligible</div>
+          </div>
+          <span class="va-arrow">→</span>
+        </a>
+      </div>
+    </div>
+
+    <hr class="cta-divider">
+    <div class="cta-share">
+      <p>Share this report:</p>
+      <button class="btn-share">Copy link</button>
+      <button class="btn-share">Email to board</button>
+      <button class="btn-share">Export SVG receipt</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  // ── NODE TOOLTIPS ────────────────────────────────────────────────────────
+  const TIPS = {
+    entity:       { name: 'acmecorp.io', desc: 'Target — cold read from public surface only. No credentials, no internal access.', url: 'https://acmecorp.io' },
+    firecrawl:    { name: 'Firecrawl', desc: '5 pages scraped: homepage, /pricing, /about, /security, /trust. Extracts claims, not HTML structure.', url: 'https://firecrawl.dev' },
+    dns:          { name: 'DNS / Email', desc: 'DMARC policy (p=none/quarantine/reject), SPF record, MX provider, CAA records. Reads email security posture live.', url: null },
+    ssl:          { name: 'SSL Labs / crt.sh', desc: 'TLS grade via Qualys SSL Labs. Certificate transparency via crt.sh — 47 subdomains in the log.', url: 'https://www.ssllabs.com' },
+    hibp:         { name: 'HaveIBeenPwned', desc: 'Domain breach history — breach dates, data types exposed, affected account count.', url: 'https://haveibeenpwned.com' },
+    abuseipdb:    { name: 'AbuseIPDB', desc: 'Hosting IP reputation — abuse confidence score and historical report count.', url: 'https://www.abuseipdb.com' },
+    github:       { name: 'GitHub', desc: 'Public repos, recent commit activity, open source signals, engineering team size indicators.', url: 'https://github.com' },
+    ports:        { name: 'Port Scan', desc: 'Common port probe — admin panels, staging environments, debug endpoints, exposed services.', url: null },
+    ip_asn:       { name: 'IP / ASN Lookup', desc: 'Cloud provider, hosting geography, ASN ownership. Confirms AWS us-east-1, CloudFront edge.', url: null },
+    vector:       { name: 'VECTOR', desc: 'Inference router at localhost:3003. Routes claude-*/nova-* → AWS Bedrock, sonar → Perplexity. No direct model calls.', url: null },
+    nova_lite:    { name: 'Amazon Nova Lite · Bedrock', desc: 'AWS Bedrock model via VECTOR. Signal extraction and gap analysis — cheap, fast, JSON-native, sovereign. Data stays in AWS.', url: 'https://aws.amazon.com/bedrock' },
+    sonar:        { name: 'Perplexity Sonar', desc: 'Live web intelligence with citations via VECTOR. Returns indexed funding news, incidents, coverage. Training data cannot do this.', url: 'https://perplexity.ai' },
+    corpus:       { name: 'CORPUS', desc: 'Knowledge substrate — 8 framework dossiers: SOC 2 TSC, ISO 27001, APRA CPS 234, ASD Essential 8, GDPR, EU AI Act, NIST CSF, PCI DSS.', url: null },
+    http_headers: { name: 'HTTP Headers', desc: 'HSTS, CSP, X-Frame-Options, Permissions-Policy, Referrer-Policy. Security header posture signals developer security awareness.', url: null },
+    whois:        { name: 'WHOIS / RDAP', desc: 'Domain registration date, registrar, privacy protection. Company age corroborates stage claims — 5yr+ for Series B.', url: null },
+    claude_b:     { name: 'Claude · Bedrock', desc: 'Anthropic Claude via AWS Bedrock through VECTOR. Vendor recommendation narrative, disclosure wording. Data stays sovereign.', url: 'https://aws.amazon.com/bedrock' },
+    nvidia_nim:   { name: 'NVIDIA NIM', desc: 'NVIDIA Nemotron-Ultra via VECTOR. Second-opinion risk calibration on gap severity weights. Sub-50B param, hosted by NVIDIA.', url: 'https://build.nvidia.com' },
+    doc_soc2:     { name: 'SOC 2 TSC', desc: 'AICPA Trust Services Criteria — 89 controls across Security, Availability, Confidentiality, Privacy, Processing Integrity.', url: null },
+    doc_iso27001: { name: 'ISO 27001:2022', desc: '93 Annex A controls — information security management system. Required for EU enterprise deals and public sector.', url: null },
+    doc_apra:     { name: 'APRA CPS 234', desc: 'Australian Prudential Standard — mandatory for any entity in the AU financial services supply chain. Board-level accountability.', url: null },
+    doc_essential8: { name: 'ASD Essential 8', desc: 'Australian Signals Directorate baseline — 8 mitigation strategies, 4 maturity levels. Standard for AU government contracts.', url: null },
+    doc_gdpr:     { name: 'GDPR / EU AI Act', desc: 'GDPR Article 32 technical measures + EU AI Act obligations for systems processing EU personal data. Required for EU expansion.', url: null },
+    gap_analysis: { name: 'Gap Analysis', desc: 'Evaluates ~20 trigger conditions against confirmed founder context + live recon. Severity = deal-impact × time-to-close.', url: null },
+    aws_programs: { name: 'AWS Programs', desc: 'Eligibility against AWS program criteria: Activate, ISV Accelerate, MAP, Marketplace.', url: 'https://aws.amazon.com/activate' },
+    spv:          { name: 'SPV Context', desc: 'Inferred company profile: stage, ARR band, geography, sector, PII. Routes vendor pricing and program eligibility.', url: null },
+    vendor_cloudflare: { name: 'Cloudflare', desc: 'Closes DMARC enforcement + email security gap. DMARC Management, Email Routing, Zero Trust — via EthiksLabs MSSP channel.', url: 'https://cloudflare.com' },
+    vendor_vanta: { name: 'Vanta', desc: 'Closes SOC 2 compliance programme gap. Continuous monitoring, audit evidence automation. Direct integration via CORPUS.', url: 'https://vanta.com' },
+    vendor_cisco: { name: 'Cisco', desc: 'Closes network access control gap. Enterprise NAC, network visibility. Routed via Ingram AU — account pending activation.', url: 'https://cisco.com' },
+    vendor_dicker: { name: 'Dicker Data [461654]', desc: 'Endpoint and hardware routing — partner account 461654. Endpoint security, networking hardware. GetPrice by SKU.', url: null },
+  };
+
+  const tip = document.getElementById('node-tip');
+  const tipName = document.getElementById('tip-name');
+  const tipDesc = document.getElementById('tip-desc');
+  const tipLink = document.getElementById('tip-link');
+
+  function showTip(d, event) {
+    const t = TIPS[d.id];
+    if (!t) return;
+    tipName.textContent = t.name;
+    tipDesc.textContent = t.desc;
+    if (t.url) {
+      tipLink.href = t.url;
+      tipLink.textContent = '→ ' + new URL(t.url).hostname;
+      tipLink.style.display = 'inline-block';
+    } else {
+      tipLink.style.display = 'none';
+    }
+    const x = Math.min(event.clientX + 14, window.innerWidth - 260);
+    const y = Math.min(event.clientY - 10, window.innerHeight - 140);
+    tip.style.left = x + 'px';
+    tip.style.top = y + 'px';
+    tip.classList.add('show');
+  }
+
+  function hideTip() { tip.classList.remove('show'); }
+
+  // ── D3 GRAPH ─────────────────────────────────────────────────────────────
+  // Simple Icons CDN — verified slugs only
+  const BRAND_ICONS = {
+    hibp:              'https://cdn.simpleicons.org/haveibeenpwned/5390f5',
+    github:            'https://cdn.simpleicons.org/github/e2e8f0',
+    claude_b:          'https://cdn.simpleicons.org/anthropic/D97706',
+    nvidia_nim:        'https://cdn.simpleicons.org/nvidia/76B900',
+    vendor_cloudflare: 'https://cdn.simpleicons.org/cloudflare/F6821F',
+    vendor_cisco:      'https://cdn.simpleicons.org/cisco/1BA0D7',
+  };
+
+  // Per-node abbreviation shown when no brand logo — gives each node a distinct identity
+  const ABBREV = {
+    entity:'@', firecrawl:'FC', dns:'DNS', ssl:'SSL', abuseipdb:'AIP',
+    ports:'PORT', ip_asn:'ASN', http_headers:'HDR', whois:'WIS',
+    vector:'VEC', nova_lite:'NL', sonar:'SON', corpus:'COR',
+    gap_analysis:'GAP', aws_programs:'AWS', spv:'SPV',
+    doc_soc2:'SOC2', doc_iso27001:'ISO', doc_apra:'APRA',
+    doc_essential8:'ES8', doc_gdpr:'GDPR',
+    vendor_vanta:'VAN', vendor_dicker:'DD',
+  };
+
+  // Distinct SVG path per node type — shape communicates category at a glance
+  function shapePathFor(d) {
+    const r = NODE_R;
+    switch (d.nodeType) {
+      case 'api': {
+        // Rounded square — structured data source
+        const rx = 7;
+        return `M${-r+rx},${-r} H${r-rx} Q${r},${-r} ${r},${-r+rx} V${r-rx} Q${r},${r} ${r-rx},${r} H${-r+rx} Q${-r},${r} ${-r},${r-rx} V${-r+rx} Q${-r},${-r} ${-r+rx},${-r} Z`;
+      }
+      case 'model': {
+        // Diamond — AI/LLM inference node
+        const dr = r + 4;
+        return `M0,${-dr} L${dr},0 L0,${dr} L${-dr},0 Z`;
+      }
+      case 'mcp': {
+        // Hexagon — knowledge substrate
+        const h = Math.round(r * 0.866);
+        return `M0,${-r} L${h},${-r/2} L${h},${r/2} L0,${r} L${-h},${r/2} L${-h},${-r/2} Z`;
+      }
+      case 'document': {
+        // Folded page — framework dossier
+        const fold = Math.round(r * 0.38);
+        return `M${-r+3},${-r} L${r-fold},${-r} L${r},${-r+fold} L${r},${r} L${-r+3},${r} Z`;
+      }
+      case 'vendor': {
+        // Shield — commercial vendor
+        return `M0,${-r} L${r},${-r*0.5} L${r},${r*0.2} Q${r},${r*0.85} 0,${r} Q${-r},${r*0.85} ${-r},${r*0.2} L${-r},${-r*0.5} Z`;
+      }
+      default:
+        // Circle (entity, spv) — as SVG arc path
+        return `M${-r},0 A${r},${r},0,1,0,${r},0 A${r},${r},0,1,0,${-r},0 Z`;
+    }
+  }
+
+  function nodeColour(d) {
+    if (d.id === 'nova_lite' || d.id === 'aws_programs') return '#FF9900';
+    if (d.id === 'sonar') return '#20B2AA';
+    if (d.id === 'github') return '#94a3b8';
+    if (d.id === 'claude_b') return '#D97706';
+    if (d.id === 'nvidia_nim') return '#76B900';
+    if (d.id === 'vendor_cloudflare') return '#F6821F';
+    if (d.id === 'vendor_cisco') return '#1BA0D7';
+    if (d.id === 'vendor_vanta') return '#FF5A29';
+    if (d.id === 'vendor_dicker') return '#0891b2';
+    const m = { entity:'#64748b', api:'#0891b2', model:'#6366f1', mcp:'#d97706', document:'#ea580c', spv:'#059669', vendor:'#b45309' };
+    return m[d.nodeType] ?? '#334155';
+  }
+
+  const NODE_R = 30;
+  const nodes = [{ id: 'entity', nodeType: 'entity', label: 'acmecorp.io', status: 'active' }];
+  const edges = [];
+  let sim;
+
+  function upsertNode(id, nodeType, label, status) {
+    const ex = nodes.find(n => n.id === id);
+    if (ex) { ex.status = status; ex.nodeType = nodeType; ex.label = label; }
+    else nodes.push({ id, nodeType, label, status });
+  }
+
+  function renderGraph() {
+    const svgEl = d3.select('#graph-svg');
+    const W = svgEl.node().clientWidth || 800;
+    const H = svgEl.node().clientHeight || 500;
+    svgEl.selectAll('g').remove();
+    const g = svgEl.append('g');
+
+    for (const n of nodes) {
+      if (n.x === undefined) {
+        n.x = W / 2 + (Math.random() - 0.5) * W * 0.55;
+        n.y = H / 2 + (Math.random() - 0.5) * H * 0.55;
+      }
+    }
+
+    if (!sim) {
+      sim = d3.forceSimulation()
+        .force('link', d3.forceLink().id(d => d.id).distance(110))
+        .force('charge', d3.forceManyBody().strength(-280))
+        .force('center', d3.forceCenter(W / 2, H / 2))
+        .force('x', d3.forceX(W / 2).strength(0.06))
+        .force('y', d3.forceY(H / 2).strength(0.06))
+        .force('collide', d3.forceCollide(NODE_R + 10))
+        .alphaDecay(0.012);
+    } else {
+      sim.force('center', d3.forceCenter(W / 2, H / 2));
+      sim.force('x', d3.forceX(W / 2).strength(0.06));
+      sim.force('y', d3.forceY(H / 2).strength(0.06));
+    }
+
+    sim.nodes(nodes); sim.force('link').links(edges); sim.alpha(0.4).restart();
+
+    const defs = svgEl.select('defs');
+    if (defs.select('#arrow').empty()) {
+      defs.append('marker').attr('id', 'arrow')
+        .attr('viewBox', '0 0 10 10').attr('refX', 9).attr('refY', 5)
+        .attr('markerWidth', 5).attr('markerHeight', 5)
+        .attr('orient', 'auto-start-reverse')
+        .append('path').attr('d', 'M 0 0 L 10 5 L 0 10 z').attr('fill', 'rgba(100,116,139,0.5)');
+    }
+    if (defs.select('#brand-clip').empty()) {
+      // Circle clip fitted inside the smallest shape (shield top) — r=18
+      defs.append('clipPath').attr('id', 'brand-clip').append('circle').attr('r', 18);
+    }
+
+    g.append('g').selectAll('line').data(edges).join('line')
+      .attr('stroke', 'rgba(100,116,139,0.42)')
+      .attr('stroke-width', 1.5)
+      .attr('marker-end', 'url(#arrow)');
+
+    const nodeSel = g.append('g').selectAll('g.nd').data(nodes).join(
+      enter => {
+        const ng = enter.append('g').attr('class', 'nd').style('cursor', 'pointer');
+        // Shape — distinct per nodeType (rounded-sq=api, diamond=model, hex=mcp, page=document, shield=vendor, circle=entity/spv)
+        ng.append('path').attr('class', 'nd-shape').attr('fill', '#0c0c10');
+        // Per-node abbreviation label — shown when no brand logo
+        ng.append('text').attr('class', 'nd-abbrev')
+          .attr('text-anchor', 'middle').attr('dominant-baseline', 'central')
+          .attr('font-size', 9).attr('font-weight', 600)
+          .attr('font-family', 'IBM Plex Mono, monospace').attr('letter-spacing', '0.04em');
+        // Brand image — Simple Icons SVG; onerror degrades to abbrev
+        ng.append('image').attr('class', 'nd-brand')
+          .attr('width', 36).attr('height', 36).attr('x', -18).attr('y', -18)
+          .attr('clip-path', 'url(#brand-clip)')
+          .on('error', function() {
+            d3.select(this).attr('opacity', 0);
+            d3.select(this.parentNode).select('.nd-abbrev').attr('opacity', 1);
+          });
+        ng.append('text').attr('class', 'nd-label').attr('y', NODE_R + 15)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', 9).attr('fill', '#64748b').attr('font-family', 'IBM Plex Mono, monospace');
+        return ng;
+      }
+    );
+
+    const hasBrand = d => !!BRAND_ICONS[d.id];
+
+    nodeSel.select('.nd-shape')
+      .attr('d', shapePathFor)
+      .attr('stroke', nodeColour)
+      .attr('stroke-width', d => d.status === 'loading' ? 1.5 : 2.5)
+      .attr('opacity', d => d.status === 'loading' ? 0.45 : 1);
+
+    nodeSel.select('.nd-abbrev')
+      .text(d => hasBrand(d) ? '' : (ABBREV[d.id] ?? ''))
+      .attr('fill', nodeColour)
+      .attr('opacity', d => hasBrand(d) ? 0 : (d.status === 'loading' ? 0.5 : 0.9));
+
+    nodeSel.select('.nd-brand')
+      .attr('href', d => BRAND_ICONS[d.id] ?? '')
+      .attr('opacity', d => hasBrand(d) ? (d.status === 'loading' ? 0.4 : 1) : 0);
+
+    nodeSel.select('.nd-label').text(d => d.label);
+
+    nodeSel
+      .on('mouseover', (event, d) => showTip(d, event))
+      .on('mousemove', (event, d) => showTip(d, event))
+      .on('mouseout', hideTip);
+
+    sim.on('tick', () => {
+      g.selectAll('line')
+        .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+        .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+      nodeSel.attr('transform', d => `translate(${d.x},${d.y})`);
+    });
+  }
+
+  renderGraph();
+
+  // ── TIMELINE ─────────────────────────────────────────────────────────────
+  const TOTAL = 40;
+  const TL = []; const step = (t,fn) => TL.push({t,fn});
+  const counts = { src:0, mdl:0, gap:0 };
+  const tapeEl = document.getElementById('tape-body');
+
+  function tape(src, msg, why) {
+    const el = document.createElement('div'); el.className = 'tape-entry';
+    el.innerHTML = `<div><span class="t-ts">${state.time.toFixed(1)}s</span> <span class="t-src ${src}">${src}</span><span class="t-msg">${msg}</span></div>${why?`<span class="t-why">${why}</span>`:''}`;
+    tapeEl.prepend(el);
+  }
+
+  // Model routing entry — VECTOR → provider with brand colour
+  function tapeRoute(provCol, modelLabel, task, stats, why) {
+    const el = document.createElement('div'); el.className = 'tape-entry';
+    el.innerHTML = `<div style="display:flex;align-items:center;gap:5px"><span class="t-ts">${state.time.toFixed(1)}s</span><span class="t-src vector">VECTOR</span><span style="color:${provCol};font-size:10px;font-weight:600"> → ${modelLabel}</span><span class="t-msg" style="color:#94a3b8"> · ${task}</span></div><span class="t-why">${stats}${why?' · '+why:''}</span>`;
+    tapeEl.prepend(el);
+  }
+
+  const setStatus = t => document.getElementById('proc-status').textContent = t;
+  const setPhase = i => document.querySelectorAll('.proc-bar .ph').forEach((p,idx) => { p.classList.toggle('active',idx===i); p.classList.toggle('done',idx<i); });
+  const bump = k => { counts[k]++; document.getElementById('c-'+k).textContent = counts[k]; };
+  const addNode = (id,t,l) => { upsertNode(id,t,l,'loading'); renderGraph(); };
+  const doneNode = (id,t,l) => { upsertNode(id,t,l,'done'); renderGraph(); };
+  const addEdge = (f,t) => { edges.push({source:f,target:t}); renderGraph(); };
+
+  // ── QUICK PHASE — 10 parallel sources ──
+  step(0.0, ()=>{ setPhase(0); setStatus('Quick scan — 10 parallel recon channels');
+    tape('system','Read started · acmecorp.io','why: all recon fires simultaneously — not sequential'); });
+  step(0.5, ()=>{ addNode('firecrawl','api','Firecrawl'); bump('src');
+    tape('firecrawl','Crawling 5 pages: /about /security /trust /pricing /careers','why: public claims surface — what they say vs what we observe'); });
+  step(0.9, ()=>{ addNode('dns','api','DNS'); bump('src');
+    tape('dns','DMARC · SPF · MX · A records · CAA','why: email security posture — read live from DNS'); });
+  step(1.1, ()=>{ addNode('http_headers','api','HTTP Headers'); bump('src');
+    tape('http_headers','HSTS · CSP · X-Frame-Options · Permissions-Policy · Referrer-Policy','why: security header posture = dev team awareness signal'); });
+  step(1.3, ()=>{ addNode('ssl','api','SSL Labs'); bump('src');
+    tape('ssl','TLS grade · cert transparency (crt.sh) · cipher suite · HSTS','why: infra hygiene + subdomain exposure map'); });
+  step(1.6, ()=>{ addNode('whois','api','WHOIS'); bump('src');
+    tape('whois','Domain registration date · registrar · privacy status','why: company age corroborates stage claims — 5yr+ for Series B'); });
+  step(1.9, ()=>{ addNode('hibp','api','HIBP'); bump('src');
+    tape('hibp','Checking breach history — 3 corporate email domains','why: breach history → cyber insurance underwriting signal'); });
+  step(2.3, ()=>{ addNode('abuseipdb','api','AbuseIPDB'); bump('src');
+    tape('abuseipdb','IP reputation · abuse confidence score · report count','why: outbound trust — buyers and insurers check this'); });
+  step(2.7, ()=>{ addNode('github','api','GitHub'); bump('src');
+    tape('github','Public repos · commit frequency · open source posture','why: engineering signal · deployment cadence · tech stack fingerprint'); });
+  step(3.1, ()=>{ addNode('ports','api','Port Scan'); bump('src');
+    tape('ports','Common port probe · staging exposure · admin panel check','why: exposed debug endpoints = finding in any security questionnaire'); });
+  step(3.4, ()=>{ addNode('ip_asn','api','IP / ASN'); bump('src');
+    tape('ip_asn','Cloud provider · hosting geo · ASN ownership','why: confirms AWS posture · routes program eligibility checks'); });
+
+  step(3.9, ()=>{ doneNode('firecrawl','api','Firecrawl'); addEdge('entity','firecrawl');
+    tape('firecrawl','5 pages scraped · /security claims SOC 2 readiness · no cert found',''); });
+  step(4.2, ()=>{ doneNode('ssl','api','SSL Labs'); addEdge('entity','ssl');
+    tape('ssl','Grade A · TLS 1.3 · 47 subdomains in cert transparency log',''); });
+  step(4.5, ()=>{ doneNode('dns','api','DNS'); addEdge('entity','dns');
+    tape('dns','DMARC p=none · Google Workspace MX · SPF pass','why: p=none = domain spoofing currently possible'); });
+  step(4.7, ()=>{ doneNode('http_headers','api','HTTP Headers'); addEdge('entity','http_headers');
+    tape('http_headers','HSTS max-age=31536000 · CSP: partial · X-Frame-Options: DENY',''); });
+  step(5.0, ()=>{ doneNode('whois','api','WHOIS'); addEdge('entity','whois');
+    tape('whois','Registered 2019 · GoDaddy · 5yr company age aligns Series B claim',''); });
+  step(5.2, ()=>{ doneNode('hibp','api','HIBP'); addEdge('entity','hibp');
+    tape('hibp','1 breach · 2021 · 3,400 accounts · email + hashed passwords',''); });
+  step(5.5, ()=>{ doneNode('abuseipdb','api','AbuseIPDB'); addEdge('entity','abuseipdb');
+    tape('abuseipdb','Confidence 0% · clean · AWS us-east-1 hosting confirmed',''); });
+  step(5.8, ()=>{ doneNode('github','api','GitHub'); addEdge('entity','github');
+    tape('github','23 public repos · last commit 3d ago · active engineering team',''); });
+  step(6.1, ()=>{ doneNode('ports','api','Port Scan'); addEdge('entity','ports');
+    tape('ports','No exposed admin ports · staging environment clean',''); });
+  step(6.3, ()=>{ doneNode('ip_asn','api','IP / ASN'); addEdge('entity','ip_asn');
+    tape('ip_asn','AWS · us-east-1 · CloudFront CDN edge · Route 53 DNS',''); });
+
+  // ── STANDARD PHASE — VECTOR routes to real models ──
+  step(7.0, ()=>{ setPhase(1); setStatus('Standard — VECTOR routing AI inference');
+    addNode('vector','model','VECTOR');
+    tape('system','VECTOR online · routing to Bedrock + Perplexity + NIM','why: all inference through VECTOR — no direct model calls'); });
+
+  step(7.5, ()=>{ addNode('sonar','model','Sonar'); bump('mdl');
+    tapeRoute('#20B2AA','perplexity/sonar','web intelligence','~2,400 tok','why: live citations beat training data for funding news + incidents'); });
+
+  step(8.1, ()=>{ addNode('nova_lite','model','Nova Lite'); bump('mdl');
+    tapeRoute('#FF9900','amazon.nova-lite-v1:0 · Bedrock','signal extraction','~1,100 tok in','why: cheap · fast · structured JSON · Bedrock-sovereign'); });
+
+  step(9.8, ()=>{ doneNode('sonar','model','Sonar'); addEdge('entity','sonar'); addEdge('sonar','vector');
+    tape('perplexity','Series B $12M confirmed · 14 citations · no recent incidents',''); });
+
+  step(10.8, ()=>{ doneNode('nova_lite','model','Nova Lite');
+    addEdge('firecrawl','vector'); addEdge('dns','vector'); addEdge('vector','nova_lite');
+    tapeRoute('#FF9900','amazon.nova-lite-v1:0 · Bedrock','extraction complete','847 tok in · 124 tok out','14 signals extracted');
+    tape('vector','stage=Series B · sector=B2B SaaS · cloud=AWS · PII=yes · team=~120',''); });
+
+  // ── INTERACTIVE PHASE ──
+  step(11.8, ()=>{ setPhase(2); setStatus('⏳ Founder confirming 3 unverified fields');
+    tape('system','Interactive loop · 3 fields below confidence threshold','why: unverified ≠ negative evidence — shows as unverified, not bad'); });
+  step(14.2, ()=>{ tape('founder','SOC 2: not yet · MFA: partial · Insurance: none',
+    'why: on-record confirmation — threads directly into gap analysis conditions'); });
+
+  // ── DEEP PHASE ──
+  step(15.0, ()=>{ setPhase(3); setStatus('Deep — CORPUS · gap analysis · vendor routing');
+    addNode('corpus','mcp','CORPUS');
+    tape('corpus','Loading 8 framework dossiers','why: gap = control required − evidence found'); });
+
+  // CORPUS explodes into document nodes as it indexes
+  step(16.2, ()=>{ doneNode('corpus','mcp','CORPUS'); addEdge('entity','corpus');
+    tape('corpus','Indexing knowledge base — framework dossiers loading',''); });
+  step(16.5, ()=>{ addNode('doc_soc2','document','SOC 2 TSC'); addEdge('corpus','doc_soc2');
+    tape('corpus','SOC 2 TSC · 89 controls · Security / Availability / Confidentiality loaded',''); });
+  step(16.8, ()=>{ addNode('doc_iso27001','document','ISO 27001'); addEdge('corpus','doc_iso27001');
+    tape('corpus','ISO 27001:2022 · 93 Annex A controls loaded',''); });
+  step(17.1, ()=>{ addNode('doc_apra','document','APRA CPS 234'); addEdge('corpus','doc_apra');
+    tape('corpus','APRA CPS 234 prudential standard loaded · AU financial services chain',''); });
+  step(17.4, ()=>{ addNode('doc_essential8','document','ASD Essential 8'); addEdge('corpus','doc_essential8');
+    tape('corpus','ASD Essential 8 · 4 maturity levels · AU government contracts baseline',''); });
+  step(17.7, ()=>{ addNode('doc_gdpr','document','GDPR / EU AI Act'); addEdge('corpus','doc_gdpr');
+    tape('corpus','GDPR Art 32 + EU AI Act obligations loaded · required for EU expansion','');
+    tape('corpus','23 entities matched · SOC 2 TSC · ISO 27001 · APRA CPS 234 benchmarks active',''); });
+
+  // Gap analysis — VECTOR routes to nova_lite, then validates with claude + nvidia_nim
+  step(18.3, ()=>{ addNode('gap_analysis','model','Gap Analysis'); addEdge('corpus','nova_lite');
+    tapeRoute('#FF9900','amazon.nova-lite-v1:0 · Bedrock','gap analysis','~2,200 tok in',
+      'why: 20 trigger conditions evaluated against confirmed founder context'); });
+
+  step(19.5, ()=>{ addNode('claude_b','model','Claude'); bump('mdl');
+    tapeRoute('#D97706','claude-3.5-sonnet · Bedrock','vendor recommendation narrative','~800 tok in',
+      'why: narrative synthesis + disclosure wording — Bedrock-sovereign'); });
+
+  step(20.3, ()=>{ addNode('nvidia_nim','model','NIM'); bump('mdl');
+    tapeRoute('#76B900','nvidia/nemotron-ultra-253b · NIM','risk score calibration','~600 tok in',
+      'why: second-opinion severity weights — different training distribution'); });
+
+  step(21.0, ()=>{ doneNode('claude_b','model','Claude'); addEdge('vector','claude_b'); addEdge('gap_analysis','claude_b');
+    tape('vector','Vendor disclosure text drafted · 4 vendors · partner vs non-partner flagged',''); });
+
+  step(21.5, ()=>{ doneNode('nvidia_nim','model','NIM'); addEdge('vector','nvidia_nim'); addEdge('gap_analysis','nvidia_nim');
+    tape('vector','Risk calibration complete · severity weights confirmed · 3 critical / 2 high / 1 medium',''); });
+
+  step(22.0, ()=>{ doneNode('gap_analysis','model','Gap Analysis');
+    addEdge('vector','gap_analysis'); addEdge('corpus','gap_analysis'); addEdge('nova_lite','gap_analysis');
+    tape('gaps','6 gaps identified · routing to vendor catalog','');
+    for (let i=0;i<6;i++) bump('gap'); });
+
+  // Vendor routing — gaps map to vendor nodes
+  step(22.6, ()=>{ addNode('vendor_cloudflare','vendor','Cloudflare');
+    tape('vendor','Cloudflare → closes DMARC enforcement + email security gap · MSSP channel',''); });
+  step(23.0, ()=>{ addNode('vendor_vanta','vendor','Vanta');
+    tape('vendor','Vanta → closes SOC 2 compliance programme gap · direct integration',''); });
+  step(23.4, ()=>{ addNode('vendor_cisco','vendor','Cisco');
+    tape('vendor','Cisco → closes network access control gap · via Ingram AU',''); });
+  step(23.8, ()=>{ addNode('vendor_dicker','vendor','Dicker Data');
+    tape('vendor','Dicker Data [461654] → endpoint + hardware routing · GetPrice by SKU',''); });
+  step(24.4, ()=>{ doneNode('vendor_cloudflare','vendor','Cloudflare'); addEdge('gap_analysis','vendor_cloudflare');
+    doneNode('vendor_vanta','vendor','Vanta'); addEdge('gap_analysis','vendor_vanta');
+    doneNode('vendor_cisco','vendor','Cisco'); addEdge('gap_analysis','vendor_cisco');
+    doneNode('vendor_dicker','vendor','Dicker Data'); addEdge('gap_analysis','vendor_dicker'); });
+
+  // AWS Programs and SPV Context
+  step(25.0, ()=>{ addNode('aws_programs','model','AWS Programs'); addEdge('nova_lite','aws_programs');
+    tape('vector','Evaluating AWS program eligibility · 4 programs checked','why: stage=Series B + cloud=AWS triggers program checks'); });
+  step(26.2, ()=>{ doneNode('aws_programs','model','AWS Programs'); addEdge('entity','aws_programs');
+    tape('vector','AWS Activate · ISV Accelerate · both eligible',''); });
+
+  step(27.0, ()=>{ addNode('spv','spv','SPV Context');
+    tape('spv','Assembling inferred company profile from all signals','why: routes vendor pricing tiers and program eligibility'); });
+  step(28.3, ()=>{ doneNode('spv','spv','SPV Context'); addEdge('entity','spv'); addEdge('gap_analysis','spv');
+    tape('spv','Stage: Series B · AU/US · ARR ~$2M · PII: yes · B2B SaaS',''); });
+
+  step(39.5, ()=>{ setStatus('Complete — 10 sources · 4 models · 6 gaps · 4 vendors mapped');
+    document.getElementById('proc-complete').classList.add('show'); });
+
+  // ── PLAYBACK ─────────────────────────────────────────────────────────────
+  const state = { time:0, playing:false, speed:1, done:false, last:0, fired:new Set() };
+
+  requestAnimationFrame(function tick(now) {
+    if (state.playing && !state.done) {
+      const dt = (now - state.last) / 1000;
+      state.last = now;
+      state.time = Math.min(state.time + dt * state.speed, TOTAL);
+      TL.forEach((s,i) => { if (s.t <= state.time && !state.fired.has(i)) { state.fired.add(i); try { s.fn(); } catch(e) {} } });
+      document.getElementById('scrub').value = Math.round(state.time / TOTAL * 1000);
+      document.getElementById('proc-time').textContent = state.time.toFixed(1) + 's / ' + TOTAL + '.0s';
+      if (state.time >= TOTAL) state.done = true;
+    }
+    requestAnimationFrame(tick);
+  });
+
+  const restart = () => {
+    state.time = 0; state.playing = false; state.done = false; state.fired.clear();
+    document.getElementById('btn-play').textContent = '▶';
+    document.getElementById('proc-status').textContent = 'Initialising read...';
+    document.getElementById('tape-body').innerHTML = '';
+    document.getElementById('proc-complete').classList.remove('show');
+    document.getElementById('scrub').value = 0;
+    document.getElementById('proc-time').textContent = '0.0s / 40.0s';
+    Object.keys(counts).forEach(k => { counts[k]=0; document.getElementById('c-'+k).textContent=0; });
+    document.querySelectorAll('.proc-bar .ph').forEach(p => p.classList.remove('active','done'));
+    nodes.length=0; nodes.push({id:'entity',nodeType:'entity',label:'acmecorp.io',status:'active'});
+    edges.length=0; sim=null; renderGraph();
+  };
+
+  document.getElementById('btn-play').addEventListener('click', () => {
+    if (state.done) return;
+    state.playing = !state.playing;
+    document.getElementById('btn-play').textContent = state.playing ? '⏸' : '▶';
+    state.last = performance.now();
+  });
+  document.getElementById('btn-restart').addEventListener('click', restart);
+  document.querySelectorAll('.speed-btns button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.speed-btns button').forEach(x => x.classList.remove('on'));
+      b.classList.add('on'); state.speed = parseFloat(b.dataset.spd); state.last = performance.now();
+    });
+  });
+  document.getElementById('scrub').addEventListener('input', e => {
+    const target = (e.target.value/1000)*TOTAL;
+    if (target < state.time) { const sp=state.speed,pl=state.playing; restart(); state.speed=sp; TL.forEach((s,i) => { if (s.t<=target){state.fired.add(i);try{s.fn();}catch(e){}} }); state.time=target; state.playing=pl; if(pl) state.last=performance.now(); }
+    else { TL.forEach((s,i) => { if(s.t<=target&&!state.fired.has(i)){state.fired.add(i);try{s.fn();}catch(e){}} }); state.time=target; }
+    document.getElementById('proc-time').textContent = target.toFixed(1)+'s / '+TOTAL+'.0s';
+  });
+
+  setTimeout(() => { state.playing=true; document.getElementById('btn-play').textContent='⏸'; state.last=performance.now(); }, 600);
+
+  // ── REPORT REVEAL ───────────────────────────────────────────────────────
+  window.showReport = () => {
+    document.getElementById('act-report').classList.add('show');
+    document.getElementById('act-cta').classList.add('show');
+    document.getElementById('act-report').scrollIntoView({behavior:'smooth'});
+    const now = new Intl.DateTimeFormat('en-AU', {timeZone:'Australia/Sydney',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',timeZoneName:'short'}).format(new Date());
+    document.getElementById('rep-stamp').textContent = 'Generated ' + now;
+    document.getElementById('gen-time').textContent = now;
+  };
+})();
+
+function handleSave() {
+  const email = document.getElementById('save-email').value.trim();
+  if (!email || !email.includes('@')) {
+    document.getElementById('save-email').focus();
+    return;
+  }
+  const row = document.getElementById('save-row');
+  const note = document.getElementById('save-note');
+  row.innerHTML = `<div style="display:flex;align-items:center;gap:10px;padding:12px 0">
+    <span style="color:#2dd4bf;font-size:18px">✓</span>
+    <span style="font-size:13px;color:#f2ede4">Report saved to <strong>${email}</strong> — vendor connections unlocked</span>
+  </div>`;
+  note.textContent = 'Check your inbox for the link. Re-run in 90 days to track gap closure.';
+  note.style.color = '#2dd4bf';
+}
+</script>
+</body>
+</html>

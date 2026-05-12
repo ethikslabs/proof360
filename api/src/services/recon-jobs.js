@@ -1,8 +1,9 @@
-// Job listing passive recon — uses Firecrawl (already in stack)
+// Job listing passive recon — local fetch via @mozilla/readability, no external API.
 // Extracts security/compliance hiring signals from careers pages.
 // The question being answered: "Is this company investing in security?
 // Are they actively closing compliance gaps? What stack are they on?"
 
+import { fetchFullContent } from '../../../../CORPUS/src/ingest/lib/content-fetch.mjs';
 import { record as recordConsumption } from './consumption-emitter.js';
 
 const CAREER_PATHS = [
@@ -43,21 +44,15 @@ const LEADERSHIP_SIGNALS = [
   'chief security', 'chief technology', 'cto',
 ];
 
-export async function reconJobs(domain, firecrawl, session_id) {
-  if (!firecrawl) return { source: 'jobs', skipped: true, reason: 'no_firecrawl' };
-
+export async function reconJobs(domain, session_id) {
   let content = null;
   let foundPath = null;
 
-  // Try career paths until we find content
   for (const path of CAREER_PATHS) {
     try {
-      const result = await firecrawl.scrapeUrl(`https://${domain}${path}`, {
-        formats: ['markdown'],
-        timeout: 8000,
-      });
-      if (result?.success && result.markdown && result.markdown.length > 300) {
-        content = result.markdown;
+      const { text } = await fetchFullContent(`https://${domain}${path}`, { timeout: 8000 });
+      if (text && text.length > 300) {
+        content = text;
         foundPath = path;
         break;
       }

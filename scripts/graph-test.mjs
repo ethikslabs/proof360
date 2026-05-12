@@ -84,6 +84,13 @@ async function run() {
   emit(buildReportSection('programs', 'AWS Programs', { summary: 'Eligible: AWS Activate (credits), AWS ISV Accelerate (co-sell)' }));
   await delay(600);
 
+  emit(buildNodeStart('spv', 'deep'));
+  await delay(1000);
+  emit(buildNodeComplete('spv', true, 'Series B · AU/US · ~$2M ARR inferred'));
+  emit(buildEdge('entity', 'spv'));
+  emit(buildReportSection('spv_context', 'SPV Context', { summary: 'Stage: Series B · Geography: AU/US · ARR: ~$2M inferred · Handles PII: yes · Sector: B2B SaaS' }));
+  await delay(600);
+
   // ── DONE ─────────────────────────────────────────────────────────────────
   emit(buildComplete(null));
   console.log('  scan complete — click "Export SVG receipt" in the browser');

@@ -17,6 +17,7 @@ const SECTIONS = [
   { id: 'evidence_sources', title: 'Evidence Sources' },
   { id: 'trust_gaps', title: 'Trust Gaps' },
   { id: 'programs', title: 'AWS Programs' },
+  { id: 'spv_context', title: 'SPV Context' },
 ];
 
 function initReport() {
@@ -107,14 +108,12 @@ async function exportSvg() {
   clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
   clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
 
-  // Dark background rect — CSS doesn't travel with the exported file
   const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
   bg.setAttribute('width', '100%');
   bg.setAttribute('height', '100%');
-  bg.setAttribute('fill', 'white');
+  bg.setAttribute('fill', '#f2ede4');
   clone.insertBefore(bg, clone.firstChild);
 
-  // Embed favicon images as base64 so the exported SVG is self-contained
   const imgEls = Array.from(clone.querySelectorAll('image[href]'));
   await Promise.all(imgEls.map(async (img) => {
     const href = img.getAttribute('href');
@@ -144,29 +143,70 @@ async function exportSvg() {
 }
 
 // D3 graph rendering
-const FAVICON_DOMAINS = {
-  firecrawl:    'firecrawl.dev',
-  perplexity:   'perplexity.ai',
-  aws_programs: 'aws.amazon.com',
-  github:       'github.com',
-  hibp:         'haveibeenpwned.com',
-  abuseipdb:    'abuseipdb.com',
-  ssl:          'ssllabs.com',
+const BRAND_ICONS = {
+  hibp:         'https://cdn.simpleicons.org/haveibeenpwned/5390f5',
+  github:       'https://cdn.simpleicons.org/github/e2e8f0',
+  anthropic:    'https://cdn.simpleicons.org/anthropic/D97706',
+  nvidia:       'https://cdn.simpleicons.org/nvidia/76B900',
+  cloudflare:   'https://cdn.simpleicons.org/cloudflare/F6821F',
+  cisco:        'https://cdn.simpleicons.org/cisco/1BA0D7',
 };
 
-function faviconFor(node) {
+const ABBREV = {
+  entity:'@', firecrawl:'FC', dns:'DNS', ssl:'SSL', abuseipdb:'AIP',
+  ports:'PORT', ip_asn:'ASN', http_headers:'HDR', whois:'WIS',
+  vector:'VEC', nova_lite:'NL', sonar:'SON', corpus:'COR',
+  gap_analysis:'GAP', aws_programs:'AWS', spv:'SPV',
+  doc_soc2:'SOC2', doc_iso27001:'ISO', doc_apra:'APRA',
+  doc_essential8:'ES8', doc_gdpr:'GDPR',
+  vendor_vanta:'VAN', vendor_dicker:'DD',
+};
+
+function brandFor(node) {
   if (node.id === 'entity' && node.label && node.label !== 'Target')
     return `/proxy-favicon?domain=${encodeURIComponent(node.label)}`;
-  const d = FAVICON_DOMAINS[node.id];
-  return d ? `/proxy-favicon?domain=${d}` : null;
+  return BRAND_ICONS[node.id] ?? null;
 }
 
 const NODE_COLOURS = {
-  entity: '#94a3b8', api: '#2dd4bf', model: '#818cf8',
-  mcp: '#f59e0b', document: '#fb923c',
+  entity:   '#64748b',
+  api:      '#0891b2',
+  model:    '#6366f1',
+  mcp:      '#d97706',
+  document: '#ea580c',
+  vendor:   '#0d9488',
+  spv:      '#059669',
 };
-const NODE_R = 32;
+
+const NODE_R = 26;
 let sim;
+
+function shapePathFor(d) {
+  const r = NODE_R;
+  switch (d.nodeType) {
+    case 'api': {
+      const rx = 6;
+      return `M${-r+rx},${-r} H${r-rx} Q${r},${-r} ${r},${-r+rx} V${r-rx} Q${r},${r} ${r-rx},${r} H${-r+rx} Q${-r},${r} ${-r},${r-rx} V${-r+rx} Q${-r},${-r} ${-r+rx},${-r} Z`;
+    }
+    case 'model': {
+      const dr = r + 4;
+      return `M0,${-dr} L${dr},0 L0,${dr} L${-dr},0 Z`;
+    }
+    case 'mcp': {
+      const h = Math.round(r * 0.866);
+      return `M0,${-r} L${h},${-r/2} L${h},${r/2} L0,${r} L${-h},${r/2} L${-h},${-r/2} Z`;
+    }
+    case 'document': {
+      const fold = Math.round(r * 0.38);
+      return `M${-r+3},${-r} L${r-fold},${-r} L${r},${-r+fold} L${r},${r} L${-r+3},${r} Z`;
+    }
+    case 'vendor': {
+      return `M0,${-r} L${r},${-r*0.5} L${r},${r*0.2} Q${r},${r*0.85} 0,${r} Q${-r},${r*0.85} ${-r},${r*0.2} L${-r},${-r*0.5} Z`;
+    }
+    default:
+      return `M${-r},0 A${r},${r},0,1,0,${r},0 A${r},${r},0,1,0,${-r},0 Z`;
+  }
+}
 
 function renderGraph() {
   const svgEl = d3.select('#graph-svg');
@@ -176,32 +216,33 @@ function renderGraph() {
   svgEl.selectAll('g').remove();
   const g = svgEl.append('g');
 
-  // Spread new nodes across the panel instead of spawning at 0,0
   for (const n of nodes) {
     if (n.x === undefined) {
-      n.x = W / 2 + (Math.random() - 0.5) * W * 0.7;
-      n.y = H / 2 + (Math.random() - 0.5) * H * 0.7;
+      n.x = W / 2 + (Math.random() - 0.5) * W * 0.6;
+      n.y = H / 2 + (Math.random() - 0.5) * H * 0.6;
     }
   }
 
   if (!sim) {
     sim = d3.forceSimulation()
-      .force('link', d3.forceLink().id(d => d.id).distance(200))
-      .force('charge', d3.forceManyBody().strength(-800))
+      .force('link', d3.forceLink().id(d => d.id).distance(110))
+      .force('charge', d3.forceManyBody().strength(-280))
       .force('center', d3.forceCenter(W / 2, H / 2))
-      .force('collide', d3.forceCollide(NODE_R + 24))
-      .force('y', d3.forceY(H / 2).strength(0.02))
+      .force('collide', d3.forceCollide(NODE_R + 18))
+      .force('x', d3.forceX(W / 2).strength(0.06))
+      .force('y', d3.forceY(H / 2).strength(0.06))
       .alphaDecay(0.015);
   } else {
     sim.force('center', d3.forceCenter(W / 2, H / 2));
-    sim.force('collide', d3.forceCollide(NODE_R + 24));
+    sim.force('x', d3.forceX(W / 2).strength(0.06));
+    sim.force('y', d3.forceY(H / 2).strength(0.06));
+    sim.force('collide', d3.forceCollide(NODE_R + 18));
   }
 
   sim.nodes(nodes);
   sim.force('link').links(edges);
   sim.alpha(0.5).restart();
 
-  // Arrow marker
   const defs = svgEl.select('defs');
   if (defs.select('#arrow').empty()) {
     defs.append('marker')
@@ -209,51 +250,58 @@ function renderGraph() {
       .attr('refX', 8).attr('refY', 5)
       .attr('markerWidth', 6).attr('markerHeight', 6)
       .attr('orient', 'auto-start-reverse')
-      .append('path').attr('d', 'M 0 0 L 10 5 L 0 10 z').attr('fill', '#1e3a3a');
+      .append('path').attr('d', 'M 0 0 L 10 5 L 0 10 z').attr('fill', '#c8c0b2');
+  }
+  if (defs.select('#brand-clip').empty()) {
+    defs.append('clipPath').attr('id', 'brand-clip')
+      .append('circle').attr('r', 16);
   }
 
   const linkSel = g.append('g')
     .selectAll('line').data(edges).join('line')
-    .attr('stroke', '#1e3a3a').attr('stroke-width', 1.5)
+    .attr('stroke', '#d4cec6').attr('stroke-width', 1.5)
     .attr('marker-end', 'url(#arrow)');
 
   const nodeSel = g.append('g')
     .selectAll('g.nd').data(nodes).join(
       enter => {
         const ng = enter.append('g').attr('class', 'nd');
-        ng.append('circle').attr('r', NODE_R).attr('fill', '#0C0C12');
-        ng.append('use').attr('width', 28).attr('height', 28).attr('x', -14).attr('y', -14);
-        ng.append('image').attr('width', 28).attr('height', 28).attr('x', -14).attr('y', -14)
-          .attr('clip-path', 'url(#favicon-clip)').attr('display', 'none');
-        ng.append('text').attr('y', NODE_R + 16).attr('text-anchor', 'middle')
-          .attr('font-size', 11).attr('fill', '#64748b').attr('font-family', 'monospace');
+        ng.append('path').attr('class', 'nd-shape').attr('fill', '#0c0c10');
+        ng.append('text').attr('class', 'nd-abbrev')
+          .attr('text-anchor', 'middle').attr('dominant-baseline', 'central')
+          .attr('font-size', 9).attr('font-weight', 600)
+          .attr('font-family', 'IBM Plex Mono, monospace').attr('letter-spacing', '0.04em');
+        ng.append('image').attr('class', 'nd-brand')
+          .attr('width', 32).attr('height', 32).attr('x', -16).attr('y', -16)
+          .attr('clip-path', 'url(#brand-clip)')
+          .on('error', function() {
+            d3.select(this).attr('opacity', 0);
+            d3.select(this.parentNode).select('.nd-abbrev').attr('opacity', 1);
+          });
+        ng.append('text').attr('class', 'nd-label').attr('y', NODE_R + 15)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', 10).attr('fill', '#7c6e62')
+          .attr('font-family', 'IBM Plex Mono, monospace');
         return ng;
       }
     );
 
-  // Add favicon clip path to defs once
-  if (defs.select('#favicon-clip').empty()) {
-    defs.append('clipPath').attr('id', 'favicon-clip')
-      .append('circle').attr('r', 14);
-  }
+  nodeSel.select('.nd-shape')
+    .attr('d', d => shapePathFor(d))
+    .attr('stroke', d => d.status === 'error' ? '#963030' : (NODE_COLOURS[d.nodeType] ?? '#64748b'))
+    .attr('stroke-width', d => d.status === 'loading' ? 1 : 2)
+    .attr('opacity', d => d.status === 'loading' ? 0.4 : 1);
 
-  nodeSel.select('circle')
-    .attr('stroke', d => d.status === 'error' ? '#f87171' : (NODE_COLOURS[d.nodeType] ?? '#334155'))
-    .attr('stroke-width', d => d.status === 'loading' ? 1.5 : 2)
-    .attr('opacity', d => d.status === 'loading' ? 0.45 : 1);
+  nodeSel.select('.nd-abbrev')
+    .text(d => ABBREV[d.id] ?? d.id.slice(0, 4).toUpperCase())
+    .attr('fill', d => NODE_COLOURS[d.nodeType] ?? '#64748b')
+    .attr('opacity', d => brandFor(d) ? 0 : (d.status === 'loading' ? 0.4 : 1));
 
-  nodeSel.select('use')
-    .attr('href', d => `#icon-${d.nodeType}`)
-    .attr('color', d => d.status === 'error' ? '#f87171' : (NODE_COLOURS[d.nodeType] ?? '#94a3b8'))
-    .attr('opacity', d => d.status === 'loading' ? 0.45 : 1)
-    .attr('display', d => faviconFor(d) ? 'none' : null);
+  nodeSel.select('.nd-brand')
+    .attr('href', d => brandFor(d) ?? '')
+    .attr('opacity', d => brandFor(d) ? (d.status === 'loading' ? 0.4 : 1) : 0);
 
-  nodeSel.select('image')
-    .attr('href', d => faviconFor(d) ?? '')
-    .attr('opacity', d => d.status === 'loading' ? 0.45 : 1)
-    .attr('display', d => faviconFor(d) ? null : 'none');
-
-  nodeSel.select('text').text(d => d.label);
+  nodeSel.select('.nd-label').text(d => d.label);
 
   sim.on('tick', () => {
     linkSel

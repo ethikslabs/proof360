@@ -8,6 +8,7 @@ const SOURCE_TYPE_MAP = {
   perplexity: 'model', vector: 'model', gap_analysis: 'model', aws_programs: 'model',
   corpus: 'mcp',
   corpus_doc: 'document',
+  spv: 'spv',
 };
 
 const SOURCE_LABEL_MAP = {
@@ -15,6 +16,7 @@ const SOURCE_LABEL_MAP = {
   ports: 'Port Scan', github: 'GitHub', ip: 'IP/ASN', abuseipdb: 'AbuseIPDB',
   perplexity: 'Perplexity', vector: 'VECTOR', gap_analysis: 'Gap Analysis',
   aws_programs: 'AWS Programs', corpus: 'CORPUS', corpus_doc: 'CORPUS Doc',
+  spv: 'SPV Context',
   entity: 'Target',
 };
 
@@ -26,6 +28,7 @@ const DEPTH_PARENT_MAP = {
   corpus: 'entity',
   gap_analysis: 'vector',
   aws_programs: 'entity',
+  spv: 'entity',
 };
 
 export function nodeTypeFor(source) { return SOURCE_TYPE_MAP[source] ?? 'model'; }

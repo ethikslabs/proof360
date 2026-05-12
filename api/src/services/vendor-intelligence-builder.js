@@ -148,7 +148,7 @@ function buildPickCard(vendor, gap, context) {
 
 function isVendorAlreadyInUse(vendor, context) {
   if (vendor.id === 'cloudflare') {
-    return !!(context.cdn_provider === 'Cloudflare' || context.waf_detected?.includes('Cloudflare'));
+    return !!(context.cdn_provider === 'Cloudflare' || (typeof context.waf_detected === 'string' && context.waf_detected.includes('Cloudflare')));
   }
   if (vendor.id === 'aws') {
     return context.cloud_provider === 'AWS';

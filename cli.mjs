@@ -1848,6 +1848,20 @@ async function main() {
   emit(buildEdge(parentFor('aws_programs'), 'aws_programs'));
   if (awsResults.eligible?.length) emit(buildReportSection('programs', 'AWS Programs', { summary: `${awsResults.eligible.length} eligible programs` }));
 
+  emit(buildNodeStart('spv', 'deep'));
+  const spvParts = [
+    context.stage && context.stage !== 'Unknown' ? context.stage : null,
+    context.geo_market && context.geo_market !== 'Unknown' ? context.geo_market : null,
+    context.sector && context.sector !== 'unknown' ? context.sector : null,
+    context.data_sensitivity && context.data_sensitivity !== 'Unknown' ? `Data: ${context.data_sensitivity}` : null,
+    context.infrastructure ? `Infra: ${context.infrastructure}` : null,
+  ].filter(Boolean);
+  const spvSummary = spvParts.length ? spvParts.join(' · ') : 'Context confirmed';
+  emit(buildNodeComplete('spv', true, spvSummary));
+  emit(buildEdge('entity', 'spv'));
+  emit(buildEdge('gap_analysis', 'spv'));
+  emit(buildReportSection('spv_context', 'SPV Context', { summary: spvSummary }));
+
   emit(buildComplete(null));
 
   printSurface(domain, vector.extracted, webIntel, reconContext, gapResult.gaps);

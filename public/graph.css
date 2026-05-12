@@ -1,41 +1,146 @@
+@import url('https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f2ede4;
+  --bg-panel: #f7f3ec;
+  --bg-card: #ffffff;
+  --border: #e0d9ce;
+  --border-strong: #c8c0b2;
+  --text-primary: #2a221c;
+  --text-secondary: #7c6e62;
+  --text-muted: #b0a496;
+  --accent: #2d7f6e;
+  --accent-light: #e4f2ee;
+  --error: #963030;
+  --graph-bg: #f7f4ef;
+}
+
 body {
-  background: #0C0C12; color: #94a3b8;
+  background: var(--bg);
+  color: var(--text-primary);
   font-family: 'IBM Plex Mono', 'Fira Code', monospace;
-  display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
 }
+
 #status-bar {
-  padding: 10px 20px; font-size: 12px;
-  border-bottom: 1px solid #1a1a2e;
-  display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+  background: var(--bg-card);
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
 }
-#status-dot { color: #2dd4bf; }
-#status-text { color: #94a3b8; }
+
+#wordmark {
+  font-family: 'Spectral', Georgia, serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+#wordmark em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent);
+}
+
+.status-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+#status-dot { color: var(--accent); font-size: 9px; }
+
+#status-text {
+  font-size: 11px;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+}
+
 #stop-btn, #export-btn {
-  background: transparent; border: 1px solid #334155; color: #94a3b8;
-  padding: 4px 12px; border-radius: 4px;
-  font-family: inherit; font-size: 11px; cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  padding: 4px 12px;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
 }
+
 #stop-btn { display: none; margin-left: auto; }
-#export-btn { display: none; border-color: #4ade80; color: #4ade80; }
-#stop-btn:hover { border-color: #2dd4bf; color: #2dd4bf; }
+#export-btn { display: none; border-color: var(--accent); color: var(--accent); }
+#stop-btn:hover { border-color: var(--error); color: var(--error); }
+#export-btn:hover { background: var(--accent-light); }
+
 #panels { display: flex; flex: 1; overflow: hidden; }
-#graph-panel { flex: 1; border-right: 1px solid #1a1a2e; overflow: hidden; }
+
+#graph-panel {
+  flex: 1;
+  background: var(--graph-bg);
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+}
+
 #graph-panel svg { width: 100%; height: 100%; }
+
 #report-panel {
-  width: 400px; overflow-y: auto; padding: 16px;
-  display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;
+  width: 400px;
+  background: var(--bg-panel);
+  overflow-y: auto;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
 }
+
 .section-card {
-  border: 1px dashed #1e2a3a; border-radius: 8px; padding: 12px;
-  opacity: 0.35; transition: opacity 0.35s, border-color 0.35s;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid transparent;
+  border-radius: 4px;
+  padding: 12px 14px;
+  opacity: 0.45;
+  transition: opacity 0.3s, border-left-color 0.3s;
 }
-.section-card.active { opacity: 1; border-style: solid; border-color: #2dd4bf; }
-.section-card.active.error { border-color: #f87171; }
+
+.section-card.active { opacity: 1; border-left-color: var(--accent); }
+.section-card.active.error { border-left-color: var(--error); }
+
 .section-title {
-  font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em;
-  color: #475569; margin-bottom: 6px;
+  font-family: 'Spectral', Georgia, serif;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin-bottom: 7px;
 }
-.section-card.active .section-title { color: #2dd4bf; }
-.section-body { font-size: 12px; color: #cbd5e1; line-height: 1.5; }
-.section-body.skeleton { color: #1e3a3a; }
+
+.section-card.active .section-title { color: var(--accent); }
+
+.section-body {
+  font-size: 12px;
+  color: var(--text-primary);
+  line-height: 1.55;
+}
+
+.section-body.skeleton {
+  font-family: 'Spectral', Georgia, serif;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--text-muted);
+}
