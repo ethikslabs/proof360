@@ -69,7 +69,9 @@ else
 fi
 pm2 save
 
-echo "==> Reloading nginx"
+echo "==> Applying nginx config"
+sudo cp $REPO_DIR/scripts/nginx-proof360.conf /etc/nginx/conf.d/proof360.conf
+sudo nginx -t
 sudo systemctl reload nginx
 
 echo "==> Done"
