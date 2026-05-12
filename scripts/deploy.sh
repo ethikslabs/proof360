@@ -42,15 +42,6 @@ FIRECRAWL_API_URL=$(get_ssm "$SSM_PREFIX/FIRECRAWL_API_URL")
 ANTHROPIC_API_KEY=$(get_ssm "/ethikslabs/anthropic/api-key")
 ABUSEIPDB_API_KEY=$(get_ssm "$SSM_PREFIX/ABUSEIPDB_API_KEY")
 PORT=$(get_ssm "$SSM_PREFIX/PORT")
-
-PG_HOST=$(get_ssm "$SSM_PREFIX/postgres/host")
-PG_PORT=$(get_ssm "$SSM_PREFIX/postgres/port")
-PG_DATABASE=$(get_ssm "$SSM_PREFIX/postgres/database")
-PG_USER=$(get_ssm "$SSM_PREFIX/postgres/user")
-PG_PASSWORD=$(get_ssm "$SSM_PREFIX/postgres/password")
-PG_PORT=${PG_PORT:-5432}
-PG_DATABASE=${PG_DATABASE:-proof360}
-
 HIBP_API_KEY=$(get_ssm "$SSM_PREFIX/HIBP_API_KEY")
 VECTOR_URL=$(get_ssm "$SSM_PREFIX/VECTOR_URL")
 NIM_MODEL=$(get_ssm "$SSM_PREFIX/NIM_MODEL")
@@ -85,20 +76,12 @@ SES_FROM_ADDRESS=$SES_FROM_ADDRESS
 REPORT_BASE_URL=$REPORT_BASE_URL
 TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN
 TELEGRAM_CHAT_ID=$TELEGRAM_CHAT_ID
-PG_HOST=$PG_HOST
-PG_PORT=$PG_PORT
-PG_DATABASE=$PG_DATABASE
-PG_USER=$PG_USER
-PG_PASSWORD=$PG_PASSWORD
 LOG_LEVEL=info
 EOF
 
 echo "==> Installing API dependencies"
 cd $API_DIR
 npm install --production
-
-echo "==> Running database migrations"
-node --env-file="$API_DIR/.env" scripts/run-migrations.js
 
 echo "==> Building frontend"
 cd $FRONTEND_DIR
