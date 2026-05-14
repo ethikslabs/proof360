@@ -2,6 +2,17 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Current direction (2026-05-15) — supersedes all previous direction blocks
+
+**Surface:** `frontend/` — chat-first conversational trust layer. This is the active build surface.  
+**Entry point:** `/chat` route — new `frontend/src/pages/Chat.jsx`. All existing routes (`/audit`, `/report`, `/portal`, `/account`) stay intact and must not be broken.  
+**CLI:** `proof360/cli.mjs` is preserved as the signal/retrieval layer. Not the product surface.  
+**Old cold-read flow (URL in → audit → report):** retained as legacy, not direction.  
+**Atelier:** deferred — chat UI is built in the existing React/Vite frontend first.
+
+**Active plan:** `docs/plans/2026-05-15-conversational-trust-layer-mvp.md`  
+Phase 0 is the immediate build: mock shell, no backend, honey demo runs end-to-end. Read the plan before touching any file.
+
 ## Universal init
 
 On `/init`, follow `../CONTROL/INIT_PROTOCOL.md`. This repo file adds local rules only; it does not own the workspace init protocol.
