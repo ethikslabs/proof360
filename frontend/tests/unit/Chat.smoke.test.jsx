@@ -2,6 +2,9 @@ import { render, screen } from '@testing-library/react';
 import { PersonaChips } from '../../src/components/chat/PersonaChips.jsx';
 import { MessageBubble } from '../../src/components/chat/MessageBubble.jsx';
 import { ChatInput } from '../../src/components/chat/ChatInput.jsx';
+import { ThinkingStream } from '../../src/components/chat/ThinkingStream.jsx';
+import { DrawerPanel } from '../../src/components/chat/DrawerPanel.jsx';
+import { VendorShortlist } from '../../src/components/chat/VendorShortlist.jsx';
 
 describe('PersonaChips', () => {
   it('renders all four personas', () => {
@@ -39,5 +42,43 @@ describe('ChatInput', () => {
     render(<ChatInput onSubmit={() => {}} disabled={false} />);
     expect(screen.getByRole('textbox')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /start|send|go/i })).toBeInTheDocument();
+  });
+});
+
+describe('ThinkingStream', () => {
+  it('renders nothing when not visible', () => {
+    const { container } = render(<ThinkingStream steps={[]} visible={false} />);
+    expect(container.firstChild).toBeNull();
+  });
+
+  it('renders steps when visible', () => {
+    const steps = [{ id: 't1', label: 'Checking market', provider: 'perplexity', status: 'complete', durationMs: 400 }];
+    render(<ThinkingStream steps={steps} visible={true} />);
+    expect(screen.getByText('Checking market')).toBeInTheDocument();
+  });
+});
+
+describe('DrawerPanel', () => {
+  it('renders nothing when closed', () => {
+    const { container } = render(<DrawerPanel title="Test" isOpen={false} onClose={() => {}}><p>content</p></DrawerPanel>);
+    expect(container.firstChild).toBeNull();
+  });
+
+  it('renders content and title when open', () => {
+    render(<DrawerPanel title="Evidence" isOpen={true} onClose={() => {}}><p>evidence content</p></DrawerPanel>);
+    expect(screen.getByText('Evidence')).toBeInTheDocument();
+    expect(screen.getByText('evidence content')).toBeInTheDocument();
+  });
+});
+
+describe('VendorShortlist', () => {
+  it('renders vendors grouped by timing', () => {
+    const vendors = [
+      { id: 'v1', name: 'MFA', category: 'identity', timing: 'now', reason: 'needs it', status: 'suggested' },
+      { id: 'v2', name: 'Vanta', category: 'compliance', timing: 'later', reason: 'enterprise', status: 'suggested' },
+    ];
+    render(<VendorShortlist vendors={vendors} onShortlist={() => {}} onDefer={() => {}} />);
+    expect(screen.getByText('MFA')).toBeInTheDocument();
+    expect(screen.getByText('Vanta')).toBeInTheDocument();
   });
 });
