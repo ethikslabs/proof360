@@ -1,4 +1,4 @@
-# proof360 Conversational Trust Layer — MVP Roadmap
+sub agen# proof360 Conversational Trust Layer — MVP Roadmap
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -1580,6 +1580,8 @@ git commit -m "feat(chat): phase 0 Chat page — full mock demo flow wired end-t
 - Frontend: `useChatSession` reads/writes from API, not local state
 
 **Key data shapes:** See Phase 1 session object schema in brief (§ 20, Phase 1).
+
+**Architecture note:** React calls the session API via CF Worker proxy — not direct to EC2. Route: `React → CF Worker (ethikslabs.com/api/v2/*) → EC2 Fastify`. Codex owns the Worker layer. We own the endpoint contract and the React integration. Design the API surface against the contract; do not hardcode EC2 origin URLs in the frontend.
 
 **Gate criteria:**
 - [ ] API unit tests pass for all four endpoints
