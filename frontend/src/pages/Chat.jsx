@@ -18,14 +18,17 @@ import { getMockVendors } from '../data/mock/vendors.js';
 import { getMockEvidence } from '../data/mock/evidence.js';
 import { getMockCosts } from '../data/mock/costs.js';
 
-const BG = '#0f1117';
+// Dark shell, light chat pane
+const SHELL = '#111827';
+const CHAT_BG = '#f9fafb';
+const CHAT_BORDER = '#e5e7eb';
 
-function drawerBtnStyle(color) {
+function navBtnStyle(color) {
   return {
     padding: '6px 12px',
     borderRadius: 6,
-    border: `1px solid ${color}44`,
-    background: `${color}11`,
+    border: `1px solid ${color}55`,
+    background: `${color}18`,
     color,
     fontSize: 11,
     fontWeight: 600,
@@ -87,35 +90,41 @@ export default function Chat() {
     : 'No context yet.';
 
   return (
-    <div style={{ minHeight: '100vh', background: BG, display: 'flex', flexDirection: 'column' }}>
-      <div style={{ borderBottom: '1px solid #0f172a', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 16, fontWeight: 800, color: '#4f46e5', letterSpacing: '-0.5px' }}>proof360</span>
-          <span style={{ fontSize: 11, color: '#64748b', borderLeft: '1px solid #334155', paddingLeft: 10 }}>Trust conversation</span>
+    <div style={{ minHeight: '100vh', background: SHELL, display: 'flex', flexDirection: 'column' }}>
+
+      {/* Dark nav header */}
+      <div style={{ background: SHELL, borderBottom: '1px solid #1f2937', padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{ fontSize: 16, fontWeight: 800, color: '#818cf8', letterSpacing: '-0.5px' }}>proof360</span>
+          <span style={{ fontSize: 11, color: '#6b7280', borderLeft: '1px solid #374151', paddingLeft: 12 }}>Trust conversation</span>
         </div>
         {session.phase === 'report' && (
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button onClick={() => session.toggleDrawer('report')} style={drawerBtnStyle('#4f46e5')}>Report</button>
-            <button onClick={() => session.toggleDrawer('vendor')} style={drawerBtnStyle('#22c55e')}>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => session.toggleDrawer('report')} style={navBtnStyle('#818cf8')}>Report</button>
+            <button onClick={() => session.toggleDrawer('vendor')} style={navBtnStyle('#34d399')}>
               Vendors {vendorList.length > 0 && `(${vendorList.length})`}
             </button>
-            <button onClick={() => session.toggleDrawer('evidence')} style={drawerBtnStyle('#8b5cf6')}>Sources</button>
-            <button onClick={() => session.toggleDrawer('cost')} style={drawerBtnStyle('#64748b')}>Cost</button>
-            <button onClick={() => session.setShowHandoffModal(true)} style={{ ...drawerBtnStyle('#f59e0b'), fontWeight: 700 }}>Talk to John</button>
+            <button onClick={() => session.toggleDrawer('evidence')} style={navBtnStyle('#a78bfa')}>Sources</button>
+            <button onClick={() => session.toggleDrawer('cost')} style={navBtnStyle('#9ca3af')}>Cost</button>
+            <button onClick={() => session.setShowHandoffModal(true)} style={{ ...navBtnStyle('#fbbf24'), fontWeight: 700 }}>Talk to John</button>
           </div>
         )}
       </div>
 
-      <div style={{ flex: 1, maxWidth: 760, width: '100%', margin: '0 auto', padding: '0 24px', display: 'flex', flexDirection: 'column' }}>
-        <PersonaChips activePersona={session.activePersona} onSelect={session.setActivePersona} />
-        <MessageList messages={session.messages} />
-        <ThinkingStream
-          steps={session.thinkingSteps}
-          visible={session.phase === 'thinking' || (session.thinkingSteps.length > 0 && session.phase === 'report')}
-        />
-        <ChatInput onSubmit={handleSubmit} disabled={isProcessing} />
+      {/* Light chat pane */}
+      <div style={{ flex: 1, background: CHAT_BG, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ flex: 1, maxWidth: 760, width: '100%', margin: '0 auto', padding: '0 24px 24px', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          <PersonaChips activePersona={session.activePersona} onSelect={session.setActivePersona} />
+          <MessageList messages={session.messages} />
+          <ThinkingStream
+            steps={session.thinkingSteps}
+            visible={session.phase === 'thinking' || (session.thinkingSteps.length > 0 && session.phase === 'report')}
+          />
+          <ChatInput onSubmit={handleSubmit} disabled={isProcessing} />
+        </div>
       </div>
 
+      {/* Drawers */}
       <DrawerPanel title="Trust snapshot" isOpen={session.openDrawers.report} onClose={() => session.toggleDrawer('report')}>
         <ReportPanel report={session.reportData} />
       </DrawerPanel>

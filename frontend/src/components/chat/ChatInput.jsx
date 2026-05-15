@@ -28,20 +28,21 @@ export function ChatInput({ onSubmit, disabled }) {
   }
 
   return (
-    <div style={{ borderTop: '1px solid #1e293b', padding: '16px 0 0' }}>
+    <div style={{ borderTop: '1px solid #e5e7eb', padding: '16px 0 0' }}>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
         {EXAMPLES.map(ex => (
           <button
             key={ex}
             onClick={() => { setValue(ex); textareaRef.current?.focus(); }}
             style={{
-              padding: '4px 10px',
-              borderRadius: 12,
-              border: '1px solid #334155',
-              background: 'transparent',
-              color: '#94a3b8',
-              fontSize: 11,
+              padding: '5px 12px',
+              borderRadius: 14,
+              border: '1px solid #d1d5db',
+              background: '#ffffff',
+              color: '#374151',
+              fontSize: 12,
               cursor: 'pointer',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
             }}
           >
             {ex}
@@ -53,10 +54,11 @@ export function ChatInput({ onSubmit, disabled }) {
         <div
           style={{
             flex: 1,
-            border: `1px solid ${dragOver ? '#4f46e5' : '#1e293b'}`,
+            border: `1px solid ${dragOver ? '#4f46e5' : '#d1d5db'}`,
             borderRadius: 12,
-            background: '#131c2e',
+            background: '#ffffff',
             transition: 'border-color 0.15s',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
           }}
           onDragOver={e => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
@@ -75,7 +77,7 @@ export function ChatInput({ onSubmit, disabled }) {
               background: 'transparent',
               border: 'none',
               outline: 'none',
-              color: '#f1f5f9',
+              color: '#111827',
               fontSize: 14,
               lineHeight: 1.6,
               padding: '12px 14px',
@@ -83,7 +85,7 @@ export function ChatInput({ onSubmit, disabled }) {
               fontFamily: 'inherit',
             }}
           />
-          <div style={{ padding: '6px 14px 10px', color: '#64748b', fontSize: 11 }}>
+          <div style={{ padding: '6px 14px 10px', color: '#9ca3af', fontSize: 11 }}>
             Drop a file or paste a URL
           </div>
         </div>
@@ -93,8 +95,8 @@ export function ChatInput({ onSubmit, disabled }) {
           style={{
             padding: '12px 20px',
             borderRadius: 10,
-            background: disabled || !value.trim() ? '#1e293b' : '#4f46e5',
-            color: disabled || !value.trim() ? '#64748b' : '#fff',
+            background: disabled || !value.trim() ? '#e5e7eb' : '#4f46e5',
+            color: disabled || !value.trim() ? '#9ca3af' : '#ffffff',
             border: 'none',
             fontSize: 13,
             fontWeight: 700,

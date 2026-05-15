@@ -1,7 +1,7 @@
 const PERSONA_META = {
-  sofia: { label: 'Sofia', color: '#f59e0b' },
-  leonardo: { label: 'Leonardo', color: '#8b5cf6' },
-  edison: { label: 'Edison', color: '#22d3ee' },
+  sofia: { label: 'Sofia', color: '#d97706' },
+  leonardo: { label: 'Leonardo', color: '#7c3aed' },
+  edison: { label: 'Edison', color: '#0891b2' },
   john_ai: { label: 'John', color: '#4f46e5', disclaimer: 'AI assistant — John can step in personally.' },
 };
 
@@ -28,7 +28,7 @@ export function MessageBubble({ message }) {
             {meta.label}
           </span>
           {meta.disclaimer && (
-            <span style={{ fontSize: 10, color: '#64748b', fontStyle: 'italic' }}>
+            <span style={{ fontSize: 10, color: '#9ca3af', fontStyle: 'italic' }}>
               {meta.disclaimer}
             </span>
           )}
@@ -38,11 +38,12 @@ export function MessageBubble({ message }) {
         maxWidth: '72%',
         padding: '12px 16px',
         borderRadius: isUser ? '16px 16px 4px 16px' : '4px 16px 16px 16px',
-        background: isUser ? '#4f46e5' : '#131c2e',
-        border: isUser ? 'none' : `1px solid ${meta ? meta.color + '33' : '#1e293b'}`,
-        color: '#f1f5f9',
+        background: isUser ? '#4f46e5' : '#ffffff',
+        border: isUser ? 'none' : `1px solid ${meta ? meta.color + '30' : '#e5e7eb'}`,
+        color: isUser ? '#ffffff' : '#111827',
         fontSize: 14,
         lineHeight: 1.6,
+        boxShadow: isUser ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
       }}>
         {message.content}
       </div>
