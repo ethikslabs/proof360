@@ -17,9 +17,9 @@ export function PersonaChips({ activePersona, onSelect }) {
           style={{
             padding: '6px 14px',
             borderRadius: 20,
-            border: `1px solid ${activePersona === p.id ? p.color : '#1e293b'}`,
+            border: `1px solid ${activePersona === p.id ? p.color : '#334155'}`,
             background: activePersona === p.id ? p.color + '22' : 'transparent',
-            color: activePersona === p.id ? p.color : '#64748b',
+            color: activePersona === p.id ? p.color : '#94a3b8',
             fontSize: 13,
             fontWeight: 600,
             cursor: 'pointer',

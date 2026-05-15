@@ -28,7 +28,7 @@ export function MessageBubble({ message }) {
             {meta.label}
           </span>
           {meta.disclaimer && (
-            <span style={{ fontSize: 10, color: '#475569', fontStyle: 'italic' }}>
+            <span style={{ fontSize: 10, color: '#64748b', fontStyle: 'italic' }}>
               {meta.disclaimer}
             </span>
           )}

@@ -37,9 +37,9 @@ export function ChatInput({ onSubmit, disabled }) {
             style={{
               padding: '4px 10px',
               borderRadius: 12,
-              border: '1px solid #1e293b',
+              border: '1px solid #334155',
               background: 'transparent',
-              color: '#475569',
+              color: '#94a3b8',
               fontSize: 11,
               cursor: 'pointer',
             }}
@@ -83,7 +83,7 @@ export function ChatInput({ onSubmit, disabled }) {
               fontFamily: 'inherit',
             }}
           />
-          <div style={{ padding: '6px 14px 10px', color: '#334155', fontSize: 11 }}>
+          <div style={{ padding: '6px 14px 10px', color: '#64748b', fontSize: 11 }}>
             Drop a file or paste a URL
           </div>
         </div>
@@ -94,7 +94,7 @@ export function ChatInput({ onSubmit, disabled }) {
             padding: '12px 20px',
             borderRadius: 10,
             background: disabled || !value.trim() ? '#1e293b' : '#4f46e5',
-            color: disabled || !value.trim() ? '#475569' : '#fff',
+            color: disabled || !value.trim() ? '#64748b' : '#fff',
             border: 'none',
             fontSize: 13,
             fontWeight: 700,

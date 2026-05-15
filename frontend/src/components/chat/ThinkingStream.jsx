@@ -18,7 +18,7 @@ export function ThinkingStream({ steps, visible }) {
       border: '1px solid #1e293b',
       borderRadius: 10,
     }}>
-      <p style={{ fontSize: 10, fontWeight: 700, color: '#475569', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 10 }}>
+      <p style={{ fontSize: 10, fontWeight: 700, color: '#64748b', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 10 }}>
         Working
       </p>
       {steps.map(step => (

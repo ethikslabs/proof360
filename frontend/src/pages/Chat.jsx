@@ -18,7 +18,7 @@ import { getMockVendors } from '../data/mock/vendors.js';
 import { getMockEvidence } from '../data/mock/evidence.js';
 import { getMockCosts } from '../data/mock/costs.js';
 
-const BG = '#0a0d14';
+const BG = '#0f1117';
 
 function drawerBtnStyle(color) {
   return {
@@ -91,7 +91,7 @@ export default function Chat() {
       <div style={{ borderBottom: '1px solid #0f172a', padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 16, fontWeight: 800, color: '#4f46e5', letterSpacing: '-0.5px' }}>proof360</span>
-          <span style={{ fontSize: 11, color: '#334155', borderLeft: '1px solid #1e293b', paddingLeft: 10 }}>Trust conversation</span>
+          <span style={{ fontSize: 11, color: '#64748b', borderLeft: '1px solid #334155', paddingLeft: 10 }}>Trust conversation</span>
         </div>
         {session.phase === 'report' && (
           <div style={{ display: 'flex', gap: 10 }}>

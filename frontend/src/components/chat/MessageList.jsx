@@ -11,7 +11,7 @@ export function MessageList({ messages }) {
   if (messages.length === 0) {
     return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ color: '#334155', fontSize: 13, textAlign: 'center', maxWidth: 320, lineHeight: 1.6 }}>
+        <p style={{ color: '#64748b', fontSize: 13, textAlign: 'center', maxWidth: 320, lineHeight: 1.6 }}>
           Drop a website, upload a deck, or describe your business.<br />
           We'll help you understand what the next stage demands.
         </p>
