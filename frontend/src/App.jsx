@@ -13,6 +13,7 @@ import PortalDashboard from './pages/PortalDashboard';
 import PortalLeadDetail from './pages/PortalLeadDetail';
 import FounderAuth from './pages/FounderAuth';
 import FounderDashboard from './pages/FounderDashboard';
+import Chat from './pages/Chat';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -69,6 +70,7 @@ export default function App() {
             <Route path="/account/login" element={<FounderAuth />} />
             <Route path="/account" element={<FounderDashboard />} />
             <Route path="/admin/preread" element={<AdminPreread />} />
+            <Route path="/chat" element={<Chat />} />
           </Routes>
         </ErrorBoundary>
       </FeatureFlagProvider>
