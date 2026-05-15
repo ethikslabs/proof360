@@ -42,12 +42,17 @@ const HONEY_RESPONSES = {
   john_ai: "You've reached the point where a human conversation changes more than another analysis. I'm John's AI assistant — I can help you understand what's needed, but John can route you to the right investor, broker, or distributor conversation directly. He's seen this arc before. Want me to set that up?",
 };
 
+const GENERIC_RESPONSES = {
+  sofia: "Before I can assess your investor readiness, I need to understand the capital picture. Have you raised before, or is this your first external round? And who are your first reference customers — the ones who'd take a call from an investor?",
+  leonardo: "Your narrative needs to hold up to a single hard question: why you, why now, why this market? I can help you build that story — but first, how do you currently explain what you do to someone who doesn't know your industry?",
+  edison: "From a technical due diligence perspective, the first thing I look for is data hygiene and access control. Where does your customer data live, and who has access to it? That single answer tells me a lot about your enterprise readiness.",
+  john_ai: "I've seen this stage before. The founders who get through it fastest are the ones who know exactly what question they need answered next. What's the one thing that, if you knew the answer, would change your next 90 days?",
+};
+
 export function getPersonaResponses(input = '') {
   const isHoney = /honey|manuka|market|king.s cross|burned.*money|burned.*cash/i.test(input);
   return ['sofia', 'leonardo', 'edison', 'john_ai'].map(key => ({
     ...PERSONA_MAP[key],
-    response: isHoney
-      ? HONEY_RESPONSES[key]
-      : `[${key}] Here is what I understand from your description. Let me ask a few questions to sharpen the picture.`,
+    response: isHoney ? HONEY_RESPONSES[key] : GENERIC_RESPONSES[key],
   }));
 }

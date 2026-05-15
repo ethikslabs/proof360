@@ -120,7 +120,7 @@ export default function Chat() {
             steps={session.thinkingSteps}
             visible={session.phase === 'thinking' || (session.thinkingSteps.length > 0 && session.phase === 'report')}
           />
-          <ChatInput onSubmit={handleSubmit} disabled={isProcessing} />
+          <ChatInput onSubmit={handleSubmit} disabled={isProcessing} messages={session.messages} />
         </div>
       </div>
 

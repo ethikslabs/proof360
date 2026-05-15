@@ -1,13 +1,22 @@
 import { useState, useRef } from 'react';
 
-const EXAMPLES = [
+const STARTER_CHIPS = [
   "Imagine you're selling Manuka honey at a stall in King's Cross on a Saturday morning. Fast forward: sales, a global opportunity, burned cash, and now you need investors. What do you do?",
   "We're raising pre-seed",
   "We want to sell to enterprise",
   "We need to understand our trust gaps",
 ];
 
-export function ChatInput({ onSubmit, disabled }) {
+const FOLLOWUP_CHIPS = [
+  "Tell me more about the supply chain risks",
+  "What does my investor timeline look like?",
+  "Walk me through the enterprise DD checklist",
+  "What should I fix first?",
+];
+
+export function ChatInput({ onSubmit, disabled, messages = [] }) {
+  const hasExchange = messages.length >= 2;
+  const chips = hasExchange ? FOLLOWUP_CHIPS : STARTER_CHIPS;
   const [value, setValue] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const textareaRef = useRef(null);
@@ -30,7 +39,7 @@ export function ChatInput({ onSubmit, disabled }) {
   return (
     <div style={{ borderTop: '1px solid #e5e7eb', padding: '16px 0 0' }}>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
-        {EXAMPLES.map(ex => (
+        {chips.map(ex => (
           <button
             key={ex}
             onClick={() => { setValue(ex); textareaRef.current?.focus(); }}
@@ -105,7 +114,7 @@ export function ChatInput({ onSubmit, disabled }) {
             letterSpacing: '0.3px',
           }}
         >
-          Start
+          {hasExchange ? 'Send' : 'Start'}
         </button>
       </form>
     </div>
