@@ -8,24 +8,24 @@ export function DrawerPanel({ title, isOpen, onClose, children, badge }) {
       top: 0,
       bottom: 0,
       width: 420,
-      background: '#0d1520',
-      border: '1px solid #1e293b',
+      background: '#ffffff',
+      border: '1px solid #ede9fe',
       borderRight: 'none',
       display: 'flex',
       flexDirection: 'column',
       zIndex: 100,
-      boxShadow: '-8px 0 32px rgba(0,0,0,0.4)',
+      boxShadow: '-8px 0 32px rgba(0,0,0,0.08)',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #1e293b' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #f3f0ff' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9' }}>{title}</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#1e293b' }}>{title}</span>
           {badge && (
-            <span style={{ fontSize: 10, background: '#1e293b', color: '#64748b', padding: '2px 6px', borderRadius: 10 }}>
+            <span style={{ fontSize: 10, background: '#f3f0ff', color: '#7c3aed', padding: '2px 6px', borderRadius: 10 }}>
               {badge}
             </span>
           )}
         </div>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: 18 }}>×</button>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 20, lineHeight: 1 }}>×</button>
       </div>
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
         {children}

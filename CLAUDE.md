@@ -13,6 +13,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Active plan:** `docs/plans/2026-05-15-conversational-trust-layer-mvp.md`  
 Phase 0 is the immediate build: mock shell, no backend, honey demo runs end-to-end. Read the plan before touching any file.
 
+**Design constraint (frontend/):** Before touching any file in `frontend/`, read `docs/design/landing-emotional-contract.md`. The landing emotional contract governs every surface decision. The plan describes mechanics; the contract describes intent. If they conflict, the contract wins.
+
 ## Universal init
 
 On `/init`, follow `../CONTROL/INIT_PROTOCOL.md`. This repo file adds local rules only; it does not own the workspace init protocol.

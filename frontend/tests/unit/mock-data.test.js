@@ -5,13 +5,14 @@ import { getMockVendors } from '../../src/data/mock/vendors.js';
 
 describe('mock data shapes', () => {
   it('persona response has required fields', () => {
+    // Intent routing returns 1-2 personas (primary + optional handoff), not all 4
     const responses = getPersonaResponses('honey business at Kings Cross');
-    expect(responses).toHaveLength(4);
+    expect(responses.length).toBeGreaterThanOrEqual(1);
+    expect(responses.length).toBeLessThanOrEqual(4);
     responses.forEach(r => {
       expect(r).toHaveProperty('persona');
       expect(r).toHaveProperty('role');
       expect(r).toHaveProperty('response');
-      expect(r).toHaveProperty('questions');
       expect(['sofia', 'leonardo', 'edison', 'john_ai']).toContain(r.persona);
     });
   });

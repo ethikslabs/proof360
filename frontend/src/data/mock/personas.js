@@ -1,3 +1,69 @@
+// ── Intent detection ───────────────────────────────────────────────────────
+// Maps message intent to primary persona + optional handoff.
+// Direct questions ("Edison, ...") bypass this entirely.
+const INTENT_RULES = [
+  {
+    test: /technical|security|ssl|breach|access.control|compliance|soc|infrastructure|aws|qualify|data.room|pentest|certif/i,
+    primary: 'edison', handoff: 'sofia',
+  },
+  {
+    test: /investor|raise|capital|wire|term.sheet|round|valuation|fund|vc|angel|runway|money/i,
+    primary: 'sofia', handoff: 'leonardo',
+  },
+  {
+    test: /vendor|tool|software|partner|vanta|cloudflare|drata|program|credit|marketplace/i,
+    primary: 'leonardo', handoff: 'edison',
+  },
+  {
+    test: /narrative|story|position|brand|pitch|market|explain|describe|communicate|message/i,
+    primary: 'leonardo', handoff: null,
+  },
+  {
+    test: /honey|manuka|supply.chain|food|product|provenance|origin/i,
+    primary: 'sofia', handoff: 'edison',
+  },
+];
+
+export function detectIntent(input) {
+  for (const rule of INTENT_RULES) {
+    if (rule.test.test(input)) return { primary: rule.primary, handoff: rule.handoff };
+  }
+  return { primary: 'sofia', handoff: null }; // default: Sophia opens
+}
+
+// ── Intent-aware responses with handoff lines ──────────────────────────────
+const INTENT_RESPONSES = {
+  technical: {
+    edison: "Three things kill enterprise deals in the data room: SSL misconfigurations, no access control evidence, and breach exposure that's been public for months. All fixable — but the window is shorter than founders think. Most start fixing when they're already in the room. That's too late.\n\nSophia — investor side, what does the timing look like from where you sit?",
+    sofia_handoff: "From the investor side, the fix timeline is a signal in itself. A founder who surfaces these gaps proactively and is already closing them reads as operational. One who discovers them under diligence reads as a risk. The question I always want answered: what's the runway relative to the remediation timeline?",
+  },
+  capital: {
+    sofia: "Investors don't wire money based on belief in the opportunity. They wire it based on evidence — provenance of the product, provenance of the spend, and proof that you know what you're scaling into. The gap most founders underestimate is between what they know and what they can demonstrate.\n\nLeonardo — how does that translate into the narrative layer?",
+    leonardo_handoff: "The narrative has to do the work before the evidence is even opened. If an investor doesn't believe the story before they open the data room, nothing in the data room saves you. The story needs to answer one question: why will this be true at scale, not just now?",
+  },
+  vendor: {
+    leonardo: "The vendor selection is a commercial signal. The sequence matters — what you adopt first tells buyers and investors something about where you're prioritising. Vanta first says compliance-led. Cloudflare first says security-led. Neither is wrong, but they read differently depending on who's looking.\n\nEdison — what's the implementation reality at this stage?",
+    edison_handoff: "At this stage the implementation ceiling is usually people, not tools. Vanta and Cloudflare both have setup time that founders underestimate — not because they're hard, but because they surface things that need fixing first. Budget 3 weeks minimum before either is evidence-grade.",
+  },
+  narrative: {
+    leonardo: "The narrative isn't what you say about your product. It's the answer to the question a buyer or investor is asking before they've said it out loud. Usually that question is: why should I believe this holds up under pressure? Your job is to answer that before they ask it.",
+  },
+  honey: {
+    sofia: "You've burned capital chasing a real opportunity — that's not a failure, it's a data point. But investors won't wire money based on your belief in the opportunity. They'll wire it based on evidence: provenance of the product, provenance of the spend, and proof that you know what you're scaling into.\n\nEdison — what does the evidence layer actually look like for a supply chain business at this stage?",
+    edison_handoff: "For a food supply chain, the evidence layer is origin documentation, batch traceability, and supplier access controls. Investors in this space have seen fraud — they'll want digital audit trails, not PDFs. The question is: does your current system produce evidence, or does someone manually assemble it before each diligence request?",
+  },
+};
+
+function getIntentKey(input) {
+  const text = input.toLowerCase();
+  if (/honey|manuka|supply.chain|food|product|provenance|origin/i.test(text)) return 'honey';
+  if (/technical|security|ssl|breach|access.control|compliance|soc|infrastructure|aws|qualify/i.test(text)) return 'technical';
+  if (/investor|raise|capital|wire|term.sheet|round|valuation|fund|vc|angel|runway/i.test(text)) return 'capital';
+  if (/vendor|tool|software|partner|vanta|cloudflare|program|credit/i.test(text)) return 'vendor';
+  if (/narrative|story|position|brand|pitch|market|explain/i.test(text)) return 'narrative';
+  return null;
+}
+
 const PERSONA_MAP = {
   sofia: {
     persona: 'sofia',
@@ -50,9 +116,34 @@ const GENERIC_RESPONSES = {
 };
 
 export function getPersonaResponses(input = '') {
+  const intentKey = getIntentKey(input);
+  const { primary, handoff } = detectIntent(input);
+  const bucket = intentKey ? INTENT_RESPONSES[intentKey] : null;
+
+  if (bucket) {
+    const results = [];
+    // Primary persona
+    const primaryResponse = bucket[primary] || bucket[primary + '_handoff'] || GENERIC_RESPONSES[primary];
+    results.push({ ...PERSONA_MAP[primary], response: primaryResponse });
+    // Handoff persona (if defined in this bucket)
+    if (handoff) {
+      const handoffKey = handoff + '_handoff';
+      const handoffResponse = bucket[handoffKey];
+      if (handoffResponse) {
+        results.push({ ...PERSONA_MAP[handoff], response: handoffResponse });
+      }
+    }
+    return results;
+  }
+
+  // Fallback: single persona based on intent, generic response
+  return [{ ...PERSONA_MAP[primary], response: GENERIC_RESPONSES[primary] }];
+}
+
+// Single persona — used when message is routed via "Ask [Persona]" drawer CTAs
+export function getPersonaResponse(persona, input = '') {
+  const key = persona.toLowerCase() === 'sophia' ? 'sofia' : persona.toLowerCase();
+  if (!PERSONA_MAP[key]) return getPersonaResponses(input);
   const isHoney = /honey|manuka|market|king.s cross|burned.*money|burned.*cash/i.test(input);
-  return ['sofia', 'leonardo', 'edison', 'john_ai'].map(key => ({
-    ...PERSONA_MAP[key],
-    response: isHoney ? HONEY_RESPONSES[key] : GENERIC_RESPONSES[key],
-  }));
+  return [{ ...PERSONA_MAP[key], response: isHoney ? HONEY_RESPONSES[key] : GENERIC_RESPONSES[key] }];
 }

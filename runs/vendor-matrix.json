@@ -1,0 +1,1648 @@
+{
+  "vanta": {
+    "id": "vanta",
+    "display_name": "Vanta",
+    "closes": [
+      "soc2",
+      "incident_response",
+      "pci_dss",
+      "hipaa_security",
+      "essential_eight",
+      "data_privacy",
+      "ai_governance",
+      "penetration_testing",
+      "backup_dr"
+    ],
+    "enriched_at": "2026-05-11T10:32:50.403Z",
+    "perplexity_intel": "### 1. Target Company Stage\nVanta primarily targets **fast-scaling startups (Seed to Series C)**, **mid-market**, and **enterprise organizations**. \n- Startups (largest volume by sign-ups: >60% of 2025 new customers) use it for initial SOC 2 or HIPAA certification as a revenue enabler.\n- Mid-market/enterprise (largest revenue share in 2026, ~40% YoY growth) focuses on continuous monitoring for ISO 27001, PCI DSS, NIST.\n- Channel partners (MSPs/audit firms: 1,000+ onboarded by 2025) for referrals and resale.\nEarly expansion into Brazil/Mexico targets exporters to the U.S.\n\n### 2. Typical Company Size (Headcount Ranges)\n- **Startups**: ~10-150 employees (Seed-Series C).\n- **Mid-market/Enterprise**: 500-5,000+ employees (primary revenue driver in 2026).\nSmaller SMBs may use via partners like ",
+    "stage_fit": [
+      "seed",
+      "series_a",
+      "series_b",
+      "mid-market",
+      "enterprise"
+    ],
+    "size_fit": [
+      "1-150",
+      "500-5000+"
+    ],
+    "cloud_fit": [
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "low",
+    "pricing_tier": [
+      "startup",
+      "smb",
+      "enterprise",
+      "custom"
+    ],
+    "pricing_signal": "$7.5K–$11.5K/yr (Series A), $30K–$50K/yr (Mid-market), Custom (Enterprise)",
+    "competes_with": [
+      "cyberbase",
+      "ironclad"
+    ],
+    "not_right_for": "Pre-seed, non-SaaS/non-cloud-native, legal/contract-only focus, Fortune 500 with established CISO/legal teams, companies not pursuing SOC 2/HIPAA/ISO",
+    "positioning": "Vanta is ideal for fast-scaling startups and mid-market/enterprise organizations seeking rapid SOC 2 automation, trust management, and continuous monitoring with a cloud-agnostic approach.",
+    "startup_program": "",
+    "updated_best_for": "Seed to Series B startups needing SOC 2/HIPAA/ISO compliance, mid-market/enterprise organizations focusing on continuous monitoring for ISO 27001, PCI DSS, NIST, and AWS-native stacks."
+  },
+  "aws_security_hub": {
+    "id": "aws_security_hub",
+    "display_name": "AWS Security Hub",
+    "closes": [
+      "soc2",
+      "compliance",
+      "essential_eight",
+      "incident_response"
+    ],
+    "enriched_at": "2026-05-11T10:33:13.675Z",
+    "perplexity_intel": "### AWS Security Hub Research Summary\n\n**Overview**: AWS Security Hub is a fully managed service from Amazon Web Services (AWS) that provides centralized security alerting, compliance checks, and automated remediation recommendations. It aggregates findings from native AWS services (e.g., GuardDuty, Inspector, Macie) and third-party partners in the AWS Security Finding Format (ASFF), enabling unified visibility across AWS accounts and hybrid environments.\n\n#### 1. Target Company Stage\nEnterprise-focused, with scalability for mid-market and SMBs. Designed for organizations with mature cloud operations needing centralized security operations (SecOps). Not positioned for seed/startups lacking AWS infrastructure.\n\n#### 2. Typical Company Size (Headcount Ranges)\n500+ employees, particularly tho",
+    "stage_fit": [
+      "early",
+      "series_a",
+      "series_b",
+      "enterprise"
+    ],
+    "size_fit": [
+      "1000+"
+    ],
+    "cloud_fit": [
+      "aws"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "low",
+    "pricing_tier": "smb",
+    "pricing_signal": "$500–$5K/year (Essentials), $10K–$100K/year+ (Extended)",
+    "competes_with": [
+      "palo_alto",
+      "lacework",
+      "orca_security",
+      "wiz",
+      "microsoft",
+      "sysdig"
+    ],
+    "not_right_for": "Seed/startups lacking AWS infrastructure",
+    "positioning": "AWS-native compliance view aggregating GuardDuty, Inspector, Macie, and partner solutions",
+    "startup_program": "",
+    "updated_best_for": "AWS-native stacks with centralized security operations, compliance, and incident response"
+  },
+  "vanta_msp": {
+    "id": "vanta_msp",
+    "display_name": "Vanta (MSP)",
+    "closes": [
+      "soc2",
+      "incident_response",
+      "compliance",
+      "data_privacy",
+      "ai_governance",
+      "penetration_testing"
+    ],
+    "enriched_at": "2026-05-11T10:33:27.304Z",
+    "perplexity_intel": "### 1. Target Company Stage\nVanta primarily targets **fast-scaling startups (Seed to Series C)**, **mid-market**, and **enterprise organizations** in a B2B model. Startups represent the highest volume (>60% of new sign-ups in 2025), using Vanta for initial SOC 2 or HIPAA certifications to enable revenue growth. Mid-market/enterprise (largest revenue share by 2026, ~40% YoY growth) focuses on continuous monitoring for frameworks like ISO 27001, PCI DSS, and NIST. Additionally, **channel partners** (MSPs and audit firms) are a key segment, with 1,000+ audit partners by 2025 driving referrals and resale.\n\n### 2. Typical Company Size (Headcount Ranges)\n- **Startups**: 10-150 employees (early-to-growth stage, Seed-Series C).\n- **Mid-market/Enterprise**: 500-5,000+ employees (prioritizing multi-",
+    "stage_fit": [
+      "seed",
+      "series_a",
+      "series_b",
+      "series_c",
+      "mid-market",
+      "enterprise"
+    ],
+    "size_fit": [
+      "11-50",
+      "51-200",
+      "201-1000",
+      "1000+"
+    ],
+    "cloud_fit": [
+      "aws",
+      "azure",
+      "gcp",
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "medium",
+    "pricing_tier": "custom",
+    "pricing_signal": "usage-based or per-framework scaling",
+    "competes_with": [
+      "drata",
+      "scrut",
+      "secureframe"
+    ],
+    "not_right_for": "Pre-seed/micro-startups, non-compliance focus, highly custom/low-integration environments, one-off audits, budget-constrained without growth plans",
+    "positioning": "Vanta leads in partner-driven distribution and automation depth with 400+ integrations for real-time evidence/monitoring.",
+    "startup_program": "Service Partner Program (MSPs)",
+    "updated_best_for": "Fast-scaling startups (Seed to Series C), mid-market, and enterprise organizations for multi-framework compliance delivery."
+  },
+  "drata": {
+    "id": "drata",
+    "display_name": "Drata",
+    "closes": [
+      "soc2",
+      "incident_response",
+      "pci_dss"
+    ],
+    "enriched_at": "2026-05-11T10:33:42.121Z",
+    "perplexity_intel": "### 1. Target Company Stage\nDrata targets **mid-market to enterprise** companies pursuing compliance certifications like SOC 2, ISO 27001, HIPAA, GDPR, and PCI DSS. It is designed for security/compliance teams at scaling SaaS businesses, not early seed-stage startups. Evidence from search results: Implementation services (e.g., Cycore Secure, Eden Data) focus on customizing for established environments; vendor management features assume mature third-party risk programs with key vendors like cloud providers.\n\n### 2. Typical Company Size (Headcount Ranges)\n**200-5,000+ employees**. Drata suits organizations with dedicated compliance teams managing complex tech stacks (e.g., IdP integrations, vulnerability tracking). Quick Start Guide implies personnel onboarding for in-scope users (dozens to",
+    "stage_fit": [
+      "mid-market",
+      "enterprise"
+    ],
+    "size_fit": [
+      "200-5000"
+    ],
+    "cloud_fit": [
+      "aws",
+      "azure",
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "medium",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "$10K-$50K/year",
+    "competes_with": [
+      "vanta",
+      "secureframe",
+      "scrut_automation"
+    ],
+    "not_right_for": "Seed/early-stage startups or bootstrapped SMBs without dedicated compliance teams.",
+    "positioning": "Automated compliance testing and multi-framework support for mid-market to enterprise companies.",
+    "startup_program": "",
+    "updated_best_for": "Larger teams, complex environments with dedicated compliance needs"
+  },
+  "secureframe": {
+    "id": "secureframe",
+    "display_name": "Secureframe",
+    "closes": [
+      "soc2"
+    ],
+    "enriched_at": "2026-05-11T10:33:53.521Z",
+    "perplexity_intel": "### 1. Target Company Stage\nSecureframe primarily targets **growth-stage startups, SMBs, and mid-market companies**, with a focus on venture-backed SaaS startups seeking to unblock enterprise sales through rapid compliance certifications (e.g., SOC 2). It has expanded to Defense Industrial Base (DIB) organizations pursuing CMMC Level 2. Less emphasis on pure seed-stage or large enterprises, though scalable to mid-market. Founded in 2020, it serves fast-growing tech firms automating compliance for SOC 2, ISO 27001, PCI DSS, HIPAA, and now CMMC.\n\n### 2. Typical Company Size (Headcount Ranges)\n**100–500+ employees**. Pricing and case studies indicate:\n- Very small teams (<50 employees): $7,500–$15,000/year.\n- Growth-stage (50–200 employees): $20,000–$45,000/year.\n- Mid-market enterprises (200",
+    "stage_fit": [
+      "early",
+      "growth",
+      "mid-market"
+    ],
+    "size_fit": [
+      "11-50",
+      "51-200",
+      "201-1000"
+    ],
+    "cloud_fit": [
+      "aws",
+      "azure",
+      "gcp",
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "medium",
+    "pricing_tier": "smb",
+    "pricing_signal": "$7,500–$15,000/year (very small), $20,000–$45,000/year (growth-stage), $60,000–$100,000+/year (mid-market)",
+    "competes_with": [
+      "drata",
+      "vanta",
+      "scrut_automation"
+    ],
+    "not_right_for": "Seed-stage startups or large enterprises with complex compliance needs",
+    "positioning": "AI-driven compliance automation and rapid CMMC readiness for growth-stage startups and mid-market companies",
+    "startup_program": "",
+    "updated_best_for": "Growth-stage startups, SMBs, and mid-market companies seeking rapid compliance certifications"
+  },
+  "apollo_secure": {
+    "id": "apollo_secure",
+    "display_name": "Apollo Secure",
+    "closes": [
+      "soc2",
+      "compliance",
+      "security_baseline",
+      "data_privacy",
+      "penetration_testing"
+    ],
+    "enriched_at": "2026-05-11T10:34:07.263Z",
+    "perplexity_intel": "### Apollo Secure Research Summary\n\n**Company Overview**: Apollo Secure (apollosecure.com) is an automated cybersecurity platform designed for startups and small businesses. It focuses on improving security maturity and simplifying compliance (e.g., ISO 27001, SOC 2, GDPR). Founded in 2022, headquartered in Sydney, NSW, Australia (Lvl 4, 11 York Street, Sydney NSW 2000). Contact: +61 (0) 2 9099 5700, hello@apollosecure.com. ~11-20 employees. Annual revenue ~$1.2M (2025 est.), total funding $383K across 1 round, est. valuation ~$3.9M. Key execs: Damien Cantelo (CEO/Founder), Mark Gabriel (CTO/Co-Founder), James Taylor (CISO/Services Director).\n\n1. **Target Company Stage**: Startup/SMB. Explicitly markets as \"Cyber for Humans - an automated cybersecurity platform for startups and small busin",
+    "stage_fit": [
+      "seed",
+      "early"
+    ],
+    "size_fit": [
+      "1-10",
+      "11-50"
+    ],
+    "cloud_fit": [
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "medium",
+    "pricing_tier": "smb",
+    "pricing_signal": "$5K-$20K ARR",
+    "competes_with": [
+      "drata",
+      "vanta",
+      "secureframe"
+    ],
+    "not_right_for": "Enterprise/mid-market (100+ employees) or highly technical teams needing deep customization or edge/devops tools",
+    "positioning": "Apollo Secure is distinct for its automation + services hybrid approach tailored for compliance-heavy startups, providing Australian compliance expertise and services-led support for APAC SMBs.",
+    "startup_program": "",
+    "updated_best_for": "Fast compliance for startups and scale-ups, AU-based"
+  },
+  "trustwave": {
+    "id": "trustwave",
+    "display_name": "Trustwave",
+    "closes": [
+      "soc2",
+      "compliance",
+      "penetration_testing"
+    ],
+    "enriched_at": "2026-05-11T10:34:22.220Z",
+    "perplexity_intel": "### 1. Target company stage\nEnterprise. Trustwave Holdings, Inc. is a mature cybersecurity provider specializing in managed detection and response (MDR), managed security services (MSS), database security, email security, cyber advisory, penetration testing, and incident response. It serves organizations globally across 96 countries, with Security Operations Centers (SOCs) in Chicago, Denver, Manila, Minneapolis, Singapore, Sydney, Tokyo, Warsaw, and Waterloo, Ontario. Its FedRAMP Moderate authorization and StateRAMP status target U.S. federal, state, local governments, and defense industrial base (DoD CMMC-compliant) customers.\n\n### 2. Typical company size (headcount ranges)\nMid-market to enterprise (500+ employees). As a subsidiary of LevelBlue (spun from AT&T's security business), it su",
+    "stage_fit": [
+      "enterprise"
+    ],
+    "size_fit": [
+      "1000+"
+    ],
+    "cloud_fit": [
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "high",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "$100K–$1M+ annually",
+    "competes_with": [
+      "crowdstrike",
+      "mandiant",
+      "palo_alto",
+      "rapid7",
+      "secureworks"
+    ],
+    "not_right_for": "Seed/startup/SMB, pure endpoint/dev-focused, non-regulated industries, budget-constrained or DIY",
+    "positioning": "Trustwave/LevelBlue stands out for its MSSP partner ecosystem, unified defense platform, and 2025 FedRAMP milestone.",
+    "startup_program": "",
+    "updated_best_for": "Enterprise-scale managed security services, compliance, and FedRAMP/StateRAMP authorized cloud deployments."
+  },
+  "docusign": {
+    "id": "docusign",
+    "display_name": "DocuSign",
+    "closes": [
+      "audit_trail",
+      "compliance"
+    ],
+    "enriched_at": "2026-05-11T10:34:36.255Z",
+    "perplexity_intel": "### 1. Target Company Stage\nDocuSign primarily targets **SMB, mid-market, and enterprise** stages. Historically successful with commercial customers and SMBs via its Intelligent Agreement Management (IAM) platform, which has driven $350M+ in ARR as of Q4 2025. In 2026, they are shifting focus to **enterprise** as the \"next evolution\" in go-to-market strategy, per VP Asia Kartik Krishnamurthy (CRN Asia, 2026). B2B accounts for ~88% of revenue, with 1.7-1.8M total customers globally, including 95% of Fortune 500 firms. Less emphasis on seed/startups, though accessible for growing small businesses.\n\n### 2. Typical Company Size (Headcount Ranges)\n- **SMB/Small**: <100 employees (e.g., lean tools for small businesses via eSignature and CLM).\n- **Mid-market**: 100-1,000 employees (growing compan",
+    "stage_fit": [
+      "smb",
+      "mid-market",
+      "enterprise"
+    ],
+    "size_fit": [
+      "1-100",
+      "101-1000",
+      "1000+"
+    ],
+    "cloud_fit": [
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "medium",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "$10-25/user/month (SMB), $40-100/user/month (mid-market), custom (enterprise)",
+    "competes_with": [
+      "adobe_sign",
+      "dropbox_sign",
+      "pandadoc",
+      "ironclad",
+      "conga",
+      "box",
+      "springcm"
+    ],
+    "not_right_for": "Seed/early startups, non-digital agreement workflows, highly custom dev-heavy environments",
+    "positioning": "DocuSign excels in enterprise-grade agreement management with end-to-end lifecycle capabilities and strong compliance features, particularly for Fortune 500 companies.",
+    "startup_program": "Developer sandbox available (free tier)",
+    "updated_best_for": "Enterprise-grade agreement lifecycle management, compliance, and scalability for large organizations."
+  },
+  "reachlx": {
+    "id": "reachlx",
+    "display_name": "ReachLX",
+    "closes": [
+      "founder_trust"
+    ],
+    "enriched_at": "2026-05-11T10:34:49.831Z",
+    "perplexity_intel": "### Research on ReachLX Cybersecurity/Compliance Vendor\n\n**Note on Scope:** ReachLX (reachlx.com) is **not a cybersecurity or compliance vendor** in the traditional sense (e.g., no threat detection, endpoint protection, cloud security posture management, or GRC tools). It is a **leadership performance platform** focused on data-led, AI-enhanced coaching, 360-degree feedback, profiles, and organizational development for leaders, teams, and enterprises. It mentions **ISO 27001 certification** (information security management standard), which provides some compliance signaling, but its core value is HR/leadership development, not security operations or risk management. No evidence of integrations with cloud platforms, CDNs, or security stacks. The analysis below addresses the query points fac",
+    "stage_fit": [
+      "series_b",
+      "enterprise"
+    ],
+    "size_fit": [
+      "51-200",
+      "201-1000",
+      "1000+"
+    ],
+    "cloud_fit": [
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "medium",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "$50-$150/user/month or $10K-$100K+/year",
+    "competes_with": [
+      "betterup",
+      "culture_amp",
+      "15five",
+      "lattice"
+    ],
+    "not_right_for": "Seed/early-stage startups without dedicated HR/leadership budgets or pure tech/security ops teams",
+    "positioning": "Data-led AI and ISO 27001 for secure, compliant leadership development in regulated industries",
+    "startup_program": "",
+    "updated_best_for": "Mid-market to enterprise organizations preparing for scaling with established leadership teams and compliance needs"
+  },
+  "cognitiveview": {
+    "id": "cognitiveview",
+    "display_name": "CognitiveView",
+    "closes": [
+      "ai_governance",
+      "ai_risk",
+      "ai_compliance"
+    ],
+    "enriched_at": "2026-05-11T10:35:04.692Z",
+    "perplexity_intel": "### 1. Target Company Stage\nCognitiveView targets **mid-market to enterprise** organizations, with a focus on businesses requiring automated compliance and risk management at scale. Their offerings emphasize **300+ compliance workflow templates** and **500+ controls for monitoring**, suited for regulated industries like BFSI, healthcare, government, and IT/telecom (aligned with broader cognitive security market trends from sources [1], [3], [5]). They position themselves as an AI automation platform for \"routine\" compliance tasks, empowering innovation—ideal for established firms rather than early-stage bootstrappers.\n\n### 2. Typical Company Size (Headcount Ranges)\nNo direct headcount data available from search results, but inferred from market context and their stats: **500-5,000+ employe",
+    "stage_fit": [
+      "mid-market",
+      "enterprise"
+    ],
+    "size_fit": [
+      "51-200",
+      "201-1000",
+      "1000+"
+    ],
+    "cloud_fit": [
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "medium",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "$50K-$500K+/year",
+    "competes_with": [
+      "trendmicro",
+      "darktrace",
+      "sekoia",
+      "crowdstrike",
+      "palantir"
+    ],
+    "not_right_for": "Seed/startup/SMB (<50 employees) or DIY/low-budget scenarios",
+    "positioning": "CognitiveView stands out for compliance-first AI agents (100+), vs. competitors' threat-detection emphasis.",
+    "startup_program": "",
+    "updated_best_for": "AI startups needing governance, EU AI Act, NIST AI RMF compliance, mid-market to enterprise organizations requiring automated compliance and risk management at scale"
+  },
+  "aws_iam_identity_center": {
+    "id": "aws_iam_identity_center",
+    "display_name": "AWS IAM Identity Center",
+    "closes": [
+      "mfa",
+      "sso",
+      "identity"
+    ],
+    "enriched_at": "2026-05-11T10:35:18.346Z",
+    "perplexity_intel": "### AWS IAM Identity Center Research Summary\n\nAWS IAM Identity Center (formerly AWS SSO) is a **fully managed AWS-native service** for centralized workforce identity management, single sign-on (SSO), and access control across AWS accounts, applications, and resources. It federates identities from external providers and supports protocols like SAML 2.0 and SCIM for provisioning. Below is a detailed breakdown based on official AWS documentation and features.\n\n#### 1. Target Company Stage\n**Enterprise**. Designed for organizations with multi-account AWS environments, complex access needs, and existing identity ecosystems (e.g., Active Directory, Okta). Not positioned for seed/startup or solo developers; it's integrated into AWS Organizations for scaled governance.\n\n#### 2. Typical Company Siz",
+    "stage_fit": [
+      "enterprise"
+    ],
+    "size_fit": [
+      "1000+"
+    ],
+    "cloud_fit": [
+      "aws"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "medium",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "Free tier included; pay-per-use for advanced features",
+    "competes_with": [
+      "okta",
+      "microsoft",
+      "ping_identity",
+      "auth0",
+      "google_cloud_identity"
+    ],
+    "not_right_for": "Seed/startup/SMB (<500 users), non-AWS environments, custom app-heavy",
+    "positioning": "Differentiates via one-click AWS integrations and zero marginal cost for core features",
+    "startup_program": "Free tier included in AWS Free Tier (first 12 months for new accounts)",
+    "updated_best_for": "Centralised SSO and MFA across AWS accounts and SAML apps in large enterprises with complex access needs"
+  },
+  "okta": {
+    "id": "okta",
+    "display_name": "Okta",
+    "closes": [
+      "mfa",
+      "sso",
+      "identity"
+    ],
+    "enriched_at": "2026-05-11T10:35:32.580Z",
+    "perplexity_intel": "### Okta Research Summary\n\nOkta is a leading cloud-based identity and access management (IAM) platform specializing in workforce identity (SSO, MFA, lifecycle management) and customer identity (CIAM for apps). It serves as a \"identity backbone\" for secure authentication across apps, emphasizing security, frictionless UX, and vendor neutrality. Below is detailed, factual information based on the provided search results and known industry data.\n\n#### 1. Target Company Stage\n- **Primary: Mid-market to Enterprise**. Evolved from SMB SSO tool to enterprise-grade identity platform. Over 40% of Fortune 500 use it, with revenue shifting to high-ACV ($100k+) accounts growing ~12% YoY (early 2025 data). Also serves startups/developers for CIAM, but emphasis on large-scale digital transformation.\n\n##",
+    "stage_fit": [
+      "mid-market",
+      "enterprise"
+    ],
+    "size_fit": [
+      "1000+"
+    ],
+    "cloud_fit": [
+      "aws",
+      "azure",
+      "gcp",
+      "any"
+    ],
+    "edge_fit": [
+      "cloudflare",
+      "akamai",
+      "any"
+    ],
+    "effort": "medium",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "custom",
+    "competes_with": [
+      "ping_identity",
+      "auth0",
+      "microsoft_entra_id",
+      "cyberark",
+      "sailpoint",
+      "onelogin"
+    ],
+    "not_right_for": "Seed/early-stage startups or pure on-prem legacy environments",
+    "positioning": "Vendor neutrality, passwordless/biometrics, high net retention in tech/finance/healthcare",
+    "startup_program": "Developer Edition (free tier)",
+    "updated_best_for": "Enterprise identity, broad integrations, and seamless SSO/MFA for all users/apps"
+  },
+  "cisco_duo": {
+    "id": "cisco_duo",
+    "display_name": "Cisco Duo",
+    "closes": [
+      "mfa",
+      "identity"
+    ],
+    "enriched_at": "2026-05-11T10:35:46.555Z",
+    "perplexity_intel": "# Cisco Duo: Comprehensive Vendor Analysis\n\n## 1. Target Company Stage\n**Primary:** Mid-market to Enterprise  \n**Secondary:** SMB (but positioned upmarket)\n\nDuo was originally founded to serve \"underserved markets at or below the security poverty line\" (SMB/mid-market), but has evolved into a primarily enterprise-focused identity security platform post-Cisco acquisition (2018). The platform now scales across all organization sizes, though pricing and go-to-market strategy favor larger deployments.\n\n---\n\n## 2. Typical Company Size (Headcount Ranges)\n\nThe search results indicate Duo serves organizations across a broad spectrum:\n- **SMB:** 50–500 employees\n- **Mid-market:** 500–5,000 employees\n- **Enterprise:** 5,000+ employees\n\nDocumented enterprise customers include: Etsy, Facebook, Paramou",
+    "stage_fit": [
+      "mid-market",
+      "enterprise"
+    ],
+    "size_fit": [
+      "50-500",
+      "500-5000",
+      "5000+"
+    ],
+    "cloud_fit": [
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "medium",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "custom",
+    "competes_with": [
+      "okta",
+      "microsoft",
+      "rsa",
+      "keeper"
+    ],
+    "not_right_for": "SMBs seeking a free tier or significant startup discount program",
+    "positioning": "Enterprise-focused identity security platform with fast MFA rollout and hybrid capabilities",
+    "startup_program": "",
+    "updated_best_for": "Fast MFA rollout, SME-friendly, up and running in a day, enterprise-grade security"
+  },
+  "cisco_umbrella": {
+    "id": "cisco_umbrella",
+    "display_name": "Cisco Umbrella",
+    "closes": [
+      "network_perimeter",
+      "dns_security",
+      "zero_trust"
+    ],
+    "enriched_at": "2026-05-11T10:36:01.711Z",
+    "perplexity_intel": "### Cisco Umbrella Research Summary\n\nCisco Umbrella is a cloud-delivered security platform from Cisco Systems, focused on DNS-layer enforcement to block malware, phishing, ransomware, and other threats before connections form. It uses Cisco Talos threat intelligence (analyzing 700+ billion daily DNS requests) and operates via global Anycast routing across 35+ data centers. Key features include DNS filtering, web filtering, roaming client for off-network protection, and integrations for cloud apps like Office 365.\n\n#### 1. Target Company Stage\nEnterprise-primary, with strong fit for SMBs and mid-market. Cisco markets it explicitly for small businesses lacking IT resources (e.g., no on-premises hardware needed), but it's scaled for 30,000+ enterprise customers across 190+ countries, processi",
+    "stage_fit": [
+      "series_b",
+      "enterprise"
+    ],
+    "size_fit": [
+      "1-10",
+      "11-50",
+      "51-200",
+      "201-1000",
+      "1000+"
+    ],
+    "cloud_fit": [
+      "aws",
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "low",
+    "pricing_tier": "smb",
+    "pricing_signal": "custom",
+    "competes_with": [
+      "cloudflare",
+      "palo_alto",
+      "trendmicro",
+      "fortinet"
+    ],
+    "not_right_for": "Seed/early startups or ultra-low budget/no IT scenarios",
+    "positioning": "Cisco Umbrella is distinct for its DNS-first approach, leveraging Talos threat intelligence for rapid threat detection and prevention, with a cloud-native model that scales easily.",
+    "startup_program": "",
+    "updated_best_for": "DNS security, cloud-delivered SASE, remote workforce protection, and easy deployment for SMBs and mid-market companies."
+  },
+  "microsoft": {
+    "id": "microsoft",
+    "display_name": "Microsoft",
+    "closes": [
+      "mfa",
+      "sso",
+      "identity",
+      "endpoint_protection"
+    ],
+    "enriched_at": "2026-05-11T10:36:15.804Z",
+    "perplexity_intel": "# Microsoft Cybersecurity & Compliance Vendor Analysis\n\n## 1. Target Company Stage\n**Primary: Enterprise | Secondary: Mid-market and SMB**\n\nMicrosoft targets enterprises as its core market but has deliberately expanded downmarket. The search results indicate Microsoft serves organizations ranging from SMB to global enterprises, with 860,000 organizations across 120 countries using its security products. Microsoft offers dedicated SMB security offerings with simplified compliance and AI-powered threat detection at lower price points.\n\n## 2. Typical Company Size (Headcount)\n- **SMB tier:** 50-500 employees\n- **Mid-market:** 500-5,000 employees\n- **Enterprise:** 5,000+ employees\n\nMicrosoft's bundling strategy (detailed below) means many mid-market and enterprise organizations already have bas",
+    "stage_fit": [
+      "enterprise",
+      "mid-market",
+      "SMB"
+    ],
+    "size_fit": [
+      "50-500",
+      "500-5000",
+      "5000+"
+    ],
+    "cloud_fit": [
+      "azure",
+      "aws",
+      "gcp"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "medium",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "custom",
+    "competes_with": [
+      "crowdstrike",
+      "sentinelone",
+      "palo_alto"
+    ],
+    "not_right_for": "organizations with a strong focus on edge security and those needing extensive macOS and Linux support",
+    "positioning": "Microsoft offers a comprehensive cybersecurity solution deeply integrated with Microsoft 365 and Azure, suitable for enterprises and organizations already using Microsoft products.",
+    "startup_program": "",
+    "updated_best_for": "Enterprises and organizations using Microsoft 365 and Azure, looking for integrated cybersecurity solutions."
+  },
+  "rsa": {
+    "id": "rsa",
+    "display_name": "RSA",
+    "closes": [
+      "mfa",
+      "identity"
+    ],
+    "enriched_at": "2026-05-11T10:36:32.359Z",
+    "perplexity_intel": "### RSA (RSA Security) Vendor Research\n\nRSA Security, owned by NetWitness (a Symphony Technology Group company since 2020), is a legacy cybersecurity vendor specializing in identity and access management (IAM), authentication, identity governance, and risk management solutions. Core products include **RSA SecurID** (multi-factor authentication/MFA), **RSA Identity Governance and Lifecycle** (IG&L), and **RSA Archer** (GRC platform for compliance and risk). It serves regulated industries like finance, healthcare, and government with on-premises, hybrid, and cloud-deployed options. Below is detailed analysis based on official documentation, recent analyst reports (e.g., Gartner, Forrester), and public sources as of May 2026.\n\n#### 1. Target Company Stage\n**Enterprise**. RSA targets large, re",
+    "stage_fit": [
+      "enterprise"
+    ],
+    "size_fit": [
+      "1000+"
+    ],
+    "cloud_fit": [
+      "aws",
+      "azure",
+      "gcp",
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "high",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "$5–$15/user/month for MFA, $100K–$1M+ initial for GRC, $1M–$10M+ ACV for full IAM suite",
+    "competes_with": [
+      "okta",
+      "ping_identity",
+      "sailpoint",
+      "servicenow_grc",
+      "cyberark"
+    ],
+    "not_right_for": "startups or small to medium-sized businesses",
+    "positioning": "Legacy identity and access management solutions for large, regulated enterprises",
+    "startup_program": "",
+    "updated_best_for": "Regulated industries requiring enterprise-grade IAM and GRC solutions"
+  },
+  "keeper": {
+    "id": "keeper",
+    "display_name": "Keeper",
+    "closes": [
+      "credential_security",
+      "identity"
+    ],
+    "enriched_at": "2026-05-11T10:36:44.888Z",
+    "perplexity_intel": "### 1. Target Company Stage\nKeeper Security primarily targets **SMB, mid-market, and enterprise** organizations. It serves businesses of all sizes in the B2B sector, from small businesses to multinational enterprises and government entities (source: [3]). Recent hiring for a Manager of North America Mid-Market Sales underscores focus on mid-market growth (source: [5]). Consumer side exists but is secondary; core growth is in SMB/Enterprise PAM (privileged access management) products (source: [1], [2]).\n\n### 2. Typical Company Size (Headcount Ranges)\n- **SMB**: Small businesses (likely <100 employees), emphasized in growth narratives.\n- **Mid-market**: 100-1,000 employees, with dedicated sales leadership and teams (source: [5]).\n- **Enterprise**: 1,000+ employees, including Fortune 100 comp",
+    "stage_fit": [
+      "SMB",
+      "mid-market",
+      "enterprise"
+    ],
+    "size_fit": [
+      "1-100",
+      "101-1000",
+      "1000+"
+    ],
+    "cloud_fit": [
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "medium",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "$10-50/user/month, custom enterprise quotes",
+    "competes_with": [
+      "cyberark",
+      "beyondcorp",
+      "zscaler",
+      "1password",
+      "lastpass",
+      "delinea"
+    ],
+    "not_right_for": "Seed/early-stage startups",
+    "positioning": "Keeper differentiates via unified, zero-knowledge/zero-trust PAM in a single cloud-native platform, better suited for mid-market/SMB compared to traditional vault-heavy PAM solutions.",
+    "startup_program": "",
+    "updated_best_for": "Credential security, password management, privileged access management (PAM) for SMB, mid-market, and enterprise organizations."
+  },
+  "jamf": {
+    "id": "jamf",
+    "display_name": "Jamf",
+    "closes": [
+      "device_identity",
+      "endpoint_protection"
+    ],
+    "enriched_at": "2026-05-11T10:36:57.687Z",
+    "perplexity_intel": "### 1. Target Company Stage\nJamf primarily targets **enterprise**, **mid-market**, and **SMB** organizations, with a strong emphasis on **enterprise** and **education** sectors. It operates in a B2B model focused on IT professionals and administrators managing Apple devices. Key segments include:\n- **Enterprise**: Large corporations (e.g., 9 of top 10 Fortune 500 companies as of Sep 2023) with thousands of devices, needing scalable security/compliance.\n- **Education**: K-12 schools and universities adopting iPads/Macs.\n- **SMBs**: Smaller businesses via channel partners.\n- **Other**: Government, healthcare.\nAs of mid-2025, Jamf serves ~76,600 customers globally, managing 33.6M+ Apple devices, with enterprises driving significant revenue.\n\n### 2. Typical Company Size (Headcount Ranges)\nNo d",
+    "stage_fit": [
+      "enterprise"
+    ],
+    "size_fit": [
+      "1000+"
+    ],
+    "cloud_fit": [
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "medium",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "custom",
+    "competes_with": [
+      "mosyle",
+      "addigy",
+      "microsoft",
+      "vmware",
+      "mobileiron",
+      "miradore"
+    ],
+    "not_right_for": "Organizations with non-Apple devices or mixed fleets not expanding to Android",
+    "positioning": "Apple-native device management and security solution with a strong focus on enterprise and education sectors",
+    "startup_program": "",
+    "updated_best_for": "Apple-first environments with a focus on device identity and security for large enterprises and educational institutions"
+  },
+  "aws_waf": {
+    "id": "aws_waf",
+    "display_name": "AWS WAF",
+    "closes": [
+      "waf",
+      "network_perimeter",
+      "security_headers",
+      "dmarc"
+    ],
+    "enriched_at": "2026-05-11T10:37:11.693Z",
+    "perplexity_intel": "### AWS WAF Research Report\n\nAWS WAF (Web Application Firewall) is a managed service from Amazon Web Services (AWS) designed to protect web applications and APIs from common exploits like SQL injection, XSS, and HTTP floods by inspecting HTTP(S) requests.\n\n1. **Target company stage**: Enterprise. AWS WAF is optimized for large-scale, multi-account AWS environments, with features like AWS Firewall Manager for organization-wide deployment across accounts (e.g., [1], [6]). It's not positioned for seed/startup phases lacking AWS infrastructure.\n\n2. **Typical company size (headcount ranges)**: 500+ employees. Suited for enterprises managing complex AWS deployments (e.g., CloudFront, ALB, API Gateway across multiple accounts), as evidenced by Firewall Manager's focus on centralized policy manage",
+    "stage_fit": [
+      "enterprise"
+    ],
+    "size_fit": [
+      "1000+"
+    ],
+    "cloud_fit": [
+      "aws"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "medium",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "$5-$15/million requests",
+    "competes_with": [
+      "cloudflare",
+      "azure_application_gateway_waf",
+      "fastly_next_gen_waf",
+      "imperva"
+    ],
+    "not_right_for": "Seed/startups/SMBs without AWS infrastructure; non-AWS clouds; simple static sites needing cheap edge protection; on-premises/hybrid setups; low-budget scenarios under 1M requests/month where free alternatives suffice.",
+    "positioning": "AWS WAF excels in AWS cost integration and managed rules, but lags in non-AWS portability.",
+    "startup_program": "AWS Free Tier: 1M requests/month free (first 12 months) + 10 web ACLs/rules. AWS Activate/Founders programs offer up to $100K credits for startups.",
+    "updated_best_for": "Large enterprises using AWS for web applications and APIs needing protection from common exploits, with preference for AWS-native integration."
+  },
+  "cloudflare": {
+    "id": "cloudflare",
+    "display_name": "Cloudflare",
+    "closes": [
+      "network_perimeter",
+      "waf",
+      "ddos",
+      "zero_trust",
+      "dmarc",
+      "security_headers",
+      "data_privacy",
+      "ai_governance"
+    ],
+    "enriched_at": "2026-05-11T10:37:25.271Z",
+    "perplexity_intel": "# Cloudflare: Detailed Vendor Analysis\n\n## 1. Target Company Stage\n\n**Primary Focus: All stages, with strategic shift upmarket**\n\n- **Developers & Startups**: Free and freemium tiers for early-stage builders\n- **SMBs**: Pro and Business plans for growing organizations\n- **Mid-Market**: Business and Enterprise plans with dedicated support\n- **Enterprise**: Largest revenue driver (60%+ of paid revenue as of Q1 2025)\n\nThe company has deliberately shifted strategy to prioritize enterprise customers while maintaining a \"long-tail\" freemium model for developers and small businesses.\n\n---\n\n## 2. Typical Company Size (Headcount Ranges)\n\n| Segment | Headcount Range | Plan | Notes |\n|---------|-----------------|------|-------|\n| **Individual Developers/Micro** | 1-10 | Free/Pro | Self-serve, minimal",
+    "stage_fit": [
+      "seed",
+      "early",
+      "series_a",
+      "series_b",
+      "enterprise"
+    ],
+    "size_fit": [
+      "1-10",
+      "11-50",
+      "51-200",
+      "201-1000",
+      "1000+"
+    ],
+    "cloud_fit": [
+      "aws",
+      "azure",
+      "gcp",
+      "any"
+    ],
+    "edge_fit": [
+      "cloudflare",
+      "any"
+    ],
+    "effort": "low",
+    "pricing_tier": "free",
+    "pricing_signal": "$0/mo",
+    "competes_with": [
+      "aws_security_hub",
+      "vanta",
+      "vanta_msp",
+      "drata",
+      "secureframe",
+      "apollo_secure",
+      "trustwave",
+      "docusign",
+      "reachlx",
+      "cognitiveview",
+      "aws_iam_identity_center",
+      "okta",
+      "cisco_duo",
+      "cisco_umbrella",
+      "microsoft",
+      "rsa",
+      "keeper",
+      "jamf",
+      "aws_waf",
+      "fortinet",
+      "palo_alto",
+      "sonicwall",
+      "juniper",
+      "crowdstrike",
+      "trellix",
+      "trendmicro",
+      "sophos",
+      "aws_backup",
+      "veeam",
+      "cohesity",
+      "netapp",
+      "nutanix",
+      "veritas",
+      "opentext",
+      "proofpoint",
+      "blancco",
+      "aws_programs",
+      "austbrokers"
+    ],
+    "not_right_for": "companies with very specific cloud-dependent requirements",
+    "positioning": "Cloudflare is a cloud-agnostic network-layer solution providing a wide range of security and performance services, including DDoS protection, WAF, and Zero Trust access, suitable for all business sizes and stages.",
+    "startup_program": "Free tier for developers and micro-sites",
+    "updated_best_for": "Network security, zero trust access, multi-cloud and hybrid cloud architectures, and edge computing"
+  },
+  "fortinet": {
+    "id": "fortinet",
+    "display_name": "Fortinet",
+    "closes": [
+      "network_perimeter",
+      "firewall"
+    ],
+    "enriched_at": "2026-05-11T10:37:39.008Z",
+    "perplexity_intel": "# Fortinet: Comprehensive Vendor Analysis\n\n## 1. Target Company Stage\n**Primary Focus: Mid-Market to Enterprise**\n\nFortinet operates across a broad B2B spectrum but shows clear segmentation:\n- **Large Enterprise**: ~42% of billings (as of late 2025)\n- **Mid-Market**: Significant but secondary segment\n- **SMBs**: Served but with lighter-touch, cost-optimized solutions\n\nThe company has evolved from primarily serving enterprises to increasingly targeting cloud-first organizations, including DevOps teams and managed security service providers (MSSPs).\n\n---\n\n## 2. Typical Company Size (Headcount Ranges)\n\n**By Segment:**\n- **Large Enterprise**: Global financial institutions, healthcare systems, manufacturing conglomerates with complex IT infrastructure\n- **Mid-Market**: Organizations with modera",
+    "stage_fit": [
+      "mid_market",
+      "enterprise"
+    ],
+    "size_fit": [
+      "501-1000",
+      "1000+"
+    ],
+    "cloud_fit": [
+      "aws",
+      "azure",
+      "gcp",
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "medium",
+    "pricing_tier": "custom",
+    "pricing_signal": "custom",
+    "competes_with": [
+      "palo_alto",
+      "sonicwall",
+      "cisco_duo",
+      "cisco_umbrella",
+      "okta",
+      "crowdstrike",
+      "trellix",
+      "trendmicro",
+      "sophos"
+    ],
+    "not_right_for": "Cloud-native startups or small businesses seeking basic security solutions without extensive IT resources.",
+    "positioning": "Fortinet is distinct for its converged security approach that supports both hybrid cloud and on-premises environments, making it ideal for large enterprises with complex IT infrastructures.",
+    "startup_program": "",
+    "updated_best_for": "Firewall, SD-WAN, enterprise network security, hybrid cloud security, multi-cloud environments"
+  },
+  "palo_alto": {
+    "id": "palo_alto",
+    "display_name": "Palo Alto",
+    "closes": [
+      "network_perimeter",
+      "firewall",
+      "edr"
+    ],
+    "enriched_at": "2026-05-11T10:37:52.429Z",
+    "perplexity_intel": "### 1. Target Company Stage\nPalo Alto Networks primarily targets **enterprise and upper mid-market** organizations (B2B), with a core focus on **large enterprises**, **Global 2000/Fortune 500**, **regulated industries** (e.g., finance, healthcare, pharma, telecom, energy), **public sector/defense** (federal/state agencies with FedRAMP/StateRAMP needs), and **service providers/MSSPs**. It has expanded into **SMB/commercial** via SASE/Prisma Access and MSSP channels for simplified, per-user pricing. Less emphasis on seed/startups; cloud-native DevSecOps teams (e.g., AI/ML startups) adopt Prisma Cloud. Secures 9/10 Fortune 10 companies and 8/10 largest U.S. banks. By Q1 FY2025, closed 1,100 platformization deals, targeting 2,500–3,500 by FY2030.\n\n### 2. Typical Company Size (Headcount Ranges)",
+    "stage_fit": [
+      "early",
+      "series_a",
+      "series_b",
+      "enterprise"
+    ],
+    "size_fit": [
+      "51-200",
+      "201-1000",
+      "1000+"
+    ],
+    "cloud_fit": [
+      "aws",
+      "azure",
+      "gcp",
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "medium",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "$7-15k/yr+",
+    "competes_with": [
+      "cisco",
+      "crowdstrike",
+      "microsoft",
+      "rsa",
+      "jamf",
+      "aws_waf",
+      "cloudflare",
+      "fortinet",
+      "sonicwall",
+      "juniper",
+      "trendmicro",
+      "sophos"
+    ],
+    "not_right_for": "Seed/startup stage companies and cloud-native DevSecOps teams",
+    "positioning": "AI-driven platform consolidation across network, cloud, and SOC",
+    "startup_program": "",
+    "updated_best_for": "Large enterprises, regulated industries, and multi-cloud environments"
+  },
+  "sonicwall": {
+    "id": "sonicwall",
+    "display_name": "SonicWall",
+    "closes": [
+      "network_perimeter",
+      "firewall"
+    ],
+    "enriched_at": "2026-05-11T10:38:06.411Z",
+    "perplexity_intel": "### 1. Target Company Stage\nSonicWall primarily targets **SMB (small to midsize businesses)** and MSPs/MSSPs, with a strong focus on the SMB cybersecurity market for firewalls, network security appliances, UTM, VPNs, SD-WAN, and cloud security. It also serves enterprises via its 17,000+ global channel partners, but its core dominance is in SMB/mid-market (e.g., \"maintaining its market dominance in firewalls... for the small to midsized market\" from [1]). Not positioned as a startup/seed vendor; geared toward established businesses undergoing digital transformation.\n\n### 2. Typical Company Size (Headcount Ranges)\nSonicWall itself has **1,600+ employees** ([5]). It serves companies from small businesses (e.g., 10-100 employees) to mid-market (100-1,000+ employees), with 500,000+ customers gl",
+    "stage_fit": [
+      "early",
+      "series_a",
+      "series_b",
+      "enterprise"
+    ],
+    "size_fit": [
+      "11-50",
+      "51-200",
+      "201-1000",
+      "1000+"
+    ],
+    "cloud_fit": [
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "medium",
+    "pricing_tier": "smb",
+    "pricing_signal": "$500-$2,000/year per appliance/subscription",
+    "competes_with": [
+      "fortinet",
+      "palo_alto",
+      "cisco_umbrella"
+    ],
+    "not_right_for": "Seed/startups (<10 employees, minimal budget) and pure cloud-native enterprises",
+    "positioning": "SonicWall is distinct for its strong focus on SMB cybersecurity, offering a wide range of cloud-agnostic and MSP-centric solutions.",
+    "startup_program": "",
+    "updated_best_for": "SMB firewall, cost-effective network security, and cloud-native edge solutions"
+  },
+  "juniper": {
+    "id": "juniper",
+    "display_name": "Juniper",
+    "closes": [
+      "network_perimeter"
+    ],
+    "enriched_at": "2026-05-11T10:38:22.995Z",
+    "perplexity_intel": "### Juniper Networks Cybersecurity/Compliance Research\n\nJuniper Networks is an established enterprise networking and security vendor, not a startup or SMB-focused provider. Their cybersecurity offerings (e.g., SRX firewalls, Mist AI security, Apstra intent-based networking for zero-trust) emphasize automation, AI-driven operations, and compliance via supply chain security and segmentation. Below is detailed, factual analysis based on available data.\n\n#### 1. Target Company Stage\nEnterprise and mid-market. Primary focus: Fortune 500 enterprises (finance, healthcare), Tier-1 mobile operators, cloud providers, federal/DoD, higher education, SLED (state/local education/government). Gaining traction in brownfield (existing/multi-vendor) data centers via Apstra. Not targeted at seed/startups/SMB",
+    "stage_fit": [
+      "enterprise"
+    ],
+    "size_fit": [
+      "1000+"
+    ],
+    "cloud_fit": [
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "high",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "$10K-$100K+ per unit, $50K-$500K+/year",
+    "competes_with": [
+      "cisco_duo",
+      "palo_alto",
+      "fortinet",
+      "microsoft",
+      "rsa",
+      "aws_security_hub",
+      "trustwave",
+      "okta",
+      "aws_iam_identity_center",
+      "cisco_umbrella",
+      "crowdstrike",
+      "trellix",
+      "trendmicro",
+      "sophos",
+      "netapp",
+      "nutanix"
+    ],
+    "not_right_for": "Seed/startups/SMBs, Greenfield cloud-native only, Rapid self-serve, CDN/edge-only",
+    "positioning": "Juniper's edge: Automation reduces manual config (vs. Cisco/Arista); zero-trust enforcement via intent validation.",
+    "startup_program": "",
+    "updated_best_for": "Enterprise networking, campus and cloud, with a focus on automation, AI-driven operations, and compliance."
+  },
+  "crowdstrike": {
+    "id": "crowdstrike",
+    "display_name": "CrowdStrike",
+    "closes": [
+      "edr",
+      "endpoint_protection"
+    ],
+    "enriched_at": "2026-05-11T10:38:39.253Z",
+    "perplexity_intel": "### 1. Target Company Stage\nCrowdStrike targets **enterprise** customers primarily, with a focus on large organizations in Fortune 500 companies, government agencies, and multinational corporations. It is not positioned for seed/startup or SMB markets, as its Falcon platform emphasizes scalable, mission-critical cybersecurity for complex environments. Market cap: ~$113.7B (as of recent data), with FY26 Q2 ARR at $4.66B, on track for ~$5B annually.\n\n### 2. Typical Company Size (Headcount Ranges)\nTypical customers have **1,000+ employees**, often 5,000–50,000+ in enterprises with distributed workforces, cloud-heavy infrastructures, and high-security needs (e.g., finance, healthcare, tech giants). Examples include partnerships with Salesforce, Google, EY, CoreWeave, and Anthropic. Not suited ",
+    "stage_fit": [
+      "enterprise"
+    ],
+    "size_fit": [
+      "1000+"
+    ],
+    "cloud_fit": [
+      "aws",
+      "azure",
+      "gcp",
+      "any"
+    ],
+    "edge_fit": [
+      "cloudflare",
+      "none"
+    ],
+    "effort": "high",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "$50–$100+/endpoint/year",
+    "competes_with": [
+      "palo_alto",
+      "microsoft",
+      "sentinelone",
+      "elastic",
+      "wiz"
+    ],
+    "not_right_for": "Seed/startups/SMBs, simple/static environments, budget-constrained with basic needs, non-AI/heavy legacy on-prem only",
+    "positioning": "Single AI-native Falcon platform with 20%+ net new ARR growth target by 2027 and $140B–$300B TAM expansion",
+    "startup_program": "",
+    "updated_best_for": "Enterprise EDR, strong detection, scalable, mission-critical cybersecurity for complex environments"
+  },
+  "trellix": {
+    "id": "trellix",
+    "display_name": "Trellix",
+    "closes": [
+      "endpoint_protection",
+      "threat_detection"
+    ],
+    "enriched_at": "2026-05-11T10:38:54.065Z",
+    "perplexity_intel": "### 1. Target Company Stage\nTrellix targets **enterprise** primarily, with a focus on large-scale organizations. It serves Fortune Global 100 companies (80% representation), Fortune 100, government agencies, and mid-market enterprises across sectors like healthcare, manufacturing, retail, telecom, education, finance, and government. Customer base: 40,000–53,000 business/government customers in 185 countries, including ~1,700 for NDR solutions in complex IT/OT hybrid environments. Not suited for seed/startup/SMB without scale needs.\n\n### 2. Typical Company Size (Headcount Ranges)\nTrellix serves organizations from **mid-market enterprises to the largest global enterprises** (e.g., Fortune Global 100). No explicit headcount ranges provided, but signals indicate 1,000+ employee enterprises as ",
+    "stage_fit": [
+      "enterprise"
+    ],
+    "size_fit": [
+      "1000+"
+    ],
+    "cloud_fit": [
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "high",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "",
+    "competes_with": [
+      "crowdstrike",
+      "sentinelone",
+      "palo_alto",
+      "trendmicro",
+      "sophos",
+      "proofpoint"
+    ],
+    "not_right_for": "Seed/startup/SMB or self-serve/simple needs",
+    "positioning": "AI-powered unified platform with open architecture and 30+ years of experience",
+    "startup_program": "",
+    "updated_best_for": "Large-scale enterprises with complex IT/OT environments requiring XDR and hybrid ecosystem security"
+  },
+  "trendmicro": {
+    "id": "trendmicro",
+    "display_name": "Trend Micro",
+    "closes": [
+      "endpoint_protection",
+      "email_security"
+    ],
+    "enriched_at": "2026-05-11T10:39:07.370Z",
+    "perplexity_intel": "### 1. Target Company Stage\nTrend Micro primarily targets **enterprise** and **mid-market** companies, with recent expansions to **SMBs** (small- and mid-sized enterprises) via its Trend Vision One platform tailored for Managed Service Providers (MSPs). It serves over 10,000 large enterprise customers (as of August 2024) and projects growth to 25,000 enterprise customers by 2025. Consumer segment is minor (<20% of revenue), focused on individuals but not the core. Key sectors: oil/gas, healthcare, manufacturing, electric utilities. Global footprint in 70 countries, with strongest markets in US (48.34% of endpoint security customers), India (12.60%), Brazil (9.43%), and growing Europe (4.3% YoY in Q1 2025).\n\n### 2. Typical Company Size (Headcount Ranges)\n- **Enterprises**: Large organizatio",
+    "stage_fit": [
+      "enterprise",
+      "mid-market"
+    ],
+    "size_fit": [
+      "1000+"
+    ],
+    "cloud_fit": [
+      "aws",
+      "azure",
+      "gcp",
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "medium",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "custom",
+    "competes_with": [
+      "crowdstrike",
+      "palo_alto",
+      "microsoft",
+      "sentinelone"
+    ],
+    "not_right_for": "when targeting very small businesses with less than 100 employees",
+    "positioning": "Trend Micro is distinct for its unified platform that offers threat protection and cyber risk management across cloud, endpoint, email, and identity vectors, supported by AI-driven predictions and a strong partner program.",
+    "startup_program": "",
+    "updated_best_for": "Cloud and endpoint security, SMB to enterprise with a focus on mid-market and large enterprise organizations"
+  },
+  "sophos": {
+    "id": "sophos",
+    "display_name": "Sophos",
+    "closes": [
+      "endpoint_protection",
+      "network_perimeter"
+    ],
+    "enriched_at": "2026-05-11T10:39:23.312Z",
+    "perplexity_intel": "### 1. Target Company Stage\nSophos primarily targets **SMB/mid-market** organizations, with a strong emphasis on small-to-medium enterprises (SMEs) seeking outsourced security like Managed Detection and Response (MDR). It also serves enterprises, defending over 600,000 customers worldwide across all sizes, but its roadmap focuses on converting software customers into managed services users, particularly SMEs (e.g., SE Labs 2025 awards for Small Business Endpoint and MSP solutions).\n\n### 2. Typical Company Size (Headcount Ranges)\nSophos serves organizations of **all sizes**, but excels with **SMBs and mid-market** (e.g., small businesses and MSPs). No explicit headcount ranges in sources, but customer base includes 600,000+ entities, with tailored solutions for small businesses (e.g., endpo",
+    "stage_fit": [
+      "seed",
+      "early",
+      "series_a",
+      "series_b",
+      "enterprise"
+    ],
+    "size_fit": [
+      "1-10",
+      "11-50",
+      "51-200",
+      "201-1000",
+      "1000+"
+    ],
+    "cloud_fit": [
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "medium",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "custom",
+    "competes_with": [
+      "crowdstrike",
+      "sentinelone",
+      "microsoft",
+      "palo_alto",
+      "sonicwall",
+      "juniper",
+      "trellix",
+      "trendmicro"
+    ],
+    "not_right_for": "seed/startups needing free tiers, self-serve simplicity, or ultra-low-cost tools",
+    "positioning": "Sophos differentiates via MDR leadership and SME focus with 24/7 managed services, as opposed to competitors' heavier enterprise/endpoint-only emphasis.",
+    "startup_program": "",
+    "updated_best_for": "SMB endpoint + firewall, managed detection, and MDR services for SMEs/MSPs"
+  },
+  "aws_backup": {
+    "id": "aws_backup",
+    "display_name": "AWS Backup",
+    "closes": [
+      "backup",
+      "recovery",
+      "data_resilience",
+      "backup_dr"
+    ],
+    "enriched_at": "2026-05-11T10:39:38.423Z",
+    "perplexity_intel": "### AWS Backup Vendor Research\n\n**1. Target company stage**  \nEnterprise. AWS Backup is a fully managed service from Amazon Web Services (AWS), designed for large-scale organizations using AWS Organizations to centrally manage backups across multiple accounts, OUs, and resources. It supports complex hierarchies (e.g., root-level policies overriding OU-specific frequencies like daily for Production vs. weekly for Developers) and compliance-heavy environments.\n\n**2. Typical company size (headcount ranges)**  \n500+ employees. Suited for mid-market to enterprise with distributed AWS footprints (e.g., multi-account setups via AWS Organizations). Smaller teams may use it, but its policy inheritance, delegated admin models, and Backup Audit Manager features target organizations with dedicated IT/",
+    "stage_fit": [
+      "enterprise"
+    ],
+    "size_fit": [
+      "1000+"
+    ],
+    "cloud_fit": [
+      "aws"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "medium",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "$0.05/GB-month for first 50 TB in a vault; Restore operations: $0.03/GB restored",
+    "competes_with": [
+      "aws_backup",
+      "veeam",
+      "cohesity",
+      "netapp",
+      "nutanix",
+      "veritas",
+      "opentext",
+      "proofpoint",
+      "blancco"
+    ],
+    "not_right_for": "Seed/startup/SMB (<100 employees), multi-cloud/hybrid, high-velocity dev/test, >1,000 S3 buckets/account, custom RPO needs",
+    "positioning": "AWS-native stacks — centralised backup across EC2, RDS, S3, EFS with no separate vendor",
+    "startup_program": "",
+    "updated_best_for": "Enterprise AWS-native stacks — centralised backup across EC2, RDS, S3, EFS with no separate vendor"
+  },
+  "veeam": {
+    "id": "veeam",
+    "display_name": "Veeam",
+    "closes": [
+      "backup",
+      "recovery",
+      "backup_dr"
+    ],
+    "enriched_at": "2026-05-11T10:39:52.152Z",
+    "perplexity_intel": "### 1. Target Company Stage\nVeeam primarily targets **enterprise** organizations as its biggest market, per SVP Tim Pfaelzer at VeeamON 2025 (source [1]). It serves over 550,000 customers, including 74% of the Fortune 500 (source [2]), with #1 market share in enterprise backup and recovery software (15.1% share, $1.5B revenue in 2023 per Gartner 2024 report; source [7]). It also supports SMBs, mid-market via VARs/VCSPs, and MSPs, but enterprise is the core focus with coverage of all enterprise workloads.\n\n### 2. Typical Company Size (Headcount Ranges)\nVeeam serves large enterprises (e.g., Fortune 500), with key partners like Softcat, Bytes, Computacenter, and Bechtle handling high-volume enterprise deals (source [1]). No explicit headcount ranges in results, but Fortune 500 implies 10,000+",
+    "stage_fit": [
+      "enterprise"
+    ],
+    "size_fit": [
+      "1000+"
+    ],
+    "cloud_fit": [
+      "aws",
+      "azure",
+      "gcp",
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "medium",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "custom",
+    "competes_with": [
+      "aws_backup",
+      "cohesity",
+      "netapp",
+      "nutanix",
+      "veritas",
+      "opentext",
+      "proofpoint",
+      "blancco"
+    ],
+    "not_right_for": "Seed/startup/early-stage, small non-IT orgs without ransomware/cloud needs, pure edge/CDN or non-data-resilience use cases, DIY solo devs",
+    "positioning": "Veeam is distinguished by its leading market share in enterprise backup and recovery, robust hybrid and multi-cloud support, and a strong focus on cyber resilience with instant recovery and advanced threat detection.",
+    "startup_program": "",
+    "updated_best_for": "Backup and recovery, hybrid and cloud, enterprise-scale organizations, and organizations facing cyber threats"
+  },
+  "cohesity": {
+    "id": "cohesity",
+    "display_name": "Cohesity",
+    "closes": [
+      "backup",
+      "recovery"
+    ],
+    "enriched_at": "2026-05-11T10:40:07.880Z",
+    "perplexity_intel": "### 1. Target Company Stage\nCohesity primarily targets **enterprise** organizations, serving over 12,000 customers including 85+ of the Fortune 100 and nearly 70% of the Global 500. It has recently expanded into **mid-market** with Cohesity Essentials, a cyber resilience offering tailored for midsize businesses. Not focused on seed/startup or SMB stages.\n\n### 2. Typical Company Size (Headcount Ranges)\nTypical customers are large enterprises with thousands of employees (e.g., Fortune 100/Global 500 firms managing hundreds of exabytes of data across data centers, cloud, and edge). Post-Veritas acquisition, it supports cross-selling to acquired enterprise customers. Headcount signals from context: high-scale ops requiring dedicated IT/security teams (e.g., 1,000+ employees for complex multicl",
+    "stage_fit": [
+      "enterprise",
+      "mid-market"
+    ],
+    "size_fit": [
+      "1000+"
+    ],
+    "cloud_fit": [
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "high",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "custom",
+    "competes_with": [
+      "commvault",
+      "rubrik",
+      "veeam"
+    ],
+    "not_right_for": "Seed/startup/SMB, pure CDN/edge delivery, low-budget/simple backup, early-stage experimentation",
+    "positioning": "AI-powered data security, modern scalable architecture, and broader multicloud portfolio",
+    "startup_program": "",
+    "updated_best_for": "Data management, ransomware recovery, multicloud data protection and security"
+  },
+  "netapp": {
+    "id": "netapp",
+    "display_name": "NetApp",
+    "closes": [
+      "backup",
+      "data_resilience"
+    ],
+    "enriched_at": "2026-05-11T10:40:23.701Z",
+    "perplexity_intel": "### 1. Target Company Stage\nNetApp primarily targets **enterprise** and **mid-market** companies, with a focus on large enterprises, mid-sized data-intensive firms, cloud-native service providers, AI-focused organizations, public sector, government organizations, system integrators, and regulated industries (e.g., in APJ and EMEA). It serves B2B customers undergoing digital transformation, hybrid/multi-cloud adoption, and AI/analytics initiatives. Not oriented toward seed/startups or small SMBs.\n\n### 2. Typical Company Size (Headcount Ranges)\nNetApp caters to organizations managing significant data volumes, typically **mid-market (250-1,000 employees)** to **large enterprises (1,000+ employees)**. Examples include Fortune 500 firms in IT, financial services, healthcare, telecommunications,",
+    "stage_fit": [
+      "early",
+      "enterprise"
+    ],
+    "size_fit": [
+      "201-1000",
+      "1000+"
+    ],
+    "cloud_fit": [
+      "aws",
+      "azure",
+      "gcp",
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "high",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "custom",
+    "competes_with": [
+      "pure_storage",
+      "dell_emc",
+      "aws_storage_gateway",
+      "nutanix",
+      "veeam"
+    ],
+    "not_right_for": "Seed/startups/SMBs, pure cloud-native microservices without hybrid needs, low-data-volume operations, edge-only/rapid prototyping without enterprise-scale storage/compliance requirements, budget-constrained scenarios avoiding custom enterprise pricing.",
+    "positioning": "NetApp stands out for hybrid data mobility, AI integration, and regulated workloads.",
+    "startup_program": "",
+    "updated_best_for": "Enterprise storage, hybrid cloud data, AI/analytics initiatives, hybrid/multi-cloud adoption, regulated industries"
+  },
+  "nutanix": {
+    "id": "nutanix",
+    "display_name": "Nutanix",
+    "closes": [
+      "infra_resilience"
+    ],
+    "enriched_at": "2026-05-11T10:40:41.046Z",
+    "perplexity_intel": "### Nutanix Cybersecurity/Compliance Research Report\n\nNutanix is an enterprise hyperconverged infrastructure (HCI) provider with a strong emphasis on built-in security, compliance certifications, and integrations for hybrid/multi-cloud environments. Its Nutanix Cloud Platform (NCP) and Nutanix Cloud Manager (NCM) Security Central deliver security controls aligned to NIST CSF 2.0, MITRE, CISA, and others, including automated risk benchmarking, threat detection (ML-based anomalies, TAXII feeds from Proofpoint/abuse.ch), and compliance reporting.\n\n#### 1. Target Company Stage\nEnterprise. Nutanix focuses on large-scale deployments for mission-critical workloads, with DoD approvals (DoDIN APL for AOS, AHV, Files), government compliance (USGv6 IPv6), and hybrid cloud for regulated industries. No",
+    "stage_fit": [
+      "enterprise"
+    ],
+    "size_fit": [
+      "1000+"
+    ],
+    "cloud_fit": [
+      "aws",
+      "azure",
+      "gcp",
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "medium",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "custom",
+    "competes_with": [
+      "vmware",
+      "dell_vxrail",
+      "pure_storage_portworx",
+      "cohesity",
+      "cisco_hyperflex"
+    ],
+    "not_right_for": "Seed/Startup/SMB: Overkill for <100 employees/simple VMs; lacks free tiers, requires CapEx/partner sales.",
+    "positioning": "Nutanix differentiates via'simplify security operations' and compliance (ISO 27001/17/18/27701, SOC2, ISO 22301/28000).",
+    "startup_program": "",
+    "updated_best_for": "Enterprise HCI, infrastructure resilience, built-in security, compliance certifications, hybrid/multi-cloud environments"
+  },
+  "veritas": {
+    "id": "veritas",
+    "display_name": "Veritas",
+    "closes": [
+      "backup",
+      "recovery"
+    ],
+    "enriched_at": "2026-05-11T10:40:56.353Z",
+    "perplexity_intel": "### 1. Target company stage\nVeritas Technologies primarily targets **enterprise** organizations, with broad applicability across SMBs to large-scale enterprises. IDC's 2023 MarketScape assessment notes its suitability \"from SMB through large-scale organizations in nearly all geographies,\" particularly government and regulated industries valuing certifications. It serves over 80,000 customers, including 91% of Fortune 100 and nearly 70% of Global 500 (pre-merger stats; post-merger with Cohesity, this expands to 13,000+ customers across the combined entity).\n\n### 2. Typical company size (headcount ranges)\nVeritas is optimized for **large enterprises** (typically 1,000+ employees), Fortune 100/Global 500-scale organizations managing exabyte-scale data. IDC highlights its strength in \"large-sc",
+    "stage_fit": [
+      "enterprise"
+    ],
+    "size_fit": [
+      "1000+"
+    ],
+    "cloud_fit": [
+      "aws",
+      "azure",
+      "gcp",
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "high",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "custom",
+    "competes_with": [
+      "aws_backup",
+      "veeam",
+      "cohesity"
+    ],
+    "not_right_for": "Seed/startups, small SMBs (<100 employees), or low-complexity needs",
+    "positioning": "Veritas stands out for its broad global presence, extensive customer base, and hybrid flexibility, especially post-merger with Cohesity.",
+    "startup_program": "",
+    "updated_best_for": "Enterprise backup, compliance archiving, multi-cloud data protection, and AI-enhanced cyber recovery"
+  },
+  "opentext": {
+    "id": "opentext",
+    "display_name": "OpenText Cybersecurity",
+    "closes": [
+      "siem",
+      "email_security",
+      "compliance"
+    ],
+    "enriched_at": "2026-05-11T10:41:11.107Z",
+    "perplexity_intel": "### 1. Target Company Stage\nOpenText Cybersecurity primarily targets **enterprise** organizations, large enterprises, government agencies, and professional service firms. It also serves SMBs (small and medium businesses) and consumers via its SMB&C portfolio, particularly through MSPs (managed service providers). It positions itself as a \"one-stop shop\" for MSPs and SMBs with bundled security, backup, and data protection. As of FY2024, it serves **over 120,000 enterprise customers**, including **98 of the top 100 global enterprises**, with strong focus on industries like finance, healthcare (HIPAA/PCI DSS compliance), and global operations in North America, Europe, and Asia-Pacific.\n\n### 2. Typical Company Size (Headcount Ranges)\n- **Primary**: Large enterprises and government (typically *",
+    "stage_fit": [
+      "enterprise"
+    ],
+    "size_fit": [
+      "1000+"
+    ],
+    "cloud_fit": [
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "medium",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "custom",
+    "competes_with": [
+      "crowdstrike",
+      "palo_alto",
+      "microsoft",
+      "veeam"
+    ],
+    "not_right_for": "organizations needing specific integrations with AWS, Azure, or GCP, or those focused solely on edge/CDN solutions",
+    "positioning": "OpenText Cybersecurity positions itself as a comprehensive 'one-stop shop' for MSPs and SMBs with a broad range of cybersecurity, backup, and data protection solutions, emphasizing AI-driven threat detection and response.",
+    "startup_program": "",
+    "updated_best_for": "SIEM, email security, compliance, and data protection for MSPs and SMBs, particularly in the finance, healthcare, and global operations sectors."
+  },
+  "proofpoint": {
+    "id": "proofpoint",
+    "display_name": "ProofPoint",
+    "closes": [
+      "email_security",
+      "threat_detection"
+    ],
+    "enriched_at": "2026-05-11T10:41:28.536Z",
+    "perplexity_intel": "### 1. Target company stage\nEnterprise-focused. Proofpoint serves over 2 million customers worldwide, primarily large enterprises (over 8,000 enterprises noted in older data, with global scale emphasized). It targets organizations prioritizing advanced cybersecurity for email, collaboration, cloud/SaaS, identity, and AI-driven threats, with compliance risks. Not positioned for seed/startups or SMBs; it's built for mature, high-scale deployments in regulated industries.\n\n### 2. Typical company size (headcount ranges)\nMid-market to enterprise: Serves organizations with thousands of users/employees. Company itself has grown to 5,000+ team members (up from 3,600 pre-2021). Customer base includes Fortune 500-level enterprises; no explicit mention of small teams, but platform analyzes 100B+ data",
+    "stage_fit": [
+      "enterprise"
+    ],
+    "size_fit": [
+      "1000+"
+    ],
+    "cloud_fit": [
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "high",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "custom",
+    "competes_with": [
+      "microsoft",
+      "mimecast",
+      "palo_alto"
+    ],
+    "not_right_for": "Seed/startups, SMBs, or small teams due to enterprise pricing/complexity.",
+    "positioning": "Proofpoint is distinct for its advanced AI-driven threat detection, comprehensive human/agent-centric platform, and strong focus on email security and compliance.",
+    "startup_program": "",
+    "updated_best_for": "Email security, phishing protection, advanced threat detection, and compliance in large enterprises."
+  },
+  "blancco": {
+    "id": "blancco",
+    "display_name": "Blancco",
+    "closes": [
+      "data_sanitisation",
+      "compliance"
+    ],
+    "enriched_at": "2026-05-11T10:41:44.183Z",
+    "perplexity_intel": "### 1. Target Company Stage\nBlancco Technology Group targets **enterprise** and **mid-market** companies, with a strong emphasis on large-scale data center operations, IT asset disposition (ITAD) providers, and global organizations managing IT asset lifecycles. They position as the \"industry standard\" for data erasure, integrating into enterprise ecosystems for data sanitization across information lifecycles (e.g., data centers). They also serve government agencies, non-profits (e.g., Turing Trust), and partners like IBM, Lenovo, and TCS. Not focused on seed/startup/SMB; their solutions emphasize compliance-heavy environments like regulated industries (e.g., defense, finance).\n\n### 2. Typical Company Size (Headcount Ranges)\nNo direct headcount data in results, but inferred from context: Ta",
+    "stage_fit": [
+      "enterprise",
+      "mid-market"
+    ],
+    "size_fit": [
+      "1000+"
+    ],
+    "cloud_fit": [
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "medium",
+    "pricing_tier": "enterprise",
+    "pricing_signal": "custom",
+    "competes_with": [
+      "aws_security_hub",
+      "vanta",
+      "vanta_msp",
+      "drata",
+      "secureframe",
+      "apollo_secure",
+      "trustwave",
+      "docusign",
+      "reachlx",
+      "cognitiveview",
+      "aws_iam_identity_center",
+      "okta",
+      "cisco_duo",
+      "cisco_umbrella",
+      "microsoft",
+      "rsa",
+      "keeper",
+      "jamf",
+      "aws_waf",
+      "cloudflare",
+      "fortinet",
+      "palo_alto",
+      "sonicwall",
+      "juniper",
+      "crowdstrike",
+      "trellix",
+      "trendmicro",
+      "sophos",
+      "aws_backup",
+      "veeam",
+      "cohesity",
+      "netapp",
+      "nutanix",
+      "veritas",
+      "opentext",
+      "proofpoint",
+      "blancco",
+      "aws_programs",
+      "austbrokers"
+    ],
+    "not_right_for": "Seed/startups/SMBs or pure cloud-native/SaaS environments",
+    "positioning": "Industry standard for data erasure with extensive certifications and global experience",
+    "startup_program": "",
+    "updated_best_for": "Enterprise data erasure, device lifecycle compliance, and IT asset disposition"
+  },
+  "aws_programs": {
+    "id": "aws_programs",
+    "display_name": "AWS Programs",
+    "closes": [
+      "aws_program_eligibility"
+    ],
+    "enriched_at": "2026-05-11T10:41:51.101Z",
+    "perplexity_intel": "# Research Summary: \"AWS Programs\"\n\nBased on the search results provided, I cannot find a specific cybersecurity/compliance vendor named **\"AWS Programs\"** as a distinct third-party offering.\n\n## What the search results reveal:\n\nThe results contain information about:\n\n1. **AWS's own security services and frameworks** (AWS WAF, Security Hub, GuardDuty, etc.)\n2. **AWS partner programs and competencies** (MSSP Competency, Security Competency Partners)\n3. **Third-party vendors operating in the AWS ecosystem** (Cyber Security Cloud, WithSecure, PwC, Digital Edge)\n4. **AWS Marketplace** as a distribution channel for security solutions\n\n## Possible interpretations:\n\n- **\"AWS Programs\"** may refer to AWS's **partner programs** (MSSP, Security Competency) rather than a vendor product\n- It could be ",
+    "stage_fit": [],
+    "size_fit": [],
+    "cloud_fit": [
+      "aws"
+    ],
+    "edge_fit": [],
+    "effort": "low",
+    "pricing_tier": "custom",
+    "pricing_signal": "",
+    "competes_with": [
+      "aws_security_hub",
+      "aws_iam_identity_center",
+      "okta",
+      "aws_backup"
+    ],
+    "not_right_for": "Individual users or small businesses not using AWS",
+    "positioning": "AWS Programs primarily focus on providing B2B SaaS solutions that leverage AWS credits, co-sell opportunities, and AWS Marketplace distribution.",
+    "startup_program": "",
+    "updated_best_for": "B2B SaaS companies using AWS who are looking to leverage credits, co-sell opportunities, and distribute their solutions via the AWS Marketplace."
+  },
+  "austbrokers": {
+    "id": "austbrokers",
+    "display_name": "AustBrokers CyberPro",
+    "closes": [
+      "cyber_insurance"
+    ],
+    "enriched_at": "2026-05-11T10:42:06.211Z",
+    "perplexity_intel": "### 1. Target Company Stage\nAustbrokers Cyber Pro (ACP) targets **SMB/mid-market** companies, with a primary focus on **SMEs (small-to-medium enterprises)** via their exclusive SME Cyber Facility. They also serve larger **corporate clients** (including private and ASX-listed enterprises) through bespoke placements with a panel of cyber insurers. ACP positions itself as a specialist brokerage, not a direct insurer or tech vendor, emphasizing tailored cyber risk management and insurance solutions for brokers and clients.\n\n### 2. Typical Company Size (Headcount Ranges)\nNo explicit headcount data is available from the search results. ACP's SME Facility supports limits from **$500,000 to $5M**, implying typical clients are **SMBs (e.g., 10-250 employees)** and **mid-market firms (250-1,000 empl",
+    "stage_fit": [
+      "smb",
+      "mid-market",
+      "corporate"
+    ],
+    "size_fit": [
+      "1-250",
+      "251-1000"
+    ],
+    "cloud_fit": [
+      "any"
+    ],
+    "edge_fit": [
+      "none"
+    ],
+    "effort": "low",
+    "pricing_tier": "smb",
+    "pricing_signal": "$500K-$5M",
+    "competes_with": [
+      "austbrokers_network",
+      "bizcover",
+      "direct_insurers",
+      "global_brokers"
+    ],
+    "not_right_for": "Seed/startup stage companies, pure tech/compliance needs, non-Australian operations, self-insured/large enterprises with in-house risk, budget-constrained without brokers",
+    "positioning": "Australia-focused cyber insurance brokerage with broker-centric SME facility, broad wordings, and integrated response",
+    "startup_program": "",
+    "updated_best_for": "Australia-based tech companies, SMEs, and mid-market firms seeking fast quoting, specialist cyber underwriting, and tailored cyber risk management"
+  }
+}

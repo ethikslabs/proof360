@@ -5,7 +5,7 @@ import { VendorShortlist } from '../components/chat/VendorShortlist.jsx';
 import { EvidenceDrawer }  from '../components/chat/EvidenceDrawer.jsx';
 import { ThinkingStream }  from '../components/chat/ThinkingStream.jsx';
 import { SaveModal }       from '../components/chat/SaveModal.jsx';
-import { getPersonaResponses } from '../data/mock/personas.js';
+import { getPersonaResponses, getPersonaResponse } from '../data/mock/personas.js';
 import { getThinkingSteps }    from '../data/mock/thinking.js';
 import { getMockReport }       from '../data/mock/report.js';
 import { getMockVendors }      from '../data/mock/vendors.js';
@@ -133,17 +133,27 @@ function Bubble({ msg }) {
 }
 
 // ── Shelf tile ─────────────────────────────────────────────────────────────
-function ShelfTile({ tile, lit }) {
+function ShelfTile({ tile, lit, active, onClick }) {
   const [hover, setHover] = useState(false);
   return (
-    <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
-         style={{ padding: '10px 14px', borderRadius: 8, marginBottom: 6,
-                  border: `1px solid ${lit ? tile.color + '35' : '#f1f5f9'}`,
-                  background: lit ? tile.color + '08' : 'transparent',
-                  opacity: lit ? 1 : 0.3, transition: 'all 0.7s ease',
-                  position: 'relative', overflow: 'hidden' }}>
+    <div
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      onClick={lit ? onClick : undefined}
+      style={{
+        padding: '10px 14px', borderRadius: 8, marginBottom: 6,
+        border: `1px solid ${active ? tile.color + '80' : lit ? tile.color + '35' : '#f1f5f9'}`,
+        background: active ? tile.color + '14' : lit ? tile.color + '08' : 'transparent',
+        opacity: lit ? 1 : 0.3,
+        transition: 'all 0.4s ease',
+        position: 'relative', overflow: 'hidden',
+        cursor: lit ? 'pointer' : 'default',
+        boxShadow: active ? `0 0 0 1px ${tile.color}30` : 'none',
+      }}>
       <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.8px',
-                    textTransform: 'uppercase', color: lit ? tile.color : '#94a3b8' }}>
+                    textTransform: 'uppercase', color: lit ? tile.color : '#94a3b8',
+                    display: 'flex', alignItems: 'center', gap: 6 }}>
+        {active && <span style={{ fontSize: 7, lineHeight: 1 }}>●</span>}
         {tile.label}
       </div>
       {hover && !lit && (
@@ -155,6 +165,132 @@ function ShelfTile({ tile, lit }) {
       )}
     </div>
   );
+}
+
+// ── Tile drawer content ─────────────────────────────────────────────────────
+const AWS_PROGRAMS = [
+  { name: 'AWS Activate',         status: 'not_enrolled', label: 'Not enrolled',   action: 'Apply →',  eligible: false },
+  { name: 'AWS ISV Accelerate',   status: 'eligible',     label: 'Eligible',       action: 'Apply →',  eligible: true  },
+  { name: 'Startup Credits',      status: 'available',    label: '$10k available', action: 'Claim →',  eligible: true  },
+];
+
+function TileDrawerContent({ id, reportData, vendorList, evidenceList, onAsk }) {
+  const ask = (msg) => onAsk(msg);
+  const row = (label, value, color) => (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  padding: '8px 0', borderBottom: '1px solid #f8f8f8', fontSize: 13 }}>
+      <span style={{ color: '#64748b' }}>{label}</span>
+      <span style={{ fontWeight: 600, color: color || '#1e293b' }}>{value}</span>
+    </div>
+  );
+  const cta = (label, color, onClick) => (
+    <button onClick={onClick} style={{
+      width: '100%', padding: '11px', borderRadius: 8, border: `1px solid ${color}30`,
+      background: `${color}08`, color, fontSize: 12, fontWeight: 600,
+      cursor: 'pointer', marginBottom: 8, textAlign: 'left',
+    }}>{label}</button>
+  );
+
+  if (id === 'investor') return (
+    <div>
+      <div style={{ fontSize: 36, fontWeight: 800, color: '#7c3aed', marginBottom: 4 }}>72</div>
+      <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 20 }}>Trust score out of 100</div>
+      <div style={{ marginBottom: 20 }}>
+        {[['No SOC 2 evidence', '#ef4444'], ['Breach exposure public', '#f97316'], ['SSL misconfiguration', '#f59e0b']].map(([g, c]) => (
+          <div key={g} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0',
+                                borderBottom: '1px solid #fafafa', fontSize: 13, color: '#334155' }}>
+            <span style={{ color: c, fontSize: 8 }}>●</span>{g}
+          </div>
+        ))}
+      </div>
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1px', color: '#94a3b8',
+                      textTransform: 'uppercase', marginBottom: 8 }}>Recommended</div>
+        <div style={{ fontSize: 13, color: '#475569' }}>Vanta · Drata · Cloudflare</div>
+      </div>
+      {cta('Send investor link', '#7c3aed', () => {})}
+      {cta('Ask Sophia — what does this mean for my raise?', '#d97706', () => ask("Sophia, what does a trust score of 72 mean for my raise?"))}
+    </div>
+  );
+
+  if (id === 'vendors') return (
+    <div>
+      <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 16 }}>Matched to your gaps</div>
+      {(vendorList?.length ? vendorList : [
+        { id: 'v1', name: 'Vanta',       category: 'Compliance',  priority: 'start_here'  },
+        { id: 'v2', name: 'Cloudflare',  category: 'Security',    priority: 'recommended' },
+        { id: 'v3', name: 'Drata',       category: 'Compliance',  priority: 'recommended' },
+      ]).map(v => (
+        <div key={v.id} style={{ padding: '10px 0', borderBottom: '1px solid #f5f5f5' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#1e293b' }}>{v.name}</span>
+            <span style={{ fontSize: 10, color: v.priority === 'start_here' ? '#7c3aed' : '#94a3b8',
+                           fontWeight: 600, textTransform: 'uppercase' }}>
+              {v.priority === 'start_here' ? 'Start here' : v.priority}
+            </span>
+          </div>
+          <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{v.category}</div>
+        </div>
+      ))}
+      {cta('Ask Leonardo — which one first?', '#7c3aed', () => ask("Leonardo, which vendor should I start with given my current gaps?"))}
+    </div>
+  );
+
+  if (id === 'aws') return (
+    <div>
+      <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 16 }}>Programs matched to your stage</div>
+      {AWS_PROGRAMS.map(p => (
+        <div key={p.name} style={{ padding: '12px 0', borderBottom: '1px solid #f5f5f5' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#1e293b' }}>{p.name}</span>
+            <span style={{ fontSize: 11, color: p.eligible ? '#059669' : '#94a3b8' }}>{p.label}</span>
+          </div>
+          {p.eligible && (
+            <button style={{ marginTop: 6, fontSize: 11, color: '#d97706', background: 'none',
+                             border: 'none', padding: 0, cursor: 'pointer', fontWeight: 600 }}>
+              {p.action}
+            </button>
+          )}
+        </div>
+      ))}
+      {cta('Ask Edison — how do I qualify?', '#0891b2', () => ask("Edison, how do I qualify for AWS ISV Accelerate and claim the startup credits?"))}
+    </div>
+  );
+
+  if (id === 'posture') return (
+    <div>
+      <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 16 }}>Live security posture</div>
+      {[['SSL / TLS',       'Issues found',       '#ef4444'],
+        ['Access Control',  'No evidence',         '#f97316'],
+        ['Breach Monitor',  'Exposure detected',   '#ef4444'],
+        ['Data Privacy',    'Unknown',             '#94a3b8'],
+        ['MFA Enforcement', 'Not configured',      '#f59e0b']].map(([label, status, color]) => (
+        <div key={label} style={{ display: 'flex', justifyContent: 'space-between',
+                                  padding: '9px 0', borderBottom: '1px solid #f8f8f8', fontSize: 13 }}>
+          <span style={{ color: '#334155' }}>{label}</span>
+          <span style={{ color, fontSize: 11, fontWeight: 600 }}>{status}</span>
+        </div>
+      ))}
+      {cta('Ask Edison — what do I fix first?', '#0891b2', () => ask("Edison, what's the highest priority security fix given my current posture?"))}
+    </div>
+  );
+
+  if (id === 'spv') return (
+    <div>
+      <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 16 }}>Your operational passport</div>
+      {row('Entity status',   'Not registered', '#f97316')}
+      {row('Trust score',     '72 / 100',       '#7c3aed')}
+      {row('Attestations',    '0 filed')}
+      {row('Last updated',    'Just now')}
+      {row('Investor links',  '0 sent')}
+      <div style={{ marginTop: 20 }}>
+        {cta('Start SPV setup', '#db2777', () => {})}
+        {cta('Ask Leonardo — what does an investor need to see?', '#7c3aed', () => ask("Leonardo, what does an investor need to see in my SPV passport before they'll wire money?"))}
+      </div>
+    </div>
+  );
+
+  return null;
 }
 
 // ── Main ───────────────────────────────────────────────────────────────────
@@ -171,7 +307,7 @@ export default function Chat() {
   const [reportData, setReportData]     = useState(null);
   const [vendorList, setVendorList]     = useState([]);
   const [evidenceList, setEvidenceList] = useState([]);
-  const [openDrawers, setOpenDrawers]   = useState({ report: false, vendor: false, evidence: false });
+  const [activeDrawer, setActiveDrawer] = useState(null);
   const [showSave, setShowSave]         = useState(false);
 
   const hasMessages = messages.length > 0;
@@ -240,13 +376,28 @@ export default function Chat() {
       await sleep(340 + Math.random() * 380);
       setThinkingSteps(prev => prev.map((s, idx) => idx <= i ? { ...s, status: 'complete' } : s));
     }
-    const responses = getPersonaResponses(text);
+    // Direct address ("Edison, ...") → solo response. Otherwise → intent routing.
+    const personaMatch = text.match(/^(Sophia|Leonardo|Edison|John)[,\s]/i);
+    const responses = personaMatch
+      ? getPersonaResponse(personaMatch[1], text)
+      : getPersonaResponses(text);
+
+    // First user message → Sophia follows up asking for materials to work with
+    const isFirstMsg = !messages.some(m => m.role === 'user');
+    const intakeMsg = isFirstMsg && !personaMatch ? {
+      id: `intake-${Date.now()}`,
+      role: 'assistant',
+      persona: 'sofia',
+      content: "One thing that would help us go deeper — do you have a website we can look at? A pitch deck, investor update, anything at all. Even rough notes or a one-pager. The more context we have, the more specific we can be.",
+    } : null;
+
     setMessages(prev => [
       ...prev,
       ...responses.map((r, i) => ({
         id: `p-${Date.now()}-${i}`, role: 'assistant',
         persona: r.persona, content: r.response,
       })),
+      ...(intakeMsg ? [intakeMsg] : []),
     ]);
     setLitTiles({ investor: true, vendors: true, aws: true, posture: true, spv: true });
     setReportData(getMockReport());
@@ -254,11 +405,10 @@ export default function Chat() {
     setEvidenceList(getMockEvidence());
     getMockCosts();
     setIsProcessing(false);
-    setThinkingSteps([]);
     setTimeout(() => setShowSave(true), 2500);
   }, [inputReady, isProcessing]);
 
-  function toggleDrawer(k) { setOpenDrawers(p => ({ ...p, [k]: !p[k] })); }
+  function toggleDrawer(id) { setActiveDrawer(p => p === id ? null : id); }
 
   return (
     <div style={{
@@ -396,31 +546,30 @@ export default function Chat() {
                       textTransform: 'uppercase', fontWeight: 600, marginBottom: 14 }}>
           Intelligence
         </div>
-        {TILES.map(t => <ShelfTile key={t.id} tile={t} lit={litTiles[t.id]} />)}
-        {allLit && (
-          <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid #f3f0ff' }}>
-            {[['report','Trust snapshot','#7c3aed'],['vendor','Vendors','#059669'],['evidence','Sources','#0891b2']].map(([k, label, color]) => (
-              <button key={k} onClick={() => toggleDrawer(k)} style={{
-                display: 'block', width: '100%', padding: '9px 12px', marginBottom: 6,
-                borderRadius: 6, border: `1px solid ${color}30`, background: `${color}08`,
-                color, fontSize: 11, fontWeight: 600, cursor: 'pointer', textAlign: 'left',
-              }}>{label}</button>
-            ))}
-          </div>
-        )}
+        {TILES.map(t => (
+          <ShelfTile key={t.id} tile={t} lit={litTiles[t.id]}
+            active={activeDrawer === t.id}
+            onClick={() => toggleDrawer(t.id)} />
+        ))}
       </div>
 
-      {/* Drawers */}
-      <DrawerPanel title="Trust snapshot" isOpen={openDrawers.report} onClose={() => toggleDrawer('report')}>
-        <ReportPanel report={reportData} />
-      </DrawerPanel>
-      <DrawerPanel title="Vendor shortlist" badge={vendorList.length} isOpen={openDrawers.vendor} onClose={() => toggleDrawer('vendor')}>
-        <VendorShortlist vendors={vendorList}
-          onShortlist={id => setVendorList(p => p.map(v => v.id === id ? { ...v, status: 'shortlisted' } : v))}
-          onDefer={id => setVendorList(p => p.map(v => v.id === id ? { ...v, status: 'deferred' } : v))} />
-      </DrawerPanel>
-      <DrawerPanel title="Sources & evidence" badge={evidenceList.length} isOpen={openDrawers.evidence} onClose={() => toggleDrawer('evidence')}>
-        <EvidenceDrawer evidence={evidenceList} />
+      {/* Tile drawer — slides in over chat, never leaves the room */}
+      <DrawerPanel
+        title={TILES.find(t => t.id === activeDrawer)?.label || ''}
+        isOpen={!!activeDrawer}
+        onClose={() => setActiveDrawer(null)}
+      >
+        <TileDrawerContent
+          id={activeDrawer}
+          reportData={reportData}
+          vendorList={vendorList}
+          evidenceList={evidenceList}
+          onAsk={(msg) => {
+            setActiveDrawer(null);
+            setInputValue(msg);
+            setTimeout(() => inputRef.current?.focus(), 150);
+          }}
+        />
       </DrawerPanel>
       {showSave && <SaveModal onSave={() => setShowSave(false)} onDismiss={() => setShowSave(false)} />}
     </div>

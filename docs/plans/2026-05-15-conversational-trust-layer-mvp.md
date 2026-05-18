@@ -48,9 +48,20 @@ sub agen# proof360 Conversational Trust Layer — MVP Roadmap
 
 # Phase 0 — Mock Shell
 
+> **Design constraint:** Read `docs/design/landing-emotional-contract.md` before writing any component. The contract governs all surface decisions. Key principle: the interface is already alive when the founder lands — it does not begin empty.
+
 **Goal:** Prove the full conversation journey with mocked data. No backend required. Must be showable to AWS partners, vendors, and founders.
 
-**Demo script (the gate):** User inputs honey business description → personas respond → thinking stream shows → report panel builds → vendor shortlist appears → "Talk to John" modal opens → save modal appears. All from mock data. No errors. Runs in < 3s on first load.
+**Demo script (the gate):** Page loads → theatrical opening plays (Sophia → Leonardo → Edison scripted sequence, ~25s) → Edison's handoff line appears → prompt activates → user inputs honey business description → thinking stream shows → persona responses appear → report panel builds → vendor shortlist appears → "Talk to John" modal opens → save modal appears. All from mock data. No errors. Runs in < 3s on first load.
+
+**Landing state (non-negotiable):**
+The interface is NOT empty on load. On mount, a scripted persona opening sequence plays automatically:
+- Sophia speaks first (investor/trust lens, ~8s delay)
+- Leonardo responds (commercial/narrative lens, ~6s delay)
+- Edison grounds it operationally, then turns to the founder: *"You're here for a reason. What are you trying to solve?"* (~7s delay)
+- Only after Edison's line does the prompt activate (enabled, cursor appears)
+
+The MessageList NEVER shows placeholder text. The floating questions (ambient prompts around the input) are always visible. The persona chip row does NOT appear on load — personas introduce themselves through the opening sequence.
 
 **What NOT to build in Phase 0:**
 - No real API calls
@@ -288,6 +299,31 @@ const HONEY_RESPONSES = {
   edison: 'Investor due diligence on a global food business will surface your gaps this week, not in six months. They\'ll ask: who has access to your supplier records? What happens if a supplier is compromised? Can you prove origin claims? Is there a digital audit trail? Right now those gaps are survivable. Inside a data room, they become blockers. The good news: they\'re fixable — but the fixes need to start before the investor conversation, not after.',
   john_ai: 'You\'ve reached the point where a human conversation changes more than another analysis. I\'m John\'s AI assistant — I can help you understand what\'s needed, but John can route you to the right investor, broker, or distributor conversation directly. He\'s seen this arc before. Want me to set that up?',
 };
+
+// Theatrical opening — plays on mount before founder types anything
+export function getOpeningSequence() {
+  return [
+    {
+      persona: 'sophia',
+      role: 'assistant',
+      content: 'There is always a gap between what a founder knows about their business and what an investor or enterprise buyer can verify. That gap is not a flaw — it is the work.',
+      delayMs: 800,
+    },
+    {
+      persona: 'leonardo',
+      role: 'assistant',
+      content: 'And how you close it is the narrative. Not the pitch deck — the underlying posture. Buyers form impressions before the first meeting. Often before they know your name.',
+      delayMs: 6000,
+    },
+    {
+      persona: 'edison',
+      role: 'assistant',
+      content: 'The signals are usually there. Most founders just have not been shown where to look — or what the other side of the table is actually checking. You are here for a reason. What are you trying to solve?',
+      delayMs: 5500,
+      isHandoff: true,
+    },
+  ];
+}
 
 export function getPersonaResponses(input = '') {
   const isHoney = /honey|manuka|market|king.s cross|burned.*money|burned.*cash/i.test(input);
@@ -745,16 +781,9 @@ export function MessageList({ messages }) {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  if (messages.length === 0) {
-    return (
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ color: '#334155', fontSize: 13, textAlign: 'center', maxWidth: 320, lineHeight: 1.6 }}>
-          Drop a website, upload a deck, or describe your business.<br />
-          We'll help you understand what the next stage demands.
-        </p>
-      </div>
-    );
-  }
+  // Never render an empty state — the theatrical opening sequence populates messages on mount.
+  // If messages is empty something went wrong; render nothing rather than placeholder text.
+  if (messages.length === 0) return <div style={{ flex: 1 }} />;
 
   return (
     <div style={{ flex: 1, overflowY: 'auto', padding: '16px 0' }}>
@@ -1357,7 +1386,7 @@ import { VendorShortlist } from '../components/chat/VendorShortlist.jsx';
 import { ReportPanel } from '../components/chat/ReportPanel.jsx';
 import { SaveModal } from '../components/chat/SaveModal.jsx';
 import { HandoffModal } from '../components/chat/HandoffModal.jsx';
-import { getPersonaResponses } from '../data/mock/personas.js';
+import { getPersonaResponses, getOpeningSequence } from '../data/mock/personas.js';
 import { getThinkingSteps } from '../data/mock/thinking.js';
 import { getMockReport } from '../data/mock/report.js';
 import { getMockVendors } from '../data/mock/vendors.js';
@@ -1369,9 +1398,30 @@ const BG = '#0a0d14';
 export default function Chat() {
   const session = useChatSession();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [openingDone, setOpeningDone] = useState(false);
   const [vendorList, setVendorList] = useState([]);
   const [evidenceList, setEvidenceList] = useState([]);
   const [costList, setCostList] = useState([]);
+
+  // Theatrical opening — runs once on mount, populates messages before founder types
+  useEffect(() => {
+    let cancelled = false;
+    async function runOpening() {
+      const sequence = getOpeningSequence();
+      let elapsed = 0;
+      for (const step of sequence) {
+        await new Promise(r => setTimeout(r, step.delayMs));
+        if (cancelled) return;
+        session.addPersonaMessages([{ role: step.role, persona: step.persona, content: step.content }]);
+        elapsed += step.delayMs;
+        if (step.isHandoff) {
+          setOpeningDone(true);
+        }
+      }
+    }
+    runOpening();
+    return () => { cancelled = true; };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = useCallback(async (input) => {
     session.addUserMessage(input);
@@ -1449,7 +1499,7 @@ export default function Chat() {
         <PersonaChips activePersona={session.activePersona} onSelect={session.setActivePersona} />
         <MessageList messages={session.messages} />
         <ThinkingStream steps={session.thinkingSteps} visible={session.phase === 'thinking' || (session.thinkingSteps.length > 0 && session.phase === 'report')} />
-        <ChatInput onSubmit={handleSubmit} disabled={isProcessing} />
+        <ChatInput onSubmit={handleSubmit} disabled={isProcessing || !openingDone} />
       </div>
 
       {/* Drawers */}

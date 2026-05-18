@@ -1,0 +1,349 @@
+{
+  "pulled_at": "2026-05-18T00:12:42.493Z",
+  "country": "AU",
+  "vendor_count": 17,
+  "total_trust_skus": 20,
+  "vendors": [
+    {
+      "vendor_id": "cisco_duo",
+      "vendor_search": "Cisco",
+      "total_matched": 19,
+      "trust_relevant": 18,
+      "skus": [
+        {
+          "ingram_part": "3984475",
+          "vendor_part": "MS120-24P-HW",
+          "description": "APL-MS120-24P 1G L2 CLD -MNGD 24X GIGE 3",
+          "vendor_name": "Cisco",
+          "category": "Networking",
+          "sub_category": "Switches and HUBS",
+          "product_type": "Standalone Switches",
+          "discontinued": false,
+          "authorized": true
+        },
+        {
+          "ingram_part": "4387689",
+          "vendor_part": "C9200L-STACK-KIT=",
+          "description": "Cisco Catalyst 9200L",
+          "vendor_name": "Cisco",
+          "category": "Networking",
+          "sub_category": "Switches and HUBS",
+          "product_type": "Stackable Switches",
+          "discontinued": false,
+          "authorized": true
+        },
+        {
+          "ingram_part": "5596604",
+          "vendor_part": "C9200CX-12P-2X2G-E",
+          "description": "Catalyst 9000 Compact Switch 12-Port PoE",
+          "vendor_name": "Cisco",
+          "category": "Networking",
+          "sub_category": "Switches and HUBS",
+          "product_type": "Stackable Switches",
+          "discontinued": false,
+          "authorized": true
+        },
+        {
+          "ingram_part": "4369343",
+          "vendor_part": "C9200L-48P-4X-E",
+          "description": "CATALYST 9200L 48-PORT POE+ 4 X 10G NE",
+          "vendor_name": "Cisco",
+          "category": "Networking",
+          "sub_category": "Switches and HUBS",
+          "product_type": "Stackable Switches",
+          "discontinued": false,
+          "authorized": true
+        },
+        {
+          "ingram_part": "4368810",
+          "vendor_part": "C9200L-24P-4G-E",
+          "description": "CATALYST 9200L 24-PORT POE+. 4 X 1G. NET",
+          "vendor_name": "Cisco",
+          "category": "Networking",
+          "sub_category": "Switches and HUBS",
+          "product_type": "Stackable Switches",
+          "discontinued": false,
+          "authorized": true
+        },
+        {
+          "ingram_part": "4368811",
+          "vendor_part": "C9200L-24P-4X-E",
+          "description": "CATALYST 9200L 24-PORT POE+ 4 X 10G NE",
+          "vendor_name": "Cisco",
+          "category": "Networking",
+          "sub_category": "Switches and HUBS",
+          "product_type": "Stackable Switches",
+          "discontinued": false,
+          "authorized": true
+        },
+        {
+          "ingram_part": "3695501",
+          "vendor_part": "C9300-24P-E",
+          "description": "CATALYST 9300 24-PORT POE+ NETWORK ESSE",
+          "vendor_name": "Cisco",
+          "category": "Networking",
+          "sub_category": "Switches and HUBS",
+          "product_type": "Stackable Switches",
+          "discontinued": false,
+          "authorized": true
+        },
+        {
+          "ingram_part": "4368813",
+          "vendor_part": "C9200L-48P-4G-E",
+          "description": "CATALYST 9200L 48-PORT POE+ 4 X 1G NET",
+          "vendor_name": "Cisco",
+          "category": "Networking",
+          "sub_category": "Switches and HUBS",
+          "product_type": "Stackable Switches",
+          "discontinued": false,
+          "authorized": true
+        },
+        {
+          "ingram_part": "4022038",
+          "vendor_part": "MS210-48LP-HW",
+          "description": "APL-MS210-48LP 1G L2 CLD-MNGD 48X GIGE 3",
+          "vendor_name": "Cisco",
+          "category": "Networking",
+          "sub_category": "Switches and HUBS",
+          "product_type": "Standalone Switches",
+          "discontinued": false,
+          "authorized": true
+        },
+        {
+          "ingram_part": "3984479",
+          "vendor_part": "MS120-8FP-HW",
+          "description": "APL-MS120-8FP 1G L2 CLOUD MANAGED 8X GIG",
+          "vendor_name": "Cisco",
+          "category": "Networking",
+          "sub_category": "Switches and HUBS",
+          "product_type": "Standalone Switches",
+          "discontinued": false,
+          "authorized": true
+        },
+        {
+          "ingram_part": "5256386",
+          "vendor_part": "CBS110-5T-D-AU",
+          "description": "CBS110 UNMANAGED 5-PORT GE DESKTOP EXT P",
+          "vendor_name": "Cisco",
+          "category": "Networking",
+          "sub_category": "Switches and HUBS",
+          "product_type": "Standalone Switches",
+          "discontinued": false,
+          "authorized": true
+        },
+        {
+          "ingram_part": "4022032",
+          "vendor_part": "MS210-24P-HW",
+          "description": "Meraki MS210-24P 1G L2 Cld-Mng",
+          "vendor_name": "Cisco",
+          "category": "Networking",
+          "sub_category": "Switches and HUBS",
+          "product_type": "Standalone Switches",
+          "discontinued": false,
+          "authorized": true
+        },
+        {
+          "ingram_part": "3984477",
+          "vendor_part": "MS120-48LP-HW",
+          "description": "Meraki MS120-48LP 1G L2 Cld Managed 48x",
+          "vendor_name": "Cisco",
+          "category": "Networking",
+          "sub_category": "Switches and HUBS",
+          "product_type": "Standalone Switches",
+          "discontinued": false,
+          "authorized": true
+        },
+        {
+          "ingram_part": "4684842",
+          "vendor_part": "MS390-48P-HW",
+          "description": "Meraki MS390 48GE L3 POE+ Switch",
+          "vendor_name": "Cisco",
+          "category": "Networking",
+          "sub_category": "Switches and HUBS",
+          "product_type": "Stackable Switches",
+          "discontinued": false,
+          "authorized": true
+        },
+        {
+          "ingram_part": "5172782",
+          "vendor_part": "N9K-C93180YC-FX3",
+          "description": "NEXUS 9300 48P 1/10/25G. 6P 40/100G. MAC",
+          "vendor_name": "Cisco",
+          "category": "Networking",
+          "sub_category": "Switches and HUBS",
+          "product_type": "Stackable Switches",
+          "discontinued": false,
+          "authorized": true
+        },
+        {
+          "ingram_part": "3695504",
+          "vendor_part": "C9300-48P-E",
+          "description": "CATALYST 9300 48-PORT POE+ NETWORK ESSE",
+          "vendor_name": "Cisco",
+          "category": "Networking",
+          "sub_category": "Switches and HUBS",
+          "product_type": "Stackable Switches",
+          "discontinued": false,
+          "authorized": true
+        },
+        {
+          "ingram_part": "5219054",
+          "vendor_part": "CBS110-8T-D-AU",
+          "description": "CBS110 UNMANAGED 8-PORT GE DESKTOP EXT P",
+          "vendor_name": "Cisco",
+          "category": "Networking",
+          "sub_category": "Switches and HUBS",
+          "product_type": "Standalone Switches",
+          "discontinued": false,
+          "authorized": true
+        },
+        {
+          "ingram_part": "4390919",
+          "vendor_part": "PWR-C5-125WAC=",
+          "description": "PA-1131-5SC 125W AC Config 5 Power Suppl",
+          "vendor_name": "Cisco",
+          "category": "Networking",
+          "sub_category": "Switches and HUBS",
+          "product_type": "Switch & Hub Components",
+          "discontinued": false,
+          "authorized": true
+        }
+      ]
+    },
+    {
+      "vendor_id": "palo_alto",
+      "vendor_search": "Palo Alto Networks",
+      "total_matched": 0,
+      "trust_relevant": 0,
+      "skus": []
+    },
+    {
+      "vendor_id": "fortinet",
+      "vendor_search": "Fortinet",
+      "total_matched": 2,
+      "trust_relevant": 2,
+      "skus": [
+        {
+          "ingram_part": "5050083",
+          "vendor_part": "FS-148F-FPOE",
+          "description": "FS-148F-FPOE Network Switch",
+          "vendor_name": "Fortinet",
+          "category": "Networking",
+          "sub_category": "Switches and HUBS",
+          "product_type": "Standalone Switches",
+          "discontinued": false,
+          "authorized": true
+        },
+        {
+          "ingram_part": "5319207",
+          "vendor_part": "FS-108F-FPOE",
+          "description": "FortiSwitch FS-108F-FPOE",
+          "vendor_name": "Fortinet",
+          "category": "Networking",
+          "sub_category": "Switches and HUBS",
+          "product_type": "Stackable Switches",
+          "discontinued": false,
+          "authorized": true
+        }
+      ]
+    },
+    {
+      "vendor_id": "sonicwall",
+      "vendor_search": "SonicWall",
+      "total_matched": 0,
+      "trust_relevant": 0,
+      "skus": []
+    },
+    {
+      "vendor_id": "trellix",
+      "vendor_search": "Trellix",
+      "total_matched": 0,
+      "trust_relevant": 0,
+      "skus": []
+    },
+    {
+      "vendor_id": "trendmicro",
+      "vendor_search": "Trend Micro",
+      "total_matched": 0,
+      "trust_relevant": 0,
+      "skus": []
+    },
+    {
+      "vendor_id": "proofpoint",
+      "vendor_search": "Proofpoint",
+      "total_matched": 0,
+      "trust_relevant": 0,
+      "skus": []
+    },
+    {
+      "vendor_id": "veeam",
+      "vendor_search": "Veeam",
+      "total_matched": 0,
+      "trust_relevant": 0,
+      "skus": []
+    },
+    {
+      "vendor_id": "blancco",
+      "vendor_search": "Blancco",
+      "total_matched": 0,
+      "trust_relevant": 0,
+      "skus": []
+    },
+    {
+      "vendor_id": "microsoft",
+      "vendor_search": "Microsoft",
+      "total_matched": 0,
+      "trust_relevant": 0,
+      "skus": []
+    },
+    {
+      "vendor_id": "okta",
+      "vendor_search": "Okta",
+      "total_matched": 0,
+      "trust_relevant": 0,
+      "skus": []
+    },
+    {
+      "vendor_id": "nutanix",
+      "vendor_search": "Nutanix",
+      "total_matched": 0,
+      "trust_relevant": 0,
+      "skus": []
+    },
+    {
+      "vendor_id": "veritas",
+      "vendor_search": "Veritas",
+      "total_matched": 0,
+      "trust_relevant": 0,
+      "skus": []
+    },
+    {
+      "vendor_id": null,
+      "vendor_search": "Acronis",
+      "total_matched": 0,
+      "trust_relevant": 0,
+      "skus": []
+    },
+    {
+      "vendor_id": null,
+      "vendor_search": "AvePoint",
+      "total_matched": 0,
+      "trust_relevant": 0,
+      "skus": []
+    },
+    {
+      "vendor_id": null,
+      "vendor_search": "Skyhigh Security",
+      "total_matched": 0,
+      "trust_relevant": 0,
+      "skus": []
+    },
+    {
+      "vendor_id": "docusign",
+      "vendor_search": "DocuSign",
+      "total_matched": 0,
+      "trust_relevant": 0,
+      "skus": []
+    }
+  ]
+}
