@@ -496,7 +496,7 @@ export const VENDORS = {
   cloudflare: {
     id: 'cloudflare', display_name: 'Cloudflare', initials: 'CF',
     closes: ['network_perimeter', 'waf', 'ddos', 'zero_trust', 'dmarc', 'security_headers', 'data_privacy', 'ai_governance'],
-    distributor: 'ingram',
+    distributor: 'dicker',
     cost_range: '$2-6k/yr', timeline: '2-4 weeks',
     is_partner: true, deal_label: null,
     best_for: 'Network security, zero trust access',
@@ -518,8 +518,8 @@ export const VENDORS = {
       },
       alternatives: [{
         party: 'distributor', type: 'distributor',
-        label: 'Via Ingram Micro',
-        contact: 'partner@ingrammicro.com.au',
+        label: 'Via Dicker Data',
+        contact: 'partner@dickerdata.com.au',
       }],
     }),
   },
