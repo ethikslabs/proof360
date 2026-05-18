@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useEffect, Component } from 'react';
 import { FeatureFlagProvider } from './contexts/FeatureFlagContext';
 import AdminPreread from './pages/AdminPreread';
@@ -57,7 +57,7 @@ export default function App() {
         <ErrorBoundary>
           <ScrollToTop />
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Navigate to="/chat" replace />} />
             <Route path="/audit" element={<Audit />} />
             <Route path="/audit/reading" element={<AuditReading />} />
             <Route path="/audit/cold-read" element={<AuditColdRead />} />
