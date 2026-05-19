@@ -53,7 +53,65 @@ function buildOpening(feed) {
   ];
 }
 
+const SOPHIA_INTRO = "Hey — I'm Sophia. Leonardo and Edison are here with me. We exist because founders, investors, and enterprise buyers don't always speak the same language — and that gap costs deals. We're not going to assume you know any of this world. Quick question first —";
+
+const DEMO_CO = {
+  name: 'Hive & Co',
+  url: 'hiveandco.com.au',
+  type: 'specialty honey brand',
+  story: 'Two years at Sydney markets, genuine traction, now eyeing UK retail and a seed round. The product is exceptional. The trust posture is invisible.',
+};
+
+const BROWSE_OPENING = [
+  { id: 'br-0', persona: 'sofia',
+    content: `Meet ${DEMO_CO.name} — a ${DEMO_CO.type}. ${DEMO_CO.story} The founders know everything about honey. They know nothing about what investors and enterprise buyers need to see before they say yes. Sound like anyone?` },
+  { id: 'br-1', persona: 'leonardo',
+    content: "This is the most common moment we see. Real product, real customers — but the language of investors and procurement is completely foreign. The question isn't whether they're ready. It's whether they can show it." },
+  { id: 'br-2', persona: 'edison', isHandoff: true,
+    content: `I'd start with what's publicly visible. Want to run ${DEMO_CO.name} through, or try your own company?` },
+];
+
+const QUESTION_OPENING = [
+  { id: 'q-0', persona: 'sofia', isHandoff: true,
+    content: "Good — just ask. We'll work from there." },
+];
+
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function TriageCards({ onSelect, tk }) {
+  const opts = [
+    { id: 'browse',   label: 'Just looking around',            sub: 'Show me what this is about' },
+    { id: 'raise',    label: 'Raising money or landing deals', sub: 'I want investment or enterprise sales' },
+    { id: 'question', label: 'I have a specific question',     sub: "Let's just get into it" },
+  ];
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+      {opts.map((o, i) => (
+        <button
+          key={o.id}
+          onClick={() => onSelect(o.id)}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = `${tk.plum}60`; e.currentTarget.style.background = `${tk.plum}08`; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = tk.hairline; e.currentTarget.style.background = tk.surface; }}
+          style={{
+            background: tk.surface, border: `1px solid ${tk.hairline}`, borderRadius: 10,
+            padding: '14px 18px', cursor: 'pointer', textAlign: 'left',
+            transition: 'border-color 0.2s, background 0.2s',
+            animation: `fadeSlideUp 0.45s ease ${i * 0.1}s both`,
+          }}
+        >
+          <div style={{
+            fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+            fontSize: 14, fontWeight: 500, color: tk.ink, marginBottom: 3,
+          }}>{o.label}</div>
+          <div style={{
+            fontFamily: '"IBM Plex Mono", monospace',
+            fontSize: 10, color: tk.inkSoft, letterSpacing: '0.06em',
+          }}>{o.sub}</div>
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export default function Chat() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -72,6 +130,8 @@ export default function Chat() {
   const [litTiles, setLitTiles]           = useState({ investor: false, vendors: false, aws: false, posture: false, spv: false });
   const [thinkingSteps, setThinkingSteps] = useState([]);
   const [briefShown, setBriefShown]       = useState(false);
+  const [phase, setPhase]                 = useState('intro');   // 'intro' | 'triage' | 'active'
+  const [intent, setIntent]               = useState(null);      // 'browse' | 'raise' | 'question'
 
   const hasUserMsg  = messages.some(m => m.role === 'user');
   const hasMessages = messages.length > 0;
@@ -120,7 +180,6 @@ export default function Chat() {
       setLitTiles({ investor: true, vendors: true, aws: false, posture: true, spv: true });
       return;
     }
-    const opening = buildOpening(feed);
     let cancelled = false;
     const speedMs = t.typeSpeed === 'fast' ? 8 : t.typeSpeed === 'instant' ? 0 : 18;
 
@@ -129,35 +188,25 @@ export default function Chat() {
       setInputReady(false);
       setBriefShown(false);
       setPulsingQ(null);
+      setPhase('intro');
+      setIntent(null);
       setLitTiles({ investor: false, vendors: false, aws: false, posture: false, spv: false });
       setThinkingSteps([]);
       await sleep(900);
-      for (const msg of opening) {
-        if (cancelled) return;
-        setMessages(prev => [...prev, { ...msg, content: '' }]);
-        if (speedMs === 0) {
-          setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, content: msg.content } : m));
-        } else {
-          for (let i = 1; i <= msg.content.length; i++) {
-            if (cancelled) return;
-            await sleep(speedMs);
-            setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, content: msg.content.slice(0, i) } : m));
-          }
-        }
-        if (msg.persona === 'sofia')    setLitTiles(p => ({ ...p, investor: true, spv: true }));
-        if (msg.persona === 'leonardo') setLitTiles(p => ({ ...p, vendors: true }));
-        if (msg.persona === 'edison')   setLitTiles(p => ({ ...p, aws: true, posture: true }));
-        if (msg.isHandoff) {
-          await sleep(450);
-          if (!cancelled) {
-            setInputReady(true);
-            setPulsingQ(Math.floor(Math.random() * FLOATS.length));
-            if (inChatSpace) inputRef.current?.focus();
-          }
-        } else {
-          await sleep(620);
+      const introMsg = { id: 'sophia-intro', persona: 'sofia', content: SOPHIA_INTRO };
+      setMessages([{ ...introMsg, content: '' }]);
+      if (speedMs === 0) {
+        setMessages(prev => prev.map(m => m.id === 'sophia-intro' ? { ...m, content: SOPHIA_INTRO } : m));
+      } else {
+        for (let i = 1; i <= SOPHIA_INTRO.length; i++) {
+          if (cancelled) return;
+          await sleep(speedMs);
+          setMessages(prev => prev.map(m => m.id === 'sophia-intro' ? { ...m, content: SOPHIA_INTRO.slice(0, i) } : m));
         }
       }
+      setLitTiles(p => ({ ...p, investor: true, spv: true }));
+      await sleep(400);
+      if (!cancelled) setPhase('triage');
     }
     run();
     return () => { cancelled = true; };
@@ -201,6 +250,37 @@ export default function Chat() {
     setIsProcessing(false);
   }, [inputReady, isProcessing, messages, t.returningUser]);
 
+  const selectIntent = useCallback(async (chosen) => {
+    const speedMs = t.typeSpeed === 'fast' ? 8 : t.typeSpeed === 'instant' ? 0 : 18;
+    setIntent(chosen);
+    setPhase('active');
+    const msgs = chosen === 'browse' ? BROWSE_OPENING
+               : chosen === 'question' ? QUESTION_OPENING
+               : buildOpening(feed);
+    for (const msg of msgs) {
+      setMessages(prev => [...prev, { ...msg, content: '' }]);
+      if (speedMs === 0) {
+        setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, content: msg.content } : m));
+      } else {
+        for (let i = 1; i <= msg.content.length; i++) {
+          await sleep(speedMs);
+          setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, content: msg.content.slice(0, i) } : m));
+        }
+      }
+      if (msg.persona === 'sofia')    setLitTiles(p => ({ ...p, investor: true, spv: true }));
+      if (msg.persona === 'leonardo') setLitTiles(p => ({ ...p, vendors: true }));
+      if (msg.persona === 'edison')   setLitTiles(p => ({ ...p, aws: true, posture: true }));
+      if (msg.isHandoff) {
+        await sleep(450);
+        setInputReady(true);
+        setPulsingQ(Math.floor(Math.random() * FLOATS.length));
+        if (inChatSpace) inputRef.current?.focus();
+      } else {
+        await sleep(620);
+      }
+    }
+  }, [t.typeSpeed, feed, inChatSpace]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const pullSignal = () => {
     setBriefShown(false);
     setInputValue("What's the most important thing I should know about my investor readiness this morning?");
@@ -241,8 +321,8 @@ export default function Chat() {
           display: inChatSpace ? 'flex' : 'none',
           flexDirection: 'column',
         }}>
-          {/* Floating questions — depth plane */}
-          {!briefShown && FLOATS.map((fq, i) => {
+          {/* Floating questions — appear after intent is declared */}
+          {!briefShown && intent !== null && FLOATS.map((fq, i) => {
             const isFront = pulsingQ !== null ? pulsingQ === i : surfaced === i;
             const dist = Math.min(Math.abs(i - surfaced), FLOATS.length - Math.abs(i - surfaced));
             const layer = isFront ? 'front' : dist === 1 ? 'mid' : 'back';
@@ -279,10 +359,10 @@ export default function Chat() {
                 <MorningBrief onPullSignal={pullSignal} t={t} />
               ) : (
                 <div style={{
-                  maxHeight: hasUserMsg ? 0 : 320,
-                  opacity: hasUserMsg ? 0 : 1, overflow: 'hidden',
+                  maxHeight: phase !== 'intro' ? 0 : 320,
+                  opacity: phase !== 'intro' ? 0 : 1, overflow: 'hidden',
                   transition: 'opacity 0.7s ease, max-height 0.9s ease',
-                  marginBottom: hasUserMsg ? 0 : 44, paddingTop: 28,
+                  marginBottom: phase !== 'intro' ? 0 : 44, paddingTop: 28,
                 }}>
                   <div style={{
                     fontFamily: '"IBM Plex Mono", monospace',
@@ -316,6 +396,7 @@ export default function Chat() {
                 const isLatest = i === messages.length - 1 && m.role !== 'user';
                 return <Bubble key={m.id} msg={m} t={t} isLatest={isLatest} />;
               })}
+              {phase === 'triage' && <TriageCards onSelect={selectIntent} tk={tk} />}
               {thinkingSteps.length > 0 && <ThinkingStream steps={thinkingSteps} visible t={t} />}
 
               {/* Input */}
@@ -341,7 +422,7 @@ export default function Chat() {
                   }}
                   disabled={!inputReady || isProcessing}
                   rows={3}
-                  placeholder={inputReady ? (t.returningUser ? 'Ask the room…' : "Tell us what's going on…") : ''}
+                  placeholder={inputReady ? (intent === 'question' ? 'Ask anything…' : t.returningUser ? 'Ask the room…' : "Tell us about your company…") : ''}
                   style={{
                     width: '100%', border: 'none', outline: 'none',
                     background: 'transparent',
