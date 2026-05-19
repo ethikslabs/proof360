@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hive & Co — Provenance Protocol</title>
+  <meta name="description" content="Blockchain provenance verification for premium food producers. Every batch, on-chain. Immutable. Auditable. Trusted.">
+  <link rel="stylesheet" href="stage3.css">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">Hive <span>&</span> Co<sup>Protocol</sup></a>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#producers">For producers</a>
+    <a href="#retailers">For retailers</a>
+    <a href="index.html" class="nav-secondary">Shop honey</a>
+    <a href="#contact" class="nav-cta">Join the network</a>
+  </div>
+</nav>
+
+<!-- Live feed — fake runtime data -->
+<div class="live-bar">
+  <div class="live-bar-inner" id="live-feed">
+    <div class="live-item"><span class="dot"></span><span class="batch">HV-3041</span> Bellingen Manuka MGO 400+ · Verified <span class="time">2 min ago</span></div>
+    <div class="live-item"><span class="dot"></span><span class="batch">HV-3040</span> Hunter Valley Ironbark · Verified <span class="time">11 min ago</span></div>
+    <div class="live-item"><span class="dot"></span><span class="batch">HV-3038</span> NSW Wildflower Spring Harvest · Verified <span class="time">28 min ago</span></div>
+    <div class="live-item"><span class="dot"></span><span class="batch">HV-3036</span> Mudgee Yellow Box Limited · Verified <span class="time">1 hr ago</span></div>
+    <div class="live-item"><span class="dot"></span><span class="batch">HV-3034</span> New England Ironbark · Verified <span class="time">2 hr ago</span></div>
+    <div class="live-item"><span class="dot"></span><span class="batch">HV-3033</span> Blue Gum Creamed — Hunter Valley · Verified <span class="time">3 hr ago</span></div>
+    <!-- duplicated for seamless scroll -->
+    <div class="live-item"><span class="dot"></span><span class="batch">HV-3041</span> Bellingen Manuka MGO 400+ · Verified <span class="time">2 min ago</span></div>
+    <div class="live-item"><span class="dot"></span><span class="batch">HV-3040</span> Hunter Valley Ironbark · Verified <span class="time">11 min ago</span></div>
+    <div class="live-item"><span class="dot"></span><span class="batch">HV-3038</span> NSW Wildflower Spring Harvest · Verified <span class="time">28 min ago</span></div>
+    <div class="live-item"><span class="dot"></span><span class="batch">HV-3036</span> Mudgee Yellow Box Limited · Verified <span class="time">1 hr ago</span></div>
+    <div class="live-item"><span class="dot"></span><span class="batch">HV-3034</span> New England Ironbark · Verified <span class="time">2 hr ago</span></div>
+    <div class="live-item"><span class="dot"></span><span class="batch">HV-3033</span> Blue Gum Creamed — Hunter Valley · Verified <span class="time">3 hr ago</span></div>
+  </div>
+</div>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-text">
+    <div class="eyebrow">Hive & Co Provenance Protocol · Beta</div>
+    <h1>Every jar,<br><em>on record.</em></h1>
+    <p>
+      Ten thousand tonnes of "Manuka honey" sold globally each year.
+      Fewer than two thousand produced. The fraud is systemic.
+      We built the fix — and we're opening it to every food producer who gives a damn about what's in the jar.
+    </p>
+    <div class="hero-ctas">
+      <a href="#producers" class="btn btn-amber">Join the network</a>
+      <a href="#verify" class="btn btn-ghost">Verify a batch</a>
+    </div>
+  </div>
+
+  <!-- Live batch verification card -->
+  <div class="verify-panel">
+    <div class="vp-label">Latest verified batch</div>
+    <div class="vp-hash" id="vp-hash">0x4a8f...c291</div>
+    <div class="vp-row"><span class="key">Batch ID</span><span class="val" id="vp-batch">HV-3041</span></div>
+    <div class="vp-row"><span class="key">Product</span><span class="val">Manuka MGO 400+</span></div>
+    <div class="vp-row"><span class="key">Beekeeper</span><span class="val">Bellingen Reserve · NSW</span></div>
+    <div class="vp-row"><span class="key">Harvest date</span><span class="val">14 Apr 2025</span></div>
+    <div class="vp-row"><span class="key">MGO tested</span><span class="val">428 mg/kg</span></div>
+    <div class="vp-row"><span class="key">Chain</span><span class="val verified">Polygon · Block 58,204,917</span></div>
+    <div class="vp-row"><span class="key">IPFS record</span><span class="val verified">QmX7k...f9a2</span></div>
+    <div class="vp-badge"><span class="vp-pulse"></span>Verified on-chain</div>
+  </div>
+</section>
+
+<!-- Stats -->
+<div style="border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num" id="stat-batches">3,041</div>
+      <div class="stat-label">Batches verified</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">8</div>
+      <div class="stat-label">Producer partners</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">3</div>
+      <div class="stat-label">Retail integrations</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">0</div>
+      <div class="stat-label">Disputed records</div>
+    </div>
+  </div>
+</div>
+
+<!-- How it works -->
+<section class="how" id="how">
+  <h2>How the protocol works</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <h3>Register your hive</h3>
+      <p>
+        Each beekeeper in the network registers their hive locations, honey varieties, and
+        certifications. Identity is verified off-chain. Records are anchored on Polygon.
+        A producer DID is issued — your permanent, portable identifier on the protocol.
+      </p>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <h3>Record each harvest</h3>
+      <p>
+        At extraction, producers log the batch: GPS coordinates, harvest date, weight, lab test
+        results. Documents are stored on IPFS. A hash of the full record is written to the chain.
+        The jar gets a QR code linked to the immutable record. Nothing can be changed retroactively.
+      </p>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <h3>Anyone can verify</h3>
+      <p>
+        Scan the QR. The record resolves instantly — beekeeper identity, harvest location,
+        test results, chain confirmation. Retailers can integrate via API. Consumers can verify
+        in two seconds on their phone. The proof is public. No login required.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Audience split -->
+<section class="audience">
+  <div class="audience-panel" id="producers">
+    <div class="tag">For producers</div>
+    <h3>Your quality is already there.<br>Now prove it.</h3>
+    <p>
+      You know what's in your jars. Your buyers don't — not yet. The Hive Protocol gives you
+      an auditable, tamper-proof record that travels with your product all the way to the shelf.
+    </p>
+    <ul>
+      <li>On-chain provenance record per batch</li>
+      <li>QR code + consumer verification page</li>
+      <li>Retailer API for automated compliance</li>
+      <li>Producer DID — portable across markets</li>
+      <li>MGO, organic, and origin certification anchoring</li>
+    </ul>
+    <a href="#contact" class="btn btn-amber">Apply to join</a>
+  </div>
+  <div class="audience-panel" id="retailers">
+    <div class="tag">For retailers</div>
+    <h3>Reduce fraud risk.<br>Increase shelf confidence.</h3>
+    <p>
+      Manuka fraud costs retailers in chargebacks, regulatory exposure, and customer trust.
+      Hive Protocol gives your buying team a real-time API to verify supplier claims before
+      the first order ships.
+    </p>
+    <ul>
+      <li>REST API — verify any batch ID in under 200ms</li>
+      <li>Supplier onboarding — protocol verification as a requirement</li>
+      <li>Audit trail for regulatory enquiries</li>
+      <li>White-label consumer verification page</li>
+      <li>Webhook alerts on any record dispute</li>
+    </ul>
+    <a href="#contact" class="btn btn-ghost">Talk to our team</a>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-band" id="contact">
+  <h2>The network is open.</h2>
+  <p>Eight producers verified. Room for twelve more in the founding cohort.</p>
+  <a href="mailto:protocol@hiveandco.com.au" class="btn btn-dark">protocol@hiveandco.com.au</a>
+</div>
+
+<footer>
+  <div class="footer-logo">Hive <span>&</span> Co</div>
+  <div class="footer-links">
+    <a href="index.html">Honey shop</a>
+    <a href="about.html">Our story</a>
+    <a href="#how">Protocol</a>
+    <a href="#">Docs</a>
+    <a href="#">Instagram</a>
+  </div>
+  <div class="footer-copy">© 2025 Hive & Co Pty Ltd · Protocol in beta</div>
+</footer>
+
+<script>
+  // Fake runtime data — batch counter increments slowly
+  const batchEl = document.getElementById('stat-batches');
+  const hashEl  = document.getElementById('vp-hash');
+  const batchId = document.getElementById('vp-batch');
+
+  let count = 3041;
+  const hashes = [
+    '0x4a8f...c291', '0x9b2c...e847', '0x1d6a...f033',
+    '0x7e4b...a12f', '0x3c9d...8b74', '0x6f1e...d509',
+  ];
+  const batches = ['HV-3041','HV-3042','HV-3043','HV-3044','HV-3045','HV-3046'];
+  let idx = 0;
+
+  setInterval(() => {
+    count++;
+    idx = (idx + 1) % hashes.length;
+    batchEl.textContent = count.toLocaleString();
+    hashEl.textContent  = hashes[idx];
+    batchId.textContent = batches[idx % batches.length];
+  }, 18000);
+</script>
+
+</body>
+</html>
