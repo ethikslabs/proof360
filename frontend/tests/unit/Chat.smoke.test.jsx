@@ -47,13 +47,15 @@ describe('ChatInput', () => {
 
 describe('ThinkingStream', () => {
   it('renders nothing when not visible', () => {
-    const { container } = render(<ThinkingStream steps={[]} visible={false} />);
+    const t = { theme: 'pearl' };
+    const { container } = render(<ThinkingStream steps={[]} visible={false} t={t} />);
     expect(container.firstChild).toBeNull();
   });
 
   it('renders steps when visible', () => {
     const steps = [{ id: 't1', label: 'Checking market', provider: 'perplexity', status: 'complete', durationMs: 400 }];
-    render(<ThinkingStream steps={steps} visible={true} />);
+    const t = { theme: 'pearl' };
+    render(<ThinkingStream steps={steps} visible={true} t={t} />);
     expect(screen.getByText('Checking market')).toBeInTheDocument();
   });
 });
