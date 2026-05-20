@@ -79,32 +79,28 @@ const QUESTION_OPENING = [
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 function PreviewPanel({ demoUrl, userUrl, onSetUserUrl, onClose, tk }) {
-  const [activeTab, setActiveTab] = useState('demo');
-  const [urlDraft, setUrlDraft]   = useState('');
+  const [urlDraft, setUrlDraft] = useState('');
 
-  function Tab({ id, label, url }) {
-    const active = activeTab === id;
+  function UrlBar({ label, url }) {
     return (
-      <button
-        onClick={() => setActiveTab(id)}
-        style={{
-          background: active ? tk.surface : 'transparent',
-          border: 'none', borderBottom: active ? `2px solid ${tk.plum}` : '2px solid transparent',
-          cursor: 'pointer', padding: '8px 14px',
-          fontFamily: '"IBM Plex Mono", monospace',
-          fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase',
-          color: active ? tk.ink : tk.inkSoft,
-          transition: 'color 0.15s, border-color 0.15s',
-          flexShrink: 0, whiteSpace: 'nowrap',
-        }}
-      >
-        {label}
-        {url && (
-          <span style={{ marginLeft: 6, opacity: 0.5, fontWeight: 400 }}>
-            {url.replace(/^https?:\/\//, '').split('/')[0]}
-          </span>
-        )}
-      </button>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, flex: 1,
+      }}>
+        <span style={{
+          fontFamily: '"IBM Plex Mono", monospace', fontSize: 9,
+          letterSpacing: '0.16em', textTransform: 'uppercase',
+          color: tk.inkSoft, flexShrink: 0,
+        }}>{label}</span>
+        <div style={{
+          flex: 1, background: tk.bg, border: `1px solid ${tk.hairline}`,
+          borderRadius: 5, padding: '4px 10px',
+          fontFamily: '"IBM Plex Mono", monospace', fontSize: 10.5,
+          color: tk.inkSoft, whiteSpace: 'nowrap', overflow: 'hidden',
+          textOverflow: 'ellipsis', minWidth: 0,
+        }}>
+          {url.replace(/^https?:\/\//, '')}
+        </div>
+      </div>
     );
   }
 
@@ -113,7 +109,6 @@ function PreviewPanel({ demoUrl, userUrl, onSetUserUrl, onClose, tk }) {
     if (!u) return;
     if (!/^https?:\/\//.test(u)) u = `https://${u}`;
     onSetUserUrl(u);
-    setActiveTab('user');
     setUrlDraft('');
   }
 
@@ -124,58 +119,68 @@ function PreviewPanel({ demoUrl, userUrl, onSetUserUrl, onClose, tk }) {
       animation: 'fadeSlideUp 0.35s ease both',
       minWidth: 0,
     }}>
-      {/* Tab bar */}
+      {/* Shared header bar */}
       <div style={{
-        display: 'flex', alignItems: 'stretch',
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '8px 12px', flexShrink: 0,
         borderBottom: `1px solid ${tk.hairline}`,
         background: `${tk.surfaceLo}ee`,
-        flexShrink: 0,
       }}>
-        <Tab id="demo" label="Demo" url={demoUrl} />
-        <Tab id="user" label="Yours" url={userUrl} />
-        <div style={{ flex: 1 }} />
+        <UrlBar label="demo" url={demoUrl} />
+        <div style={{ width: 1, height: 20, background: tk.hairline, flexShrink: 0 }} />
+        {userUrl
+          ? <UrlBar label="yours" url={userUrl} />
+          : <span style={{
+              fontFamily: '"IBM Plex Mono", monospace', fontSize: 9,
+              letterSpacing: '0.16em', textTransform: 'uppercase',
+              color: `${tk.plum}80`, flexShrink: 0,
+            }}>yours →</span>
+        }
         <button onClick={onClose} style={{
           background: 'none', border: 'none', cursor: 'pointer',
-          color: tk.inkSoft, fontSize: 18, padding: '0 14px',
-          lineHeight: 1, flexShrink: 0,
+          color: tk.inkSoft, fontSize: 18, padding: '0 2px',
+          lineHeight: 1, flexShrink: 0, marginLeft: 4,
         }}>×</button>
       </div>
 
-      {/* Demo iframe */}
-      <iframe
-        src={demoUrl}
-        title="Demo company"
-        style={{ flex: 1, border: 'none', width: '100%', display: activeTab === 'demo' ? 'block' : 'none' }}
-      />
+      {/* Split iframes */}
+      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+        {/* Demo — always visible */}
+        <iframe
+          src={demoUrl}
+          title="Demo company"
+          style={{ flex: 1, border: 'none', minWidth: 0 }}
+        />
 
-      {/* Your company — URL entry or iframe */}
-      {activeTab === 'user' && (
-        userUrl
+        {/* Divider */}
+        <div style={{ width: 1, background: tk.hairline, flexShrink: 0 }} />
+
+        {/* Yours — URL entry or iframe */}
+        {userUrl
           ? <iframe
               src={userUrl}
               title="Your company"
-              style={{ flex: 1, border: 'none', width: '100%', display: 'block' }}
+              style={{ flex: 1, border: 'none', minWidth: 0 }}
             />
           : <div style={{
               flex: 1, display: 'flex', flexDirection: 'column',
               alignItems: 'center', justifyContent: 'center',
-              gap: 20, padding: 40,
+              gap: 18, padding: '32px 24px', minWidth: 0,
+              background: `${tk.surfaceLo}88`,
             }}>
               <div style={{
                 fontFamily: '"Instrument Serif", Georgia, serif',
-                fontStyle: 'italic', fontSize: 22, color: tk.inkMid,
-                textAlign: 'center', maxWidth: 280, lineHeight: 1.4,
+                fontStyle: 'italic', fontSize: 20, color: tk.inkMid,
+                textAlign: 'center', lineHeight: 1.4,
               }}>Now try yours.</div>
               <p style={{
                 fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-                fontSize: 13, color: tk.inkSoft, textAlign: 'center',
-                maxWidth: 300, lineHeight: 1.6, margin: 0,
+                fontSize: 12.5, color: tk.inkSoft, textAlign: 'center',
+                lineHeight: 1.6, margin: 0, maxWidth: 240,
               }}>
-                Drop your website URL. We'll pull it up next to Hive & Co so you can see what the room sees.
+                Drop your URL here — we'll put it next to Hive & Co in the same conversation.
               </p>
-              <div style={{
-                display: 'flex', gap: 8, width: '100%', maxWidth: 360,
-              }}>
+              <div style={{ display: 'flex', gap: 8, width: '100%', maxWidth: 280 }}>
                 <input
                   autoFocus
                   value={urlDraft}
@@ -184,10 +189,9 @@ function PreviewPanel({ demoUrl, userUrl, onSetUserUrl, onClose, tk }) {
                   placeholder="yourcompany.com"
                   style={{
                     flex: 1, background: tk.surface, border: `1px solid ${tk.hairline}`,
-                    borderRadius: 8, padding: '10px 14px',
-                    fontFamily: '"IBM Plex Mono", monospace', fontSize: 12,
-                    color: tk.ink, outline: 'none',
-                    transition: 'border-color 0.2s',
+                    borderRadius: 7, padding: '9px 12px',
+                    fontFamily: '"IBM Plex Mono", monospace', fontSize: 11.5,
+                    color: tk.ink, outline: 'none', minWidth: 0,
                   }}
                   onFocus={e => { e.target.style.borderColor = `${tk.plum}60`; }}
                   onBlur={e  => { e.target.style.borderColor = tk.hairline; }}
@@ -195,19 +199,18 @@ function PreviewPanel({ demoUrl, userUrl, onSetUserUrl, onClose, tk }) {
                 <button
                   onClick={submitUserUrl}
                   style={{
-                    background: tk.plum, color: tk.surface,
-                    border: 'none', borderRadius: 8,
-                    padding: '10px 18px', cursor: 'pointer',
+                    background: tk.plum, color: tk.surface, border: 'none',
+                    borderRadius: 7, padding: '9px 14px', cursor: 'pointer',
                     fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-                    fontSize: 12, fontWeight: 500,
-                    transition: 'opacity 0.15s',
+                    fontSize: 12, fontWeight: 500, flexShrink: 0,
                   }}
                   onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; }}
                   onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
                 >Open</button>
               </div>
             </div>
-      )}
+        }
+      </div>
     </div>
   );
 }
@@ -463,7 +466,7 @@ export default function Chat() {
         {/* Chat pane — shrinks to make room for preview */}
         <div style={{
           position: 'relative', overflow: 'hidden',
-          flex: previewOpen ? '0 0 460px' : '1',
+          flex: previewOpen ? '0 0 400px' : '1',
           transition: 'flex-basis 0.38s cubic-bezier(0.32,0.72,0,1)',
         }}>
 
