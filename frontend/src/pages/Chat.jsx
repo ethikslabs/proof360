@@ -78,7 +78,45 @@ const QUESTION_OPENING = [
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-function PreviewPanel({ url, onClose, tk }) {
+function PreviewPanel({ demoUrl, userUrl, onSetUserUrl, onClose, tk }) {
+  const [activeTab, setActiveTab] = useState('demo');
+  const [urlDraft, setUrlDraft]   = useState('');
+
+  function Tab({ id, label, url }) {
+    const active = activeTab === id;
+    return (
+      <button
+        onClick={() => setActiveTab(id)}
+        style={{
+          background: active ? tk.surface : 'transparent',
+          border: 'none', borderBottom: active ? `2px solid ${tk.plum}` : '2px solid transparent',
+          cursor: 'pointer', padding: '8px 14px',
+          fontFamily: '"IBM Plex Mono", monospace',
+          fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase',
+          color: active ? tk.ink : tk.inkSoft,
+          transition: 'color 0.15s, border-color 0.15s',
+          flexShrink: 0, whiteSpace: 'nowrap',
+        }}
+      >
+        {label}
+        {url && (
+          <span style={{ marginLeft: 6, opacity: 0.5, fontWeight: 400 }}>
+            {url.replace(/^https?:\/\//, '').split('/')[0]}
+          </span>
+        )}
+      </button>
+    );
+  }
+
+  function submitUserUrl() {
+    let u = urlDraft.trim();
+    if (!u) return;
+    if (!/^https?:\/\//.test(u)) u = `https://${u}`;
+    onSetUserUrl(u);
+    setActiveTab('user');
+    setUrlDraft('');
+  }
+
   return (
     <div style={{
       flex: 1, display: 'flex', flexDirection: 'column',
@@ -86,30 +124,90 @@ function PreviewPanel({ url, onClose, tk }) {
       animation: 'fadeSlideUp 0.35s ease both',
       minWidth: 0,
     }}>
+      {/* Tab bar */}
       <div style={{
-        display: 'flex', alignItems: 'center', gap: 10,
-        padding: '10px 14px', flexShrink: 0,
+        display: 'flex', alignItems: 'stretch',
         borderBottom: `1px solid ${tk.hairline}`,
-        background: `${tk.surfaceLo}cc`,
+        background: `${tk.surfaceLo}ee`,
+        flexShrink: 0,
       }}>
-        <div style={{
-          flex: 1, background: tk.bg, border: `1px solid ${tk.hairline}`,
-          borderRadius: 6, padding: '5px 12px',
-          fontFamily: '"IBM Plex Mono", monospace',
-          fontSize: 11, color: tk.inkSoft, letterSpacing: '0.02em',
-          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-        }}>{url}</div>
+        <Tab id="demo" label="Demo" url={demoUrl} />
+        <Tab id="user" label="Yours" url={userUrl} />
+        <div style={{ flex: 1 }} />
         <button onClick={onClose} style={{
           background: 'none', border: 'none', cursor: 'pointer',
-          color: tk.inkSoft, fontSize: 18, padding: '0 4px',
+          color: tk.inkSoft, fontSize: 18, padding: '0 14px',
           lineHeight: 1, flexShrink: 0,
         }}>×</button>
       </div>
+
+      {/* Demo iframe */}
       <iframe
-        src={url}
-        title="Hive & Co"
-        style={{ flex: 1, border: 'none', width: '100%', display: 'block' }}
+        src={demoUrl}
+        title="Demo company"
+        style={{ flex: 1, border: 'none', width: '100%', display: activeTab === 'demo' ? 'block' : 'none' }}
       />
+
+      {/* Your company — URL entry or iframe */}
+      {activeTab === 'user' && (
+        userUrl
+          ? <iframe
+              src={userUrl}
+              title="Your company"
+              style={{ flex: 1, border: 'none', width: '100%', display: 'block' }}
+            />
+          : <div style={{
+              flex: 1, display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center',
+              gap: 20, padding: 40,
+            }}>
+              <div style={{
+                fontFamily: '"Instrument Serif", Georgia, serif',
+                fontStyle: 'italic', fontSize: 22, color: tk.inkMid,
+                textAlign: 'center', maxWidth: 280, lineHeight: 1.4,
+              }}>Now try yours.</div>
+              <p style={{
+                fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                fontSize: 13, color: tk.inkSoft, textAlign: 'center',
+                maxWidth: 300, lineHeight: 1.6, margin: 0,
+              }}>
+                Drop your website URL. We'll pull it up next to Hive & Co so you can see what the room sees.
+              </p>
+              <div style={{
+                display: 'flex', gap: 8, width: '100%', maxWidth: 360,
+              }}>
+                <input
+                  autoFocus
+                  value={urlDraft}
+                  onChange={e => setUrlDraft(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && submitUserUrl()}
+                  placeholder="yourcompany.com"
+                  style={{
+                    flex: 1, background: tk.surface, border: `1px solid ${tk.hairline}`,
+                    borderRadius: 8, padding: '10px 14px',
+                    fontFamily: '"IBM Plex Mono", monospace', fontSize: 12,
+                    color: tk.ink, outline: 'none',
+                    transition: 'border-color 0.2s',
+                  }}
+                  onFocus={e => { e.target.style.borderColor = `${tk.plum}60`; }}
+                  onBlur={e  => { e.target.style.borderColor = tk.hairline; }}
+                />
+                <button
+                  onClick={submitUserUrl}
+                  style={{
+                    background: tk.plum, color: tk.surface,
+                    border: 'none', borderRadius: 8,
+                    padding: '10px 18px', cursor: 'pointer',
+                    fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                    fontSize: 12, fontWeight: 500,
+                    transition: 'opacity 0.15s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; }}
+                  onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
+                >Open</button>
+              </div>
+            </div>
+      )}
     </div>
   );
 }
@@ -170,6 +268,7 @@ export default function Chat() {
   const [intent, setIntent]               = useState(null);      // 'browse' | 'raise' | 'question'
   const [previewUrl, setPreviewUrl]       = useState(null);
   const [previewOpen, setPreviewOpen]     = useState(false);
+  const [userPreviewUrl, setUserPreviewUrl] = useState(null);
 
   const hasUserMsg  = messages.some(m => m.role === 'user');
   const hasMessages = messages.length > 0;
@@ -228,6 +327,9 @@ export default function Chat() {
       setPulsingQ(null);
       setPhase('intro');
       setIntent(null);
+      setPreviewUrl(null);
+      setPreviewOpen(false);
+      setUserPreviewUrl(null);
       setLitTiles({ investor: false, vendors: false, aws: false, posture: false, spv: false });
       setThinkingSteps([]);
       await sleep(900);
@@ -539,7 +641,18 @@ export default function Chat() {
 
         {/* Preview pane */}
         {previewUrl && previewOpen && (
-          <PreviewPanel url={previewUrl} onClose={() => setPreviewOpen(false)} tk={tk} />
+          <PreviewPanel
+            demoUrl={previewUrl}
+            userUrl={userPreviewUrl}
+            onSetUserUrl={url => {
+              setUserPreviewUrl(url);
+              const domain = url.replace(/^https?:\/\//, '').split('/')[0];
+              setInputValue(domain);
+              setTimeout(() => inputRef.current?.focus(), 100);
+            }}
+            onClose={() => setPreviewOpen(false)}
+            tk={tk}
+          />
         )}
 
       </main>
