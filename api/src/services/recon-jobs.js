@@ -3,8 +3,25 @@
 // The question being answered: "Is this company investing in security?
 // Are they actively closing compliance gaps? What stack are they on?"
 
-import { fetchFullContent } from '../../../../CORPUS/src/ingest/lib/content-fetch.mjs';
 import { record as recordConsumption } from './consumption-emitter.js';
+
+async function fetchFullContent(url, { timeout = 8000 } = {}) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+  try {
+    const res = await fetch(url, { signal: controller.signal, headers: { 'User-Agent': 'Mozilla/5.0' } });
+    if (!res.ok) return { text: '' };
+    const html = await res.text();
+    const text = html.replace(/<script[\s\S]*?<\/script>/gi, '')
+                     .replace(/<style[\s\S]*?<\/style>/gi, '')
+                     .replace(/<[^>]+>/g, ' ')
+                     .replace(/\s+/g, ' ')
+                     .trim();
+    return { text };
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 const CAREER_PATHS = [
   '/careers', '/jobs', '/join', '/work-with-us',
