@@ -78,6 +78,14 @@ const QUESTION_OPENING = [
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+const TAB_SENSE_MSGS = [
+  (domain) => `Picked up ${domain}. Before I read it — what's the context? Portfolio company, competitor, or is this yours?`,
+  (domain) => `Just saw you open ${domain}. I can pull what's publicly visible now — anything specific you want me to look for?`,
+  (domain) => `${domain} is open. Want me to run it through the same lens as Hive & Co, or are you using it as a reference?`,
+  (domain) => `Got ${domain}. First impressions from what's public — or do you want to tell me what I should know first?`,
+];
+let _tabSenseIdx = 0;
+
 /* ─── Mini Atlas Browser ────────────────────────────────────────────── */
 
 let _tabId = 0;
@@ -586,8 +594,9 @@ export default function Chat() {
   const sessionTok    = messages.reduce((s, m) => s + (m.tok ?? 0), 0);
   const sessionModels = [...new Set(messages.filter(m => m.model).map(m => m.model))];
 
-  const inputRef  = useRef(null);
-  const scrollRef = useRef(null);
+  const inputRef    = useRef(null);
+  const scrollRef   = useRef(null);
+  const browserTabsRef = useRef([]);
 
   useEffect(() => {
     if (!inChatSpace) return;
@@ -959,12 +968,29 @@ export default function Chat() {
           <BrowserPanel
             seedUrl={previewUrl}
             onTabsChange={tabs => {
-              const nonSeed = tabs.filter(t => !t.pinned);
-              setUserPreviewUrl(nonSeed.length > 0 ? nonSeed[nonSeed.length - 1].url : null);
-              if (nonSeed.length > 0) {
-                const domain = nonSeed[nonSeed.length - 1].url.replace(/^https?:\/\//, '').split('/')[0];
-                setInputValue(domain);
-                setTimeout(() => inputRef.current?.focus(), 100);
+              const prev = browserTabsRef.current;
+              const newTabs = tabs.filter(t => !t.pinned && !prev.find(p => p.id === t.id));
+              browserTabsRef.current = tabs;
+
+              if (newTabs.length > 0) {
+                const newest = newTabs[newTabs.length - 1];
+                const domain = newest.url.replace(/^https?:\/\//, '').split('/')[0];
+                setUserPreviewUrl(newest.url);
+
+                // Edison senses the tab open and speaks into the thread
+                const msgFn = TAB_SENSE_MSGS[_tabSenseIdx % TAB_SENSE_MSGS.length];
+                _tabSenseIdx++;
+                const senseMsg = {
+                  id: `sense-${Date.now()}`,
+                  persona: 'edison',
+                  model: 'claude-sonnet-4-6',
+                  tok: 48 + Math.floor(Math.random() * 20),
+                  ms: 310 + Math.floor(Math.random() * 200),
+                  content: msgFn(domain),
+                };
+                setMessages(prev => [...prev, senseMsg]);
+                setInputReady(true);
+                setTimeout(() => inputRef.current?.focus(), 150);
               }
             }}
             onClose={() => setPreviewOpen(false)}
