@@ -78,6 +78,230 @@ const QUESTION_OPENING = [
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+/* ─── Mini Atlas Browser ────────────────────────────────────────────── */
+
+let _tabId = 0;
+function mkTab(url, pinned = false) {
+  const domain = url.replace(/^https?:\/\//, '').split('/')[0];
+  return { id: `t${++_tabId}`, url, label: domain, pinned };
+}
+
+function BrowserPanel({ seedUrl, onTabsChange, onClose, tk }) {
+  const mono = '"IBM Plex Mono", monospace';
+  const [tabs,     setTabs]     = useState(() => [mkTab(seedUrl, true)]);
+  const [activeId, setActiveId] = useState(() => `t${_tabId}`);
+  const [splitId,  setSplitId]  = useState(null);
+  const [urlDraft, setUrlDraft] = useState('');
+  const [editing,  setEditing]  = useState(false);
+
+  const activeTab = tabs.find(t => t.id === activeId) ?? tabs[0];
+  const splitTab  = tabs.find(t => t.id === splitId) ?? null;
+
+  function addTab(raw) {
+    let url = raw.trim();
+    if (!url) return;
+    if (!/^https?:\/\//.test(url)) url = `https://${url}`;
+    const tab = mkTab(url);
+    setTabs(prev => {
+      const next = [...prev, tab];
+      onTabsChange?.(next);
+      return next;
+    });
+    setActiveId(tab.id);
+    setUrlDraft('');
+    setEditing(false);
+  }
+
+  function closeTab(id) {
+    if (tabs.length === 1) { onClose(); return; }
+    setTabs(prev => {
+      const next = prev.filter(t => t.id !== id);
+      onTabsChange?.(next);
+      return next;
+    });
+    if (activeId === id) setActiveId(tabs.find(t => t.id !== id)?.id);
+    if (splitId  === id) setSplitId(null);
+  }
+
+  function toggleSplit(id) {
+    setSplitId(prev => (prev === id ? null : id));
+  }
+
+  const otherTabs = tabs.filter(t => t.id !== activeId);
+
+  // Tab chip
+  function TabChip({ tab }) {
+    const active = tab.id === activeId;
+    const isSplit = tab.id === splitId;
+    return (
+      <div
+        onClick={() => setActiveId(tab.id)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          padding: '6px 10px 6px 12px', cursor: 'pointer', flexShrink: 0,
+          background: active ? tk.surface : 'transparent',
+          borderRight: `1px solid ${tk.hairline}`,
+          borderBottom: active ? `2px solid ${tk.plum}` : '2px solid transparent',
+          transition: 'background 0.15s',
+          maxWidth: 160, minWidth: 0,
+        }}
+      >
+        {tab.pinned && (
+          <span style={{ width: 5, height: 5, borderRadius: '50%', background: tk.umber, flexShrink: 0 }} />
+        )}
+        <span style={{
+          fontFamily: mono, fontSize: 10.5, color: active ? tk.ink : tk.inkSoft,
+          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1,
+        }}>{tab.label}</span>
+        {isSplit && (
+          <span style={{
+            fontFamily: mono, fontSize: 8, color: tk.plum,
+            letterSpacing: '0.1em', flexShrink: 0,
+          }}>split</span>
+        )}
+        {!tab.pinned && (
+          <button
+            onClick={e => { e.stopPropagation(); closeTab(tab.id); }}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: tk.inkSoft, fontSize: 13, padding: 0, lineHeight: 1, flexShrink: 0,
+            }}
+          >×</button>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      flex: 1, display: 'flex', flexDirection: 'column',
+      borderLeft: `1px solid ${tk.hairline}`,
+      animation: 'fadeSlideUp 0.35s ease both', minWidth: 0,
+    }}>
+
+      {/* ── Tab strip ── */}
+      <div style={{
+        display: 'flex', alignItems: 'stretch', flexShrink: 0,
+        borderBottom: `1px solid ${tk.hairline}`,
+        background: `${tk.surfaceLo}cc`, overflowX: 'auto',
+      }}>
+        {tabs.map(tab => <TabChip key={tab.id} tab={tab} />)}
+
+        {/* New tab input */}
+        <div style={{ display: 'flex', alignItems: 'center', padding: '4px 8px', flexShrink: 0 }}>
+          {editing ? (
+            <input
+              autoFocus
+              value={urlDraft}
+              onChange={e => setUrlDraft(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') addTab(urlDraft);
+                if (e.key === 'Escape') { setEditing(false); setUrlDraft(''); }
+              }}
+              onBlur={() => { if (!urlDraft.trim()) setEditing(false); }}
+              placeholder="open url…"
+              style={{
+                background: tk.bg, border: `1px solid ${tk.plum}60`,
+                borderRadius: 5, padding: '3px 9px',
+                fontFamily: mono, fontSize: 10.5, color: tk.ink, outline: 'none', width: 160,
+              }}
+            />
+          ) : (
+            <button
+              onClick={() => setEditing(true)}
+              title="Open URL"
+              style={{
+                background: 'none', border: `1px solid ${tk.hairline}`,
+                borderRadius: 5, cursor: 'pointer', color: tk.inkSoft,
+                fontFamily: mono, fontSize: 12, padding: '2px 8px',
+                transition: 'border-color 0.15s, color 0.15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = tk.plum; e.currentTarget.style.color = tk.plum; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = tk.hairline; e.currentTarget.style.color = tk.inkSoft; }}
+            >+</button>
+          )}
+        </div>
+
+        <div style={{ flex: 1 }} />
+
+        {/* Split toggle — pick which other tab to split with */}
+        {otherTabs.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0 8px', flexShrink: 0 }}>
+            {otherTabs.map(ot => (
+              <button
+                key={ot.id}
+                onClick={() => toggleSplit(ot.id)}
+                title={`Split with ${ot.label}`}
+                style={{
+                  background: splitId === ot.id ? `${tk.plum}18` : 'none',
+                  border: `1px solid ${splitId === ot.id ? tk.plum : tk.hairline}`,
+                  borderRadius: 5, cursor: 'pointer',
+                  color: splitId === ot.id ? tk.plum : tk.inkSoft,
+                  fontFamily: mono, fontSize: 9, letterSpacing: '0.08em',
+                  padding: '3px 7px', transition: 'all 0.15s',
+                  maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                }}
+              >⊟ {ot.label}</button>
+            ))}
+          </div>
+        )}
+
+        <button onClick={onClose} style={{
+          background: 'none', border: 'none', cursor: 'pointer',
+          color: tk.inkSoft, fontSize: 17, padding: '0 12px', lineHeight: 1, flexShrink: 0,
+        }}>×</button>
+      </div>
+
+      {/* ── URL bar of active tab ── */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', flexShrink: 0,
+        borderBottom: `1px solid ${tk.hairline}`,
+        background: `${tk.surfaceLo}88`,
+      }}>
+        <div style={{
+          flex: 1, background: tk.bg, border: `1px solid ${tk.hairline}`,
+          borderRadius: 6, padding: '5px 12px',
+          fontFamily: mono, fontSize: 11, color: tk.inkSoft,
+          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        }}>{activeTab?.url?.replace(/^https?:\/\//, '')}</div>
+        {splitTab && (
+          <>
+            <span style={{ color: tk.hairline, fontSize: 14 }}>│</span>
+            <div style={{
+              flex: 1, background: tk.bg, border: `1px solid ${tk.plum}40`,
+              borderRadius: 6, padding: '5px 12px',
+              fontFamily: mono, fontSize: 11, color: `${tk.plum}aa`,
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            }}>{splitTab.url.replace(/^https?:\/\//, '')}</div>
+          </>
+        )}
+      </div>
+
+      {/* ── Viewport ── */}
+      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+        <iframe
+          key={activeTab?.id}
+          src={activeTab?.url}
+          title={activeTab?.label}
+          style={{ flex: 1, border: 'none', minWidth: 0 }}
+        />
+        {splitTab && (
+          <>
+            <div style={{ width: 1, background: tk.hairline, flexShrink: 0 }} />
+            <iframe
+              key={splitTab.id}
+              src={splitTab.url}
+              title={splitTab.label}
+              style={{ flex: 1, border: 'none', minWidth: 0 }}
+            />
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* kept for compatibility — unused after BrowserPanel */
 function PreviewPanel({ demoUrl, userUrl, onSetUserUrl, onClose, tk }) {
   const [demoOpen,  setDemoOpen]  = useState(true);
   const [yoursOpen, setYoursOpen] = useState(true);
@@ -674,16 +898,18 @@ export default function Chat() {
 
         </div>{/* end chat pane */}
 
-        {/* Preview pane */}
+        {/* Browser panel */}
         {previewUrl && previewOpen && (
-          <PreviewPanel
-            demoUrl={previewUrl}
-            userUrl={userPreviewUrl}
-            onSetUserUrl={url => {
-              setUserPreviewUrl(url);
-              const domain = url.replace(/^https?:\/\//, '').split('/')[0];
-              setInputValue(domain);
-              setTimeout(() => inputRef.current?.focus(), 100);
+          <BrowserPanel
+            seedUrl={previewUrl}
+            onTabsChange={tabs => {
+              const nonSeed = tabs.filter(t => !t.pinned);
+              setUserPreviewUrl(nonSeed.length > 0 ? nonSeed[nonSeed.length - 1].url : null);
+              if (nonSeed.length > 0) {
+                const domain = nonSeed[nonSeed.length - 1].url.replace(/^https?:\/\//, '').split('/')[0];
+                setInputValue(domain);
+                setTimeout(() => inputRef.current?.focus(), 100);
+              }
             }}
             onClose={() => setPreviewOpen(false)}
             tk={tk}
