@@ -43,12 +43,12 @@ const LIVE_FEED = [
 
 function buildOpening(feed) {
   return [
-    { id: 'th-0', persona: 'sofia',
+    { id: 'th-0', persona: 'sofia',    model: 'claude-sonnet-4-6',         tok: 188, ms: 920,
       content: `Just saw this — "${feed.headline}." ${feed.angle}`,
       feedUrl: feed.url, feedSource: feed.source },
-    { id: 'th-1', persona: 'leonardo',
+    { id: 'th-1', persona: 'leonardo', model: 'nvidia/nemotron-ultra-253b', tok: 162, ms: 1340,
       content: "Still reactive, almost universally. Founders know the story they want to tell — but the evidence layer underneath it isn't there. Buyers are forming impressions before the first meeting. The posture is the pitch before the pitch starts." },
-    { id: 'th-2', persona: 'edison', isHandoff: true,
+    { id: 'th-2', persona: 'edison',   model: 'claude-sonnet-4-6',         tok: 203, ms: 870, isHandoff: true,
       content: "And it shows up in the data room every time. SSL misconfigurations, no access control evidence, breach exposure that's been public for months. All fixable. All avoidable.\n\nYou're here for a reason. What are you trying to solve?" },
   ];
 }
@@ -63,16 +63,16 @@ const DEMO_CO = {
 };
 
 const BROWSE_OPENING = [
-  { id: 'br-0', persona: 'sofia',
+  { id: 'br-0', persona: 'sofia',    model: 'claude-sonnet-4-6',           tok: 214, ms: 840,
     content: `Meet ${DEMO_CO.name} — a ${DEMO_CO.type}. ${DEMO_CO.story} The founders know everything about honey. They know nothing about what investors and enterprise buyers need to see before they say yes. Sound like anyone?` },
-  { id: 'br-1', persona: 'leonardo',
+  { id: 'br-1', persona: 'leonardo', model: 'nvidia/nemotron-ultra-253b',   tok: 178, ms: 1120,
     content: "This is the most common moment we see. Real product, real customers — but the language of investors and procurement is completely foreign. The question isn't whether they're ready. It's whether they can show it." },
-  { id: 'br-2', persona: 'edison', isHandoff: true,
+  { id: 'br-2', persona: 'edison',   model: 'claude-sonnet-4-6',           tok: 92,  ms: 610, isHandoff: true,
     content: `I'd start with what's publicly visible. Want to run ${DEMO_CO.name} through, or try your own company?` },
 ];
 
 const QUESTION_OPENING = [
-  { id: 'q-0', persona: 'sofia', isHandoff: true,
+  { id: 'q-0', persona: 'sofia', model: 'claude-sonnet-4-6', tok: 44, ms: 390, isHandoff: true,
     content: "Good — just ask. We'll work from there." },
 ];
 
@@ -532,6 +532,9 @@ export default function Chat() {
   const hasMessages = messages.length > 0;
   const inChatSpace = activeSpace === 'chat';
 
+  const sessionTok    = messages.reduce((s, m) => s + (m.tok ?? 0), 0);
+  const sessionModels = [...new Set(messages.filter(m => m.model).map(m => m.model))];
+
   const inputRef  = useRef(null);
   const scrollRef = useRef(null);
 
@@ -591,7 +594,7 @@ export default function Chat() {
       setLitTiles({ investor: false, vendors: false, aws: false, posture: false, spv: false });
       setThinkingSteps([]);
       await sleep(900);
-      const introMsg = { id: 'sophia-intro', persona: 'sofia', content: SOPHIA_INTRO };
+      const introMsg = { id: 'sophia-intro', persona: 'sofia', model: 'claude-sonnet-4-6', tok: 148, ms: 740, content: SOPHIA_INTRO };
       setMessages([{ ...introMsg, content: '' }]);
       if (speedMs === 0) {
         setMessages(prev => prev.map(m => m.id === 'sophia-intro' ? { ...m, content: SOPHIA_INTRO } : m));
@@ -714,6 +717,8 @@ export default function Chat() {
         onSwitch={setActiveSpace}
         litTiles={litTiles}
         compareMode={!!userPreviewUrl}
+        sessionTok={sessionTok}
+        sessionModels={sessionModels}
         t={t}
       />
 

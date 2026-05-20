@@ -115,6 +115,20 @@ const GENERIC_RESPONSES = {
   john_ai: "I've seen this stage before. The founders who get through it fastest are the ones who know exactly what question they need answered next. What's the one thing that, if you knew the answer, would change your next 90 days?",
 };
 
+// Model routing: mirrors VECTOR — claude-* → Anthropic, others → NIM
+const PERSONA_MODEL = {
+  sofia:    'claude-sonnet-4-6',
+  leonardo: 'nvidia/nemotron-ultra-253b',
+  edison:   'claude-sonnet-4-6',
+  john_ai:  'claude-sonnet-4-6',
+};
+
+function mockMeta(persona, text) {
+  const tok = Math.floor(text.length / 3.8) + 60 + Math.floor(Math.random() * 40);
+  const ms  = 600 + Math.floor(Math.random() * 1400);
+  return { model: PERSONA_MODEL[persona] ?? 'claude-sonnet-4-6', tok, ms };
+}
+
 export function getPersonaResponses(input = '') {
   const intentKey = getIntentKey(input);
   const { primary, handoff } = detectIntent(input);
@@ -122,28 +136,25 @@ export function getPersonaResponses(input = '') {
 
   if (bucket) {
     const results = [];
-    // Primary persona
     const primaryResponse = bucket[primary] || bucket[primary + '_handoff'] || GENERIC_RESPONSES[primary];
-    results.push({ ...PERSONA_MAP[primary], response: primaryResponse });
-    // Handoff persona (if defined in this bucket)
+    results.push({ ...PERSONA_MAP[primary], response: primaryResponse, ...mockMeta(primary, primaryResponse) });
     if (handoff) {
-      const handoffKey = handoff + '_handoff';
-      const handoffResponse = bucket[handoffKey];
+      const handoffResponse = bucket[handoff + '_handoff'];
       if (handoffResponse) {
-        results.push({ ...PERSONA_MAP[handoff], response: handoffResponse });
+        results.push({ ...PERSONA_MAP[handoff], response: handoffResponse, ...mockMeta(handoff, handoffResponse) });
       }
     }
     return results;
   }
 
-  // Fallback: single persona based on intent, generic response
-  return [{ ...PERSONA_MAP[primary], response: GENERIC_RESPONSES[primary] }];
+  const resp = GENERIC_RESPONSES[primary];
+  return [{ ...PERSONA_MAP[primary], response: resp, ...mockMeta(primary, resp) }];
 }
 
-// Single persona — used when message is routed via "Ask [Persona]" drawer CTAs
 export function getPersonaResponse(persona, input = '') {
   const key = persona.toLowerCase() === 'sophia' ? 'sofia' : persona.toLowerCase();
   if (!PERSONA_MAP[key]) return getPersonaResponses(input);
   const isHoney = /honey|manuka|market|king.s cross|burned.*money|burned.*cash/i.test(input);
-  return [{ ...PERSONA_MAP[key], response: isHoney ? HONEY_RESPONSES[key] : GENERIC_RESPONSES[key] }];
+  const resp = isHoney ? HONEY_RESPONSES[key] : GENERIC_RESPONSES[key];
+  return [{ ...PERSONA_MAP[key], response: resp, ...mockMeta(key, resp) }];
 }

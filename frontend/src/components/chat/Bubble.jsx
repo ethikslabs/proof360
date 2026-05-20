@@ -44,6 +44,25 @@ export function Bubble({ msg, t, isLatest }) {
     letterSpacing: '0.003em',
   };
 
+  const crumbEl = msg.model && (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+      gap: 8, marginTop: 8, opacity: 0.45,
+      fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
+      fontSize: 9, letterSpacing: '0.1em', color: tk.inkSoft,
+    }}>
+      <span>{msg.model}</span>
+      <span style={{ opacity: 0.5 }}>·</span>
+      <span>{msg.tok?.toLocaleString()} tok</span>
+      {msg.ms && (
+        <>
+          <span style={{ opacity: 0.5 }}>·</span>
+          <span>{(msg.ms / 1000).toFixed(1)}s</span>
+        </>
+      )}
+    </div>
+  );
+
   const sourceEl = msg.feedUrl && (
     <a href={msg.feedUrl} target="_blank" rel="noopener noreferrer" style={{
       display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 10,
@@ -66,6 +85,7 @@ export function Bubble({ msg, t, isLatest }) {
           background: `${color}11`, border: `1px solid ${color}26`, ...bodyStyle,
         }}>{msg.content}</div>
         {sourceEl}
+        {crumbEl}
       </div>
     );
   }
@@ -84,6 +104,7 @@ export function Bubble({ msg, t, isLatest }) {
         {labelEl}
         <div style={bodyStyle}>{msg.content}</div>
         {sourceEl}
+        {crumbEl}
       </div>
     );
   }
@@ -93,6 +114,7 @@ export function Bubble({ msg, t, isLatest }) {
       {labelEl}
       <div style={bodyStyle}>{msg.content}</div>
       {sourceEl}
+      {crumbEl}
     </div>
   );
 }

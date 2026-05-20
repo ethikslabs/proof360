@@ -90,7 +90,7 @@ function SidebarItem({ glyphKey, label, sublabel, demoSublabel, lit, active, col
   );
 }
 
-export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, litTiles, compareMode, t }) {
+export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, litTiles, compareMode, sessionTok, sessionModels, t }) {
   const tk = tokens(t.theme);
   const litCount = Object.values(litTiles).filter(Boolean).length;
 
@@ -182,13 +182,28 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
 
       {!collapsed && (
         <div style={{
-          padding: '14px 22px 18px',
+          padding: '12px 22px 16px',
           borderTop: `1px solid ${tk.hairline}`,
-          fontFamily: '"Instrument Serif", Georgia, serif',
-          fontStyle: 'italic', fontSize: 12.5, lineHeight: 1.5,
-          color: tk.inkSoft,
         }}>
-          The room fills in as it learns about you.
+          <div style={{
+            fontFamily: '"Instrument Serif", Georgia, serif',
+            fontStyle: 'italic', fontSize: 12.5, lineHeight: 1.5,
+            color: tk.inkSoft, marginBottom: sessionTok ? 8 : 0,
+          }}>
+            The room fills in as it learns about you.
+          </div>
+          {sessionTok > 0 && (
+            <div style={{
+              fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
+              fontSize: 9, letterSpacing: '0.1em', color: tk.inkGhost,
+              opacity: 0.6, lineHeight: 1.6,
+            }}>
+              <div>{sessionTok.toLocaleString()} tok this session</div>
+              {sessionModels?.length > 0 && (
+                <div style={{ marginTop: 2 }}>{sessionModels.join(' · ')}</div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </aside>
