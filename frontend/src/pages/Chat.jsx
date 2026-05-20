@@ -283,18 +283,69 @@ function BrowserPanel({ seedUrl, onTabsChange, onClose, tk }) {
           key={activeTab?.id}
           src={activeTab?.url}
           title={activeTab?.label}
-          style={{ flex: 1, border: 'none', minWidth: 0 }}
+          style={{ flex: 1, border: 'none', minWidth: 0,
+            borderRight: (splitTab || tabs.length === 1) ? `1px solid ${tk.hairline}` : 'none' }}
         />
+
+        {/* Split with another tab */}
         {splitTab && (
-          <>
-            <div style={{ width: 1, background: tk.hairline, flexShrink: 0 }} />
-            <iframe
-              key={splitTab.id}
-              src={splitTab.url}
-              title={splitTab.label}
-              style={{ flex: 1, border: 'none', minWidth: 0 }}
-            />
-          </>
+          <iframe
+            key={splitTab.id}
+            src={splitTab.url}
+            title={splitTab.label}
+            style={{ flex: 1, border: 'none', minWidth: 0 }}
+          />
+        )}
+
+        {/* "Now try yours" — always visible when only the pinned tab is open */}
+        {!splitTab && tabs.length === 1 && (
+          <div style={{
+            flex: 1, display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            gap: 16, padding: '32px 24px', minWidth: 0,
+            background: `${tk.surfaceLo}88`,
+          }}>
+            <div style={{
+              fontFamily: '"Instrument Serif", Georgia, serif',
+              fontStyle: 'italic', fontSize: 22, color: tk.inkMid,
+              textAlign: 'center', lineHeight: 1.35,
+            }}>Now try yours.</div>
+            <p style={{
+              fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+              fontSize: 13, color: tk.inkSoft, textAlign: 'center',
+              lineHeight: 1.65, margin: 0, maxWidth: 230,
+            }}>
+              Drop your URL here — same conversation, live comparison.
+            </p>
+            <div style={{ display: 'flex', gap: 8, width: '100%', maxWidth: 280 }}>
+              <input
+                autoFocus
+                value={urlDraft}
+                onChange={e => setUrlDraft(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addTab(urlDraft)}
+                placeholder="yourcompany.com"
+                style={{
+                  flex: 1, background: tk.surface, border: `1px solid ${tk.hairline}`,
+                  borderRadius: 8, padding: '10px 14px',
+                  fontFamily: mono, fontSize: 12,
+                  color: tk.ink, outline: 'none', minWidth: 0,
+                }}
+                onFocus={e => { e.target.style.borderColor = `${tk.plum}60`; }}
+                onBlur={e  => { e.target.style.borderColor = tk.hairline; }}
+              />
+              <button
+                onClick={() => addTab(urlDraft)}
+                style={{
+                  background: tk.plum, color: tk.surface, border: 'none',
+                  borderRadius: 8, padding: '10px 16px', cursor: 'pointer',
+                  fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                  fontSize: 12, fontWeight: 500, flexShrink: 0,
+                }}
+                onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; }}
+                onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
+              >Open</button>
+            </div>
+          </div>
         )}
       </div>
     </div>
