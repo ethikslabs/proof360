@@ -57,7 +57,7 @@ const SOPHIA_INTRO = "Hey — I'm Sophia. Leonardo and Edison are here with me. 
 
 const DEMO_CO = {
   name: 'Hive & Co',
-  url: 'hiveandco.com.au',
+  url: 'hiveandco.proof360.au',
   type: 'specialty honey brand',
   story: 'Two years at Sydney markets, genuine traction, now eyeing UK retail and a seed round. The product is exceptional. The trust posture is invisible.',
 };
@@ -77,6 +77,42 @@ const QUESTION_OPENING = [
 ];
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function PreviewPanel({ url, onClose, tk }) {
+  return (
+    <div style={{
+      flex: 1, display: 'flex', flexDirection: 'column',
+      borderLeft: `1px solid ${tk.hairline}`,
+      animation: 'fadeSlideUp 0.35s ease both',
+      minWidth: 0,
+    }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '10px 14px', flexShrink: 0,
+        borderBottom: `1px solid ${tk.hairline}`,
+        background: `${tk.surfaceLo}cc`,
+      }}>
+        <div style={{
+          flex: 1, background: tk.bg, border: `1px solid ${tk.hairline}`,
+          borderRadius: 6, padding: '5px 12px',
+          fontFamily: '"IBM Plex Mono", monospace',
+          fontSize: 11, color: tk.inkSoft, letterSpacing: '0.02em',
+          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        }}>{url}</div>
+        <button onClick={onClose} style={{
+          background: 'none', border: 'none', cursor: 'pointer',
+          color: tk.inkSoft, fontSize: 18, padding: '0 4px',
+          lineHeight: 1, flexShrink: 0,
+        }}>×</button>
+      </div>
+      <iframe
+        src={url}
+        title="Hive & Co"
+        style={{ flex: 1, border: 'none', width: '100%', display: 'block' }}
+      />
+    </div>
+  );
+}
 
 function TriageCards({ onSelect, tk }) {
   const opts = [
@@ -132,6 +168,7 @@ export default function Chat() {
   const [briefShown, setBriefShown]       = useState(false);
   const [phase, setPhase]                 = useState('intro');   // 'intro' | 'triage' | 'active'
   const [intent, setIntent]               = useState(null);      // 'browse' | 'raise' | 'question'
+  const [previewUrl, setPreviewUrl]       = useState(null);
 
   const hasUserMsg  = messages.some(m => m.role === 'user');
   const hasMessages = messages.length > 0;
@@ -272,6 +309,10 @@ export default function Chat() {
       if (msg.persona === 'edison')   setLitTiles(p => ({ ...p, aws: true, posture: true }));
       if (msg.isHandoff) {
         await sleep(450);
+        if (chosen === 'browse') {
+          setPreviewUrl(`https://${DEMO_CO.url}`);
+          setInputValue(DEMO_CO.url);
+        }
         setInputReady(true);
         setPulsingQ(Math.floor(Math.random() * FLOATS.length));
         if (inChatSpace) inputRef.current?.focus();
@@ -313,7 +354,14 @@ export default function Chat() {
         t={t}
       />
 
-      <main style={{ flex: 1, position: 'relative', minWidth: 0, overflow: 'hidden' }}>
+      <main style={{ flex: 1, display: 'flex', minWidth: 0, overflow: 'hidden' }}>
+
+        {/* Chat pane — shrinks to make room for preview */}
+        <div style={{
+          position: 'relative', overflow: 'hidden',
+          flex: previewUrl ? '0 0 460px' : '1',
+          transition: 'flex-basis 0.38s cubic-bezier(0.32,0.72,0,1)',
+        }}>
 
         {/* Chat space — kept mounted so theatrical doesn't reset on tab-switch */}
         <div style={{
@@ -466,6 +514,14 @@ export default function Chat() {
             <Projection id={activeSpace} t={t} />
           </div>
         )}
+
+        </div>{/* end chat pane */}
+
+        {/* Preview pane */}
+        {previewUrl && (
+          <PreviewPanel url={previewUrl} onClose={() => setPreviewUrl(null)} tk={tk} />
+        )}
+
       </main>
 
       <TweaksPanel>
