@@ -569,6 +569,8 @@ export default function Chat() {
   const tk = tokens(t.theme);
 
   const [activeSpace, setActiveSpace]     = useState('chat');
+  const [activeCompany, setActiveCompany] = useState('yours');
+  const [activeHiveStage, setActiveHiveStage] = useState(1);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(!!t.sidebarCollapsed);
   const [runId, setRunId]                 = useState(0);
   const [feed]                            = useState(() => LIVE_FEED[Math.floor(Math.random() * LIVE_FEED.length)]);
@@ -585,7 +587,7 @@ export default function Chat() {
   const [intent, setIntent]               = useState(null);      // 'browse' | 'raise' | 'question'
   const [previewUrl, setPreviewUrl]       = useState(null);
   const [previewOpen, setPreviewOpen]     = useState(false);
-  const [userPreviewUrl, setUserPreviewUrl] = useState(null);
+  const [browserTabs, setBrowserTabs] = useState([]);
 
   const hasUserMsg  = messages.some(m => m.role === 'user');
   const hasMessages = messages.length > 0;
@@ -650,7 +652,7 @@ export default function Chat() {
       setIntent(null);
       setPreviewUrl(null);
       setPreviewOpen(false);
-      setUserPreviewUrl(null);
+      setBrowserTabs([]);
       setLitTiles({ investor: false, vendors: false, aws: false, posture: false, spv: false });
       setThinkingSteps([]);
       await sleep(900);
@@ -774,9 +776,25 @@ export default function Chat() {
           setTweak('sidebarCollapsed', next);
         }}
         activeSpace={activeSpace}
-        onSwitch={setActiveSpace}
+        onSwitch={(spaceId, ctx) => {
+          setActiveSpace(spaceId);
+          if (ctx?.company) setActiveCompany(ctx.company);
+          if (ctx?.stage !== undefined) setActiveHiveStage(ctx.stage);
+        }}
         litTiles={litTiles}
-        compareMode={!!userPreviewUrl}
+        browserTabs={browserTabs}
+        onInject={msg => {
+          const tok = Math.floor((msg.content?.length ?? 0) / 3.8) + 60 + Math.floor(Math.random() * 40);
+          const ms  = 400 + Math.floor(Math.random() * 900);
+          setMessages(prev => [...prev, {
+            id: `inject-${Date.now()}`,
+            role: 'assistant',
+            model: 'claude-sonnet-4-6',
+            tok, ms, ...msg,
+          }]);
+          setInputReady(true);
+          setTimeout(() => inputRef.current?.focus(), 150);
+        }}
         sessionTok={sessionTok}
         sessionModels={sessionModels}
         t={t}
@@ -957,7 +975,7 @@ export default function Chat() {
         {/* Projection canvases */}
         {!inChatSpace && (
           <div style={{ position: 'absolute', inset: 0, overflowY: 'auto' }}>
-            <Projection id={activeSpace} t={t} />
+            <Projection id={activeSpace} company={activeCompany} hiveStage={activeHiveStage} onBack={() => setActiveSpace('chat')} t={t} />
           </div>
         )}
 
@@ -971,11 +989,11 @@ export default function Chat() {
               const prev = browserTabsRef.current;
               const newTabs = tabs.filter(t => !t.pinned && !prev.find(p => p.id === t.id));
               browserTabsRef.current = tabs;
+              setBrowserTabs(tabs);
 
               if (newTabs.length > 0) {
                 const newest = newTabs[newTabs.length - 1];
                 const domain = newest.url.replace(/^https?:\/\//, '').split('/')[0];
-                setUserPreviewUrl(newest.url);
 
                 // Edison senses the tab open and speaks into the thread
                 const msgFn = TAB_SENSE_MSGS[_tabSenseIdx % TAB_SENSE_MSGS.length];

@@ -1,31 +1,36 @@
 import { useState } from 'react';
 import { tokens } from '../../tokens.js';
 import { SPACE_GLYPHS } from '../../glyphs.jsx';
+import { HIVE_STAGES } from '../../data/mock/hive.js';
 
 const SPACES = [
-  { id: 'investor', label: 'Investor Readiness', glyphKey: 'investor', token: 'plum',  yoursSub: 'Score 72',   demoSub: 'Score 38'   },
-  { id: 'vendors',  label: 'Vendors',            glyphKey: 'vendors',  token: 'umber', yoursSub: '4 matched',  demoSub: '6 matched'  },
-  { id: 'aws',      label: 'AWS Programs',       glyphKey: 'aws',      token: 'teal',  yoursSub: '3 eligible', demoSub: '0 eligible' },
-  { id: 'posture',  label: 'Posture',            glyphKey: 'posture',  token: 'teal',  yoursSub: '7 checks',   demoSub: '2 checks'   },
-  { id: 'spv',      label: 'SPV Status',         glyphKey: 'spv',      token: 'plum',  yoursSub: 'Draft',      demoSub: 'None'       },
+  { id: 'investor', label: 'Investor Readiness', glyphKey: 'investor', token: 'plum'  },
+  { id: 'vendors',  label: 'Vendors',            glyphKey: 'vendors',  token: 'umber' },
+  { id: 'aws',      label: 'AWS Programs',       glyphKey: 'aws',      token: 'teal'  },
+  { id: 'posture',  label: 'Posture',            glyphKey: 'posture',  token: 'teal'  },
+  { id: 'spv',      label: 'SPV Status',         glyphKey: 'spv',      token: 'plum'  },
 ];
 
-// All Hive & Co tiles are always "lit" — it's the reference
-const DEMO_LIT = { investor: true, vendors: true, aws: true, posture: true, spv: true };
 
-function ProjectionItem({ glyphKey, label, sublabel, lit, active, color, collapsed, onClick }) {
+const YOURS_SUBS = {
+  investor: 'Score 72', vendors: '4 matched',
+  aws: '3 eligible',    posture: '7 checks', spv: 'Draft',
+};
+
+function ProjectionItem({ glyphKey, label, sublabel, lit, active, color, collapsed, onClick, forceClickable }) {
   const [hover, setHover] = useState(false);
+  const isClickable = !!(forceClickable ? onClick : (lit && onClick));
   return (
     <div
-      onClick={lit ? onClick : undefined}
+      onClick={isClickable ? onClick : undefined}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       style={{
         position: 'relative',
         margin: '1px 8px', borderRadius: 8,
         padding: collapsed ? '9px 0' : '8px 11px 9px 14px',
-        background: active ? `${color}12` : hover && lit ? `${color}08` : 'transparent',
-        cursor: lit ? 'pointer' : 'default',
+        background: active ? `${color}12` : hover && isClickable ? `${color}08` : 'transparent',
+        cursor: isClickable ? 'pointer' : 'default',
         transition: 'background 0.25s ease',
         animation: lit ? 'none' : 'tileBreathe 5.5s ease-in-out infinite',
       }}>
@@ -66,7 +71,40 @@ function ProjectionItem({ glyphKey, label, sublabel, lit, active, color, collaps
   );
 }
 
-function AccordionSection({ title, accent, count, total, open, onToggle, collapsed, children }) {
+function StageRail({ stages, activeIdx, onSelect, accent }) {
+  return (
+    <div
+      onClick={e => e.stopPropagation()}
+      style={{ display: 'flex', alignItems: 'center', gap: 2, padding: '2px 0' }}
+    >
+      {stages.map((s, i) => (
+        <span key={i} style={{ display: 'flex', alignItems: 'center' }}>
+          {i > 0 && (
+            <span style={{ display: 'inline-block', width: 8, height: 1, background: `${accent}50`, margin: '0 1px' }} />
+          )}
+          <button
+            onClick={e => { e.stopPropagation(); onSelect(i); }}
+            title={s.label}
+            style={{
+              width: 7, height: 7, borderRadius: '50%',
+              border: 'none', padding: 0, cursor: 'pointer', flexShrink: 0,
+              background: activeIdx === i ? accent : `${accent}35`,
+              transition: 'background 0.2s, transform 0.15s',
+              transform: activeIdx === i ? 'scale(1.3)' : 'scale(1)',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = accent; e.currentTarget.style.transform = 'scale(1.3)'; }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = activeIdx === i ? accent : `${accent}35`;
+              e.currentTarget.style.transform = activeIdx === i ? 'scale(1.3)' : 'scale(1)';
+            }}
+          />
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function AccordionSection({ title, accent, count, total, open, onToggle, collapsed, stageRail, children }) {
   return (
     <div style={{ padding: '10px 0 4px' }}>
       {!collapsed && (
@@ -78,12 +116,17 @@ function AccordionSection({ title, accent, count, total, open, onToggle, collaps
             padding: '0 22px', marginBottom: open ? 6 : 2,
           }}
         >
-          <span style={{
-            fontFamily: '"IBM Plex Mono", monospace',
-            fontSize: 9.5, fontWeight: 600, color: accent ?? '#8c8499',
-            letterSpacing: '0.22em', textTransform: 'uppercase',
-          }}>{title}</span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
+            <span style={{
+              fontFamily: '"IBM Plex Mono", monospace',
+              fontSize: 9.5, fontWeight: 600, color: accent ?? '#8c8499',
+              letterSpacing: '0.22em', textTransform: 'uppercase',
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+              maxWidth: stageRail ? 76 : 130,
+            }}>{title}</span>
+            {stageRail}
+          </div>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
             <span style={{
               fontFamily: '"IBM Plex Mono", monospace',
               fontSize: 9.5, color: '#b8b1c0', letterSpacing: '0.1em',
@@ -98,7 +141,7 @@ function AccordionSection({ title, accent, count, total, open, onToggle, collaps
       )}
       <div style={{
         overflow: 'hidden',
-        maxHeight: open ? 400 : 0,
+        maxHeight: open ? 600 : 0,
         transition: 'max-height 0.3s cubic-bezier(0.32,0.72,0,1)',
       }}>
         {children}
@@ -107,13 +150,30 @@ function AccordionSection({ title, accent, count, total, open, onToggle, collaps
   );
 }
 
-export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, litTiles, compareMode, sessionTok, sessionModels, t }) {
+export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, litTiles, browserTabs = [], onInject, sessionTok, sessionModels, t }) {
   const tk = tokens(t.theme);
-  const [demoOpen,  setDemoOpen]  = useState(false); // collapsed by default — reference panel
-  const [yoursOpen, setYoursOpen] = useState(true);
+  const [demoOpen, setDemoOpen]         = useState(true);
+  const [hiveStage, setHiveStage]       = useState(1);
+  const [openSections, setOpenSections] = useState({});
 
+  const userTabs = browserTabs.filter(tab => !tab.pinned);
+
+  function isSectionOpen(id) { return openSections[id] !== false; }
+  function toggleSection(id) { setOpenSections(prev => ({ ...prev, [id]: !isSectionOpen(id) })); }
+
+  function handleStageSelect(idx) {
+    if (idx === hiveStage) return;
+    setHiveStage(idx);
+    const stage = HIVE_STAGES[idx];
+    onInject?.({
+      persona: stage.stageMsg.persona,
+      content: stage.stageMsg.content,
+    });
+  }
+
+  const hiveSnap  = HIVE_STAGES[hiveStage].spaces;
+  const hiveCount = Object.values(hiveSnap).filter(v => v.lit).length;
   const litCount  = Object.values(litTiles).filter(Boolean).length;
-  const demoCount = Object.values(DEMO_LIT).filter(Boolean).length;
 
   return (
     <aside style={{
@@ -175,45 +235,99 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
       </div>
 
       <div style={{ overflowY: 'auto', flex: 1 }}>
-        {/* ── Hive & Co (reference / Contoso) ── */}
-        {compareMode && (
+
+        {/* ── Hive & Co — reference with stage rail ── */}
+        <AccordionSection
+          title="Hive & Co"
+          accent={tk.umber}
+          count={hiveCount} total={5}
+          open={demoOpen} onToggle={() => setDemoOpen(o => !o)}
+          collapsed={collapsed}
+          stageRail={!collapsed && (
+            <StageRail
+              stages={HIVE_STAGES}
+              activeIdx={hiveStage}
+              onSelect={handleStageSelect}
+              accent={tk.umber}
+            />
+          )}
+        >
+          {/* Stage label + description */}
+          {!collapsed && (
+            <div style={{ padding: '0 14px 8px 22px' }}>
+              <div style={{
+                fontFamily: '"IBM Plex Mono", monospace',
+                fontSize: 9, color: tk.umber, letterSpacing: '0.16em',
+                textTransform: 'uppercase', marginBottom: 5,
+              }}>
+                {HIVE_STAGES[hiveStage].label}
+              </div>
+              <div style={{
+                fontFamily: '"Instrument Serif", Georgia, serif',
+                fontStyle: 'italic', fontSize: 11.5, color: tk.inkSoft,
+                lineHeight: 1.5,
+              }}>
+                {HIVE_STAGES[hiveStage].desc}
+              </div>
+            </div>
+          )}
+
+          {SPACES.map(s => (
+            <ProjectionItem
+              key={`demo-${s.id}`}
+              glyphKey={s.glyphKey} label={s.label}
+              sublabel={hiveSnap[s.id].sub}
+              lit={hiveSnap[s.id].lit}
+              active={activeSpace === s.id}
+              color={tk.umber} collapsed={collapsed}
+              forceClickable
+              onClick={() => onSwitch(s.id, { company: 'hive', stage: hiveStage })}
+            />
+          ))}
+        </AccordionSection>
+
+        {/* ── Per-tab sections ── */}
+        {userTabs.length === 0 ? (
           <AccordionSection
-            title="Hive & Co"
-            accent={tk.umber}
-            count={demoCount} total={5}
-            open={demoOpen} onToggle={() => setDemoOpen(o => !o)}
+            title="Yours"
+            accent={tk.plum}
+            count={litCount} total={5}
+            open={isSectionOpen('__yours')} onToggle={() => toggleSection('__yours')}
             collapsed={collapsed}
           >
             {SPACES.map(s => (
               <ProjectionItem
-                key={`demo-${s.id}`}
-                glyphKey={s.glyphKey} label={s.label} sublabel={s.demoSub}
-                lit={DEMO_LIT[s.id]} active={false}
-                color={tk.umber} collapsed={collapsed}
-                onClick={() => {}}
+                key={s.id}
+                glyphKey={s.glyphKey} label={s.label} sublabel={YOURS_SUBS[s.id]}
+                lit={litTiles[s.id]} active={activeSpace === s.id}
+                color={tk[s.token]} collapsed={collapsed}
+                onClick={() => onSwitch(s.id, { company: 'yours' })}
               />
             ))}
           </AccordionSection>
+        ) : (
+          userTabs.map(tab => (
+            <AccordionSection
+              key={tab.id}
+              title={tab.label}
+              accent={tk.plum}
+              count={0} total={5}
+              open={isSectionOpen(tab.id)} onToggle={() => toggleSection(tab.id)}
+              collapsed={collapsed}
+            >
+              {SPACES.map(s => (
+                <ProjectionItem
+                  key={`${tab.id}-${s.id}`}
+                  glyphKey={s.glyphKey} label={s.label} sublabel={YOURS_SUBS[s.id]}
+                  lit={false} active={false}
+                  color={tk[s.token]} collapsed={collapsed}
+                  onClick={() => {}}
+                />
+              ))}
+            </AccordionSection>
+          ))
         )}
 
-        {/* ── Yours ── */}
-        <AccordionSection
-          title="Yours"
-          accent={tk.plum}
-          count={litCount} total={5}
-          open={yoursOpen} onToggle={() => setYoursOpen(o => !o)}
-          collapsed={collapsed}
-        >
-          {SPACES.map(s => (
-            <ProjectionItem
-              key={s.id}
-              glyphKey={s.glyphKey} label={s.label} sublabel={s.yoursSub}
-              lit={litTiles[s.id]} active={activeSpace === s.id}
-              color={tk[s.token]} collapsed={collapsed}
-              onClick={() => onSwitch(s.id)}
-            />
-          ))}
-        </AccordionSection>
       </div>
 
       {/* Footer */}
