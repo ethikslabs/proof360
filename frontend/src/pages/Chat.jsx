@@ -169,6 +169,7 @@ export default function Chat() {
   const [phase, setPhase]                 = useState('intro');   // 'intro' | 'triage' | 'active'
   const [intent, setIntent]               = useState(null);      // 'browse' | 'raise' | 'question'
   const [previewUrl, setPreviewUrl]       = useState(null);
+  const [previewOpen, setPreviewOpen]     = useState(false);
 
   const hasUserMsg  = messages.some(m => m.role === 'user');
   const hasMessages = messages.length > 0;
@@ -311,6 +312,7 @@ export default function Chat() {
         await sleep(450);
         if (chosen === 'browse') {
           setPreviewUrl(`https://${DEMO_CO.url}`);
+          setPreviewOpen(true);
           setInputValue(DEMO_CO.url);
         }
         setInputReady(true);
@@ -359,7 +361,7 @@ export default function Chat() {
         {/* Chat pane — shrinks to make room for preview */}
         <div style={{
           position: 'relative', overflow: 'hidden',
-          flex: previewUrl ? '0 0 460px' : '1',
+          flex: previewOpen ? '0 0 460px' : '1',
           transition: 'flex-basis 0.38s cubic-bezier(0.32,0.72,0,1)',
         }}>
 
@@ -369,8 +371,8 @@ export default function Chat() {
           display: inChatSpace ? 'flex' : 'none',
           flexDirection: 'column',
         }}>
-          {/* Floating questions — appear after intent is declared */}
-          {!briefShown && intent !== null && FLOATS.map((fq, i) => {
+          {/* Floating questions — appear after intent is declared, hidden when preview is open */}
+          {!briefShown && intent !== null && !previewOpen && FLOATS.map((fq, i) => {
             const isFront = pulsingQ !== null ? pulsingQ === i : surfaced === i;
             const dist = Math.min(Math.abs(i - surfaced), FLOATS.length - Math.abs(i - surfaced));
             const layer = isFront ? 'front' : dist === 1 ? 'mid' : 'back';
@@ -384,7 +386,7 @@ export default function Chat() {
           {/* Chat header */}
           <div style={{
             padding: '20px 36px',
-            display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             position: 'relative', zIndex: 2,
             borderBottom: hasUserMsg ? `1px solid ${tk.hairline}` : 'none',
             transition: 'border-color 0.6s ease',
@@ -394,10 +396,28 @@ export default function Chat() {
               fontSize: 10, color: tk.inkSoft,
               letterSpacing: '0.22em', textTransform: 'uppercase',
             }}>The strategy room</span>
-            <span style={{
-              fontFamily: '"IBM Plex Mono", monospace',
-              fontSize: 10, color: tk.inkSoft, letterSpacing: '0.1em',
-            }}>{t.returningUser ? 'session resumed' : 'live'}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              {previewUrl && (
+                <button
+                  onClick={() => setPreviewOpen(o => !o)}
+                  style={{
+                    background: previewOpen ? `${tk.plum}15` : 'none',
+                    border: `1px solid ${previewOpen ? `${tk.plum}40` : tk.hairline}`,
+                    borderRadius: 6, cursor: 'pointer',
+                    color: previewOpen ? tk.plum : tk.inkSoft,
+                    fontFamily: '"IBM Plex Mono", monospace',
+                    fontSize: 9.5, letterSpacing: '0.14em', textTransform: 'uppercase',
+                    padding: '4px 10px', transition: 'all 0.2s',
+                  }}
+                >
+                  {previewOpen ? '◁ hide' : '▷ preview'}
+                </button>
+              )}
+              <span style={{
+                fontFamily: '"IBM Plex Mono", monospace',
+                fontSize: 10, color: tk.inkSoft, letterSpacing: '0.1em',
+              }}>{t.returningUser ? 'session resumed' : 'live'}</span>
+            </div>
           </div>
 
           <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', position: 'relative', zIndex: 2 }}>
@@ -518,8 +538,8 @@ export default function Chat() {
         </div>{/* end chat pane */}
 
         {/* Preview pane */}
-        {previewUrl && (
-          <PreviewPanel url={previewUrl} onClose={() => setPreviewUrl(null)} tk={tk} />
+        {previewUrl && previewOpen && (
+          <PreviewPanel url={previewUrl} onClose={() => setPreviewOpen(false)} tk={tk} />
         )}
 
       </main>
