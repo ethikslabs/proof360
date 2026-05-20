@@ -3,14 +3,14 @@ import { tokens } from '../../tokens.js';
 import { SPACE_GLYPHS } from '../../glyphs.jsx';
 
 const SPACES = [
-  { id: 'investor', label: 'Investor Readiness', glyphKey: 'investor', token: 'plum',  sublabel: 'Score 72'   },
-  { id: 'vendors',  label: 'Vendors',            glyphKey: 'vendors',  token: 'umber', sublabel: '4 matched'  },
-  { id: 'aws',      label: 'AWS Programs',       glyphKey: 'aws',      token: 'teal',  sublabel: '3 eligible' },
-  { id: 'posture',  label: 'Posture',            glyphKey: 'posture',  token: 'teal',  sublabel: '7 checks'   },
-  { id: 'spv',      label: 'SPV Status',         glyphKey: 'spv',      token: 'plum',  sublabel: 'Draft'      },
+  { id: 'investor', label: 'Investor Readiness', glyphKey: 'investor', token: 'plum',  sublabel: 'Score 72',   demoSublabel: 'Score 38'   },
+  { id: 'vendors',  label: 'Vendors',            glyphKey: 'vendors',  token: 'umber', sublabel: '4 matched',  demoSublabel: '6 matched'  },
+  { id: 'aws',      label: 'AWS Programs',       glyphKey: 'aws',      token: 'teal',  sublabel: '3 eligible', demoSublabel: '0 eligible' },
+  { id: 'posture',  label: 'Posture',            glyphKey: 'posture',  token: 'teal',  sublabel: '7 checks',   demoSublabel: '2 checks'   },
+  { id: 'spv',      label: 'SPV Status',         glyphKey: 'spv',      token: 'plum',  sublabel: 'Draft',      demoSublabel: 'None'       },
 ];
 
-function SidebarItem({ glyphKey, label, sublabel, lit, active, color, collapsed, onClick }) {
+function SidebarItem({ glyphKey, label, sublabel, demoSublabel, lit, active, color, collapsed, compareMode, onClick }) {
   const [hover, setHover] = useState(false);
   return (
     <div
@@ -50,12 +50,39 @@ function SidebarItem({ glyphKey, label, sublabel, lit, active, color, collapsed,
               letterSpacing: '0.005em',
               whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
             }}>{label}</div>
-            <div style={{
-              fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
-              fontSize: 9.5, color: lit ? '#8c8499' : '#b8b1c0',
-              letterSpacing: '0.08em', marginTop: 2,
-              fontStyle: lit ? 'normal' : 'italic',
-            }}>{lit ? sublabel : 'not yet'}</div>
+            {compareMode && lit ? (
+              <div style={{ marginTop: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{
+                    fontFamily: '"IBM Plex Mono", monospace', fontSize: 8,
+                    letterSpacing: '0.14em', textTransform: 'uppercase',
+                    color: '#b8730e', opacity: 0.8, flexShrink: 0,
+                  }}>demo</span>
+                  <span style={{
+                    fontFamily: '"IBM Plex Mono", monospace', fontSize: 9.5,
+                    color: '#8c8499', letterSpacing: '0.06em',
+                  }}>{demoSublabel}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{
+                    fontFamily: '"IBM Plex Mono", monospace', fontSize: 8,
+                    letterSpacing: '0.14em', textTransform: 'uppercase',
+                    color: color, opacity: 0.8, flexShrink: 0,
+                  }}>yours</span>
+                  <span style={{
+                    fontFamily: '"IBM Plex Mono", monospace', fontSize: 9.5,
+                    color: '#8c8499', letterSpacing: '0.06em',
+                  }}>{sublabel}</span>
+                </div>
+              </div>
+            ) : (
+              <div style={{
+                fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
+                fontSize: 9.5, color: lit ? '#8c8499' : '#b8b1c0',
+                letterSpacing: '0.08em', marginTop: 2,
+                fontStyle: lit ? 'normal' : 'italic',
+              }}>{lit ? sublabel : 'not yet'}</div>
+            )}
           </div>
         )}
       </div>
@@ -63,7 +90,7 @@ function SidebarItem({ glyphKey, label, sublabel, lit, active, color, collapsed,
   );
 }
 
-export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, litTiles, t }) {
+export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, litTiles, compareMode, t }) {
   const tk = tokens(t.theme);
   const litCount = Object.values(litTiles).filter(Boolean).length;
 
@@ -133,7 +160,7 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
               fontFamily: '"IBM Plex Mono", monospace',
               fontSize: 9.5, fontWeight: 600, color: tk.inkSoft,
               letterSpacing: '0.24em', textTransform: 'uppercase',
-            }}>Projections</span>
+            }}>{compareMode ? 'Compare' : 'Projections'}</span>
             <span style={{
               fontFamily: '"IBM Plex Mono", monospace',
               fontSize: 9.5, color: tk.inkGhost, letterSpacing: '0.1em',
@@ -143,9 +170,9 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
         {SPACES.map(s => (
           <SidebarItem
             key={s.id}
-            glyphKey={s.glyphKey} label={s.label} sublabel={s.sublabel}
+            glyphKey={s.glyphKey} label={s.label} sublabel={s.sublabel} demoSublabel={s.demoSublabel}
             lit={litTiles[s.id]} active={activeSpace === s.id}
-            color={tk[s.token]} collapsed={collapsed}
+            color={tk[s.token]} collapsed={collapsed} compareMode={compareMode}
             onClick={() => onSwitch(s.id)}
           />
         ))}
