@@ -1,5 +1,6 @@
 node_modules/
 .DS_Store
+.worktrees/
 .claude/settings.local.json
 
 # Local env files with real secrets — never commit
