@@ -16,6 +16,7 @@ import { useTrustPhase }       from '../hooks/useTrustPhase.js';
 import { deriveGraphNodes }    from '../utils/deriveGraphNodes.js';
 import { getPersonaResponses, getPersonaResponse } from '../data/mock/personas.js';
 import { getThinkingSteps } from '../data/mock/thinking.js';
+import { OperationalField } from '../components/OperationalField';
 
 const TWEAK_DEFAULTS = {
   theme:            'pearl',
@@ -606,6 +607,8 @@ export default function Chat() {
       color: tk.ink,
       fontFamily: '"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif',
     }}>
+
+      <OperationalField />
 
       <TrustRail
         trustPhase={trustPhase}
