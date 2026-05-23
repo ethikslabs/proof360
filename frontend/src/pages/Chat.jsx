@@ -85,6 +85,21 @@ const QUESTION_OPENING = [
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+// Returns a normalised https:// URL if the message looks like a domain/URL, else null.
+// Matches: "example.com", "https://example.com", "go to acme.io", etc.
+function extractUrl(text) {
+  const t = text.trim();
+  // Bare domain or full URL with no spaces
+  if (!t.includes(' ')) {
+    if (/^https?:\/\//i.test(t)) return t;
+    if (/^[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+/.test(t)) return `https://${t}`;
+  }
+  // URL embedded in longer text
+  const match = t.match(/https?:\/\/[^\s]+/i);
+  if (match) return match[0];
+  return null;
+}
+
 const TAB_SENSE_MSGS = [
   (domain) => `Picked up ${domain}. Before I read it — what's the context? Portfolio company, competitor, or is this yours?`,
   (domain) => `Just saw you open ${domain}. I can pull what's publicly visible now — anything specific you want me to look for?`,
@@ -526,6 +541,16 @@ export default function Chat() {
     return () => { cancelled = true; };
   }, [runId, t.returningUser, seedQuery, seedReturning]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Maps analysis profile pill → persona hint for the backend classifier
+  const PROFILE_PERSONA = {
+    investor:   'leonardo',
+    market:     'sophia',
+    technical:  'edison',
+    compliance: 'edison',
+    deep:       null,       // no override — let classifier decide
+    fast:       'sophia',
+  };
+
   const submit = useCallback(async (input) => {
     const text = input.trim();
     if (!text || !inputReady || isProcessing) return;
@@ -534,6 +559,131 @@ export default function Chat() {
     setBriefShown(false);
     setMessages(prev => [...prev, { id: `u-${Date.now()}`, role: 'user', content: text }]);
     setIsProcessing(true);
+
+    const sessionId = companyData?.session_id;
+
+    // ── URL detection: start cold-read pipeline if no session yet ──
+    if (!sessionId) {
+      const detectedUrl = extractUrl(text);
+      if (detectedUrl) {
+        const statusId = `status-${Date.now()}`;
+        const domain = detectedUrl.replace(/^https?:\/\//i, '').replace(/\/.*$/, '');
+        setMessages(prev => [...prev, {
+          id: statusId, role: 'assistant', persona: 'edison',
+          model: 'proof360', content: `Reading ${domain}…`,
+        }]);
+
+        try {
+          // Start session
+          const startRes = await fetch('/api/v1/session/start', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ website_url: detectedUrl }),
+          });
+          if (!startRes.ok) throw new Error('start failed');
+          const { session_id } = await startRes.json();
+
+          // Update status label with session context
+          setMessages(prev => prev.map(m => m.id === statusId
+            ? { ...m, content: `Scanning ${domain} — this takes about 30 seconds…` }
+            : m
+          ));
+
+          // Poll infer-status
+          let inferStatus = 'processing';
+          for (let i = 0; i < 60 && inferStatus === 'processing'; i++) {
+            await sleep(2500);
+            const r = await fetch(`/api/v1/session/${session_id}/infer-status`);
+            inferStatus = (await r.json()).status;
+          }
+          if (inferStatus !== 'complete') throw new Error('inference timeout');
+
+          // Run gap analysis
+          const analyzeRes = await fetch(`/api/v1/session/${session_id}/analyze`, { method: 'POST' });
+          if (!analyzeRes.ok) throw new Error('analysis failed');
+          const analysis = await analyzeRes.json();
+
+          // Unlock real chat
+          setCompanyData({
+            session_id,
+            company_name: analysis.company_name,
+            trust_score: analysis.trust_score,
+            gaps: analysis.gaps,
+            deal_readiness: analysis.deal_readiness,
+            inferences: analysis.inferences,
+          });
+
+          const gapCount = analysis.gaps?.length ?? 0;
+          const score = analysis.trust_score ?? 0;
+          setMessages(prev => prev.map(m => m.id === statusId ? {
+            ...m,
+            content: `${analysis.company_name || domain} — trust score ${score}/100, ${gapCount} gap${gapCount !== 1 ? 's' : ''} found. Ask me anything.`,
+          } : m));
+        } catch {
+          setMessages(prev => prev.map(m => m.id === statusId ? {
+            ...m, content: `Couldn't read ${domain}. Check the URL or try a different one.`,
+          } : m));
+        }
+
+        setThinkingSteps([]);
+        setIsProcessing(false);
+        return;
+      }
+    }
+
+    if (sessionId) {
+      // ── Real API path: session-keyed chat with intent classification ──
+      const msgId = `ai-${Date.now()}`;
+      setMessages(prev => [...prev, {
+        id: msgId, role: 'assistant', persona: 'sofia', model: '', content: '',
+      }]);
+
+      try {
+        const personaOverride = PROFILE_PERSONA[analysisProfile] ?? undefined;
+        const res = await fetch(`/api/v1/session/${sessionId}/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text,
+            ...(personaOverride ? { persona_override: personaOverride } : {}),
+          }),
+        });
+
+        if (!res.ok) {
+          setMessages(prev => prev.map(m => m.id === msgId
+            ? { ...m, content: 'Something went wrong. Try again.' }
+            : m
+          ));
+          setIsProcessing(false);
+          return;
+        }
+
+        const persona = res.headers.get('X-Persona') || 'sofia';
+        const model   = res.headers.get('X-Model')   || '';
+        setMessages(prev => prev.map(m => m.id === msgId ? { ...m, persona, model } : m));
+
+        const reader  = res.body.getReader();
+        const decoder = new TextDecoder();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          setMessages(prev => prev.map(m =>
+            m.id === msgId ? { ...m, content: m.content + chunk } : m
+          ));
+        }
+      } catch {
+        setMessages(prev => prev.map(m => m.id === msgId
+          ? { ...m, content: 'Connection error — check your network and try again.' }
+          : m
+        ));
+      }
+
+      setThinkingSteps([]);
+      setIsProcessing(false);
+      return;
+    }
+
+    // ── Mock path: used until a real session exists ──
     const steps = getThinkingSteps();
     setThinkingSteps(steps.map(s => ({ ...s, status: 'running' })));
     for (let i = 0; i < steps.length; i++) {
@@ -561,7 +711,7 @@ export default function Chat() {
       ...(intakeMsg ? [intakeMsg] : []),
     ]);
     setIsProcessing(false);
-  }, [inputReady, isProcessing, messages, t.returningUser]);
+  }, [inputReady, isProcessing, messages, t.returningUser, companyData, analysisProfile]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectIntent = useCallback(async (chosen) => {
     const speedMs = t.typeSpeed === 'fast' ? 8 : t.typeSpeed === 'instant' ? 0 : 18;

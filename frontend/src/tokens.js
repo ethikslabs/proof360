@@ -61,9 +61,10 @@ export const TOKEN = {
 export function tokens(theme) { return TOKEN[theme] || TOKEN.pearl; }
 
 export const PERSONA = {
-  sofia:    { label: 'Sophia',   token: 'umber',  note: 'Investor & trust lens'     },
-  leonardo: { label: 'Leonardo', token: 'plum',   note: 'Narrative & positioning'   },
-  edison:   { label: 'Edison',   token: 'teal',   note: 'Technical & enterprise DD' },
+  sofia:    { label: 'Sophia',   token: 'umber',  note: 'Narrative & trust'         },
+  sophia:   { label: 'Sophia',   token: 'umber',  note: 'Narrative & trust'         },
+  leonardo: { label: 'Leonardo', token: 'plum',   note: 'Strategy & market'         },
+  edison:   { label: 'Edison',   token: 'teal',   note: 'Technical & execution'     },
   john_ai:  { label: 'John',     token: 'indigo', note: "John's AI assistant"       },
 };
 

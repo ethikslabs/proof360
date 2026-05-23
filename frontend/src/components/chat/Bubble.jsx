@@ -1,5 +1,60 @@
 import { tokens, PERSONA, personaColor } from '../../tokens.js';
 
+// Persona names that can appear in body text
+const INLINE_PERSONAS = [
+  { pattern: /\bSophia\b/g,   persona: 'sofia'    },
+  { pattern: /\bLeonardo\b/g, persona: 'leonardo' },
+  { pattern: /\bEdison\b/g,   persona: 'edison'   },
+];
+
+// Split content into text segments and persona-name spans
+function parseContent(content, theme) {
+  if (!content) return [content];
+
+  // Build a single combined regex with named groups
+  const combined = new RegExp(
+    INLINE_PERSONAS.map(p => `(${p.pattern.source})`).join('|'),
+    'g'
+  );
+
+  const parts = [];
+  let last = 0;
+  let match;
+
+  while ((match = combined.exec(content)) !== null) {
+    if (match.index > last) parts.push(content.slice(last, match.index));
+
+    const matchedName = match[0];
+    const persona = INLINE_PERSONAS.find(p =>
+      new RegExp(p.pattern.source).test(matchedName)
+    );
+    parts.push({ name: matchedName, persona: persona?.persona });
+    last = match.index + matchedName.length;
+  }
+
+  if (last < content.length) parts.push(content.slice(last));
+  return parts;
+}
+
+function RichContent({ content, theme, tk }) {
+  const parts = parseContent(content, theme);
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (typeof part === 'string') return part;
+        const c = personaColor(part.persona, theme);
+        return (
+          <span key={i} style={{
+            color: c, fontWeight: 650,
+            borderBottom: `1.5px solid ${c}60`,
+            paddingBottom: 1,
+          }}>{part.name}</span>
+        );
+      })}
+    </>
+  );
+}
+
 export function Bubble({ msg, t, isLatest }) {
   const tk = tokens(t.theme);
 
@@ -23,17 +78,19 @@ export function Bubble({ msg, t, isLatest }) {
 
   const labelEl = (
     <div style={{
-      display: 'flex', alignItems: 'baseline', gap: 10,
-      fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
-      fontSize: 11, fontWeight: 800, letterSpacing: '0.14em',
-      textTransform: 'uppercase', color, marginBottom: 8,
+      display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10,
     }}>
-      <span>{meta.label}</span>
       <span style={{
-        fontWeight: 400, letterSpacing: '0.08em', textTransform: 'none',
-        color: tk.inkSoft, fontStyle: 'italic',
+        display: 'inline-flex', alignItems: 'center',
+        background: color, borderRadius: 5, padding: '3px 10px',
+        fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
+        fontSize: 11, fontWeight: 700, letterSpacing: '0.12em',
+        textTransform: 'uppercase', color: tk.surface,
+      }}>{meta.label}</span>
+      <span style={{
         fontFamily: '"Instrument Serif", Georgia, serif',
-        fontSize: 12, opacity: 0.8,
+        fontStyle: 'italic', fontSize: 13,
+        color: tk.inkSoft, opacity: 0.75,
       }}>{meta.note}</span>
     </div>
   );
@@ -43,6 +100,12 @@ export function Bubble({ msg, t, isLatest }) {
     fontSize: 15, lineHeight: 1.72, color: tk.ink, whiteSpace: 'pre-wrap',
     letterSpacing: '0.003em',
   };
+
+  const body = (
+    <div style={bodyStyle}>
+      <RichContent content={msg.content} theme={t.theme} tk={tk} />
+    </div>
+  );
 
   const crumbEl = msg.model && (
     <div style={{
@@ -83,7 +146,9 @@ export function Bubble({ msg, t, isLatest }) {
         <div style={{
           padding: '14px 18px', borderRadius: '2px 14px 14px 14px',
           background: `${color}11`, border: `1px solid ${color}26`, ...bodyStyle,
-        }}>{msg.content}</div>
+        }}>
+          <RichContent content={msg.content} theme={t.theme} tk={tk} />
+        </div>
         {sourceEl}
         {crumbEl}
       </div>
@@ -102,7 +167,7 @@ export function Bubble({ msg, t, isLatest }) {
         transition: 'background 0.6s ease, border-color 0.6s ease, padding 0.4s ease',
       }}>
         {labelEl}
-        <div style={bodyStyle}>{msg.content}</div>
+        {body}
         {sourceEl}
         {crumbEl}
       </div>
@@ -112,7 +177,7 @@ export function Bubble({ msg, t, isLatest }) {
   return (
     <div style={{ marginBottom: 26, paddingLeft: 16, borderLeft: `2px solid ${color}` }}>
       {labelEl}
-      <div style={bodyStyle}>{msg.content}</div>
+      {body}
       {sourceEl}
       {crumbEl}
     </div>

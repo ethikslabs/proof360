@@ -8,6 +8,8 @@ import { followupQuestionsHandler } from './handlers/followup-questions.js';
 import { captureEmailHandler } from './handlers/capture-email.js';
 import { earlySignalHandler } from './handlers/early-signal.js';
 import { chatHandler } from './handlers/chat.js';
+import { sessionChatHandler, sessionChatHistoryHandler } from './handlers/session-chat.js';
+import { analyzeHandler } from './handlers/analyze.js';
 import { sessionLogHandler } from './handlers/session-log.js';
 import { featuresHandler } from './handlers/features.js';
 import { adminPrereadHandler, adminPrereadStatusHandler } from './handlers/admin-preread.js';
@@ -55,6 +57,13 @@ app.post('/api/v1/session/:id/engage', engageHandler);
 
 // --- Persona chat ---
 app.post('/api/v1/chat', chatHandler);
+
+// --- Gap analysis (called after infer-status complete) ---
+app.post('/api/v1/session/:id/analyze', analyzeHandler);
+
+// --- Session-keyed chat (intent classification, server-side history) ---
+app.post('/api/v1/session/:id/chat', sessionChatHandler);
+app.get('/api/v1/session/:id/chat/history', sessionChatHistoryHandler);
 
 // --- John relay ---
 app.post('/api/telegram/webhook', telegramWebhookHandler);
