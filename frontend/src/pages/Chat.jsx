@@ -1,15 +1,22 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { tokens } from '../tokens.js';
-import { Sidebar }       from '../components/chat/Sidebar.jsx';
 import { FloatQ }        from '../components/chat/FloatQ.jsx';
 import { Bubble }        from '../components/chat/Bubble.jsx';
 import { ThinkingStream } from '../components/chat/ThinkingStream.jsx';
 import { MorningBrief }  from '../components/chat/MorningBrief.jsx';
-import { Projection }    from '../components/chat/Projections.jsx';
-import { TweaksPanel, useTweaks, TweakSection, TweakRadio, TweakSelect, TweakToggle, TweakButton }
-  from '../components/chat/TweaksPanel.jsx';
+import { TrustRail }           from '../components/chat/TrustRail.jsx';
+import { MachineDrawer }       from '../components/chat/MachineDrawer.jsx';
+import { GraphView }           from '../components/chat/GraphView.jsx';
+import { ProvenanceAccordion } from '../components/chat/ProvenanceAccordion.jsx';
+import { DrawerStats }         from '../components/chat/DrawerStats.jsx';
+import { EscalationCTA }       from '../components/chat/EscalationCTA.jsx';
+import { ProfileSelector }     from '../components/chat/ProfileSelector.jsx';
+import { ChatInput }           from '../components/chat/ChatInput.jsx';
+import { useTrustPhase }       from '../hooks/useTrustPhase.js';
+import { deriveGraphNodes }    from '../utils/deriveGraphNodes.js';
 import { getPersonaResponses, getPersonaResponse } from '../data/mock/personas.js';
 import { getThinkingSteps } from '../data/mock/thinking.js';
+import { OperationalField } from '../components/OperationalField';
 
 const TWEAK_DEFAULTS = {
   theme:            'pearl',
@@ -360,175 +367,6 @@ function BrowserPanel({ seedUrl, onTabsChange, onClose, tk }) {
   );
 }
 
-/* kept for compatibility — unused after BrowserPanel */
-function PreviewPanel({ demoUrl, userUrl, onSetUserUrl, onClose, tk }) {
-  const [demoOpen,  setDemoOpen]  = useState(true);
-  const [yoursOpen, setYoursOpen] = useState(true);
-  const [urlDraft,  setUrlDraft]  = useState('');
-
-  const STRIP = 30;
-  const mono  = '"IBM Plex Mono", monospace';
-
-  function PaneHeader({ label, url, accent, onCollapse, side }) {
-    return (
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        padding: '7px 10px', flexShrink: 0,
-        borderBottom: `1px solid ${tk.hairline}`,
-        background: `${tk.surfaceLo}ee`,
-      }}>
-        <span style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.18em',
-          textTransform: 'uppercase', color: accent, flexShrink: 0 }}>{label}</span>
-        {url && (
-          <div style={{
-            flex: 1, background: tk.bg, border: `1px solid ${tk.hairline}`,
-            borderRadius: 5, padding: '3px 9px',
-            fontFamily: mono, fontSize: 10.5, color: tk.inkSoft,
-            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-          }}>{url.replace(/^https?:\/\//, '')}</div>
-        )}
-        <button onClick={onCollapse} title="Collapse" style={{
-          background: 'none', border: 'none', cursor: 'pointer',
-          color: tk.inkSoft, fontSize: 13, padding: '0 2px', lineHeight: 1, flexShrink: 0,
-        }}>{side === 'left' ? '‹' : '›'}</button>
-      </div>
-    );
-  }
-
-  function CollapseStrip({ label, accent, side, onExpand }) {
-    return (
-      <div onClick={onExpand} title="Expand" style={{
-        width: STRIP, flexShrink: 0, display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center', gap: 10,
-        cursor: 'pointer', background: `${accent}06`,
-        borderRight: side === 'left' ? `1px solid ${tk.hairline}` : 'none',
-        borderLeft:  side === 'right' ? `1px solid ${tk.hairline}` : 'none',
-        transition: 'background 0.2s',
-      }}
-        onMouseEnter={e => { e.currentTarget.style.background = `${accent}12`; }}
-        onMouseLeave={e => { e.currentTarget.style.background = `${accent}06`; }}
-      >
-        <span style={{
-          fontFamily: mono, fontSize: 8.5, letterSpacing: '0.18em',
-          textTransform: 'uppercase', color: accent,
-          writingMode: 'vertical-rl',
-          transform: side === 'left' ? 'rotate(180deg)' : 'none',
-        }}>{label}</span>
-        <span style={{ color: accent, fontSize: 12, opacity: 0.6 }}>
-          {side === 'left' ? '›' : '‹'}
-        </span>
-      </div>
-    );
-  }
-
-  function submitUserUrl() {
-    let u = urlDraft.trim();
-    if (!u) return;
-    if (!/^https?:\/\//.test(u)) u = `https://${u}`;
-    onSetUserUrl(u);
-    setUrlDraft('');
-  }
-
-  return (
-    <div style={{
-      flex: 1, display: 'flex', flexDirection: 'column',
-      borderLeft: `1px solid ${tk.hairline}`,
-      animation: 'fadeSlideUp 0.35s ease both', minWidth: 0,
-    }}>
-      {/* Global close */}
-      <div style={{
-        display: 'flex', justifyContent: 'flex-end', alignItems: 'center',
-        padding: '4px 8px', flexShrink: 0,
-        borderBottom: `1px solid ${tk.hairline}`,
-        background: `${tk.surfaceLo}cc`,
-      }}>
-        <button onClick={onClose} style={{
-          background: 'none', border: 'none', cursor: 'pointer',
-          color: tk.inkSoft, fontSize: 17, padding: '0 4px', lineHeight: 1,
-        }}>×</button>
-      </div>
-
-      {/* Split body */}
-      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
-
-        {/* Demo pane */}
-        {demoOpen ? (
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, borderRight: `1px solid ${tk.hairline}` }}>
-            <PaneHeader label="demo" url={demoUrl} accent={tk.umber} onCollapse={() => setDemoOpen(false)} side="left" />
-            <iframe src={demoUrl} title="Demo company" style={{ flex: 1, border: 'none', minWidth: 0 }} />
-          </div>
-        ) : (
-          <CollapseStrip label="demo" accent={tk.umber} side="left" onExpand={() => setDemoOpen(true)} />
-        )}
-
-        {/* Yours pane */}
-        {yoursOpen ? (
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-            {userUrl ? (
-              <>
-                <PaneHeader label="yours" url={userUrl} accent={tk.plum} onCollapse={() => setYoursOpen(false)} side="right" />
-                <iframe src={userUrl} title="Your company" style={{ flex: 1, border: 'none', minWidth: 0 }} />
-              </>
-            ) : (
-              <>
-                <PaneHeader label="yours" url={null} accent={tk.plum} onCollapse={() => setYoursOpen(false)} side="right" />
-                <div style={{
-                  flex: 1, display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', justifyContent: 'center',
-                  gap: 16, padding: '28px 20px',
-                  background: `${tk.surfaceLo}88`,
-                }}>
-                  <div style={{
-                    fontFamily: '"Instrument Serif", Georgia, serif',
-                    fontStyle: 'italic', fontSize: 19, color: tk.inkMid,
-                    textAlign: 'center', lineHeight: 1.4,
-                  }}>Now try yours.</div>
-                  <p style={{
-                    fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-                    fontSize: 12.5, color: tk.inkSoft, textAlign: 'center',
-                    lineHeight: 1.6, margin: 0, maxWidth: 220,
-                  }}>
-                    Drop your URL here — same conversation, live comparison.
-                  </p>
-                  <div style={{ display: 'flex', gap: 8, width: '100%', maxWidth: 260 }}>
-                    <input
-                      autoFocus
-                      value={urlDraft}
-                      onChange={e => setUrlDraft(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && submitUserUrl()}
-                      placeholder="yourcompany.com"
-                      style={{
-                        flex: 1, background: tk.surface, border: `1px solid ${tk.hairline}`,
-                        borderRadius: 7, padding: '8px 11px',
-                        fontFamily: mono, fontSize: 11.5,
-                        color: tk.ink, outline: 'none', minWidth: 0,
-                      }}
-                      onFocus={e => { e.target.style.borderColor = `${tk.plum}60`; }}
-                      onBlur={e  => { e.target.style.borderColor = tk.hairline; }}
-                    />
-                    <button onClick={submitUserUrl} style={{
-                      background: tk.plum, color: tk.surface, border: 'none',
-                      borderRadius: 7, padding: '8px 13px', cursor: 'pointer',
-                      fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-                      fontSize: 12, fontWeight: 500, flexShrink: 0,
-                    }}
-                      onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; }}
-                      onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
-                    >Open</button>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        ) : (
-          <CollapseStrip label="yours" accent={tk.plum} side="right" onExpand={() => setYoursOpen(true)} />
-        )}
-
-      </div>
-    </div>
-  );
-}
-
 function TriageCards({ onSelect, tk }) {
   const opts = [
     { id: 'browse',   label: 'Just looking around',            sub: 'Show me what this is about' },
@@ -565,13 +403,9 @@ function TriageCards({ onSelect, tk }) {
 }
 
 export default function Chat() {
-  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const t = TWEAK_DEFAULTS;
   const tk = tokens(t.theme);
 
-  const [activeSpace, setActiveSpace]     = useState('chat');
-  const [activeCompany, setActiveCompany] = useState('yours');
-  const [activeHiveStage, setActiveHiveStage] = useState(1);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(!!t.sidebarCollapsed);
   const [runId, setRunId]                 = useState(0);
   const [feed]                            = useState(() => LIVE_FEED[Math.floor(Math.random() * LIVE_FEED.length)]);
   const [messages, setMessages]           = useState([]);
@@ -580,7 +414,6 @@ export default function Chat() {
   const [isProcessing, setIsProcessing]   = useState(false);
   const [inputValue, setInputValue]       = useState('');
   const [pulsingQ, setPulsingQ]           = useState(null);
-  const [litTiles, setLitTiles]           = useState({ investor: false, vendors: false, aws: false, posture: false, spv: false });
   const [thinkingSteps, setThinkingSteps] = useState([]);
   const [briefShown, setBriefShown]       = useState(false);
   const [phase, setPhase]                 = useState('intro');   // 'intro' | 'triage' | 'active'
@@ -589,29 +422,44 @@ export default function Chat() {
   const [previewOpen, setPreviewOpen]     = useState(false);
   const [browserTabs, setBrowserTabs] = useState([]);
 
+  const [companyData,     setCompanyData]     = useState(null);
+  // setInferenceError wired for post-MVP: call when inference polling times out or errors
+  const [inferenceError,  setInferenceError]  = useState(false);
+  const [analysisProfile, setAnalysisProfile] = useState('investor');
+
   const hasUserMsg  = messages.some(m => m.role === 'user');
   const hasMessages = messages.length > 0;
-  const inChatSpace = activeSpace === 'chat';
 
-  const sessionTok    = messages.reduce((s, m) => s + (m.tok ?? 0), 0);
-  const sessionModels = [...new Set(messages.filter(m => m.model).map(m => m.model))];
+  const userMessageCount = messages.filter(m => m.role === 'user').length;
+  const trustPhase = useTrustPhase({ phase, inputReady, userMessageCount, companyData });
+
+  const graphNodes = useMemo(
+    () => deriveGraphNodes(companyData?.inferences ?? null, companyData),
+    [companyData]
+  );
+
+  const drawerStatsDerived = companyData ? {
+    nodes: graphNodes.length,
+    edges: Math.max(0, graphNodes.length - 1),
+    models: 2,
+    sources: companyData.inferences?.length ?? 0,
+  } : null;
 
   const inputRef    = useRef(null);
   const scrollRef   = useRef(null);
   const browserTabsRef = useRef([]);
 
   useEffect(() => {
-    if (!inChatSpace) return;
     const el = scrollRef.current;
     if (!el) return;
     el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
-  }, [messages, thinkingSteps, inChatSpace]);
+  }, [messages, thinkingSteps]);
 
   useEffect(() => {
-    if (!inChatSpace || hasUserMsg) return;
+    if (hasUserMsg) return;
     const id = setInterval(() => setSurfaced(p => (p + 1) % FLOATS.length), 4500);
     return () => clearInterval(id);
-  }, [hasUserMsg, inChatSpace]);
+  }, [hasUserMsg]);
 
   const seedQuery = useMemo(() => {
     if (typeof window === 'undefined') return null;
@@ -628,7 +476,6 @@ export default function Chat() {
       setMessages([]);
       setInputReady(true);
       setBriefShown(false);
-      setLitTiles({ investor: false, vendors: false, aws: false, posture: false, spv: false });
       setInputValue(seedQuery);
       setTimeout(() => inputRef.current?.focus(), 200);
       return;
@@ -637,7 +484,6 @@ export default function Chat() {
       setMessages([]);
       setInputReady(true);
       setBriefShown(true);
-      setLitTiles({ investor: true, vendors: true, aws: false, posture: true, spv: true });
       return;
     }
     let cancelled = false;
@@ -653,7 +499,6 @@ export default function Chat() {
       setPreviewUrl(null);
       setPreviewOpen(false);
       setBrowserTabs([]);
-      setLitTiles({ investor: false, vendors: false, aws: false, posture: false, spv: false });
       setThinkingSteps([]);
       await sleep(900);
       const introMsg = { id: 'sophia-intro', persona: 'sofia', model: 'claude-sonnet-4-6', tok: 148, ms: 740, content: SOPHIA_INTRO };
@@ -667,7 +512,6 @@ export default function Chat() {
           setMessages(prev => prev.map(m => m.id === 'sophia-intro' ? { ...m, content: SOPHIA_INTRO.slice(0, i) } : m));
         }
       }
-      setLitTiles(p => ({ ...p, investor: true, spv: true }));
       await sleep(400);
       if (!cancelled) setPhase('triage');
     }
@@ -709,7 +553,6 @@ export default function Chat() {
       })),
       ...(intakeMsg ? [intakeMsg] : []),
     ]);
-    setLitTiles({ investor: true, vendors: true, aws: true, posture: true, spv: true });
     setIsProcessing(false);
   }, [inputReady, isProcessing, messages, t.returningUser]);
 
@@ -730,9 +573,6 @@ export default function Chat() {
           setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, content: msg.content.slice(0, i) } : m));
         }
       }
-      if (msg.persona === 'sofia')    setLitTiles(p => ({ ...p, investor: true, spv: true }));
-      if (msg.persona === 'leonardo') setLitTiles(p => ({ ...p, vendors: true }));
-      if (msg.persona === 'edison')   setLitTiles(p => ({ ...p, aws: true, posture: true }));
       if (msg.isHandoff) {
         await sleep(450);
         if (chosen === 'browse') {
@@ -742,12 +582,12 @@ export default function Chat() {
         }
         setInputReady(true);
         setPulsingQ(Math.floor(Math.random() * FLOATS.length));
-        if (inChatSpace) inputRef.current?.focus();
+        inputRef.current?.focus();
       } else {
         await sleep(620);
       }
     }
-  }, [t.typeSpeed, feed, inChatSpace]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [t.typeSpeed, feed]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const pullSignal = () => {
     setBriefShown(false);
@@ -768,36 +608,12 @@ export default function Chat() {
       fontFamily: '"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif',
     }}>
 
-      <Sidebar
-        collapsed={sidebarCollapsed}
-        onToggleCollapse={() => {
-          const next = !sidebarCollapsed;
-          setSidebarCollapsed(next);
-          setTweak('sidebarCollapsed', next);
-        }}
-        activeSpace={activeSpace}
-        onSwitch={(spaceId, ctx) => {
-          setActiveSpace(spaceId);
-          if (ctx?.company) setActiveCompany(ctx.company);
-          if (ctx?.stage !== undefined) setActiveHiveStage(ctx.stage);
-        }}
-        litTiles={litTiles}
-        browserTabs={browserTabs}
-        onInject={msg => {
-          const tok = Math.floor((msg.content?.length ?? 0) / 3.8) + 60 + Math.floor(Math.random() * 40);
-          const ms  = 400 + Math.floor(Math.random() * 900);
-          setMessages(prev => [...prev, {
-            id: `inject-${Date.now()}`,
-            role: 'assistant',
-            model: 'claude-sonnet-4-6',
-            tok, ms, ...msg,
-          }]);
-          setInputReady(true);
-          setTimeout(() => inputRef.current?.focus(), 150);
-        }}
-        sessionTok={sessionTok}
-        sessionModels={sessionModels}
-        t={t}
+      <OperationalField />
+
+      <TrustRail
+        trustPhase={trustPhase}
+        companyData={companyData}
+        inferenceError={inferenceError}
       />
 
       <main style={{ flex: 1, display: 'flex', minWidth: 0, overflow: 'hidden' }}>
@@ -812,7 +628,7 @@ export default function Chat() {
         {/* Chat space — kept mounted so theatrical doesn't reset on tab-switch */}
         <div style={{
           position: 'absolute', inset: 0,
-          display: inChatSpace ? 'flex' : 'none',
+          display: 'flex',
           flexDirection: 'column',
         }}>
           {/* Floating questions — appear after intent is declared, hidden when preview is open */}
@@ -865,7 +681,7 @@ export default function Chat() {
           </div>
 
           <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', position: 'relative', zIndex: 2 }}>
-            <div style={{ maxWidth: 660, margin: '0 auto', padding: '0 36px 44px' }}>
+            <div style={{ maxWidth: 660, margin: '0 auto', padding: '0 36px 60px' }}>
 
               {briefShown ? (
                 <MorningBrief onPullSignal={pullSignal} t={t} />
@@ -911,73 +727,33 @@ export default function Chat() {
               {phase === 'triage' && <TriageCards onSelect={selectIntent} tk={tk} />}
               {thinkingSteps.length > 0 && <ThinkingStream steps={thinkingSteps} visible t={t} />}
 
-              {/* Input */}
-              <div style={{
-                marginTop: hasMessages || briefShown ? 18 : 4,
-                background: tk.surface, borderRadius: 14,
-                border: `1px solid ${inputReady ? `${tk.plum}40` : tk.hairline}`,
-                boxShadow: inputReady
-                  ? `0 0 0 5px ${tk.plum}0d, 0 6px 22px ${tk.ink}0a`
-                  : `0 2px 10px ${tk.ink}06`,
-                transition: 'border-color 0.6s, box-shadow 0.6s',
-                opacity: inputReady ? 1 : 0.55,
-              }}>
-                <textarea
+              <div style={{ marginTop: hasMessages || briefShown ? 18 : 4 }}>
+                <ProfileSelector value={analysisProfile} onChange={setAnalysisProfile} />
+                <ChatInput
                   ref={inputRef}
                   value={inputValue}
-                  onChange={e => setInputValue(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      submit(inputValue);
-                    }
+                  onChange={setInputValue}
+                  onSubmit={val => { submit(val); setInputValue(''); }}
+                  onContextInject={label => {
+                    const tok = 40 + Math.floor(Math.random() * 20);
+                    const ms  = 300 + Math.floor(Math.random() * 200);
+                    setMessages(prev => [...prev, {
+                      id: `inject-${Date.now()}`,
+                      persona: 'edison',
+                      model: 'claude-sonnet-4-6',
+                      role: 'assistant',
+                      tok, ms,
+                      content: `Got it — adding ${label.toLowerCase()} to the analysis context.`,
+                    }]);
                   }}
                   disabled={!inputReady || isProcessing}
-                  rows={3}
-                  placeholder={inputReady ? (intent === 'question' ? 'Ask anything…' : t.returningUser ? 'Ask the room…' : "Tell us about your company…") : ''}
-                  style={{
-                    width: '100%', border: 'none', outline: 'none',
-                    background: 'transparent',
-                    fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-                    fontSize: 15, lineHeight: 1.6,
-                    color: tk.ink, padding: '18px 20px 6px',
-                    resize: 'none', boxSizing: 'border-box',
-                    letterSpacing: '0.003em',
-                  }}
+                  messages={messages}
                 />
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 14px 12px' }}>
-                  <span style={{
-                    fontFamily: '"IBM Plex Mono", monospace',
-                    fontSize: 9.5, color: tk.inkSoft, letterSpacing: '0.16em',
-                    textTransform: 'uppercase', paddingLeft: 6,
-                  }}>
-                    {!inputReady ? 'listening…' : isProcessing ? 'thinking' : 'press ↵ to send'}
-                  </span>
-                  <button
-                    onClick={() => submit(inputValue)}
-                    disabled={!inputReady || isProcessing || !inputValue.trim()}
-                    style={{
-                      width: 36, height: 36, borderRadius: '50%', border: 'none',
-                      background: (!inputReady || isProcessing || !inputValue.trim()) ? tk.hairline : tk.plum,
-                      color:      (!inputReady || isProcessing || !inputValue.trim()) ? tk.inkSoft  : tk.surface,
-                      fontSize: 16, cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      transition: 'background 0.2s',
-                    }}
-                  >↑</button>
-                </div>
               </div>
 
             </div>
           </div>
         </div>
-
-        {/* Projection canvases */}
-        {!inChatSpace && (
-          <div style={{ position: 'absolute', inset: 0, overflowY: 'auto' }}>
-            <Projection id={activeSpace} company={activeCompany} hiveStage={activeHiveStage} onBack={() => setActiveSpace('chat')} t={t} />
-          </div>
-        )}
 
         </div>{/* end chat pane */}
 
@@ -1018,49 +794,23 @@ export default function Chat() {
 
       </main>
 
-      <TweaksPanel>
-        <TweakSection label="Register" />
-        <TweakRadio label="Theme" value={t.theme}
-          options={[
-            { value: 'pearl', label: 'Pearl' },
-            { value: 'paper', label: 'Paper' },
-            { value: 'study', label: 'Study' },
-          ]}
-          onChange={v => setTweak('theme', v)} />
-
-        <TweakSection label="Typography" />
-        <TweakRadio label="Heading" value={t.headingFamily}
-          options={[{ value: 'serif', label: 'Serif' }, { value: 'sans', label: 'Sans' }]}
-          onChange={v => setTweak('headingFamily', v)} />
-
-        <TweakSection label="Foyer" />
-        <TweakRadio label="Floats" value={t.floats}
-          options={[
-            { value: 'marks',     label: 'Marks'   },
-            { value: 'plain',     label: 'Plain'   },
-            { value: 'editorial', label: 'Margins' },
-          ]}
-          onChange={v => setTweak('floats', v)} />
-        <TweakSelect label="Bubble style" value={t.bubble}
-          options={[
-            { value: 'transcript', label: 'Transcript (rule + indent)' },
-            { value: 'card',       label: 'Card (tinted bubble)'       },
-            { value: 'wash',       label: 'Wash (latest only)'         },
-          ]}
-          onChange={v => setTweak('bubble', v)} />
-
-        <TweakSection label="Theatre" />
-        <TweakSelect label="Typing pace" value={t.typeSpeed}
-          options={[
-            { value: 'natural', label: 'Natural (18ms)' },
-            { value: 'fast',    label: 'Fast (8ms)'     },
-            { value: 'instant', label: 'Instant'        },
-          ]}
-          onChange={v => setTweak('typeSpeed', v)} />
-        <TweakToggle label="Returning user" value={t.returningUser}
-          onChange={v => setTweak('returningUser', v)} />
-        <TweakButton label="Replay opening" onClick={() => setRunId(r => r + 1)} />
-      </TweaksPanel>
+      <MachineDrawer trustPhase={trustPhase} stats={drawerStatsDerived}>
+        <GraphView nodes={graphNodes} />
+        <ProvenanceAccordion trails={[]} />
+        <DrawerStats stats={drawerStatsDerived ? {
+          tokensProcessed: 18420,
+          analysisPasses:  graphNodes.length > 0 ? 2 : 0,
+          sourcesReviewed: companyData?.inferences?.length ?? 0,
+          modelCorrelations: 2,
+        } : null} />
+        <EscalationCTA
+          message={companyData?.gaps?.length > 2
+            ? "There are gaps here that typically benefit from a guided conversation. We can introduce relevant partners."
+            : null}
+          telegramUrl="https://t.me/ethikslabs"
+          email="hello@ethikslabs.com"
+        />
+      </MachineDrawer>
 
     </div>
   );
