@@ -28,4 +28,17 @@ describe('deriveGraphNodes', () => {
     expect(vendorNodes).toHaveLength(1);
     expect(vendorNodes[0].label).toBe('Vanta');
   });
+
+  it('creates claim nodes from non-company_name inferences', () => {
+    const inferences = [
+      { field: 'company_name', value: 'Test Co', confidence: 0.9 },
+      { field: 'product_type', value: 'SaaS', confidence: 0.85 },
+      { field: 'data_sensitivity', value: 'High', confidence: 0.92 },
+    ];
+    const nodes = deriveGraphNodes(inferences, null);
+    const claimNodes = nodes.filter(n => n.type === 'claim');
+    expect(claimNodes).toHaveLength(2);
+    expect(claimNodes[0].label).toBe('product_type: SaaS');
+    expect(claimNodes[1].label).toBe('data_sensitivity: High');
+  });
 });
