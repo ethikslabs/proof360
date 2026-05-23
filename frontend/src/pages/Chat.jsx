@@ -687,10 +687,10 @@ export default function Chat() {
                 <MorningBrief onPullSignal={pullSignal} t={t} />
               ) : (
                 <div style={{
-                  maxHeight: phase !== 'intro' ? 0 : 320,
-                  opacity: phase !== 'intro' ? 0 : 1, overflow: 'hidden',
+                  maxHeight: phase === 'active' ? 0 : 320,
+                  opacity: phase === 'active' ? 0 : 1, overflow: 'hidden',
                   transition: 'opacity 0.7s ease, max-height 0.9s ease',
-                  marginBottom: phase !== 'intro' ? 0 : 44, paddingTop: 28,
+                  marginBottom: phase === 'active' ? 0 : 44, paddingTop: 28,
                 }}>
                   <div style={{
                     fontFamily: '"IBM Plex Mono", monospace',

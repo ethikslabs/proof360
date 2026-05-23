@@ -1,59 +1,83 @@
+import { useState, useEffect } from 'react';
 import { fieldConfig } from './field-config.js';
 import styles from './field.module.css';
 
-import Aws from './logos/Aws.jsx';
-import Cisco from './logos/Cisco.jsx';
-import PaloAlto from './logos/PaloAlto.jsx';
-import Microsoft from './logos/Microsoft.jsx';
+import Aws        from './logos/Aws.jsx';
+import Cisco      from './logos/Cisco.jsx';
+import PaloAlto   from './logos/PaloAlto.jsx';
+import Microsoft  from './logos/Microsoft.jsx';
 import Cloudflare from './logos/Cloudflare.jsx';
-import Anthropic from './logos/Anthropic.jsx';
-import OpenAI from './logos/OpenAI.jsx';
-import Nvidia from './logos/Nvidia.jsx';
-import Gemini from './logos/Gemini.jsx';
+import Anthropic  from './logos/Anthropic.jsx';
+import OpenAI     from './logos/OpenAI.jsx';
+import Nvidia     from './logos/Nvidia.jsx';
+import Gemini     from './logos/Gemini.jsx';
 import Perplexity from './logos/Perplexity.jsx';
 
 const logoMap = {
-  'aws':        Aws,
-  'cisco':      Cisco,
-  'paloalto':   PaloAlto,
-  'microsoft':  Microsoft,
-  'cloudflare': Cloudflare,
-  'anthropic':  Anthropic,
-  'openai':     OpenAI,
-  'nvidia':     Nvidia,
-  'gemini':     Gemini,
-  'perplexity': Perplexity,
+  aws: Aws, cisco: Cisco, paloalto: PaloAlto, microsoft: Microsoft,
+  cloudflare: Cloudflare, anthropic: Anthropic, openai: OpenAI,
+  nvidia: Nvidia, gemini: Gemini, perplexity: Perplexity,
 };
 
-export function OperationalField() {
+const DURATIONS = { entering: 1200, holding: 3500, exiting: 800 };
+const SCALE = 1.4;
+
+export function OperationalField({ onLogoClick }) {
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [spotPhase, setSpotPhase] = useState('entering');
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (spotPhase === 'exiting') {
+        setActiveIdx(i => (i + 1) % fieldConfig.length);
+        setSpotPhase('entering');
+      } else {
+        setSpotPhase(spotPhase === 'entering' ? 'holding' : 'exiting');
+      }
+    }, DURATIONS[spotPhase]);
+    return () => clearTimeout(t);
+  }, [spotPhase]);
+
   return (
-    <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', overflow: 'hidden' }}>
-      <svg
-        viewBox="0 0 1200 600"
-        preserveAspectRatio="xMidYMid slice"
-        style={{ width: '100%', height: '100%' }}
-        aria-hidden="true"
-        focusable="false"
-      >
-        {fieldConfig.map((entry) => {
-          const Logo = logoMap[entry.id];
-          if (!Logo) return null;
-          return (
-            <g
-              key={entry.id}
-              transform={`translate(${entry.x}, ${entry.y}) scale(${entry.scale})`}
+    <div style={{
+      position: 'absolute', inset: 0, zIndex: 0,
+      overflow: 'hidden', pointerEvents: 'none',
+    }}>
+      {fieldConfig.map((entry, idx) => {
+        const Logo = logoMap[entry.id];
+        if (!Logo) return null;
+        const isActive = idx === activeIdx;
+        const cls = isActive
+          ? spotPhase === 'entering' ? styles.entering
+          : spotPhase === 'holding'  ? styles.holding
+          : styles.exiting
+          : styles.idle;
+
+        return (
+          <div
+            key={entry.id}
+            className={cls}
+            style={{
+              position: 'absolute',
+              right: '7%',
+              bottom: '14%',
+              pointerEvents: isActive ? 'all' : 'none',
+              cursor: isActive && onLogoClick ? 'pointer' : 'default',
+            }}
+            onClick={isActive && onLogoClick ? () => onLogoClick(entry) : undefined}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width={entry.w * SCALE}
+              height={entry.h * SCALE}
+              viewBox={`${-entry.w / 2} ${-entry.h / 2} ${entry.w} ${entry.h}`}
+              style={{ display: 'block' }}
             >
-              <g className={[
-                styles.logo,
-                styles[entry.tier],
-                styles[`logo-${entry.id}`],
-              ].join(' ')}>
-                <Logo />
-              </g>
-            </g>
-          );
-        })}
-      </svg>
+              <Logo />
+            </svg>
+          </div>
+        );
+      })}
     </div>
   );
 }
