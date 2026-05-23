@@ -1,8 +1,4 @@
-import { useState } from 'react';
-
-// Handle is always closed by default.
-// Opens 45vh as a position:fixed overlay — does NOT push/reflow the chat above.
-// Closes on second handle click (outside-click close is post-MVP).
+import { useState, useEffect, useRef } from 'react';
 
 function HandleDots({ count }) {
   return Array.from({ length: Math.min(count, 6) }, (_, i) => (
@@ -14,8 +10,16 @@ function HandleDots({ count }) {
   ));
 }
 
-export function MachineDrawer({ trustPhase, stats, children }) {
+export function MachineDrawer({ trustPhase, stats, autoOpen, children }) {
   const [open, setOpen] = useState(false);
+  const hasAutoOpenedRef = useRef(false);
+
+  useEffect(() => {
+    if (autoOpen && !hasAutoOpenedRef.current) {
+      hasAutoOpenedRef.current = true;
+      setOpen(true);
+    }
+  }, [autoOpen]);
 
   if (trustPhase === 't0') return null;
 
@@ -51,7 +55,6 @@ export function MachineDrawer({ trustPhase, stats, children }) {
             {handleStats}
           </span>
         )}
-
         <span style={{ marginLeft: 'auto', fontSize: 12, color: '#9ca3af' }}>
           {open ? '↓' : '↑'}
         </span>

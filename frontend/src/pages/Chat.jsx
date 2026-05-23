@@ -426,6 +426,7 @@ export default function Chat() {
   // setInferenceError wired for post-MVP: call when inference polling times out or errors
   const [inferenceError,  setInferenceError]  = useState(false);
   const [analysisProfile, setAnalysisProfile] = useState('investor');
+  const [logoCard,        setLogoCard]        = useState(null);
 
   const hasUserMsg  = messages.some(m => m.role === 'user');
   const hasMessages = messages.length > 0;
@@ -454,6 +455,12 @@ export default function Chat() {
     if (!el) return;
     el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
   }, [messages, thinkingSteps]);
+
+  useEffect(() => {
+    if (!logoCard) return;
+    const t = setTimeout(() => setLogoCard(null), 6000);
+    return () => clearTimeout(t);
+  }, [logoCard]);
 
   useEffect(() => {
     if (hasUserMsg) return;
@@ -608,7 +615,7 @@ export default function Chat() {
       fontFamily: '"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif',
     }}>
 
-      <OperationalField />
+      <OperationalField onLogoClick={setLogoCard} />
 
       <TrustRail
         trustPhase={trustPhase}
@@ -728,7 +735,13 @@ export default function Chat() {
               {thinkingSteps.length > 0 && <ThinkingStream steps={thinkingSteps} visible t={t} />}
 
               <div style={{ marginTop: hasMessages || briefShown ? 18 : 4 }}>
-                <ProfileSelector value={analysisProfile} onChange={setAnalysisProfile} />
+                <ProfileSelector
+                  value={analysisProfile}
+                  onChange={(profileId, subItem) => {
+                    setAnalysisProfile(profileId);
+                    if (subItem) setInputValue(subItem);
+                  }}
+                />
                 <ChatInput
                   ref={inputRef}
                   value={inputValue}
@@ -794,7 +807,11 @@ export default function Chat() {
 
       </main>
 
-      <MachineDrawer trustPhase={trustPhase} stats={drawerStatsDerived}>
+      <MachineDrawer
+        trustPhase={trustPhase}
+        stats={drawerStatsDerived}
+        autoOpen={trustPhase === 't1' || trustPhase === 't2' || trustPhase === 'tn'}
+      >
         <GraphView nodes={graphNodes} />
         <ProvenanceAccordion trails={[]} />
         <DrawerStats stats={drawerStatsDerived ? {
@@ -811,6 +828,39 @@ export default function Chat() {
           email="hello@ethikslabs.com"
         />
       </MachineDrawer>
+
+      {logoCard && (
+        <div
+          onClick={() => setLogoCard(null)}
+          style={{
+            position: 'fixed', right: '7%', bottom: 'calc(14% + 64px)',
+            zIndex: 20, maxWidth: 240,
+            background: '#ffffff',
+            border: '1px solid #e5e7eb',
+            borderRadius: 12,
+            padding: '14px 18px',
+            boxShadow: '0 8px 28px rgba(0,0,0,0.11)',
+            cursor: 'pointer',
+            animation: 'fadeSlideUp 0.2s ease both',
+          }}
+        >
+          <div style={{
+            fontSize: 9, fontWeight: 700, letterSpacing: '0.18em',
+            textTransform: 'uppercase', color: '#6366f1', marginBottom: 4,
+          }}>
+            {logoCard.label}
+          </div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 6 }}>
+            {logoCard.name}
+          </div>
+          <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.55 }}>
+            {logoCard.desc}
+          </div>
+          <div style={{ fontSize: 10, color: '#d1d5db', marginTop: 8, textAlign: 'right' }}>
+            tap to dismiss
+          </div>
+        </div>
+      )}
 
     </div>
   );
