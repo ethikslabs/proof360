@@ -1,13 +1,19 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { tokens } from '../tokens.js';
-import { Sidebar }       from '../components/chat/Sidebar.jsx';
 import { FloatQ }        from '../components/chat/FloatQ.jsx';
 import { Bubble }        from '../components/chat/Bubble.jsx';
 import { ThinkingStream } from '../components/chat/ThinkingStream.jsx';
 import { MorningBrief }  from '../components/chat/MorningBrief.jsx';
-import { Projection }    from '../components/chat/Projections.jsx';
-import { TweaksPanel, useTweaks, TweakSection, TweakRadio, TweakSelect, TweakToggle, TweakButton }
-  from '../components/chat/TweaksPanel.jsx';
+import { TrustRail }           from '../components/chat/TrustRail.jsx';
+import { MachineDrawer }       from '../components/chat/MachineDrawer.jsx';
+import { GraphView }           from '../components/chat/GraphView.jsx';
+import { ProvenanceAccordion } from '../components/chat/ProvenanceAccordion.jsx';
+import { DrawerStats }         from '../components/chat/DrawerStats.jsx';
+import { EscalationCTA }       from '../components/chat/EscalationCTA.jsx';
+import { ProfileSelector }     from '../components/chat/ProfileSelector.jsx';
+import { ChatInput }           from '../components/chat/ChatInput.jsx';
+import { useTrustPhase }       from '../hooks/useTrustPhase.js';
+import { deriveGraphNodes }    from '../utils/deriveGraphNodes.js';
 import { getPersonaResponses, getPersonaResponse } from '../data/mock/personas.js';
 import { getThinkingSteps } from '../data/mock/thinking.js';
 
@@ -565,13 +571,9 @@ function TriageCards({ onSelect, tk }) {
 }
 
 export default function Chat() {
-  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const t = TWEAK_DEFAULTS;
   const tk = tokens(t.theme);
 
-  const [activeSpace, setActiveSpace]     = useState('chat');
-  const [activeCompany, setActiveCompany] = useState('yours');
-  const [activeHiveStage, setActiveHiveStage] = useState(1);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(!!t.sidebarCollapsed);
   const [runId, setRunId]                 = useState(0);
   const [feed]                            = useState(() => LIVE_FEED[Math.floor(Math.random() * LIVE_FEED.length)]);
   const [messages, setMessages]           = useState([]);
@@ -580,7 +582,6 @@ export default function Chat() {
   const [isProcessing, setIsProcessing]   = useState(false);
   const [inputValue, setInputValue]       = useState('');
   const [pulsingQ, setPulsingQ]           = useState(null);
-  const [litTiles, setLitTiles]           = useState({ investor: false, vendors: false, aws: false, posture: false, spv: false });
   const [thinkingSteps, setThinkingSteps] = useState([]);
   const [briefShown, setBriefShown]       = useState(false);
   const [phase, setPhase]                 = useState('intro');   // 'intro' | 'triage' | 'active'
@@ -589,29 +590,43 @@ export default function Chat() {
   const [previewOpen, setPreviewOpen]     = useState(false);
   const [browserTabs, setBrowserTabs] = useState([]);
 
+  const [companyData,     setCompanyData]     = useState(null);
+  const [inferenceError,  setInferenceError]  = useState(false);
+  const [analysisProfile, setAnalysisProfile] = useState('investor');
+
   const hasUserMsg  = messages.some(m => m.role === 'user');
   const hasMessages = messages.length > 0;
-  const inChatSpace = activeSpace === 'chat';
 
-  const sessionTok    = messages.reduce((s, m) => s + (m.tok ?? 0), 0);
-  const sessionModels = [...new Set(messages.filter(m => m.model).map(m => m.model))];
+  const userMessageCount = messages.filter(m => m.role === 'user').length;
+  const trustPhase = useTrustPhase({ phase, inputReady, userMessageCount, companyData });
+
+  const graphNodes = useMemo(
+    () => deriveGraphNodes(companyData?.inferences ?? null, companyData),
+    [companyData]
+  );
+
+  const drawerStatsDerived = companyData ? {
+    nodes: graphNodes.length,
+    edges: Math.max(0, graphNodes.length - 1),
+    models: 2,
+    sources: companyData.inferences?.length ?? 0,
+  } : null;
 
   const inputRef    = useRef(null);
   const scrollRef   = useRef(null);
   const browserTabsRef = useRef([]);
 
   useEffect(() => {
-    if (!inChatSpace) return;
     const el = scrollRef.current;
     if (!el) return;
     el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
-  }, [messages, thinkingSteps, inChatSpace]);
+  }, [messages, thinkingSteps]);
 
   useEffect(() => {
-    if (!inChatSpace || hasUserMsg) return;
+    if (hasUserMsg) return;
     const id = setInterval(() => setSurfaced(p => (p + 1) % FLOATS.length), 4500);
     return () => clearInterval(id);
-  }, [hasUserMsg, inChatSpace]);
+  }, [hasUserMsg]);
 
   const seedQuery = useMemo(() => {
     if (typeof window === 'undefined') return null;
@@ -628,7 +643,6 @@ export default function Chat() {
       setMessages([]);
       setInputReady(true);
       setBriefShown(false);
-      setLitTiles({ investor: false, vendors: false, aws: false, posture: false, spv: false });
       setInputValue(seedQuery);
       setTimeout(() => inputRef.current?.focus(), 200);
       return;
@@ -637,7 +651,6 @@ export default function Chat() {
       setMessages([]);
       setInputReady(true);
       setBriefShown(true);
-      setLitTiles({ investor: true, vendors: true, aws: false, posture: true, spv: true });
       return;
     }
     let cancelled = false;
@@ -653,7 +666,6 @@ export default function Chat() {
       setPreviewUrl(null);
       setPreviewOpen(false);
       setBrowserTabs([]);
-      setLitTiles({ investor: false, vendors: false, aws: false, posture: false, spv: false });
       setThinkingSteps([]);
       await sleep(900);
       const introMsg = { id: 'sophia-intro', persona: 'sofia', model: 'claude-sonnet-4-6', tok: 148, ms: 740, content: SOPHIA_INTRO };
@@ -667,7 +679,6 @@ export default function Chat() {
           setMessages(prev => prev.map(m => m.id === 'sophia-intro' ? { ...m, content: SOPHIA_INTRO.slice(0, i) } : m));
         }
       }
-      setLitTiles(p => ({ ...p, investor: true, spv: true }));
       await sleep(400);
       if (!cancelled) setPhase('triage');
     }
@@ -709,7 +720,6 @@ export default function Chat() {
       })),
       ...(intakeMsg ? [intakeMsg] : []),
     ]);
-    setLitTiles({ investor: true, vendors: true, aws: true, posture: true, spv: true });
     setIsProcessing(false);
   }, [inputReady, isProcessing, messages, t.returningUser]);
 
@@ -730,9 +740,6 @@ export default function Chat() {
           setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, content: msg.content.slice(0, i) } : m));
         }
       }
-      if (msg.persona === 'sofia')    setLitTiles(p => ({ ...p, investor: true, spv: true }));
-      if (msg.persona === 'leonardo') setLitTiles(p => ({ ...p, vendors: true }));
-      if (msg.persona === 'edison')   setLitTiles(p => ({ ...p, aws: true, posture: true }));
       if (msg.isHandoff) {
         await sleep(450);
         if (chosen === 'browse') {
@@ -742,12 +749,12 @@ export default function Chat() {
         }
         setInputReady(true);
         setPulsingQ(Math.floor(Math.random() * FLOATS.length));
-        if (inChatSpace) inputRef.current?.focus();
+        inputRef.current?.focus();
       } else {
         await sleep(620);
       }
     }
-  }, [t.typeSpeed, feed, inChatSpace]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [t.typeSpeed, feed]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const pullSignal = () => {
     setBriefShown(false);
@@ -768,36 +775,10 @@ export default function Chat() {
       fontFamily: '"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif',
     }}>
 
-      <Sidebar
-        collapsed={sidebarCollapsed}
-        onToggleCollapse={() => {
-          const next = !sidebarCollapsed;
-          setSidebarCollapsed(next);
-          setTweak('sidebarCollapsed', next);
-        }}
-        activeSpace={activeSpace}
-        onSwitch={(spaceId, ctx) => {
-          setActiveSpace(spaceId);
-          if (ctx?.company) setActiveCompany(ctx.company);
-          if (ctx?.stage !== undefined) setActiveHiveStage(ctx.stage);
-        }}
-        litTiles={litTiles}
-        browserTabs={browserTabs}
-        onInject={msg => {
-          const tok = Math.floor((msg.content?.length ?? 0) / 3.8) + 60 + Math.floor(Math.random() * 40);
-          const ms  = 400 + Math.floor(Math.random() * 900);
-          setMessages(prev => [...prev, {
-            id: `inject-${Date.now()}`,
-            role: 'assistant',
-            model: 'claude-sonnet-4-6',
-            tok, ms, ...msg,
-          }]);
-          setInputReady(true);
-          setTimeout(() => inputRef.current?.focus(), 150);
-        }}
-        sessionTok={sessionTok}
-        sessionModels={sessionModels}
-        t={t}
+      <TrustRail
+        trustPhase={trustPhase}
+        companyData={companyData}
+        inferenceError={inferenceError}
       />
 
       <main style={{ flex: 1, display: 'flex', minWidth: 0, overflow: 'hidden' }}>
@@ -812,7 +793,7 @@ export default function Chat() {
         {/* Chat space — kept mounted so theatrical doesn't reset on tab-switch */}
         <div style={{
           position: 'absolute', inset: 0,
-          display: inChatSpace ? 'flex' : 'none',
+          display: 'flex',
           flexDirection: 'column',
         }}>
           {/* Floating questions — appear after intent is declared, hidden when preview is open */}
@@ -865,7 +846,7 @@ export default function Chat() {
           </div>
 
           <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', position: 'relative', zIndex: 2 }}>
-            <div style={{ maxWidth: 660, margin: '0 auto', padding: '0 36px 44px' }}>
+            <div style={{ maxWidth: 660, margin: '0 auto', padding: '0 36px 60px' }}>
 
               {briefShown ? (
                 <MorningBrief onPullSignal={pullSignal} t={t} />
@@ -911,73 +892,30 @@ export default function Chat() {
               {phase === 'triage' && <TriageCards onSelect={selectIntent} tk={tk} />}
               {thinkingSteps.length > 0 && <ThinkingStream steps={thinkingSteps} visible t={t} />}
 
-              {/* Input */}
-              <div style={{
-                marginTop: hasMessages || briefShown ? 18 : 4,
-                background: tk.surface, borderRadius: 14,
-                border: `1px solid ${inputReady ? `${tk.plum}40` : tk.hairline}`,
-                boxShadow: inputReady
-                  ? `0 0 0 5px ${tk.plum}0d, 0 6px 22px ${tk.ink}0a`
-                  : `0 2px 10px ${tk.ink}06`,
-                transition: 'border-color 0.6s, box-shadow 0.6s',
-                opacity: inputReady ? 1 : 0.55,
-              }}>
-                <textarea
-                  ref={inputRef}
-                  value={inputValue}
-                  onChange={e => setInputValue(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      submit(inputValue);
-                    }
+              <div style={{ marginTop: hasMessages || briefShown ? 18 : 4 }}>
+                <ProfileSelector value={analysisProfile} onChange={setAnalysisProfile} />
+                <ChatInput
+                  onSubmit={value => submit(value)}
+                  onContextInject={label => {
+                    const tok = 40 + Math.floor(Math.random() * 20);
+                    const ms  = 300 + Math.floor(Math.random() * 200);
+                    setMessages(prev => [...prev, {
+                      id: `inject-${Date.now()}`,
+                      persona: 'edison',
+                      model: 'claude-sonnet-4-6',
+                      role: 'assistant',
+                      tok, ms,
+                      content: `Got it — adding ${label.toLowerCase()} to the analysis context.`,
+                    }]);
                   }}
                   disabled={!inputReady || isProcessing}
-                  rows={3}
-                  placeholder={inputReady ? (intent === 'question' ? 'Ask anything…' : t.returningUser ? 'Ask the room…' : "Tell us about your company…") : ''}
-                  style={{
-                    width: '100%', border: 'none', outline: 'none',
-                    background: 'transparent',
-                    fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-                    fontSize: 15, lineHeight: 1.6,
-                    color: tk.ink, padding: '18px 20px 6px',
-                    resize: 'none', boxSizing: 'border-box',
-                    letterSpacing: '0.003em',
-                  }}
+                  messages={messages}
                 />
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 14px 12px' }}>
-                  <span style={{
-                    fontFamily: '"IBM Plex Mono", monospace',
-                    fontSize: 9.5, color: tk.inkSoft, letterSpacing: '0.16em',
-                    textTransform: 'uppercase', paddingLeft: 6,
-                  }}>
-                    {!inputReady ? 'listening…' : isProcessing ? 'thinking' : 'press ↵ to send'}
-                  </span>
-                  <button
-                    onClick={() => submit(inputValue)}
-                    disabled={!inputReady || isProcessing || !inputValue.trim()}
-                    style={{
-                      width: 36, height: 36, borderRadius: '50%', border: 'none',
-                      background: (!inputReady || isProcessing || !inputValue.trim()) ? tk.hairline : tk.plum,
-                      color:      (!inputReady || isProcessing || !inputValue.trim()) ? tk.inkSoft  : tk.surface,
-                      fontSize: 16, cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      transition: 'background 0.2s',
-                    }}
-                  >↑</button>
-                </div>
               </div>
 
             </div>
           </div>
         </div>
-
-        {/* Projection canvases */}
-        {!inChatSpace && (
-          <div style={{ position: 'absolute', inset: 0, overflowY: 'auto' }}>
-            <Projection id={activeSpace} company={activeCompany} hiveStage={activeHiveStage} onBack={() => setActiveSpace('chat')} t={t} />
-          </div>
-        )}
 
         </div>{/* end chat pane */}
 
@@ -1018,49 +956,23 @@ export default function Chat() {
 
       </main>
 
-      <TweaksPanel>
-        <TweakSection label="Register" />
-        <TweakRadio label="Theme" value={t.theme}
-          options={[
-            { value: 'pearl', label: 'Pearl' },
-            { value: 'paper', label: 'Paper' },
-            { value: 'study', label: 'Study' },
-          ]}
-          onChange={v => setTweak('theme', v)} />
-
-        <TweakSection label="Typography" />
-        <TweakRadio label="Heading" value={t.headingFamily}
-          options={[{ value: 'serif', label: 'Serif' }, { value: 'sans', label: 'Sans' }]}
-          onChange={v => setTweak('headingFamily', v)} />
-
-        <TweakSection label="Foyer" />
-        <TweakRadio label="Floats" value={t.floats}
-          options={[
-            { value: 'marks',     label: 'Marks'   },
-            { value: 'plain',     label: 'Plain'   },
-            { value: 'editorial', label: 'Margins' },
-          ]}
-          onChange={v => setTweak('floats', v)} />
-        <TweakSelect label="Bubble style" value={t.bubble}
-          options={[
-            { value: 'transcript', label: 'Transcript (rule + indent)' },
-            { value: 'card',       label: 'Card (tinted bubble)'       },
-            { value: 'wash',       label: 'Wash (latest only)'         },
-          ]}
-          onChange={v => setTweak('bubble', v)} />
-
-        <TweakSection label="Theatre" />
-        <TweakSelect label="Typing pace" value={t.typeSpeed}
-          options={[
-            { value: 'natural', label: 'Natural (18ms)' },
-            { value: 'fast',    label: 'Fast (8ms)'     },
-            { value: 'instant', label: 'Instant'        },
-          ]}
-          onChange={v => setTweak('typeSpeed', v)} />
-        <TweakToggle label="Returning user" value={t.returningUser}
-          onChange={v => setTweak('returningUser', v)} />
-        <TweakButton label="Replay opening" onClick={() => setRunId(r => r + 1)} />
-      </TweaksPanel>
+      <MachineDrawer trustPhase={trustPhase} stats={drawerStatsDerived}>
+        <GraphView nodes={graphNodes} />
+        <ProvenanceAccordion trails={[]} />
+        <DrawerStats stats={drawerStatsDerived ? {
+          tokensProcessed: 18420,
+          analysisPasses:  graphNodes.length > 0 ? 2 : 0,
+          sourcesReviewed: companyData?.inferences?.length ?? 0,
+          modelCorrelations: 2,
+        } : null} />
+        <EscalationCTA
+          message={companyData?.gaps?.length > 2
+            ? "There are gaps here that typically benefit from a guided conversation. We can introduce relevant partners."
+            : null}
+          telegramUrl="https://t.me/ethikslabs"
+          email="hello@ethikslabs.com"
+        />
+      </MachineDrawer>
 
     </div>
   );
