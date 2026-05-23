@@ -366,175 +366,6 @@ function BrowserPanel({ seedUrl, onTabsChange, onClose, tk }) {
   );
 }
 
-/* kept for compatibility — unused after BrowserPanel */
-function PreviewPanel({ demoUrl, userUrl, onSetUserUrl, onClose, tk }) {
-  const [demoOpen,  setDemoOpen]  = useState(true);
-  const [yoursOpen, setYoursOpen] = useState(true);
-  const [urlDraft,  setUrlDraft]  = useState('');
-
-  const STRIP = 30;
-  const mono  = '"IBM Plex Mono", monospace';
-
-  function PaneHeader({ label, url, accent, onCollapse, side }) {
-    return (
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        padding: '7px 10px', flexShrink: 0,
-        borderBottom: `1px solid ${tk.hairline}`,
-        background: `${tk.surfaceLo}ee`,
-      }}>
-        <span style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.18em',
-          textTransform: 'uppercase', color: accent, flexShrink: 0 }}>{label}</span>
-        {url && (
-          <div style={{
-            flex: 1, background: tk.bg, border: `1px solid ${tk.hairline}`,
-            borderRadius: 5, padding: '3px 9px',
-            fontFamily: mono, fontSize: 10.5, color: tk.inkSoft,
-            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-          }}>{url.replace(/^https?:\/\//, '')}</div>
-        )}
-        <button onClick={onCollapse} title="Collapse" style={{
-          background: 'none', border: 'none', cursor: 'pointer',
-          color: tk.inkSoft, fontSize: 13, padding: '0 2px', lineHeight: 1, flexShrink: 0,
-        }}>{side === 'left' ? '‹' : '›'}</button>
-      </div>
-    );
-  }
-
-  function CollapseStrip({ label, accent, side, onExpand }) {
-    return (
-      <div onClick={onExpand} title="Expand" style={{
-        width: STRIP, flexShrink: 0, display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center', gap: 10,
-        cursor: 'pointer', background: `${accent}06`,
-        borderRight: side === 'left' ? `1px solid ${tk.hairline}` : 'none',
-        borderLeft:  side === 'right' ? `1px solid ${tk.hairline}` : 'none',
-        transition: 'background 0.2s',
-      }}
-        onMouseEnter={e => { e.currentTarget.style.background = `${accent}12`; }}
-        onMouseLeave={e => { e.currentTarget.style.background = `${accent}06`; }}
-      >
-        <span style={{
-          fontFamily: mono, fontSize: 8.5, letterSpacing: '0.18em',
-          textTransform: 'uppercase', color: accent,
-          writingMode: 'vertical-rl',
-          transform: side === 'left' ? 'rotate(180deg)' : 'none',
-        }}>{label}</span>
-        <span style={{ color: accent, fontSize: 12, opacity: 0.6 }}>
-          {side === 'left' ? '›' : '‹'}
-        </span>
-      </div>
-    );
-  }
-
-  function submitUserUrl() {
-    let u = urlDraft.trim();
-    if (!u) return;
-    if (!/^https?:\/\//.test(u)) u = `https://${u}`;
-    onSetUserUrl(u);
-    setUrlDraft('');
-  }
-
-  return (
-    <div style={{
-      flex: 1, display: 'flex', flexDirection: 'column',
-      borderLeft: `1px solid ${tk.hairline}`,
-      animation: 'fadeSlideUp 0.35s ease both', minWidth: 0,
-    }}>
-      {/* Global close */}
-      <div style={{
-        display: 'flex', justifyContent: 'flex-end', alignItems: 'center',
-        padding: '4px 8px', flexShrink: 0,
-        borderBottom: `1px solid ${tk.hairline}`,
-        background: `${tk.surfaceLo}cc`,
-      }}>
-        <button onClick={onClose} style={{
-          background: 'none', border: 'none', cursor: 'pointer',
-          color: tk.inkSoft, fontSize: 17, padding: '0 4px', lineHeight: 1,
-        }}>×</button>
-      </div>
-
-      {/* Split body */}
-      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
-
-        {/* Demo pane */}
-        {demoOpen ? (
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, borderRight: `1px solid ${tk.hairline}` }}>
-            <PaneHeader label="demo" url={demoUrl} accent={tk.umber} onCollapse={() => setDemoOpen(false)} side="left" />
-            <iframe src={demoUrl} title="Demo company" style={{ flex: 1, border: 'none', minWidth: 0 }} />
-          </div>
-        ) : (
-          <CollapseStrip label="demo" accent={tk.umber} side="left" onExpand={() => setDemoOpen(true)} />
-        )}
-
-        {/* Yours pane */}
-        {yoursOpen ? (
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-            {userUrl ? (
-              <>
-                <PaneHeader label="yours" url={userUrl} accent={tk.plum} onCollapse={() => setYoursOpen(false)} side="right" />
-                <iframe src={userUrl} title="Your company" style={{ flex: 1, border: 'none', minWidth: 0 }} />
-              </>
-            ) : (
-              <>
-                <PaneHeader label="yours" url={null} accent={tk.plum} onCollapse={() => setYoursOpen(false)} side="right" />
-                <div style={{
-                  flex: 1, display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', justifyContent: 'center',
-                  gap: 16, padding: '28px 20px',
-                  background: `${tk.surfaceLo}88`,
-                }}>
-                  <div style={{
-                    fontFamily: '"Instrument Serif", Georgia, serif',
-                    fontStyle: 'italic', fontSize: 19, color: tk.inkMid,
-                    textAlign: 'center', lineHeight: 1.4,
-                  }}>Now try yours.</div>
-                  <p style={{
-                    fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-                    fontSize: 12.5, color: tk.inkSoft, textAlign: 'center',
-                    lineHeight: 1.6, margin: 0, maxWidth: 220,
-                  }}>
-                    Drop your URL here — same conversation, live comparison.
-                  </p>
-                  <div style={{ display: 'flex', gap: 8, width: '100%', maxWidth: 260 }}>
-                    <input
-                      autoFocus
-                      value={urlDraft}
-                      onChange={e => setUrlDraft(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && submitUserUrl()}
-                      placeholder="yourcompany.com"
-                      style={{
-                        flex: 1, background: tk.surface, border: `1px solid ${tk.hairline}`,
-                        borderRadius: 7, padding: '8px 11px',
-                        fontFamily: mono, fontSize: 11.5,
-                        color: tk.ink, outline: 'none', minWidth: 0,
-                      }}
-                      onFocus={e => { e.target.style.borderColor = `${tk.plum}60`; }}
-                      onBlur={e  => { e.target.style.borderColor = tk.hairline; }}
-                    />
-                    <button onClick={submitUserUrl} style={{
-                      background: tk.plum, color: tk.surface, border: 'none',
-                      borderRadius: 7, padding: '8px 13px', cursor: 'pointer',
-                      fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-                      fontSize: 12, fontWeight: 500, flexShrink: 0,
-                    }}
-                      onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; }}
-                      onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
-                    >Open</button>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        ) : (
-          <CollapseStrip label="yours" accent={tk.plum} side="right" onExpand={() => setYoursOpen(true)} />
-        )}
-
-      </div>
-    </div>
-  );
-}
-
 function TriageCards({ onSelect, tk }) {
   const opts = [
     { id: 'browse',   label: 'Just looking around',            sub: 'Show me what this is about' },
@@ -591,6 +422,7 @@ export default function Chat() {
   const [browserTabs, setBrowserTabs] = useState([]);
 
   const [companyData,     setCompanyData]     = useState(null);
+  // setInferenceError wired for post-MVP: call when inference polling times out or errors
   const [inferenceError,  setInferenceError]  = useState(false);
   const [analysisProfile, setAnalysisProfile] = useState('investor');
 
@@ -895,7 +727,10 @@ export default function Chat() {
               <div style={{ marginTop: hasMessages || briefShown ? 18 : 4 }}>
                 <ProfileSelector value={analysisProfile} onChange={setAnalysisProfile} />
                 <ChatInput
-                  onSubmit={value => submit(value)}
+                  ref={inputRef}
+                  value={inputValue}
+                  onChange={setInputValue}
+                  onSubmit={val => { submit(val); setInputValue(''); }}
                   onContextInject={label => {
                     const tok = 40 + Math.floor(Math.random() * 20);
                     const ms  = 300 + Math.floor(Math.random() * 200);

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, forwardRef } from 'react';
 
 const PLUS_ITEMS = [
   { id: 'deck',        label: 'Upload deck / pitch',      icon: '📎' },
@@ -78,19 +78,35 @@ const FOLLOWUP_CHIPS = [
   "What should I fix first?",
 ];
 
-export function ChatInput({ onSubmit, disabled, messages = [], onContextInject }) {
+export const ChatInput = forwardRef(function ChatInput(
+  { onSubmit, disabled, messages = [], onContextInject, value: valueProp, onChange: onChangeProp },
+  ref
+) {
   const hasExchange = messages.length >= 2;
   const chips = hasExchange ? FOLLOWUP_CHIPS : STARTER_CHIPS;
-  const [value, setValue] = useState('');
+
+  // Internal state used only in uncontrolled mode
+  const [inputValue, setInputValue] = useState('');
   const [dragOver, setDragOver] = useState(false);
-  const textareaRef = useRef(null);
+
+  // If valueProp is provided (not undefined), run in controlled mode
+  const isControlled = valueProp !== undefined;
+  const currentValue = isControlled ? valueProp : inputValue;
+
+  function handleChange(e) {
+    if (isControlled) {
+      onChangeProp?.(e.target.value);
+    } else {
+      setInputValue(e.target.value);
+    }
+  }
 
   function handleSubmit(e) {
-    e.preventDefault();
-    const trimmed = value.trim();
+    e?.preventDefault();
+    const trimmed = currentValue.trim();
     if (!trimmed || disabled) return;
     onSubmit(trimmed);
-    setValue('');
+    if (!isControlled) setInputValue('');
   }
 
   function handleKeyDown(e) {
@@ -100,13 +116,23 @@ export function ChatInput({ onSubmit, disabled, messages = [], onContextInject }
     }
   }
 
+  function handleChipClick(chip) {
+    if (isControlled) {
+      onChangeProp?.(chip);
+    } else {
+      setInputValue(chip);
+    }
+    // Focus the textarea via the forwarded ref (controlled mode) or internal ref
+    ref?.current?.focus();
+  }
+
   return (
     <div style={{ borderTop: '1px solid #e5e7eb', padding: '16px 0 0' }}>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
         {chips.map(ex => (
           <button
             key={ex}
-            onClick={() => { setValue(ex); textareaRef.current?.focus(); }}
+            onClick={() => handleChipClick(ex)}
             style={{
               padding: '5px 12px',
               borderRadius: 14,
@@ -139,9 +165,9 @@ export function ChatInput({ onSubmit, disabled, messages = [], onContextInject }
           onDrop={e => { e.preventDefault(); setDragOver(false); }}
         >
           <textarea
-            ref={textareaRef}
-            value={value}
-            onChange={e => setValue(e.target.value)}
+            ref={ref}
+            value={currentValue}
+            onChange={handleChange}
             onKeyDown={handleKeyDown}
             placeholder="Paste your website, upload a deck, or describe what you're building…"
             disabled={disabled}
@@ -165,16 +191,16 @@ export function ChatInput({ onSubmit, disabled, messages = [], onContextInject }
         </div>
         <button
           type="submit"
-          disabled={disabled || !value.trim()}
+          disabled={disabled || !currentValue.trim()}
           style={{
             padding: '12px 20px',
             borderRadius: 10,
-            background: disabled || !value.trim() ? '#e5e7eb' : '#4f46e5',
-            color: disabled || !value.trim() ? '#9ca3af' : '#ffffff',
+            background: disabled || !currentValue.trim() ? '#e5e7eb' : '#4f46e5',
+            color: disabled || !currentValue.trim() ? '#9ca3af' : '#ffffff',
             border: 'none',
             fontSize: 13,
             fontWeight: 700,
-            cursor: disabled || !value.trim() ? 'default' : 'pointer',
+            cursor: disabled || !currentValue.trim() ? 'default' : 'pointer',
             transition: 'all 0.15s',
             letterSpacing: '0.3px',
           }}
@@ -184,4 +210,4 @@ export function ChatInput({ onSubmit, disabled, messages = [], onContextInject }
       </form>
     </div>
   );
-}
+});
