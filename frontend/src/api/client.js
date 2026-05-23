@@ -21,7 +21,7 @@ async function request(method, path, body, extraHeaders) {
 }
 
 // Session
-export const startSession = (body) => request('POST', '/api/v1/session/start', body);
+export const startSession = (body, profile = 'investor') => request('POST', '/api/v1/session/start', { ...body, analysis_profile: profile });
 export const getInferStatus = (id) => request('GET', `/api/v1/session/${id}/infer-status`);
 export const getInferences = (id) => request('GET', `/api/v1/session/${id}/inferences`);
 export const submitSession = (id, body) => request('POST', `/api/v1/session/${id}/submit`, body);
