@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { OperationalField } from '../components/OperationalField';
 
 /* ─── VECTOR design tokens ─────────────────────────────────────────────────── */
 const BG     = '#0a0d14';
@@ -241,12 +242,15 @@ export default function Home() {
       </nav>
 
       {/* ── Hero ────────────────────────────────────────────────────────────── */}
-      <section className="hero-content" style={{
-        minHeight: '100vh', display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
-        padding: '120px 24px 80px', textAlign: 'center',
-        position: 'relative', overflow: 'hidden',
-      }}>
+      <section style={{ minHeight: '100vh', position: 'relative', overflow: 'hidden' }}>
+        <OperationalField />
+        <div className="hero-content" style={{
+          position: 'relative', zIndex: 10,
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          minHeight: '100vh',
+          padding: '120px 24px 80px', textAlign: 'center',
+        }}>
         {/* Subtle radial glow */}
         <div style={{
           position: 'absolute', inset: 0, pointerEvents: 'none',
@@ -319,6 +323,7 @@ export default function Home() {
 
         <div className="anim-6" style={{ fontSize: 10, letterSpacing: '2px', color: MUTED }}>
           scroll ↓
+        </div>
         </div>
       </section>
 

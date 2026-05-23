@@ -58,6 +58,7 @@ export default function App() {
           <ScrollToTop />
           <Routes>
             <Route path="/" element={<Navigate to="/chat" replace />} />
+            <Route path="/home" element={<Home />} />
             <Route path="/audit" element={<Audit />} />
             <Route path="/audit/reading" element={<AuditReading />} />
             <Route path="/audit/cold-read" element={<AuditColdRead />} />
