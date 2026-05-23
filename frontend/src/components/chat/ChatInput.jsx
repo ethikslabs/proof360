@@ -1,5 +1,69 @@
 import { useState, useRef } from 'react';
 
+const PLUS_ITEMS = [
+  { id: 'deck',        label: 'Upload deck / pitch',      icon: '📎' },
+  { id: 'website',     label: 'Add website',               icon: '🌐' },
+  { id: 'aws-bill',    label: 'Add AWS bill',              icon: '☁️' },
+  { id: 'linkedin',    label: 'Add LinkedIn',              icon: '🔗' },
+  { id: 'deep-scan',   label: 'Deep market scan',          icon: '🔍' },
+  { id: 'regional',    label: 'Enable regional analysis',  icon: '🌏' },
+  { id: 'competitors', label: 'Compare competitors',       icon: '🔄' },
+  { id: 'investors',   label: 'Run investor readiness',    icon: '💼' },
+  { id: 'procurement', label: 'Run procurement readiness', icon: '🏢' },
+];
+
+function PlusMenu({ onSelect }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-label="Add context"
+        style={{
+          width: 32, height: 32, borderRadius: '50%',
+          border: '1.5px solid #d1d5db',
+          background: open ? '#f3f4f6' : '#ffffff',
+          color: '#6b7280', fontSize: 18, lineHeight: 1,
+          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0,
+        }}
+      >
+        +
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', bottom: 40, left: 0,
+          background: '#ffffff', border: '1px solid #e5e7eb',
+          borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+          padding: '8px 0', minWidth: 220, zIndex: 100,
+        }}>
+          {PLUS_ITEMS.map(item => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => { onSelect(item.label); setOpen(false); }}
+              style={{
+                display: 'flex', gap: 10, alignItems: 'center',
+                width: '100%', padding: '9px 16px',
+                background: 'none', border: 'none',
+                fontSize: 13, color: '#111827', cursor: 'pointer',
+                textAlign: 'left',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
+              onMouseLeave={e => e.currentTarget.style.background = 'none'}
+            >
+              <span>{item.icon}</span>
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const STARTER_CHIPS = [
   "Imagine you're selling Manuka honey at a stall in King's Cross on a Saturday morning. Fast forward: sales, a global opportunity, burned cash, and now you need investors. What do you do?",
   "We're raising pre-seed",
@@ -14,7 +78,7 @@ const FOLLOWUP_CHIPS = [
   "What should I fix first?",
 ];
 
-export function ChatInput({ onSubmit, disabled, messages = [] }) {
+export function ChatInput({ onSubmit, disabled, messages = [], onContextInject }) {
   const hasExchange = messages.length >= 2;
   const chips = hasExchange ? FOLLOWUP_CHIPS : STARTER_CHIPS;
   const [value, setValue] = useState('');
@@ -60,6 +124,7 @@ export function ChatInput({ onSubmit, disabled, messages = [] }) {
       </div>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
+        <PlusMenu onSelect={onContextInject ?? (() => {})} />
         <div
           style={{
             flex: 1,
