@@ -25,7 +25,7 @@ export function Bubble({ msg, t, isLatest }) {
     <div style={{
       display: 'flex', alignItems: 'baseline', gap: 10,
       fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
-      fontSize: 10, fontWeight: 600, letterSpacing: '0.16em',
+      fontSize: 11, fontWeight: 800, letterSpacing: '0.14em',
       textTransform: 'uppercase', color, marginBottom: 8,
     }}>
       <span>{meta.label}</span>
