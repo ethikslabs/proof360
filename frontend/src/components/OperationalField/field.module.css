@@ -1,0 +1,195 @@
+.logo {
+  transform-origin: center;
+  transform-box: fill-box;
+  will-change: opacity, transform;
+}
+
+.orbit       { filter: blur(0.4px); }
+.independent { filter: blur(0.6px); }
+.inference   { filter: blur(0.5px); }
+
+/* ── Orbit ──────────────────────────────────────────────────────────────── */
+
+.logo-aws {
+  animation:
+    breath-aws 64s cubic-bezier(0.4, 0, 0.6, 1) infinite,
+    drift-aws  72s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation-delay: -51s, -17s;
+}
+
+@keyframes breath-aws {
+  0%, 100% { opacity: 0.12; }
+  50%       { opacity: 0.20; }
+}
+
+@keyframes drift-aws {
+  0%, 100% { transform: translate3d(0,    0,   0); }
+  50%      { transform: translate3d(-10px, 8px, 0); }
+}
+
+.logo-cisco {
+  animation:
+    breath-cisco 78s cubic-bezier(0.4, 0, 0.6, 1) infinite,
+    drift-cisco  68s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation-delay: -33s, -59s;
+}
+
+@keyframes breath-cisco {
+  0%, 100% { opacity: 0.12; }
+  50%       { opacity: 0.20; }
+}
+
+@keyframes drift-cisco {
+  0%, 100% { transform: translate3d(0,    0,   0); }
+  50%      { transform: translate3d(12px, -6px, 0); }
+}
+
+.logo-paloalto {
+  animation:
+    breath-paloalto 70s cubic-bezier(0.4, 0, 0.6, 1) infinite,
+    drift-paloalto  80s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation-delay: -7s, -43s;
+}
+
+@keyframes breath-paloalto {
+  0%, 100% { opacity: 0.12; }
+  50%       { opacity: 0.20; }
+}
+
+@keyframes drift-paloalto {
+  0%, 100% { transform: translate3d(0,    0,    0); }
+  50%      { transform: translate3d(-8px, 12px, 0); }
+}
+
+.logo-microsoft {
+  animation:
+    breath-microsoft 76s cubic-bezier(0.4, 0, 0.6, 1) infinite,
+    drift-microsoft  64s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation-delay: -61s, -29s;
+}
+
+@keyframes breath-microsoft {
+  0%, 100% { opacity: 0.12; }
+  50%       { opacity: 0.20; }
+}
+
+@keyframes drift-microsoft {
+  0%, 100% { transform: translate3d(0,    0,    0); }
+  50%      { transform: translate3d(10px, -10px, 0); }
+}
+
+/* ── Independent ────────────────────────────────────────────────────────── */
+
+.logo-cloudflare {
+  animation:
+    breath-cloudflare 82s cubic-bezier(0.4, 0, 0.6, 1) infinite,
+    drift-cloudflare  74s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation-delay: -39s, -11s;
+}
+
+@keyframes breath-cloudflare {
+  0%, 100% { opacity: 0.10; }
+  50%       { opacity: 0.18; }
+}
+
+@keyframes drift-cloudflare {
+  0%, 100% { transform: translate3d(0,    0,   0); }
+  50%      { transform: translate3d(-14px, 6px, 0); }
+}
+
+/* ── Inference ──────────────────────────────────────────────────────────── */
+
+.logo-anthropic {
+  animation:
+    breath-anthropic 80s cubic-bezier(0.4, 0, 0.6, 1) infinite,
+    drift-anthropic  72s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation-delay: -37s, -61s;
+}
+
+@keyframes breath-anthropic {
+  0%, 100% { opacity: 0.15; }
+  50%       { opacity: 0.22; }
+}
+
+@keyframes drift-anthropic {
+  0%, 100% { transform: translate3d(0,   0,   0); }
+  50%      { transform: translate3d(-6px, 8px, 0); }
+}
+
+.logo-openai {
+  animation:
+    breath-openai 74s cubic-bezier(0.4, 0, 0.6, 1) infinite,
+    drift-openai  88s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation-delay: -19s, -43s;
+}
+
+@keyframes breath-openai {
+  0%, 100% { opacity: 0.15; }
+  50%       { opacity: 0.22; }
+}
+
+@keyframes drift-openai {
+  0%, 100% { transform: translate3d(0,    0,    0); }
+  50%      { transform: translate3d(10px, -12px, 0); }
+}
+
+.logo-nvidia {
+  animation:
+    breath-nvidia 86s cubic-bezier(0.4, 0, 0.6, 1) infinite,
+    drift-nvidia  66s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation-delay: -53s, -27s;
+}
+
+@keyframes breath-nvidia {
+  0%, 100% { opacity: 0.15; }
+  50%       { opacity: 0.22; }
+}
+
+@keyframes drift-nvidia {
+  0%, 100% { transform: translate3d(0,   0,    0); }
+  50%      { transform: translate3d(-8px, -14px, 0); }
+}
+
+.logo-gemini {
+  animation:
+    breath-gemini 68s cubic-bezier(0.4, 0, 0.6, 1) infinite,
+    drift-gemini  76s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation-delay: -11s, -49s;
+}
+
+@keyframes breath-gemini {
+  0%, 100% { opacity: 0.15; }
+  50%       { opacity: 0.22; }
+}
+
+@keyframes drift-gemini {
+  0%, 100% { transform: translate3d(0,    0,   0); }
+  50%      { transform: translate3d(12px, 8px, 0); }
+}
+
+.logo-perplexity {
+  animation:
+    breath-perplexity 92s cubic-bezier(0.4, 0, 0.6, 1) infinite,
+    drift-perplexity  82s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation-delay: -67s, -13s;
+}
+
+@keyframes breath-perplexity {
+  0%, 100% { opacity: 0.15; }
+  50%       { opacity: 0.22; }
+}
+
+@keyframes drift-perplexity {
+  0%, 100% { transform: translate3d(0,    0,   0); }
+  50%      { transform: translate3d(-16px, -6px, 0); }
+}
+
+/* ── Reduced motion ─────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .logo { animation: none !important; }
+
+  .orbit       { opacity: 0.16; }
+  .independent { opacity: 0.14; }
+  .inference   { opacity: 0.18; }
+}
