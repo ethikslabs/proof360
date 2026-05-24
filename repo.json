@@ -32,6 +32,14 @@
       "approved_by": "john-coates",
       "source": "edge:standardisation",
       "added": "2026-05-09"
+    },
+    {
+      "id": "PROOF360-CORPUS-CITE-001",
+      "status": "ready",
+      "boundary": "Surface CORPUS evidence citations in the proof360 frontend evidence display. The gap API response already includes evidence items with source:'corpus' and a 'Retrieved from [source] · CORPUS' citation string — wire this into the gap evidence UI component so users see the retrieval chain. Do not show it if no corpus evidence is present.",
+      "approved_by": "john-coates",
+      "source": "edge:task_enhancement",
+      "added": "2026-05-24"
     }
   ]
 }
