@@ -749,12 +749,77 @@ Track A quote endpoint and `lead_type` determination read this context. Key fiel
 
 ---
 
+---
+
+## Singapore signal sources (geo_market: SG)
+
+Singapore's GovTech API surface is significantly more open than AU equivalents. Most are free, well-documented, and REST-native.
+
+### 46. ACRA BizFile+ — company registry (SG)
+
+- **API:** `https://data.gov.sg` / BizFile+ public search, or GovTech Singpass API for verified entity data
+- **Provides:** UEN (Unique Entity Number — SG equivalent of ABN/ACN), entity name, registration date, entity type (Pte Ltd, LLP, sole prop), business status (live / struck off), SSIC industry code, registered address, paid-up capital, directors list
+- **New signals:** `uen`, `sg_entity_status`, `sg_entity_type`, `sg_registration_date`, `sg_ssic_code`, `sg_directors[]`
+- **New gaps:** `sg_entity_unverified` (medium), `sg_entity_struck_off` (critical)
+- **Cost:** free (data.gov.sg public datasets + BizFile+ public search)
+- **Placement:** `api/src/services/recon-acra.js` — parallel, SG-guarded
+
+### 47. MAS Financial Institutions Directory (SG)
+
+- **API:** `https://eservices.mas.gov.sg/fid/` — public REST API, no key required
+- **Provides:** MAS licence status (CMS, Capital Markets Services, MAS-regulated), licence type, licence conditions, regulated activities, licence suspension/revocation history
+- **New signals:** `mas_licensed`, `mas_licence_type`, `mas_licence_status`, `mas_regulated_activities[]`
+- **New gaps:** `sg_financial_services_unlicensed` (critical) if handling payments/investments without licence
+- **Cost:** free
+- **Placement:** `api/src/services/recon-mas.js` — parallel, SG-guarded, triggered by `handles_payments` or `sector: fintech`
+
+### 48. Business Grants Portal (BGP) — grant eligibility (SG)
+
+- **API:** `https://www.businessgrants.gov.sg` — GovTech API, structured grant catalog
+- **Provides:** available grants by entity type/sector/activity, eligibility criteria, grant amounts, application windows. Key programs: Enterprise Development Grant (EDG), Market Readiness Assistance (MRA), Productivity Solutions Grant (PSG), SkillsFuture Enterprise Credit (SFEC), Startup SG Founder/Tech/Equity, Business Growth Programme (BGP)
+- **New signals:** `sg_bgp_eligible_grants[]`, `sg_edg_eligible`, `sg_mra_eligible`, `sg_psg_eligible`
+- **New gaps:** positive signal — surfaces unclaimed grants
+- **Cost:** free
+- **Placement:** `api/src/services/recon-bgp.js` — parallel, SG-guarded; feeds program intelligence matching
+
+### 49. Enterprise Singapore — startup + scale-up programs (SG)
+
+- **API:** data.gov.sg + EnterpriseSG public APIs
+- **Provides:** Startup SG programme eligibility, EnterpriseSG partner network, Innovation Advisors, Tech Access initiative, Global Innovation Alliance, Landing Pads (SG equivalent of Austrade Landing Pads)
+- **New signals:** `sg_entsg_programme_eligible[]`, `sg_startup_sg_eligible`
+- **Cost:** free
+- **Placement:** extend `recon-bgp.js` or separate `recon-entsg.js`
+
+### 50. MAS Sanctions + PDPC breach register (SG)
+
+- **API:** MAS Notices/Enforcement API + PDPC public decisions register
+- **Provides:** MAS enforcement actions (fines, prohibitions, reprimands), PDPC data breach decisions (companies found in breach of PDPA), sanctions designations
+- **New signals:** `sg_mas_enforcement_history`, `sg_pdpc_breach_decision`, `sg_sanctions_match`
+- **New gaps:** `sg_regulatory_enforcement` (critical), `sg_data_breach_history` (high)
+- **Cost:** free
+- **Placement:** extend `recon-sanctions.js` with SG lane, add `recon-pdpc.js`
+
+### Singapore signal summary
+
+| # | Source | Signals | Cost | Guard |
+|---|--------|---------|------|-------|
+| 46 | ACRA BizFile+ | UEN, status, directors, industry | free | `geo_market: SG` |
+| 47 | MAS FID | Licence status + type | free | `geo_market: SG` |
+| 48 | BGP | Eligible grants catalog | free | `geo_market: SG` |
+| 49 | EnterpriseSG | Startup programme eligibility | free | `geo_market: SG` |
+| 50 | MAS/PDPC enforcement | Sanctions + breach history | free | `geo_market: SG` |
+
+**All five sources are free public APIs with REST interfaces.** SG GovTech API quality is materially better than AU equivalents — structured responses, stable endpoints, good documentation.
+
+---
+
 ## Next actions
 
 1. Confirm ABN API integration scope — full recon-abn.js module or lightweight enrichment call?
 2. Decide whether ABN lookup runs in parallel (adds latency) or on demand (report-time, lazy)
 3. Add `infrastructure` signal → `cloud_migration` / `legacy_on_prem` gap wiring (Track A)
 4. Track A quote endpoint consumes this context for tier + routing (not a new signal source — a consumer)
+5. Wire SG lane: `recon-acra.js` + `recon-mas.js` + `recon-bgp.js` — all free, all parallel-safe, guarded by `geo_market: SG`
 
 ---
 
