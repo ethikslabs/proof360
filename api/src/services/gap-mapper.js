@@ -44,24 +44,37 @@ function corpusSourceLabel(slug) {
 async function enrichGapsWithCorpus(gaps) {
   const indexed = gaps.map((gap, i) => ({ gap, query: GAP_QUERIES[gap.gap_id], i }));
   const queryable = indexed.filter(({ query }) => query);
-  if (queryable.length === 0) return gaps;
+  if (queryable.length === 0) return { enriched: gaps, vendorSlugsByGap: {} };
 
   const { searchBatch } = await import(CORPUS_SEARCH);
-  const resultSets = await searchBatch(queryable.map(({ query }) => query), { topK: 3 });
+  const resultSets = await searchBatch(queryable.map(({ query }) => query), { topK: 5 });
 
   const enriched = [...gaps];
+  const vendorSlugsByGap = {};
+
   queryable.forEach(({ gap, i }, qi) => {
-    const top = resultSets[qi].find(r => r.score > 0.3);
-    if (!top) return;
-    enriched[i] = {
-      ...gap,
-      evidence: [
-        ...gap.evidence,
-        { source: 'corpus', citation: `Retrieved from ${corpusSourceLabel(top.object_slug)} · CORPUS` }
-      ]
-    };
+    const results = resultSets[qi];
+
+    const top = results.find(r => r.score > 0.3);
+    if (top) {
+      enriched[i] = {
+        ...gap,
+        evidence: [
+          ...gap.evidence,
+          { source: 'corpus', citation: `Retrieved from ${corpusSourceLabel(top.object_slug)} · CORPUS` }
+        ]
+      };
+    }
+
+    const vendorSlugs = new Set();
+    for (const result of results) {
+      if (result.score < 0.35 || !result.layer?.startsWith('vendor/')) continue;
+      vendorSlugs.add(result.layer.slice('vendor/'.length));
+    }
+    if (vendorSlugs.size > 0) vendorSlugsByGap[gap.gap_id] = vendorSlugs;
   });
-  return enriched;
+
+  return { enriched, vendorSlugsByGap };
 }
 
 export async function runGapAnalysis(context, { session_id } = {}) {
@@ -99,9 +112,14 @@ export async function runGapAnalysis(context, { session_id } = {}) {
       return gapObj;
     });
 
-  // Enrich gaps with CORPUS evidence (non-blocking, fails gracefully)
+  // Enrich gaps with CORPUS evidence and collect vendor hints (non-blocking, fails gracefully)
   let finalGaps = gaps;
-  try { finalGaps = await enrichGapsWithCorpus(gaps); } catch { /* CORPUS unavailable */ }
+  let vendorSlugsByGap = {};
+  try {
+    const corpusResult = await enrichGapsWithCorpus(gaps);
+    finalGaps = corpusResult.enriched;
+    vendorSlugsByGap = corpusResult.vendorSlugsByGap;
+  } catch { /* CORPUS unavailable */ }
 
   // 5. Compute trust score
   const totalPenalty = finalGaps.reduce(
@@ -114,7 +132,7 @@ export async function runGapAnalysis(context, { session_id } = {}) {
   const readiness = trust_score >= 80 ? 'ready' : trust_score >= 50 ? 'partial' : 'not_ready';
 
   // 7. Select vendors for confirmed gaps
-  const vendors = selectVendors(finalGaps);
+  const vendors = selectVendors(finalGaps, vendorSlugsByGap);
 
   return { gaps: finalGaps, vendors, trust_score, readiness };
 }

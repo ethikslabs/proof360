@@ -1,7 +1,13 @@
 import { VENDORS } from '../config/vendors.js';
 
-// Select vendors that close confirmed gaps, assign priority
-export function selectVendors(gaps) {
+// Maps vendor_id prefix to the CORPUS layer slug (e.g. 'cisco_duo' → 'cisco')
+function baseVendorName(vendorId) {
+  return vendorId.split('_')[0];
+}
+
+// Select vendors that close confirmed gaps, assign priority.
+// vendorSlugsByGap: gap_id → Set of vendor base names confirmed by CORPUS semantic search.
+export function selectVendors(gaps, vendorSlugsByGap = {}) {
   const gapIds = new Set(gaps.map((g) => g.gap_id));
   const gapSeverities = {};
   for (const gap of gaps) {
@@ -14,7 +20,9 @@ export function selectVendors(gaps) {
     const closesGaps = vendor.closes.filter((gapId) => gapIds.has(gapId));
     if (closesGaps.length === 0) continue;
 
-    // Priority: closes a critical gap = start_here, high = recommended, else optional
+    const base = baseVendorName(vendor.id);
+    const corpusConfirmed = closesGaps.some((gapId) => vendorSlugsByGap[gapId]?.has(base));
+
     const closesCritical = closesGaps.some((id) => gapSeverities[id] === 'critical');
     const closesHigh = closesGaps.some((id) => gapSeverities[id] === 'moderate');
     const priority = closesCritical ? 'start_here' : closesHigh ? 'recommended' : 'optional';
@@ -29,12 +37,18 @@ export function selectVendors(gaps) {
       is_partner: vendor.is_partner,
       deal_label: vendor.deal_label,
       referral_url: vendor.referral_url,
+      corpus_confirmed: corpusConfirmed,
     });
   }
 
-  // Sort: start_here first, then recommended, then optional
+  // Sort: tier first (start_here → recommended → optional),
+  // then CORPUS-confirmed vendors rank above unconfirmed within the same tier.
   const order = { start_here: 0, recommended: 1, optional: 2 };
-  matched.sort((a, b) => order[a.priority] - order[b.priority]);
+  matched.sort((a, b) => {
+    const tierDiff = order[a.priority] - order[b.priority];
+    if (tierDiff !== 0) return tierDiff;
+    return (b.corpus_confirmed ? 1 : 0) - (a.corpus_confirmed ? 1 : 0);
+  });
 
   return matched;
 }
