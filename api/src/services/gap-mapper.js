@@ -1,12 +1,9 @@
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { GAP_DEFINITIONS, SEVERITY_WEIGHTS } from '../config/gaps.js';
 import { selectVendors } from './vendor-selector.js';
 import { buildVendorIntelligence } from './vendor-intelligence-builder.js';
 import { generateFrameworkImpact } from '../config/framework-impact.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const CORPUS_SEARCH = resolve(__dirname, '../../../../CORPUS/src/query/search.mjs');
+const CORPUS_SEARCH_URL = process.env.CORPUS_SEARCH_URL || 'http://localhost:3009/search';
 
 const GAP_QUERIES = {
   soc2:                 'SOC 2 certification enterprise vendor compliance audit requirements',
@@ -54,8 +51,14 @@ async function enrichGapsWithCorpus(gaps) {
   const queryable = indexed.filter(({ query }) => query);
   if (queryable.length === 0) return { enriched: gaps, vendorSlugsByGap: {} };
 
-  const { searchBatch } = await import(CORPUS_SEARCH);
-  const resultSets = await searchBatch(queryable.map(({ query }) => query), { topK: 5 });
+  const resp = await fetch(CORPUS_SEARCH_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ queries: queryable.map(({ query }) => query), topK: 5 }),
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!resp.ok) throw new Error(`CORPUS search ${resp.status}`);
+  const resultSets = await resp.json();
 
   const enriched = [...gaps];
   const vendorSlugsByGap = {};
