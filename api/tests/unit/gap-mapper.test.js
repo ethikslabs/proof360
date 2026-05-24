@@ -47,15 +47,15 @@ describe('gap mapper live scoring path', () => {
     }));
 
     expect(gapById(result, 'mfa')).toMatchObject({
-      evidence: [{ source: 'assessment', citation: 'Derived from your assessment responses' }],
+      evidence: expect.arrayContaining([{ source: 'assessment', citation: 'Derived from your assessment responses' }]),
       time_estimate: 'Under 1 hour to enable, 30 days to enforce company-wide',
     });
     expect(gapById(result, 'edr')).toMatchObject({
-      evidence: [{ source: 'assessment', citation: 'Derived from your assessment responses' }],
+      evidence: expect.arrayContaining([{ source: 'assessment', citation: 'Derived from your assessment responses' }]),
       time_estimate: 'Same-day deployment with a cloud-managed agent',
     });
     expect(gapById(result, 'sso')).toMatchObject({
-      evidence: [{ source: 'assessment', citation: 'Derived from your assessment responses' }],
+      evidence: expect.arrayContaining([{ source: 'assessment', citation: 'Derived from your assessment responses' }]),
       time_estimate: '1–2 days if using Google Workspace or Microsoft 365',
     });
   });
@@ -67,7 +67,7 @@ describe('gap mapper live scoring path', () => {
     }));
 
     expect(gapById(result, 'security_headers')).toMatchObject({
-      evidence: [{ source: 'http_scan', citation: 'Passive HTTP/TLS scan — live headers at time of assessment' }],
+      evidence: expect.arrayContaining([{ source: 'http_scan', citation: 'Passive HTTP/TLS scan — live headers at time of assessment' }]),
       time_estimate: '1–2 hours to configure',
     });
   });

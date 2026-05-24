@@ -1,7 +1,68 @@
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { GAP_DEFINITIONS, SEVERITY_WEIGHTS } from '../config/gaps.js';
 import { selectVendors } from './vendor-selector.js';
 import { buildVendorIntelligence } from './vendor-intelligence-builder.js';
 import { generateFrameworkImpact } from '../config/framework-impact.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const CORPUS_SEARCH = resolve(__dirname, '../../../../CORPUS/src/query/search.mjs');
+
+const GAP_QUERIES = {
+  soc2:                 'SOC 2 certification enterprise vendor compliance audit requirements',
+  mfa:                  'multi-factor authentication MFA enterprise security requirement',
+  cyber_insurance:      'cyber insurance startup enterprise coverage requirements',
+  incident_response:    'incident response plan enterprise vendor security assessment',
+  vendor_questionnaire: 'security questionnaire vendor assessment enterprise deal compliance',
+  edr:                  'endpoint detection response EDR enterprise security',
+  sso:                  'single sign-on SSO enterprise identity management',
+  dmarc:                'DMARC email authentication domain spoofing policy enforcement',
+  spf:                  'SPF email sender framework authentication domain security',
+  hipaa_security:       'HIPAA security rule health data compliance requirements',
+  pci_dss:              'PCI DSS payment card compliance security controls',
+  apra_prudential:      'APRA CPS 234 prudential information security Australia financial',
+  essential_eight:      'ACSC Essential Eight security maturity Australia government',
+  security_headers:     'HTTP security headers HSTS CSP web application enterprise',
+  staging_exposure:     'staging environment exposure subdomain attack surface vulnerability',
+  domain_breach:        'data breach credential exposure enterprise vendor risk',
+  tls_configuration:    'TLS SSL certificate configuration security audit',
+};
+
+function corpusSourceLabel(slug) {
+  const s = (slug ?? '').toLowerCase();
+  if (s.includes('vanta'))          return 'Vanta State of Trust 2024';
+  if (s.includes('gartner'))        return 'Gartner';
+  if (s.includes('fortinet'))       return 'Fortinet Threat Report 2025';
+  if (s.includes('drata'))          return 'Drata GRC Report 2025';
+  if (s.includes('market-research')) return 'B2B SaaS Market Research 2026';
+  if (s.includes('cisco'))          return 'Cisco';
+  if (s.includes('cloudflare'))     return 'Cloudflare';
+  if (s.includes('okta'))           return 'Okta';
+  return slug?.split('-').slice(0, 4).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') ?? 'Industry Report';
+}
+
+async function enrichGapsWithCorpus(gaps) {
+  const indexed = gaps.map((gap, i) => ({ gap, query: GAP_QUERIES[gap.gap_id], i }));
+  const queryable = indexed.filter(({ query }) => query);
+  if (queryable.length === 0) return gaps;
+
+  const { searchBatch } = await import(CORPUS_SEARCH);
+  const resultSets = await searchBatch(queryable.map(({ query }) => query), { topK: 3 });
+
+  const enriched = [...gaps];
+  queryable.forEach(({ gap, i }, qi) => {
+    const top = resultSets[qi].find(r => r.score > 0.3);
+    if (!top) return;
+    enriched[i] = {
+      ...gap,
+      evidence: [
+        ...gap.evidence,
+        { source: 'corpus', citation: `Retrieved from ${corpusSourceLabel(top.object_slug)} · CORPUS` }
+      ]
+    };
+  });
+  return enriched;
+}
 
 export async function runGapAnalysis(context, { session_id } = {}) {
   // 1. Find which gaps are triggered by the context
@@ -38,8 +99,12 @@ export async function runGapAnalysis(context, { session_id } = {}) {
       return gapObj;
     });
 
+  // Enrich gaps with CORPUS evidence (non-blocking, fails gracefully)
+  let finalGaps = gaps;
+  try { finalGaps = await enrichGapsWithCorpus(gaps); } catch { /* CORPUS unavailable */ }
+
   // 5. Compute trust score
-  const totalPenalty = gaps.reduce(
+  const totalPenalty = finalGaps.reduce(
     (sum, gap) => sum + gap.score_impact,
     0
   );
@@ -49,9 +114,9 @@ export async function runGapAnalysis(context, { session_id } = {}) {
   const readiness = trust_score >= 80 ? 'ready' : trust_score >= 50 ? 'partial' : 'not_ready';
 
   // 7. Select vendors for confirmed gaps
-  const vendors = selectVendors(gaps);
+  const vendors = selectVendors(finalGaps);
 
-  return { gaps, vendors, trust_score, readiness };
+  return { gaps: finalGaps, vendors, trust_score, readiness };
 }
 
 const DNS_GAPS        = new Set(['dmarc', 'spf']);
