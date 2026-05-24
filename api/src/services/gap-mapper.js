@@ -26,6 +26,14 @@ const GAP_QUERIES = {
   staging_exposure:     'staging environment exposure subdomain attack surface vulnerability',
   domain_breach:        'data breach credential exposure enterprise vendor risk',
   tls_configuration:    'TLS SSL certificate configuration security audit',
+  backup_dr:            'backup disaster recovery data protection business continuity',
+  founder_trust:        'founder trust leadership assessment investor due diligence',
+  ai_governance:        'AI governance risk compliance enterprise artificial intelligence policy',
+  data_privacy:         'data privacy GDPR Australian Privacy Act compliance startup',
+  penetration_testing:  'penetration testing vulnerability assessment security audit',
+  aws_program_eligibility: 'AWS partner program Activate credits ISV Accelerate Marketplace',
+  network_perimeter:    'network security perimeter firewall zero trust cloud',
+  waf:                  'web application firewall WAF DDoS protection API security',
 };
 
 function corpusSourceLabel(slug) {
