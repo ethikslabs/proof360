@@ -9,6 +9,7 @@
 
 import { GAP_DEFINITIONS, SEVERITY_WEIGHTS } from '../config/gaps.js';
 import { evaluateTrigger } from '../config/aws-programs.js';
+import { filterMicrosoftPrograms } from '../config/microsoft-programs.js';
 import { selectVendors } from './vendor-selector.js';
 import { VENDORS } from '../config/vendors.js';
 import { generateFrameworkImpact } from '../config/framework-impact.js';
@@ -354,7 +355,7 @@ function deriveConfidenceRibbon(recon_outputs) {
  * @param {{ signals: object[], recon_outputs: object[], session: object, gaps_config?: object[], vendors_config?: object, aws_programs: object[], gaps_db?: object[] }} input
  * @returns {{ derived_state: object }}
  */
-export function recompute({ signals, recon_outputs, session, gaps_config, vendors_config, aws_programs, gaps_db }) {
+export function recompute({ signals, recon_outputs, session, gaps_config, vendors_config, aws_programs, microsoft_programs, gaps_db }) {
   // 1. Build context from signals + recon_outputs
   const context = buildContext(signals, recon_outputs);
 
@@ -425,6 +426,7 @@ export function recompute({ signals, recon_outputs, session, gaps_config, vendor
   }
 
   const aws_programs_matched = filterAWSPrograms(aws_programs || [], signalsMap);
+  const microsoft_programs_matched = filterMicrosoftPrograms(microsoft_programs || [], signalsMap);
 
   const routingContext = { signals: signalsMap, tenant: null, session, derived_state: tier1 };
   const vendor_recommendations = buildVendorRecommendations(gaps, routingContext, vendors_config);
@@ -445,6 +447,7 @@ export function recompute({ signals, recon_outputs, session, gaps_config, vendor
       trust_score,
       vendor_recommendations,
       aws_programs: aws_programs_matched,
+      microsoft_programs: microsoft_programs_matched,
       engagement_router,
     },
   };

@@ -8,6 +8,7 @@ import { recompute } from '../services/recompute.js';
 import { GAP_DEFINITIONS } from '../config/gaps.js';
 import { VENDORS } from '../config/vendors.js';
 import { AWS_PROGRAMS } from '../config/aws-programs.js';
+import { MICROSOFT_PROGRAMS } from '../config/microsoft-programs.js';
 
 export async function resolveConflictHandler(request, reply) {
   const { id: sessionId } = request.params;
@@ -57,6 +58,7 @@ export async function resolveConflictHandler(request, reply) {
       gaps_config: GAP_DEFINITIONS,
       vendors_config: VENDORS,
       aws_programs: AWS_PROGRAMS,
+      microsoft_programs: MICROSOFT_PROGRAMS,
       gaps_db: gapsRes.rows,
     });
 

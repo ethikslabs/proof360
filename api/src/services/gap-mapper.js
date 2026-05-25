@@ -55,7 +55,7 @@ async function enrichGapsWithCorpus(gaps) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ queries: queryable.map(({ query }) => query), topK: 5 }),
-    signal: AbortSignal.timeout(10000),
+    signal: AbortSignal.timeout(3000),
   });
   if (!resp.ok) throw new Error(`CORPUS search ${resp.status}`);
   const resultSets = await resp.json();
