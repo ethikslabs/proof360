@@ -1,0 +1,5483 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Marketplace API",
+    "description": "OpenAPI specification: <a href=\"../_specs/cmp.yaml\" download><b>download</b></a>\n\n  This API is exposed by a gateway to the Ingram Micro Cloud platform's original\n  API. Its purpose is to make it easy and quick for resellers to onboard and\n  integrate with the platform using the\n  [REST](https://en.wikipedia.org/wiki/Representational_state_transfer)\n  interface. In addition to this API specification, use the following resources:\n\n  - [Sales scenarios](../examples/) for examples on selling common services.\n  - [Procedure guide](../howto/) for step-by-step instructions on the typical sales workflow.\n  - [Glossary](../glossary/) for definitions of terms.",
+    "version": "1.16"
+  },
+  "tags": [
+    {
+      "name": "User Authentication",
+      "description": "Enable users to get a bearer token to authenticate other API calls."
+    },
+    {
+      "name": "Customer Management",
+      "description": "Create, retrieve, and manage customers."
+    },
+    {
+      "name": "Reseller Management",
+      "description": "Retrieve resellers."
+    },
+    {
+      "name": "Product Catalog",
+      "description": "Retrieve products from the catalog."
+    },
+    {
+      "name": "Order Management",
+      "description": "Create, retrieve, and manage customer orders."
+    },
+    {
+      "name": "Subscription Management",
+      "description": "Retrieve and manage customer subscriptions."
+    },
+    {
+      "name": "Validation Management",
+      "description": "Enable resellers to validate product activation parameters before placeing an order for them."
+    },
+    {
+      "name": "Report Management",
+      "description": "Retrieve URLs of exported data rated reports for a specified period."
+    }
+  ],
+  "paths": {
+    "/customers": {
+      "get": {
+        "tags": [
+          "Customer Management"
+        ],
+        "summary": "Get a list of customers",
+        "description": "Get a list of customers and their basic details.",
+        "operationId": "getCustomers",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "Find customers that are similar to the provided name.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "Krauses Factory"
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "description": "Find customers that have a contact person with the provided email address.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "skipper@rhyta.com"
+          },
+          {
+            "name": "externalId",
+            "in": "query",
+            "description": "Find customers that have an external ID assigned equal to the provided ID.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "EXTERNAL-A1S2D3"
+          },
+          {
+            "name": "resellerId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "The number of items to skip before starting to collect the result set.",
+            "schema": {
+              "minimum": 0,
+              "type": "integer",
+              "format": "int64",
+              "default": 0
+            },
+            "example": 100
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "The number of items to return.",
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64",
+              "default": 10
+            },
+            "example": 20
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListCustomer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Customer Management"
+        ],
+        "summary": "Create a new customer",
+        "description": "Create a customer in the platform and associate it with the reseller that sends this request.",
+        "operationId": "createCustomer",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Customer"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Customer"
+                }
+              }
+            },
+            "links": {
+              "getCustomerById": {
+                "operationId": "getCustomerById",
+                "parameters": {
+                  "id": "$response.body#/data/id"
+                },
+                "description": "The **id** returned in the response can be used as the **id** parameter in **GET /customers/{id}**."
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/customers/{id}": {
+      "get": {
+        "tags": [
+          "Customer Management"
+        ],
+        "summary": "Get full details of a specific customer",
+        "description": "Get extended details about a specific customer in the platform.",
+        "operationId": "getCustomerById",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the customer to be processed by the request.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": 1000027
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Customer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Customer Management"
+        ],
+        "summary": "Update customer status and details",
+        "description": "Update details and status of the existing customer.",
+        "operationId": "updateCustomer",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the customer to be processed by the request.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": 1000027
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Customer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/orders/{id}": {
+      "get": {
+        "tags": [
+          "Order Management"
+        ],
+        "summary": "Get full details of a specific order",
+        "description": "Get extended details of a specific order.",
+        "operationId": "getOrderDetails",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "This is the ID of the order that must be processed by the request.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": 1000027
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetailed"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Order Management"
+        ],
+        "summary": "Update order properties and status",
+        "description": "Update existing order properties and status.",
+        "operationId": "updateOrder",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "This is the ID of the order that must be processed by the request.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": 1000027
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetailed"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/orders": {
+      "get": {
+        "tags": [
+          "Order Management"
+        ],
+        "summary": "Get a list of orders",
+        "description": "Get basic details of orders in the platform.",
+        "operationId": "getOrders",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerId",
+            "in": "query",
+            "description": "The ID of the customer for whom the order was placed.",
+            "schema": {
+              "type": "string"
+            },
+            "example": 1000001
+          },
+          {
+            "name": "subscriptionId",
+            "in": "query",
+            "description": "The ID of the subscription created from the order.",
+            "schema": {
+              "type": "string"
+            },
+            "example": 1000054
+          },
+          {
+            "name": "orderNumber",
+            "in": "query",
+            "description": "Order Number",
+            "schema": {
+              "type": "string"
+            },
+            "example": "SO000012"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "The order status that can be one of the following:\n          * `submitted`\n          * `processing`\n          * `error`\n          * `completed`\n          * `cancelled`",
+            "schema": {
+              "type": "string"
+            },
+            "example": "processing"
+          },
+          {
+            "name": "creationTimeFrom",
+            "in": "query",
+            "description": "This is the beginning of a specific period of time used to search for orders created during that same period.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "example": "2019-12-11T17:32:28+00:00"
+          },
+          {
+            "name": "creationTimeTo",
+            "in": "query",
+            "description": "This is the end of a specific period of time used to search for orders created during that same period.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "example": "2019-12-11T17:32:28+00:00"
+          },
+          {
+            "name": "statusCode",
+            "in": "query",
+            "description": "Internal status code of the order",
+            "schema": {
+              "type": "string"
+            },
+            "example": "CP"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "The number of items to skip before starting to collect the result set.",
+            "schema": {
+              "minimum": 0,
+              "type": "integer",
+              "format": "int64",
+              "default": 0
+            },
+            "example": 100
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "The number of items to return.",
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64",
+              "default": 10
+            },
+            "example": 20
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListOrder"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Order Management"
+        ],
+        "summary": "Create a new order",
+        "description": "Place an order for a set of products for a specific customer.",
+        "operationId": "createOrder",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderDetailed"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetailed"
+                }
+              }
+            },
+            "links": {
+              "getOrderDetails": {
+                "operationId": "getOrderDetails",
+                "parameters": {
+                  "id": "$response.body#/data/id"
+                },
+                "description": "The **id** returned in the response can be used as the **id** parameter in **GET /orders/{id}**."
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/orders/estimate": {
+      "post": {
+        "tags": [
+          "Order Management"
+        ],
+        "summary": "Estimate an order price",
+        "description": "Get estimated prices of an order.",
+        "operationId": "estimateOrder",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderDetailed"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetailed"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/products": {
+      "get": {
+        "tags": [
+          "Product Catalog"
+        ],
+        "summary": "Get a list of products from the product catalog",
+        "description": "Get a list of products available for the requester to sell or resell with details included.",
+        "operationId": "getCatalog",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "Product name",
+            "schema": {
+              "type": "string"
+            },
+            "example": "Office 365 E1 Enterprise"
+          },
+          {
+            "name": "serviceName",
+            "in": "query",
+            "description": "Service name",
+            "schema": {
+              "type": "string"
+            },
+            "example": "O365_APS2"
+          },
+          {
+            "name": "mpn",
+            "in": "query",
+            "description": "MPN value",
+            "schema": {
+              "type": "string"
+            },
+            "example": "d903a2db-bf6f-4434-83f1-21ba44017813_ANNUAL"
+          },
+          {
+            "name": "vendor",
+            "in": "query",
+            "description": "Manufacturer ID value",
+            "schema": {
+              "type": "string"
+            },
+            "example": "NewVendor1"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "The number of items to skip before starting to collect the result set.",
+            "schema": {
+              "minimum": 0,
+              "type": "integer",
+              "format": "int64",
+              "default": 0
+            },
+            "example": 100
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "The number of items to return.",
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64",
+              "default": 10
+            },
+            "example": 20
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListProduct"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/reports": {
+      "get": {
+        "tags": [
+          "Report Management"
+        ],
+        "summary": "Retrieve a list of exported reports",
+        "description": "Get a list of the reseller's rated data reports exported during the specified period.",
+        "operationId": "getReports",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "The name of the requested reports.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "Monthly Report"
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "description": "The format filter of the requested reports. Available types:\n          * `json`\n          * `xml`\n          * `csv`\n          * `xlsx`",
+            "schema": {
+              "type": "string"
+            },
+            "example": "xml"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "The status filter of the requested reports. Available types:\n          * `submitted`\n          * `processing`\n          * `completed`\n          * `error`",
+            "schema": {
+              "type": "string"
+            },
+            "example": "processing"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "The type filter of the requested reports. Available types:\n          * `periodic`\n          * `daily`\n          * `monthly`\n          * `onetime`\n          * `on_invoice`",
+            "schema": {
+              "type": "string"
+            },
+            "example": "periodic"
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "The first day of the requested period.",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "The last day of the requested period.",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "The number of items to skip before starting to collect the result set.",
+            "schema": {
+              "minimum": 0,
+              "type": "integer",
+              "format": "int64",
+              "default": 0
+            },
+            "example": 100
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "The number of items to return.",
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64",
+              "default": 10
+            },
+            "example": 20
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListReport"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Report Management"
+        ],
+        "summary": "Schedule a one-time report",
+        "description": "Schedule generation of a one-time report.",
+        "operationId": "createReport",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Report"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Report"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/reports/{reportId}": {
+      "get": {
+        "tags": [
+          "Report Management"
+        ],
+        "summary": "Get full details of a specific report",
+        "description": "Get extended details about a specific report in the platform.",
+        "operationId": "getReportById",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reportId",
+            "in": "path",
+            "description": "The ID of the report to be processed by the request.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "f40c942d-ebec-41b9-b604-5ed9ffb6d4f2"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Report"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/resellers/{id}/customers": {
+      "get": {
+        "tags": [
+          "Customer Management"
+        ],
+        "summary": "Get a list of customers for the specified reseller",
+        "description": "Get a list of customers and their basic details for the specified reseller.",
+        "operationId": "getResellerCustomers",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the reseller to be processed by the request.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": 1000027
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "Find customers that are similar to the provided name.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "Krauses Factory"
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "description": "Find customers that have a contact person with the provided email address.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "skipper@rhyta.com"
+          },
+          {
+            "name": "externalId",
+            "in": "query",
+            "description": "Find customers that have an external ID assigned equal to the provided ID.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "EXTERNAL-A1S2D3"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "The number of items to skip before starting to collect the result set.",
+            "schema": {
+              "minimum": 0,
+              "type": "integer",
+              "format": "int64",
+              "default": 0
+            },
+            "example": 100
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "The number of items to return.",
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64",
+              "default": 10
+            },
+            "example": 20
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListCustomer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Customer Management"
+        ],
+        "summary": "Create a new customer for the specified reseller",
+        "description": "Create a customer in the platform and associate it with the specified reseller.",
+        "operationId": "createCustomerForReseller",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the reseller to be processed by the request.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": 1000027
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Customer"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Customer"
+                }
+              }
+            },
+            "links": {
+              "getCustomerById": {
+                "operationId": "getCustomerById",
+                "parameters": {
+                  "id": "$response.body#/data/id"
+                },
+                "description": "The **id** returned in the response can be used as the **id** parameter in **GET /customers/{id}**."
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/resellers/{id}/orders": {
+      "get": {
+        "tags": [
+          "Order Management"
+        ],
+        "summary": "Get a list of orders for the specified reseller",
+        "description": "Get basic details of orders in the platform for the specified reseller.",
+        "operationId": "getResellerOrders",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the reseller to be processed by the request.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": 1000027
+          },
+          {
+            "name": "customerId",
+            "in": "query",
+            "description": "The ID of the customer for whom the order was placed.",
+            "schema": {
+              "type": "string"
+            },
+            "example": 1000001
+          },
+          {
+            "name": "subscriptionId",
+            "in": "query",
+            "description": "The ID of the subscription created from the order.",
+            "schema": {
+              "type": "string"
+            },
+            "example": 1000024
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "The order status that can be one of the following:\n* `submitted`\n* `processing`\n* `error`\n* `completed`\n* `cancelled`",
+            "schema": {
+              "type": "string"
+            },
+            "example": "processing"
+          },
+          {
+            "name": "creationTimeFrom",
+            "in": "query",
+            "description": "This is the beginning of a specific period of time used to search for orders created during that same period.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "example": "2019-12-11T17:32:28+00:00"
+          },
+          {
+            "name": "creationTimeTo",
+            "in": "query",
+            "description": "This is the end of a specific period of time used to search for orders created during that same period.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "example": "2019-12-11T17:32:28+00:00"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "The number of items to skip before starting to collect the result set.",
+            "schema": {
+              "minimum": 0,
+              "type": "integer",
+              "format": "int64",
+              "default": 0
+            },
+            "example": 100
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "The number of items to return.",
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64",
+              "default": 10
+            },
+            "example": 20
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListOrder"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/resellers": {
+      "get": {
+        "tags": [
+          "Reseller Management"
+        ],
+        "summary": "Get a list of resellers",
+        "description": "Get a list of resellers and their basic details.",
+        "operationId": "getResellers",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "Find resellers that are similar to the provided name.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "Krauses Factory"
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "description": "Find resellers that have a contact person with the provided email address.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "skipper@rhyta.com"
+          },
+          {
+            "name": "externalId",
+            "in": "query",
+            "description": "Find resellers that have an external ID assigned equal to the provided ID.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "EXTERNAL-A1S2D3"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "The number of items to skip before starting to collect the result set.",
+            "schema": {
+              "minimum": 0,
+              "type": "integer",
+              "format": "int64",
+              "default": 0
+            },
+            "example": 100
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "The number of items to return.",
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64",
+              "default": 10
+            },
+            "example": 20
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListReseller"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Reseller Management"
+        ],
+        "summary": "Create reseller",
+        "description": "Create reseller.",
+        "operationId": "createReseller",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Reseller"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reseller"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/resellers/{id}": {
+      "get": {
+        "tags": [
+          "Reseller Management"
+        ],
+        "summary": "Get full details of a specific reseller",
+        "description": "Get extended details about a specific reseller in the platform.",
+        "operationId": "getResellerCustomerById",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the reseller to be processed by the request.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": 1000027
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reseller"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Reseller Management"
+        ],
+        "summary": "Update reseller details",
+        "description": "Update details of the existing reseller.",
+        "operationId": "updateReseller",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the reseller to be processed by the request.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": 1000027
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResellerUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reseller"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/plans": {
+      "get": {
+        "tags": [
+          "Service Plan Management"
+        ],
+        "summary": "Get a list of service plans",
+        "description": "Get basic details of service plans in the platform.",
+        "operationId": "getServicePlans",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "The number of items to skip before starting to collect the result set.",
+            "schema": {
+              "minimum": 0,
+              "type": "integer",
+              "format": "int64",
+              "default": 0
+            },
+            "example": 100
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "The number of items to return.",
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64",
+              "default": 10
+            },
+            "example": 20
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListServicePlan"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/plans/{id}": {
+      "get": {
+        "tags": [
+          "Service Plan Management"
+        ],
+        "summary": "Get full details of a specific service plan with all possible switches",
+        "description": "Get extended details about a specific service plan with all possible switches in the platform.",
+        "operationId": "getServicePlanById",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "This is the ID of the service plan that must be processed by the request.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": 23
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServicePlanDetailed"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/subscriptions": {
+      "get": {
+        "tags": [
+          "Subscription Management"
+        ],
+        "summary": "Retrieve a list of subscriptions",
+        "description": "Get a list of subscriptions belonging to the customers of the reseller that sends the request.",
+        "operationId": "getSubscriptions",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerId",
+            "in": "query",
+            "description": "The ID of the subscription owner.",
+            "schema": {
+              "type": "string"
+            },
+            "example": 1000001
+          },
+          {
+            "name": "creationDateFrom",
+            "in": "query",
+            "description": "Find subscriptions that were created after specified date.",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2019-12-30"
+          },
+          {
+            "name": "creationDateTo",
+            "in": "query",
+            "description": "Find subscriptions that were created before specified date.",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2019-12-30"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "The Subscription status filter. Available statuses:\n          * `pending`\n          * `active`\n          * `hold`\n          * `terminated`\n          * `removed`",
+            "schema": {
+              "type": "string"
+            },
+            "example": "active"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "The number of items to skip before starting to collect the result set.",
+            "schema": {
+              "minimum": 0,
+              "type": "integer",
+              "format": "int64",
+              "default": 0
+            },
+            "example": 100
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "The number of items to return.",
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64",
+              "default": 10
+            },
+            "example": 20
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListSubscription"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/subscriptions/{id}": {
+      "get": {
+        "tags": [
+          "Subscription Management"
+        ],
+        "summary": "Get full details of a specific subscription",
+        "description": "Get extended details of a specific subscription from the platform.",
+        "operationId": "getSubscription",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "This is the ID of the subscription that must be processed by the request.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": 1000017
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionDetailed"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Subscription Management"
+        ],
+        "summary": "Update some of the subscription details.",
+        "description": "Update some of the subscription details.",
+        "operationId": "updateSubscription",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "This is the ID of the subscription that must be processed by the request.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": 1000017
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionDetailed"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/subscriptions/{id}/specialPricing": {
+      "post": {
+        "tags": [
+          "Subscription Management"
+        ],
+        "summary": "Update subscription pricing details",
+        "description": "Update some subscription pricing details",
+        "operationId": "updateSubscriptionSpecialPricing",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "This is the ID of the subscription that must be processed by the request.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": 1000017
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionUpdateSpecialPricing"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionDetailed"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/token": {
+      "post": {
+        "tags": [
+          "User Authentication"
+        ],
+        "summary": "Generate a token",
+        "description": "Generate an authentication token to be used in all other requests.",
+        "operationId": "generateAuthToken",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenInfo"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BasicAuth": []
+          }
+        ]
+      }
+    },
+    "/validation/parameters": {
+      "post": {
+        "tags": [
+          "Validation Management"
+        ],
+        "summary": "Validate product activation parameters",
+        "description": "Validate activation parameters for a set of products.",
+        "operationId": "validateParameters",
+        "parameters": [
+          {
+            "name": "X-Subscription-Key",
+            "in": "header",
+            "description": "The ID of your reseller's subscription on the API gateway that defines restrictions on your API calls.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParameterValidationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "The operation is completed successfully.",
+            "headers": {
+              "X-Correlation-ID": {
+                "description": "This correlates an API request with internal processes in the platform. Please send its value to the support team when you file an issue with a request.",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListParameterValidationResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Account": {
+        "required": [
+          "address",
+          "contactPersons",
+          "language",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "externalId": {
+            "type": "string",
+            "description": "The ID of the account in an external system that is integrated with the platform.",
+            "example": "EXTERNAL-A1S2D3"
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "description": "The dictionary of custom attributes"
+            },
+            "description": "The dictionary of custom attributes"
+          },
+          "status": {
+            "type": "string",
+            "description": "The status of the account in the platform:\n\n* pending: The account is added to the platform but is not verified yet.\n\n* active: The account is active in the platform and able to order\nproducts and services.\n\n* creditHold: The account is active in the platform, but not able\nto order additional products and services.  This is due to the account's\nunpaid outstanding balance for the consumed products and services.\n\n* adminHold: The account is not active in the platform and unable to\norder additional products and services. All account's services are\nsuspended. This is due to violations of terms of service or\nacceptable use policies.\n\n* cancelled: The account is not active in the platform, does not have access\nto the user panel, cannot purchase services, and all its services are stopped.\n\n* error: The account is not active in the platform, does not have access\nto the user panel, cannot purchase services. Please contact support to check\nthe problem.",
+            "default": "active",
+            "enum": [
+              "pending",
+              "active",
+              "creditHold",
+              "adminHold",
+              "cancelled",
+              "error"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the account's company",
+            "example": "Acme Inc."
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "contactPersons": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContactPerson"
+            }
+          },
+          "language": {
+            "type": "string",
+            "description": "The language for the account's notifications and the default\nlanguage for the user panel login"
+          },
+          "taxRegId": {
+            "type": "string",
+            "description": "The tax registration ID that is used by the platform in tax calculation and determining tax exemption.",
+            "example": "00-0000000"
+          }
+        },
+        "description": "A account representation that contains the basic information about the account such as identifier, name, type of the account, status, and billing mode."
+      },
+      "Address": {
+        "required": [
+          "city",
+          "countryCode",
+          "postalCode",
+          "streetAddress"
+        ],
+        "type": "object",
+        "properties": {
+          "streetAddress": {
+            "type": "string",
+            "description": "The street address.",
+            "example": "555 Main Street"
+          },
+          "addressExtension": {
+            "type": "string",
+            "description": "Secondary information in the address such as apartment or suite number.",
+            "example": "Suite 100"
+          },
+          "postalCode": {
+            "type": "string",
+            "description": "The postal code for the specified street address.",
+            "example": "92612"
+          },
+          "city": {
+            "type": "string",
+            "description": "The city of the postal address.",
+            "example": "Irvine"
+          },
+          "state": {
+            "type": "string",
+            "description": "The state (if applicable) of the city (mandatory for certain countries).",
+            "example": "CA"
+          },
+          "countryCode": {
+            "type": "string",
+            "description": "The two uppercase character country code (Alpha-2 code) as specified by [iso.3166-1](https://www.iso.org/obp/ui#search/code).",
+            "example": "US"
+          }
+        },
+        "description": "The postal address data of a account used in invoices and displayed when the account logs in to the user panels. As for cloud services, this information may be required to create a service."
+      },
+      "ContactPerson": {
+        "required": [
+          "email",
+          "firstName",
+          "lastName",
+          "phoneNumber",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "This defines the contact type.",
+            "default": "admin",
+            "enum": [
+              "admin",
+              "billing",
+              "technical"
+            ]
+          },
+          "firstName": {
+            "type": "string",
+            "description": "This is the first name of the contact.",
+            "example": "Jane"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "This is the last name of the contact.",
+            "example": "Doe"
+          },
+          "email": {
+            "type": "string",
+            "description": "This is the email address of the contact.",
+            "example": "jane.doe@email.com"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "description": "This is the phone number of the contact in ITU-T E.164 notation. Extension numbers may be added by adding a '#' at the end.",
+            "example": "81##18881234567#"
+          },
+          "login": {
+            "type": "string",
+            "description": "This is an optional parameter (only for the contactPerson of type ``admin``) used when you must\nhave a certain login name for a customer administrator\ninstead of an automatically generated one. The string must be compliant with the platform requirements.\nTypically, ``login`` must be not less than 5 characters and comply with the following regular expression:\n'^[A-Za-z0-9][A-Za-z0-9_.@-]{0,255}$'. It can also be an email address.",
+            "writeOnly": true,
+            "example": "someadmin@example.com"
+          },
+          "password": {
+            "type": "string",
+            "description": "This is a password assigned to the administrator login.\nThe password strength must comply with the quality level requirements in the platform. Typically, it must be\nat least 7-character length, including letters in upper and lower cases, digits, and special characters.",
+            "writeOnly": true,
+            "example": "Ecx$cvdazv"
+          }
+        },
+        "description": "Contact information about a physical person. This\ncan be used in notifications and displayed when the person logs in to the\nuser panels. When providing a service for a user, the respective cloud\napplication may require this data."
+      },
+      "Customer": {
+        "required": [
+          "address",
+          "contactPersons",
+          "language",
+          "name"
+        ],
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Account"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "readOnly": true
+              },
+              "externalId": {
+                "type": "string",
+                "description": "The ID of the account in an external system that is integrated with the platform.",
+                "example": "EXTERNAL-A1S2D3"
+              },
+              "attributes": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "description": "The dictionary of custom attributes"
+                },
+                "description": "The dictionary of custom attributes"
+              },
+              "status": {
+                "type": "string",
+                "description": "The status of the account in the platform:\n\n* pending: The account is added to the platform but is not verified yet.\n\n* active: The account is active in the platform and able to order\nproducts and services.\n\n* creditHold: The account is active in the platform, but not able\nto order additional products and services.  This is due to the account's\nunpaid outstanding balance for the consumed products and services.\n\n* adminHold: The account is not active in the platform and unable to\norder additional products and services. All account's services are\nsuspended. This is due to violations of terms of service or\nacceptable use policies.\n\n* cancelled: The account is not active in the platform, does not have access\nto the user panel, cannot purchase services, and all its services are stopped.\n\n* error: The account is not active in the platform, does not have access\nto the user panel, cannot purchase services. Please contact support to check\nthe problem.",
+                "default": "active",
+                "enum": [
+                  "pending",
+                  "active",
+                  "creditHold",
+                  "adminHold",
+                  "cancelled",
+                  "error"
+                ]
+              },
+              "name": {
+                "type": "string",
+                "description": "The name of the account's company",
+                "example": "Acme Inc."
+              },
+              "address": {
+                "$ref": "#/components/schemas/Address"
+              },
+              "contactPersons": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ContactPerson"
+                }
+              },
+              "language": {
+                "type": "string",
+                "description": "The language for the account's notifications and the default\nlanguage for the user panel login"
+              },
+              "taxRegId": {
+                "type": "string",
+                "description": "The tax registration ID that is used by the platform in tax calculation and determining tax exemption.",
+                "example": "00-0000000"
+              },
+              "resellerId": {
+                "type": "string",
+                "description": "The owner reseller id.",
+                "readOnly": true,
+                "example": "1000001"
+              }
+            }
+          }
+        ]
+      },
+      "Pagination": {
+        "required": [
+          "limit",
+          "offset",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "offset": {
+            "type": "integer",
+            "description": "The starting position in the dataset that is retrieved from the requested dataset.",
+            "format": "int32",
+            "example": 20
+          },
+          "limit": {
+            "type": "integer",
+            "description": "The number of records to display from the requested dataset.",
+            "format": "int32",
+            "example": 250
+          },
+          "total": {
+            "type": "integer",
+            "description": "The total number of records found in the requested dataset.",
+            "format": "int32",
+            "example": 3423
+          }
+        },
+        "description": "The information about the returned results, including the current position of the returned range (offset), total number of items in the returned range (limit), and total number of items in the whole collection (total)."
+      },
+      "ResultListCustomer": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Customer"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
+      "AccountUpdate": {
+        "type": "object",
+        "properties": {
+          "externalId": {
+            "type": "string",
+            "description": "The ID of the account in an external system that is integrated with the platform.",
+            "example": "EXTERNAL-A1S2D3"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the account's company",
+            "example": "Acme Inc."
+          },
+          "taxRegId": {
+            "type": "string",
+            "description": "The tax registration ID that is used by the platform in tax calculation and determining tax exemption.",
+            "example": "00-0000000"
+          },
+          "status": {
+            "type": "string",
+            "description": "The new status of the account. Supported statuses are:\n\n* active: The account is active in the platform and able to order\nproducts and services.\n\n* creditHold: The account is active in the platform, but not able\nto order additional products and services.  This is due to the account's\nunpaid outstanding balance for the consumed products and services.",
+            "enum": [
+              "pending",
+              "active",
+              "creditHold",
+              "adminHold",
+              "cancelled",
+              "error"
+            ]
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "contactPersons": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContactPerson"
+            }
+          }
+        },
+        "description": "The representation of a account's information that can be changed when updating the account."
+      },
+      "CustomerUpdate": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AccountUpdate"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "externalId": {
+                "type": "string",
+                "description": "The ID of the account in an external system that is integrated with the platform.",
+                "example": "EXTERNAL-A1S2D3"
+              },
+              "name": {
+                "type": "string",
+                "description": "The name of the account's company",
+                "example": "Acme Inc."
+              },
+              "taxRegId": {
+                "type": "string",
+                "description": "The tax registration ID that is used by the platform in tax calculation and determining tax exemption.",
+                "example": "00-0000000"
+              },
+              "status": {
+                "type": "string",
+                "description": "The new status of the account. Supported statuses are:\n\n* active: The account is active in the platform and able to order\nproducts and services.\n\n* creditHold: The account is active in the platform, but not able\nto order additional products and services.  This is due to the account's\nunpaid outstanding balance for the consumed products and services.",
+                "enum": [
+                  "pending",
+                  "active",
+                  "creditHold",
+                  "adminHold",
+                  "cancelled",
+                  "error"
+                ]
+              },
+              "address": {
+                "$ref": "#/components/schemas/Address"
+              },
+              "contactPersons": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ContactPerson"
+                }
+              },
+              "id": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "AlignExpirationDate": {
+        "type": "object",
+        "properties": {
+          "alignmentType": {
+            "type": "string",
+            "enum": [
+              "CO_TERM_ON_SUBSCRIPTION",
+              "MATCH_END_OF_CALENDAR_MONTH",
+              "CO_TERM_PARTIAL_UPGRADE"
+            ]
+          },
+          "subscriptionId": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "description": "Align expiration date with end of month or with existing subscription matched by subscription id"
+      },
+      "AlreadyAccountedTcvInfo": {
+        "required": [
+          "amount",
+          "currency"
+        ],
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "description": "The currency code.",
+            "example": "USD"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Amount of money.",
+            "example": "70.5"
+          }
+        },
+        "description": "A structure representing the atomic TCV information.",
+        "writeOnly": true
+      },
+      "BillingPeriod": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "The period duration type.",
+            "readOnly": true,
+            "example": "month",
+            "enum": [
+              "statement_day",
+              "month",
+              "year",
+              "unknown"
+            ]
+          },
+          "duration": {
+            "type": "integer",
+            "description": "The period duration.",
+            "format": "int32",
+            "readOnly": true
+          }
+        },
+        "description": "A structure representing billing period.",
+        "readOnly": true
+      },
+      "Discount": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "percent",
+            "enum": [
+              "percent",
+              "fixed",
+              "unknown"
+            ]
+          },
+          "value": {
+            "type": "string",
+            "example": "0.5"
+          },
+          "amount": {
+            "type": "string",
+            "example": "25.0"
+          },
+          "amountCode": {
+            "type": "string",
+            "example": "USD"
+          }
+        },
+        "description": "A structure representing the discount."
+      },
+      "Duration": {
+        "required": [
+          "duration",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Duration type",
+            "example": "month",
+            "enum": [
+              "day",
+              "month",
+              "year",
+              "statement_day",
+              "unknown"
+            ]
+          },
+          "duration": {
+            "type": "number",
+            "description": "Duration.",
+            "format": "double",
+            "example": 1.0
+          }
+        },
+        "description": "Duration of order detail"
+      },
+      "ExclusiveTaxAmount": {
+        "required": [
+          "amount",
+          "currency"
+        ],
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "description": "The currency code.",
+            "example": "USD"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Amount of money.",
+            "example": "70.5"
+          }
+        },
+        "description": "A structure representing the exclusive tax amount.",
+        "readOnly": true
+      },
+      "ExtendedCost": {
+        "required": [
+          "amount",
+          "currency"
+        ],
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "description": "The currency code.",
+            "example": "USD"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Amount of money.",
+            "example": "70.5"
+          }
+        },
+        "description": "A structure representing the vendor-rated extended cost.",
+        "writeOnly": true
+      },
+      "ExtendedPrice": {
+        "required": [
+          "amount",
+          "currency"
+        ],
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "description": "The currency code.",
+            "example": "USD"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Amount of money.",
+            "example": "70.5"
+          }
+        },
+        "description": "A structure representing the total calculated price.",
+        "readOnly": true
+      },
+      "OrderDealPrice": {
+        "required": [
+          "agreements",
+          "freezePrices"
+        ],
+        "type": "object",
+        "properties": {
+          "freezePrices": {
+            "type": "boolean",
+            "description": "Freeze prices.",
+            "example": true,
+            "default": false
+          },
+          "agreements": {
+            "type": "array",
+            "description": "Order product price/discount agreements.",
+            "items": {
+              "$ref": "#/components/schemas/OrderDealPriceAgreement"
+            }
+          }
+        },
+        "description": "A structure representing the product deal price. Can be used instead specialProviderCost and specialProviderPrice.",
+        "writeOnly": true
+      },
+      "OrderDealPriceAgreement": {
+        "type": "object",
+        "properties": {
+          "sellerId": {
+            "type": "string",
+            "description": "Seller account ID. The 'self' constant can be used as an actor account placeholder.",
+            "example": "1000003"
+          },
+          "buyerId": {
+            "type": "string",
+            "description": "Buyer account ID. The 'self' constant can be used as an actor account placeholder.",
+            "example": "1000005"
+          },
+          "prices": {
+            "type": "array",
+            "description": "Array of custom prices for product.",
+            "items": {
+              "$ref": "#/components/schemas/OrderDealPriceAgreementPrice"
+            }
+          },
+          "priceTerm": {
+            "$ref": "#/components/schemas/BillingPeriod"
+          },
+          "discounts": {
+            "type": "array",
+            "description": "Array of discount rules for product.",
+            "items": {
+              "$ref": "#/components/schemas/OrderDealPriceAgreementDiscount"
+            }
+          }
+        },
+        "description": "A structure representing agreement in deal price.",
+        "writeOnly": true
+      },
+      "OrderDealPriceAgreementDiscount": {
+        "required": [
+          "applicableTo",
+          "prices"
+        ],
+        "type": "object",
+        "properties": {
+          "applicableTo": {
+            "type": "array",
+            "description": "Applicability to order types.",
+            "example": "[renewal,sales]",
+            "items": {
+              "type": "string",
+              "description": "Applicability to order types.",
+              "example": "[renewal,sales]",
+              "enum": [
+                "SALES",
+                "RENEWAL",
+                "SWITCH_PLAN"
+              ]
+            }
+          },
+          "prices": {
+            "type": "array",
+            "description": "Discount prices.",
+            "items": {
+              "$ref": "#/components/schemas/OrderDealPriceAgreementPrice"
+            }
+          }
+        },
+        "description": "A structure representing discounts in agreement.",
+        "writeOnly": true
+      },
+      "OrderDealPriceAgreementPrice": {
+        "required": [
+          "amount",
+          "currency",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "description": "The currency code.",
+            "example": "USD"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Amount of money.",
+            "example": "70.5"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of deal price.",
+            "example": "recurring",
+            "enum": [
+              "TRANSFER",
+              "SETUP",
+              "RECURRING",
+              "RENEWAL",
+              "OVERUSE",
+              "setup",
+              "recurring",
+              "renewal"
+            ]
+          }
+        },
+        "description": "A structure representing the custom price of the product at which the product was ordered."
+      },
+      "OrderDetail": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Order detail type",
+            "example": "recurring",
+            "enum": [
+              "unknown",
+              "setup",
+              "setupRefund",
+              "switch",
+              "renew",
+              "renewRefund",
+              "transfer",
+              "transferRefund",
+              "recurring",
+              "recurringRefund",
+              "overuse",
+              "downgrade",
+              "discount",
+              "adjustment",
+              "cancellation",
+              "handlingFee",
+              "nonProvisioningItem",
+              "payment",
+              "refund",
+              "refundAdjustment",
+              "billPenalty",
+              "billRecord",
+              "resellerPayment",
+              "deposit"
+            ]
+          },
+          "mpn": {
+            "type": "string",
+            "description": "Manufacturer Part Number.",
+            "example": "d903a2db-bf6f-4434-83f1-21ba44017813_ANNUAL"
+          },
+          "productId": {
+            "type": "string",
+            "description": "Identifier of product in Product Catalog.",
+            "example": "PRD326576"
+          },
+          "duration": {
+            "$ref": "#/components/schemas/Duration"
+          },
+          "description": {
+            "type": "string",
+            "description": "Order detail description.",
+            "example": "Recurring for the product"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Quantity.",
+            "format": "double",
+            "example": 5.0
+          },
+          "unitPrice": {
+            "$ref": "#/components/schemas/UnitPrice"
+          },
+          "salesUnitPrice": {
+            "$ref": "#/components/schemas/UnitPrice"
+          },
+          "extendedPrice": {
+            "$ref": "#/components/schemas/ExtendedPrice"
+          },
+          "salesExtendedPrice": {
+            "$ref": "#/components/schemas/ExtendedPrice"
+          },
+          "discount": {
+            "$ref": "#/components/schemas/Discount"
+          },
+          "salesDiscount": {
+            "$ref": "#/components/schemas/Discount"
+          },
+          "taxAmount": {
+            "$ref": "#/components/schemas/TaxAmount"
+          },
+          "salesTaxAmount": {
+            "$ref": "#/components/schemas/TaxAmount"
+          },
+          "exclusiveTaxAmount": {
+            "$ref": "#/components/schemas/ExclusiveTaxAmount"
+          },
+          "salesExclusiveTaxAmount": {
+            "$ref": "#/components/schemas/ExclusiveTaxAmount"
+          },
+          "exchangeRate": {
+            "type": "number",
+            "description": "Currency exchange rate.",
+            "format": "double"
+          },
+          "exchangeTime": {
+            "type": "string",
+            "description": "Currency exchange time."
+          }
+        },
+        "description": "Order detail.",
+        "readOnly": true
+      },
+      "OrderDetailed": {
+        "required": [
+          "customerId",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "orderNumber": {
+            "type": "string",
+            "description": "Order Number.",
+            "readOnly": true,
+            "example": "SO000012"
+          },
+          "type": {
+            "type": "string",
+            "description": "The order type.",
+            "example": "sales",
+            "default": "sales",
+            "enum": [
+              "sales",
+              "change",
+              "renewal",
+              "cancellation",
+              "migration",
+              "unknown"
+            ]
+          },
+          "customerId": {
+            "type": "string"
+          },
+          "poNumber": {
+            "type": "string",
+            "description": "The purchase order number provided by the customer.",
+            "example": "PO1234"
+          },
+          "creationDate": {
+            "type": "string",
+            "description": "The date and time when the order was created in the platform.",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "provisioningDate": {
+            "type": "string",
+            "description": "The date and time when the order was provisioning in the platform.",
+            "format": "date-time",
+            "readOnly": true,
+            "example": "2021-10-14T17:46:10+00:00"
+          },
+          "status": {
+            "type": "string",
+            "description": "Possible order status:\n\n* submitted: The order is submitted and is awaiting for processing.\n* processing: The order is being fulfilled. This may take some time.\n* error: The order processing failed. More information can be\nfound in the reseller control panel.\n* completed: The order is completed.\n* cancelled: The order is cancelled.",
+            "readOnly": true,
+            "example": "submitted",
+            "default": "submitted",
+            "enum": [
+              "submitted",
+              "processing",
+              "error",
+              "completed",
+              "cancelled"
+            ]
+          },
+          "statusCode": {
+            "type": "string",
+            "description": "Internal status code of the order.",
+            "readOnly": true,
+            "example": "CP"
+          },
+          "total": {
+            "$ref": "#/components/schemas/TotalOrderPriceEstimation"
+          },
+          "details": {
+            "type": "array",
+            "readOnly": true,
+            "items": {
+              "$ref": "#/components/schemas/OrderDetail"
+            }
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "description": "The dictionary of custom attributes"
+            },
+            "description": "The dictionary of custom attributes"
+          },
+          "creditCheck": {
+            "type": "boolean",
+            "description": "Defines whether customer's credit should be checked on order processing.",
+            "readOnly": true,
+            "example": true
+          },
+          "autorenewal": {
+            "type": "boolean",
+            "description": "Migration order - subscription autorenewal flag",
+            "writeOnly": true,
+            "example": true
+          },
+          "startDate": {
+            "type": "string",
+            "description": "Migration order - subscription start date",
+            "format": "date",
+            "writeOnly": true
+          },
+          "migrationDate": {
+            "type": "string",
+            "description": "Migration order - migration date",
+            "format": "date",
+            "writeOnly": true
+          },
+          "expirationDate": {
+            "type": "string",
+            "description": "Migration order - subscription expiration date",
+            "format": "date",
+            "writeOnly": true
+          },
+          "lastBillingDate": {
+            "type": "string",
+            "description": "Migration order - last billing date",
+            "format": "date",
+            "readOnly": true
+          },
+          "nextBillingDate": {
+            "type": "string",
+            "description": "Migration order - next billing date",
+            "format": "date",
+            "readOnly": true
+          },
+          "migrationProgram": {
+            "type": "string",
+            "description": "Migration order - migration program",
+            "writeOnly": true,
+            "example": "count_migration_billing_period"
+          },
+          "planId": {
+            "type": "string",
+            "description": "Service plan id",
+            "writeOnly": true,
+            "example": "10005"
+          },
+          "subscriptionPeriod": {
+            "$ref": "#/components/schemas/OrderSubscriptionPeriod"
+          },
+          "scheduledOn": {
+            "type": "string",
+            "description": "Schedule on",
+            "writeOnly": true,
+            "example": "renewal"
+          },
+          "upgradeStartType": {
+            "type": "string",
+            "description": "Parameter to specify which start date is set for the new subscription period of subscription",
+            "writeOnly": true,
+            "example": "from_old_start_date"
+          },
+          "products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderLineProduct"
+            }
+          },
+          "subscriptionId": {
+            "type": "string",
+            "description": "Subscription id",
+            "example": "1000201"
+          },
+          "targetSubscriptionId": {
+            "type": "string",
+            "description": "Target subscription id",
+            "example": "1000202"
+          },
+          "billingModel": {
+            "type": "string",
+            "description": "Billing model. Possible values:\n\n* chargeBeforeBillingPeriod\n* chargeAfterBillingPeriod\n* chargeBeforeSubscriptionPeriod\n* chargeExternalRating",
+            "example": "chargeBeforeBillingPeriod"
+          },
+          "subscriptions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubscriptionTcvDetailsInfo"
+            }
+          },
+          "alignExpirationDate": {
+            "$ref": "#/components/schemas/AlignExpirationDate"
+          },
+          "placementType": {
+            "type": "string",
+            "description": "Order placement type",
+            "enum": [
+              "MOVE"
+            ]
+          },
+          "vendorBillingSettings": {
+            "$ref": "#/components/schemas/OrderVendorBillingSettings"
+          }
+        },
+        "description": "The representation of a specific order that contains high level data of a request to purchase one or more product items. In the platform, the order is extended with an array of *orderLineItem* objects that contain detailed information about each ordered product."
+      },
+      "OrderItemPrice": {
+        "required": [
+          "amount",
+          "currency"
+        ],
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "description": "The currency code.",
+            "example": "USD"
+          },
+          "amount": {
+            "type": "string",
+            "description": "The item price (product quantity * product price).",
+            "example": "70.5"
+          }
+        },
+        "description": "A structure representing the ordered item (one or more products) price.",
+        "readOnly": true
+      },
+      "OrderLineProduct": {
+        "type": "object",
+        "properties": {
+          "mpn": {
+            "type": "string",
+            "description": "Manufacturer Part Number.",
+            "example": "d903a2db-bf6f-4434-83f1-21ba44017813_ANNUAL"
+          },
+          "vendor": {
+            "type": "string",
+            "description": "Manufacturer ID.",
+            "example": "NewVendor1"
+          },
+          "id": {
+            "type": "string"
+          },
+          "billingPeriod": {
+            "$ref": "#/components/schemas/Period"
+          },
+          "subscriptionPeriod": {
+            "$ref": "#/components/schemas/Period"
+          },
+          "newMPN": {
+            "type": "string"
+          },
+          "newId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "description": "The product name.",
+            "readOnly": true,
+            "example": "Office 365 Enterprise E1"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "The number of ordered product items.",
+            "format": "double",
+            "example": 10
+          },
+          "extendedPrice": {
+            "$ref": "#/components/schemas/OrderItemPrice"
+          },
+          "specialPrice": {
+            "$ref": "#/components/schemas/OrderSpecialPrice"
+          },
+          "specialCost": {
+            "$ref": "#/components/schemas/OrderSpecialCost"
+          },
+          "specialProviderCost": {
+            "$ref": "#/components/schemas/SpecialProviderCost"
+          },
+          "deals": {
+            "$ref": "#/components/schemas/OrderDealPrice"
+          },
+          "subscriptionId": {
+            "type": "string"
+          },
+          "targetSubscriptionId": {
+            "type": "string"
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ParameterValue"
+            }
+          },
+          "tcvs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TcvProductInfo"
+            }
+          },
+          "newProductId": {
+            "type": "string",
+            "description": "Id of a product created during partial upgrade.",
+            "example": "sku-CSA-0II8MXB"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of order placement, returned during partial upgrade.",
+            "example": "MOVE",
+            "enum": [
+              "CREATE",
+              "RENEW",
+              "CANCEL",
+              "UPGRADE",
+              "CHANGE_PLAN_PERIOD",
+              "TRANSFER",
+              "STOP_SERVICE",
+              "DESTROY_SERVICE",
+              "ONE_TIME_FEE",
+              "BILLING_SUBSCRIPTION",
+              "VENDOR_RATED_DATA",
+              "MIGRATION",
+              "MOVE"
+            ]
+          },
+          "newSubscription": {
+            "$ref": "#/components/schemas/TargetSubscriptionInfo"
+          },
+          "margins": {
+            "$ref": "#/components/schemas/OrderMargin"
+          },
+          "vendorRatedExtendedCost": {
+            "$ref": "#/components/schemas/ExtendedCost"
+          },
+          "vendorDiscounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderVendorDiscountAgreement"
+            }
+          },
+          "vendorAlreadyAccountedTcvs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderVendorAlreadyAccountedTcv"
+            }
+          }
+        },
+        "description": "A list of products"
+      },
+      "OrderMargin": {
+        "required": [
+          "priceModel",
+          "rates",
+          "totalRate"
+        ],
+        "type": "object",
+        "properties": {
+          "priceModel": {
+            "type": "string",
+            "description": "Price model. Possible values:\n\n* MSRP\n* COS",
+            "enum": [
+              "MSRP",
+              "COS",
+              "UNKNOWN"
+            ]
+          },
+          "totalRate": {
+            "$ref": "#/components/schemas/OrderMarginRate"
+          },
+          "rates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderMarginRateInfo"
+            }
+          },
+          "attributes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderMarginAttribute"
+            }
+          }
+        },
+        "description": "A structure representing the margin for a product.",
+        "writeOnly": true
+      },
+      "OrderMarginAttribute": {
+        "type": "object",
+        "properties": {
+          "attribute": {
+            "type": "string",
+            "description": "Margin attribute name.",
+            "example": "attribute-name"
+          },
+          "attributeValue": {
+            "type": "string",
+            "description": "Margin attribute value",
+            "example": "attribute-value"
+          },
+          "totalMargin": {
+            "type": "string",
+            "description": "Total margin.",
+            "example": "30"
+          },
+          "resellerMargin": {
+            "type": "string",
+            "description": "Reseller margin.",
+            "example": "10"
+          }
+        },
+        "description": "A structure representing the margin attribute.",
+        "writeOnly": true
+      },
+      "OrderMarginRate": {
+        "required": [
+          "new",
+          "original"
+        ],
+        "type": "object",
+        "properties": {
+          "original": {
+            "type": "string",
+            "description": "Original margin rate.",
+            "example": "15"
+          },
+          "new": {
+            "type": "string",
+            "description": "Effective margin rate.",
+            "example": "10"
+          }
+        },
+        "description": "A structure representing the margin rate.",
+        "writeOnly": true
+      },
+      "OrderMarginRateInfo": {
+        "type": "object",
+        "properties": {
+          "sellerId": {
+            "type": "string",
+            "description": "Seller account ID. The 'self' constant can be used as an actor account placeholder.",
+            "example": "1000003"
+          },
+          "buyerId": {
+            "type": "string",
+            "description": "Buyer account ID. The 'self' constant can be used as an actor account placeholder.",
+            "example": "1000005"
+          },
+          "rate": {
+            "$ref": "#/components/schemas/OrderMarginRate"
+          }
+        },
+        "description": "A structure representing the margin level.",
+        "writeOnly": true,
+        "example": 3
+      },
+      "OrderPriceTier": {
+        "required": [
+          "amount",
+          "lowerLimit"
+        ],
+        "type": "object",
+        "properties": {
+          "lowerLimit": {
+            "type": "string",
+            "description": "Lower limit.",
+            "example": "10"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Amount of money.",
+            "example": "70.5"
+          }
+        },
+        "description": "A structure representing the price tier for spot pricing products with tier-based sales model."
+      },
+      "OrderSpecialCost": {
+        "required": [
+          "amount",
+          "currency"
+        ],
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "description": "The currency code.",
+            "example": "USD"
+          },
+          "amount": {
+            "type": "string",
+            "description": "The cost of one item.",
+            "example": "70.5"
+          }
+        },
+        "description": "A structure representing the product special cost. Cannot be used with dealPrice.",
+        "writeOnly": true
+      },
+      "OrderSpecialPrice": {
+        "required": [
+          "amount",
+          "currency"
+        ],
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "description": "The currency code.",
+            "example": "USD"
+          },
+          "amount": {
+            "type": "string",
+            "description": "The price of one item.",
+            "example": "70.5"
+          },
+          "priceTiers": {
+            "type": "array",
+            "description": "List of tiers for tier-priced products",
+            "items": {
+              "$ref": "#/components/schemas/OrderPriceTier"
+            }
+          }
+        },
+        "description": "A structure representing the product special price. Cannot be used with dealPrice.",
+        "writeOnly": true
+      },
+      "OrderSubscriptionPeriod": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "The period duration type.",
+            "example": "month",
+            "enum": [
+              "day",
+              "month",
+              "year",
+              "statement_day",
+              "unknown"
+            ]
+          },
+          "duration": {
+            "type": "integer",
+            "description": "The period duration.",
+            "format": "int32"
+          }
+        },
+        "description": "A structure representing subscription period of an order being saved.",
+        "writeOnly": true
+      },
+      "OrderVendorAlreadyAccountedTcv": {
+        "type": "object",
+        "properties": {
+          "sellerId": {
+            "type": "string",
+            "description": "Seller account ID. The 'self' constant can be used as an actor account placeholder.",
+            "example": "1000003"
+          },
+          "buyerId": {
+            "type": "string",
+            "description": "Buyer account ID. The 'self' constant can be used as an actor account placeholder.",
+            "example": "1000005"
+          },
+          "tcv": {
+            "$ref": "#/components/schemas/AlreadyAccountedTcvInfo"
+          }
+        },
+        "description": "Vendor-specific already accounted TCVs"
+      },
+      "OrderVendorBillingSettings": {
+        "required": [
+          "vendorBillingPeriod"
+        ],
+        "type": "object",
+        "properties": {
+          "vendorBillingPeriod": {
+            "$ref": "#/components/schemas/Period"
+          }
+        },
+        "description": "A structure representing vendor's billing settings.",
+        "writeOnly": true
+      },
+      "OrderVendorDiscount": {
+        "type": "object",
+        "properties": {
+          "discountPercentage": {
+            "type": "string",
+            "description": "Discount percentage.",
+            "example": "25"
+          },
+          "discountedUnitPrice": {
+            "type": "string",
+            "description": "The discount per unit price if no percentage is specified.",
+            "example": "70.5"
+          },
+          "effectiveStartDate": {
+            "type": "string",
+            "description": "The start date of the discounted period.",
+            "format": "date"
+          },
+          "effectiveEndDate": {
+            "type": "string",
+            "description": "The end date of the discounted period.",
+            "format": "date"
+          },
+          "totalAbsDiscount": {
+            "$ref": "#/components/schemas/OrderVendorDiscountTotal"
+          },
+          "validity": {
+            "$ref": "#/components/schemas/Period"
+          }
+        },
+        "description": "A structure representing the discount entity.",
+        "writeOnly": true
+      },
+      "OrderVendorDiscountAgreement": {
+        "type": "object",
+        "properties": {
+          "sellerId": {
+            "type": "string",
+            "description": "Seller account ID. The 'self' constant can be used as an actor account placeholder.",
+            "example": "1000003"
+          },
+          "buyerId": {
+            "type": "string",
+            "description": "Buyer account ID. The 'self' constant can be used as an actor account placeholder.",
+            "example": "1000005"
+          },
+          "discount": {
+            "$ref": "#/components/schemas/OrderVendorDiscount"
+          }
+        },
+        "description": "A structure representing a vendor-specific discount for a product.",
+        "writeOnly": true
+      },
+      "OrderVendorDiscountTotal": {
+        "required": [
+          "frequency",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "frequency": {
+            "type": "string",
+            "description": "The discount frequency.",
+            "enum": [
+              "DAILY",
+              "MONTHLY",
+              "YEARLY"
+            ]
+          },
+          "value": {
+            "type": "string",
+            "description": "The amount of absolute discount.",
+            "example": "300"
+          }
+        },
+        "description": "A structure representing the absolute total discount.",
+        "writeOnly": true
+      },
+      "ParameterValue": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of a specific product parameter.",
+            "example": "domain"
+          },
+          "value": {
+            "type": "object",
+            "description": "The value of a specific product parameter, which type can be one of: string, number, boolean, object, or array.",
+            "example": "example.org"
+          },
+          "structured_value": {
+            "type": "object",
+            "description": "The value of a parameter with custom data type"
+          }
+        },
+        "description": "The structure representing a product activation parameter.",
+        "example": {
+          "name": "domain",
+          "value": "example.com"
+        }
+      },
+      "Period": {
+        "required": [
+          "duration",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "The billing period duration type.",
+            "example": "month",
+            "enum": [
+              "day",
+              "month",
+              "year",
+              "statement_day",
+              "unknown"
+            ]
+          },
+          "duration": {
+            "type": "integer",
+            "description": "The billing period duration.",
+            "format": "int32"
+          }
+        },
+        "description": "Subscription period of the service plan."
+      },
+      "Price": {
+        "required": [
+          "amount",
+          "currency"
+        ],
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "description": "The currency code.",
+            "example": "USD"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Amount of money.",
+            "example": "70.5"
+          }
+        },
+        "description": "A structure representing the price.",
+        "readOnly": true
+      },
+      "SpecialProviderCost": {
+        "required": [
+          "amount",
+          "currency"
+        ],
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "description": "The currency code.",
+            "example": "USD"
+          },
+          "amount": {
+            "type": "string",
+            "description": "The cost of one item.",
+            "example": "70.5"
+          }
+        },
+        "description": "A structure representing the product cost for the sales vendor.",
+        "writeOnly": true
+      },
+      "SubscriptionTcvDetailsInfo": {
+        "type": "object",
+        "properties": {
+          "planId": {
+            "type": "string",
+            "description": "Service plan id",
+            "readOnly": true,
+            "example": "10005"
+          },
+          "alignedExpirationDate": {
+            "type": "string",
+            "description": "Aligned Expiration Date",
+            "readOnly": true,
+            "example": "2023-11-30"
+          },
+          "tcvs": {
+            "type": "array",
+            "description": "The total contract values and costs for the billing period for each level of the vendors chain.",
+            "readOnly": true,
+            "items": {
+              "$ref": "#/components/schemas/TcvDetailInfo"
+            }
+          }
+        },
+        "description": "List of the subscriptions tcv."
+      },
+      "TargetSubscriptionInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "New subscription id.",
+            "format": "int64",
+            "example": 1000083
+          },
+          "coterming": {
+            "type": "boolean"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of subscription.",
+            "example": "NEW",
+            "enum": [
+              "NEW",
+              "EXISTING"
+            ]
+          }
+        },
+        "description": "Information about new subscription after partial upgrade change order."
+      },
+      "TaxAmount": {
+        "required": [
+          "amount",
+          "currency"
+        ],
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "description": "The currency code.",
+            "example": "USD"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Amount of money.",
+            "example": "70.5"
+          }
+        },
+        "description": "A structure representing the tax amount.",
+        "readOnly": true
+      },
+      "TcvDetailInfo": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "$ref": "#/components/schemas/Price"
+          },
+          "discTotal": {
+            "$ref": "#/components/schemas/Price"
+          },
+          "effectiveTotal": {
+            "$ref": "#/components/schemas/Price"
+          },
+          "sellerId": {
+            "type": "integer",
+            "description": "Seller account ID.",
+            "format": "int32",
+            "example": 1000003
+          },
+          "buyerId": {
+            "type": "integer",
+            "description": "Buyer account ID.",
+            "format": "int32",
+            "example": 1000005
+          },
+          "startDate": {
+            "type": "string",
+            "description": "The start date of the subscription period for which the total contract values are calculated.",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "description": "The end date of the subscription period for which the total contract values are calculated.",
+            "format": "date-time"
+          },
+          "planPeriod": {
+            "$ref": "#/components/schemas/TcvInfo"
+          }
+        },
+        "description": "The total contract values and costs for the billing period for each level of the vendors chain.",
+        "readOnly": true
+      },
+      "TcvInfo": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "$ref": "#/components/schemas/Price"
+          },
+          "discTotal": {
+            "$ref": "#/components/schemas/Price"
+          },
+          "effectiveTotal": {
+            "$ref": "#/components/schemas/Price"
+          }
+        },
+        "description": "The end date of the subscription period for which the total contract values are calculated."
+      },
+      "TcvProductInfo": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "$ref": "#/components/schemas/Price"
+          },
+          "discTotal": {
+            "$ref": "#/components/schemas/Price"
+          },
+          "effectiveTotal": {
+            "$ref": "#/components/schemas/Price"
+          },
+          "sellerId": {
+            "type": "integer",
+            "description": "Seller account ID.",
+            "format": "int32",
+            "example": 1000003
+          },
+          "buyerId": {
+            "type": "integer",
+            "description": "Buyer account ID.",
+            "format": "int32",
+            "example": 1000005
+          }
+        },
+        "description": "Product TCV and costs."
+      },
+      "TotalOrderPriceEstimation": {
+        "required": [
+          "amount",
+          "currency"
+        ],
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "description": "The currency code to be used for charging.",
+            "example": "USD"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Amount of order.",
+            "example": "70.5"
+          }
+        },
+        "description": "A structure representing the order total price estimation.",
+        "readOnly": true
+      },
+      "UnitPrice": {
+        "required": [
+          "amount",
+          "currency"
+        ],
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "description": "The currency code.",
+            "example": "USD"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Amount of money.",
+            "example": "70.5"
+          },
+          "priceTiers": {
+            "type": "array",
+            "description": "List of tiers for tier-priced products",
+            "items": {
+              "$ref": "#/components/schemas/OrderPriceTier"
+            }
+          }
+        },
+        "description": "A structure representing the unit price of the product at which the product was ordered."
+      },
+      "Order": {
+        "required": [
+          "customerId",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "orderNumber": {
+            "type": "string",
+            "description": "Order Number.",
+            "readOnly": true,
+            "example": "SO000012"
+          },
+          "type": {
+            "type": "string",
+            "description": "The order type.",
+            "example": "sales",
+            "default": "sales",
+            "enum": [
+              "sales",
+              "change",
+              "renewal",
+              "cancellation",
+              "migration",
+              "unknown"
+            ]
+          },
+          "customerId": {
+            "type": "string"
+          },
+          "poNumber": {
+            "type": "string",
+            "description": "The purchase order number provided by the customer.",
+            "example": "PO1234"
+          },
+          "creationDate": {
+            "type": "string",
+            "description": "The date and time when the order was created in the platform.",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "provisioningDate": {
+            "type": "string",
+            "description": "The date and time when the order was provisioning in the platform.",
+            "format": "date-time",
+            "readOnly": true,
+            "example": "2021-10-14T17:46:10+00:00"
+          },
+          "status": {
+            "type": "string",
+            "description": "Possible order status:\n\n* submitted: The order is submitted and is awaiting for processing.\n* processing: The order is being fulfilled. This may take some time.\n* error: The order processing failed. More information can be\nfound in the reseller control panel.\n* completed: The order is completed.\n* cancelled: The order is cancelled.",
+            "readOnly": true,
+            "example": "submitted",
+            "default": "submitted",
+            "enum": [
+              "submitted",
+              "processing",
+              "error",
+              "completed",
+              "cancelled"
+            ]
+          },
+          "statusCode": {
+            "type": "string",
+            "description": "Internal status code of the order.",
+            "readOnly": true,
+            "example": "CP"
+          },
+          "total": {
+            "$ref": "#/components/schemas/TotalOrderPriceEstimation"
+          },
+          "details": {
+            "type": "array",
+            "readOnly": true,
+            "items": {
+              "$ref": "#/components/schemas/OrderDetail"
+            }
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "description": "The dictionary of custom attributes"
+            },
+            "description": "The dictionary of custom attributes"
+          },
+          "creditCheck": {
+            "type": "boolean",
+            "description": "Defines whether customer's credit should be checked on order processing.",
+            "readOnly": true,
+            "example": true
+          },
+          "autorenewal": {
+            "type": "boolean",
+            "description": "Migration order - subscription autorenewal flag",
+            "writeOnly": true,
+            "example": true
+          },
+          "startDate": {
+            "type": "string",
+            "description": "Migration order - subscription start date",
+            "format": "date",
+            "writeOnly": true
+          },
+          "migrationDate": {
+            "type": "string",
+            "description": "Migration order - migration date",
+            "format": "date",
+            "writeOnly": true
+          },
+          "expirationDate": {
+            "type": "string",
+            "description": "Migration order - subscription expiration date",
+            "format": "date",
+            "writeOnly": true
+          },
+          "lastBillingDate": {
+            "type": "string",
+            "description": "Migration order - last billing date",
+            "format": "date",
+            "readOnly": true
+          },
+          "nextBillingDate": {
+            "type": "string",
+            "description": "Migration order - next billing date",
+            "format": "date",
+            "readOnly": true
+          },
+          "migrationProgram": {
+            "type": "string",
+            "description": "Migration order - migration program",
+            "writeOnly": true,
+            "example": "count_migration_billing_period"
+          },
+          "planId": {
+            "type": "string",
+            "description": "Service plan id",
+            "writeOnly": true,
+            "example": "10005"
+          },
+          "subscriptionPeriod": {
+            "$ref": "#/components/schemas/OrderSubscriptionPeriod"
+          },
+          "scheduledOn": {
+            "type": "string",
+            "description": "Schedule on",
+            "writeOnly": true,
+            "example": "renewal"
+          },
+          "upgradeStartType": {
+            "type": "string",
+            "description": "Parameter to specify which start date is set for the new subscription period of subscription",
+            "writeOnly": true,
+            "example": "from_old_start_date"
+          }
+        },
+        "description": "The representation of a specific order that contains high level data of a request to purchase one or more product items. In the platform, the order is extended with an array of *orderLineItem* objects that contain detailed information about each ordered product."
+      },
+      "ResultListOrder": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Order"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
+      "OrderUpdate": {
+        "type": "object",
+        "properties": {
+          "creditCheck": {
+            "type": "boolean",
+            "description": "Defines whether customer's credit should be checked on order processing.",
+            "example": true
+          },
+          "statusCode": {
+            "type": "string",
+            "description": "Internal status code of the order.",
+            "example": "CL"
+          }
+        },
+        "description": "Parameters to update in order"
+      },
+      "Coterming": {
+        "type": "object",
+        "properties": {
+          "required": {
+            "type": "string",
+            "enum": [
+              "MANDATORY",
+              "ALLOWED",
+              "RESTRICTED"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "SUBSCRIPTION",
+              "END_OF_MONTH"
+            ]
+          }
+        }
+      },
+      "DependsOnItem": {
+        "type": "object",
+        "properties": {
+          "mpn": {
+            "type": "string",
+            "description": "Manufacturer Part Number.",
+            "example": "d903a2db-bf6f-4434-83f1-21ba44017813_ANNUAL"
+          },
+          "id": {
+            "type": "string"
+          }
+        },
+        "description": "Other products that must be included in the subscription when ordering a specific product. If a product that other products depend on was not included in the order request, it will be added by the platform."
+      },
+      "Product": {
+        "type": "object",
+        "properties": {
+          "mpn": {
+            "type": "string",
+            "description": "Manufacturer Part Number.",
+            "example": "d903a2db-bf6f-4434-83f1-21ba44017813_ANNUAL"
+          },
+          "vendor": {
+            "type": "string",
+            "description": "Manufacturer ID",
+            "example": "NewVendor1"
+          },
+          "id": {
+            "type": "string"
+          },
+          "serviceName": {
+            "type": "string",
+            "description": "The service name.",
+            "example": "O365_APS"
+          },
+          "name": {
+            "type": "string",
+            "description": "The product name.",
+            "example": "Office 365 Enterprise E1"
+          },
+          "minimumQuantity": {
+            "type": "string",
+            "description": "The minimum number of the product items that must be in a subscription.",
+            "example": "1"
+          },
+          "maximumQuantity": {
+            "type": "string",
+            "description": "The maximum quantity of the product items that can be in a subscription.",
+            "example": "100"
+          },
+          "prices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductPrice"
+            }
+          },
+          "costs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductPrice"
+            }
+          },
+          "billingPeriod": {
+            "$ref": "#/components/schemas/Period"
+          },
+          "subscriptionPeriod": {
+            "$ref": "#/components/schemas/Period"
+          },
+          "billingModel": {
+            "type": "string",
+            "description": "Billing model. Possible values:\n\n* chargeBeforeBillingPeriod\n* chargeAfterBillingPeriod\n* chargeBeforeSubscriptionPeriod\n* chargeExternalRating",
+            "enum": [
+              "chargeBeforeBillingPeriod",
+              "chargeAfterBillingPeriod",
+              "chargeBeforeSubscriptionPeriod",
+              "chargeExternalRating",
+              "unknown"
+            ]
+          },
+          "dependsOn": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DependsOnItem"
+            }
+          },
+          "coterming": {
+            "$ref": "#/components/schemas/Coterming"
+          }
+        },
+        "description": "The representation of a specific product for sale."
+      },
+      "ProductPrice": {
+        "required": [
+          "amount",
+          "currency"
+        ],
+        "type": "object",
+        "description": "A structure representing the product price.",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Price"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "description": "The currency code.",
+                "example": "USD"
+              },
+              "amount": {
+                "type": "string",
+                "description": "Amount of money.",
+                "example": "70.5"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "recurring",
+                  "setup",
+                  "overuse"
+                ]
+              },
+              "model": {
+                "type": "string",
+                "enum": [
+                  "FLAT",
+                  "TIERED",
+                  "VOLUME_SUBSCRIPTION",
+                  "VOLUME_ORDER",
+                  "VOLUME_RESOURCE_AGGREGATED"
+                ]
+              },
+              "lowerLimit": {
+                "type": "number",
+                "format": "double"
+              }
+            }
+          }
+        ]
+      },
+      "ResultListProduct": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Product"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
+      "Report": {
+        "required": [
+          "name",
+          "startDate"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The report id.",
+            "format": "uuid",
+            "readOnly": true,
+            "example": "f40c942d-ebec-41b9-b604-5ed9ffb6d4f2"
+          },
+          "name": {
+            "type": "string",
+            "description": "The preconfigured report name as defined in the platform.",
+            "example": "Daily report"
+          },
+          "customizationName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "description": "The report generation status.",
+            "readOnly": true,
+            "example": "completed",
+            "enum": [
+              "submitted",
+              "processing",
+              "error",
+              "completed",
+              "unknown"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "description": "The report generation type.",
+            "readOnly": true,
+            "example": "onetime",
+            "enum": [
+              "periodic",
+              "daily",
+              "monthly",
+              "onetime",
+              "on_invoice",
+              "unknown"
+            ]
+          },
+          "format": {
+            "type": "string",
+            "description": "The report file format.",
+            "example": "json",
+            "enum": [
+              "csv",
+              "xml",
+              "xlsx",
+              "json",
+              "unknown"
+            ]
+          },
+          "creationDate": {
+            "type": "string",
+            "description": "The report file creation date and time.",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "startDate": {
+            "type": "string",
+            "description": "The report period start date and time.",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "description": "The report period end date and time.",
+            "format": "date-time"
+          },
+          "downloadUrl": {
+            "type": "string",
+            "description": "The URL of a specific report file.",
+            "example": "https://report-storage1.blob.core.windows.net/rdecontainer/Customer1.e1c8dd2f-31aa-4dd4-9642-29d945ede12d.2019-11-21.14-02-20.551+0100.json?sig=4JbyvWJAUwwN7Rip5kNjInP6Qa6B1HGjPzSWdSkQl%2BBg%3D&api-version=2016-05-31&st=2019-11-21T12%3A52%3A20Z&se=2020-02-19T12%3A52%3A20Z&sv=2016-05-31&sp=rwd&sr=b"
+          }
+        },
+        "description": "A report generated and exported during a specific period."
+      },
+      "ResultListReport": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Report"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
+      "Reseller": {
+        "required": [
+          "address",
+          "contactPersons",
+          "currency",
+          "language",
+          "name"
+        ],
+        "type": "object",
+        "description": "The extended representation of a specific reseller with additional arrays of addresses and contacts, the preferred language to use for this reseller, and the currency this reseller will use.",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Account"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "readOnly": true
+              },
+              "externalId": {
+                "type": "string",
+                "description": "The ID of the account in an external system that is integrated with the platform.",
+                "example": "EXTERNAL-A1S2D3"
+              },
+              "attributes": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "description": "The dictionary of custom attributes"
+                },
+                "description": "The dictionary of custom attributes"
+              },
+              "status": {
+                "type": "string",
+                "description": "The status of the account in the platform:\n\n* pending: The account is added to the platform but is not verified yet.\n\n* active: The account is active in the platform and able to order\nproducts and services.\n\n* creditHold: The account is active in the platform, but not able\nto order additional products and services.  This is due to the account's\nunpaid outstanding balance for the consumed products and services.\n\n* adminHold: The account is not active in the platform and unable to\norder additional products and services. All account's services are\nsuspended. This is due to violations of terms of service or\nacceptable use policies.\n\n* cancelled: The account is not active in the platform, does not have access\nto the user panel, cannot purchase services, and all its services are stopped.\n\n* error: The account is not active in the platform, does not have access\nto the user panel, cannot purchase services. Please contact support to check\nthe problem.",
+                "default": "active",
+                "enum": [
+                  "pending",
+                  "active",
+                  "creditHold",
+                  "adminHold",
+                  "cancelled",
+                  "error"
+                ]
+              },
+              "name": {
+                "type": "string",
+                "description": "The name of the account's company",
+                "example": "Acme Inc."
+              },
+              "address": {
+                "$ref": "#/components/schemas/Address"
+              },
+              "contactPersons": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ContactPerson"
+                }
+              },
+              "language": {
+                "type": "string",
+                "description": "The language for the account's notifications and the default\nlanguage for the user panel login"
+              },
+              "taxRegId": {
+                "type": "string",
+                "description": "The tax registration ID that is used by the platform in tax calculation and determining tax exemption.",
+                "example": "00-0000000"
+              },
+              "currency": {
+                "type": "string",
+                "description": "Reseller currency",
+                "example": "USD"
+              },
+              "taxationProviderName": {
+                "type": "string",
+                "description": "Reseller taxation engine name",
+                "example": "Vertex"
+              },
+              "customerClass": {
+                "type": "string",
+                "description": "Reseller customer class",
+                "example": "Default"
+              }
+            }
+          }
+        ]
+      },
+      "ResultListReseller": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Reseller"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
+      "ResellerUpdate": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AccountUpdate"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "externalId": {
+                "type": "string",
+                "description": "The ID of the account in an external system that is integrated with the platform.",
+                "example": "EXTERNAL-A1S2D3"
+              },
+              "name": {
+                "type": "string",
+                "description": "The name of the account's company",
+                "example": "Acme Inc."
+              },
+              "taxRegId": {
+                "type": "string",
+                "description": "The tax registration ID that is used by the platform in tax calculation and determining tax exemption.",
+                "example": "00-0000000"
+              },
+              "status": {
+                "type": "string",
+                "description": "The new status of the account. Supported statuses are:\n\n* active: The account is active in the platform and able to order\nproducts and services.\n\n* creditHold: The account is active in the platform, but not able\nto order additional products and services.  This is due to the account's\nunpaid outstanding balance for the consumed products and services.",
+                "enum": [
+                  "pending",
+                  "active",
+                  "creditHold",
+                  "adminHold",
+                  "cancelled",
+                  "error"
+                ]
+              },
+              "address": {
+                "$ref": "#/components/schemas/Address"
+              },
+              "contactPersons": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ContactPerson"
+                }
+              },
+              "id": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "ResultListServicePlan": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServicePlan"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
+      "ServicePlan": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the service plan.",
+            "readOnly": true
+          },
+          "shortDescription": {
+            "type": "string",
+            "description": "The short description of the service plan.",
+            "readOnly": true
+          },
+          "longDescription": {
+            "type": "string",
+            "description": "The long description of the service plan.",
+            "readOnly": true
+          },
+          "published": {
+            "type": "boolean",
+            "description": "The long description of the service plan.",
+            "readOnly": true
+          },
+          "subscriptionPeriods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubscriptionPeriod"
+            }
+          },
+          "billingPeriod": {
+            "$ref": "#/components/schemas/BillingPeriod"
+          },
+          "billingModel": {
+            "type": "string",
+            "description": "The billing model of the service plan.",
+            "readOnly": true,
+            "enum": [
+              "chargeBeforeBillingPeriod",
+              "chargeAfterBillingPeriod",
+              "chargeBeforeSubscriptionPeriod",
+              "chargeExternalRating",
+              "unknown"
+            ]
+          }
+        },
+        "description": "The representation of a specific service plan"
+      },
+      "SubscriptionPeriod": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "The period duration type.",
+            "example": "month",
+            "enum": [
+              "day",
+              "month",
+              "year",
+              "statement_day",
+              "unknown"
+            ]
+          },
+          "duration": {
+            "type": "integer",
+            "description": "The period duration.",
+            "format": "int32"
+          },
+          "trial": {
+            "type": "boolean",
+            "description": "Flag for trial subscription."
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Flag for active subscription."
+          }
+        },
+        "description": "A structure representing subscription period.",
+        "readOnly": true
+      },
+      "ServicePlanDetailed": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the service plan.",
+            "readOnly": true
+          },
+          "shortDescription": {
+            "type": "string",
+            "description": "The short description of the service plan.",
+            "readOnly": true
+          },
+          "longDescription": {
+            "type": "string",
+            "description": "The long description of the service plan.",
+            "readOnly": true
+          },
+          "published": {
+            "type": "boolean",
+            "description": "The long description of the service plan.",
+            "readOnly": true
+          },
+          "subscriptionPeriods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubscriptionPeriod"
+            }
+          },
+          "billingPeriod": {
+            "$ref": "#/components/schemas/BillingPeriod"
+          },
+          "billingModel": {
+            "type": "string",
+            "description": "The billing model of the service plan.",
+            "readOnly": true,
+            "enum": [
+              "chargeBeforeBillingPeriod",
+              "chargeAfterBillingPeriod",
+              "chargeBeforeSubscriptionPeriod",
+              "chargeExternalRating",
+              "unknown"
+            ]
+          },
+          "planSwitches": {
+            "type": "array",
+            "description": "A collection of possible upgrades from the specified plan period",
+            "readOnly": true,
+            "items": {
+              "$ref": "#/components/schemas/ServicePlanSubscriptionPeriodSwitch"
+            }
+          }
+        },
+        "description": "The representation of a specific service plan"
+      },
+      "ServicePlanSubscriptionPeriodSwitch": {
+        "type": "object",
+        "properties": {
+          "planId": {
+            "type": "integer",
+            "description": "ID of the target plan to switch to.",
+            "format": "int32",
+            "readOnly": true
+          },
+          "subscriptionPeriod": {
+            "$ref": "#/components/schemas/Period"
+          },
+          "billingPolicy": {
+            "type": "string",
+            "description": "A billing term to be used to charge a customer.",
+            "readOnly": true,
+            "enum": [
+              "period_change",
+              "prorate_starting_new_subscription_period",
+              "prorate_keeping_exp_date",
+              "prorate_refund",
+              "no_refund",
+              "no_refund_with_full_refund_period",
+              "prorate_refund_with_full_refund_period",
+              "unknown"
+            ]
+          },
+          "whenEffective": {
+            "type": "string",
+            "description": "An applicability delay. A switch can be applied either on an order date or next billing date or subscription period end.",
+            "readOnly": true,
+            "enum": [
+              "immediately",
+              "next_billing_period",
+              "next_subscription_period",
+              "unknown"
+            ]
+          },
+          "sourceSubscriptionPeriod": {
+            "$ref": "#/components/schemas/Period"
+          }
+        },
+        "description": "The representation of a possible upgrade for Service Plan",
+        "readOnly": true
+      },
+      "ResultListSubscription": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Subscription"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
+      "Subscription": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the subscription.",
+            "readOnly": true,
+            "example": "Microsoft Office 365 E1"
+          },
+          "customerId": {
+            "type": "string",
+            "readOnly": true
+          },
+          "status": {
+            "type": "string",
+            "description": "The subscription status can be one of:\n\n* pending: The subscription and its services are not ready yet.\n* active: The subscription and its services are active.\n* hold: The subscription is on hold and its services are disabled.\n* terminated: The subscription is terminated and its services are disabled.\n* removed: The scubscription is terminated and its services are deprovisioned.",
+            "enum": [
+              "pending",
+              "active",
+              "hold",
+              "terminated",
+              "removed",
+              "unknown"
+            ]
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "description": "The dictionary of custom attributes"
+            },
+            "description": "The dictionary of custom attributes"
+          },
+          "renewalStatus": {
+            "type": "boolean",
+            "description": "The status displays will subscription automatically renew or not.",
+            "readOnly": true,
+            "example": true
+          },
+          "creationDate": {
+            "type": "string",
+            "description": "The subscription creation date.",
+            "format": "date",
+            "example": "2020-02-12"
+          },
+          "renewalDate": {
+            "type": "string",
+            "description": "The date when the subscription is up for renewal.",
+            "format": "date",
+            "example": "2020-06-12"
+          },
+          "lastModifiedDate": {
+            "type": "string",
+            "description": "The date when the subscription was last modified.",
+            "format": "date",
+            "example": "2020-06-12"
+          },
+          "expirationDate": {
+            "type": "string",
+            "description": "The date when the subscription expires.",
+            "format": "date",
+            "example": "2020-06-12"
+          },
+          "billingModel": {
+            "type": "string",
+            "description": "Billing model. Possible values:\n\n* chargeBeforeBillingPeriod\n* chargeAfterBillingPeriod\n* chargeBeforeSubscriptionPeriod\n* chargeExternalRating",
+            "example": "chargeBeforeBillingPeriod"
+          },
+          "billingPeriod": {
+            "$ref": "#/components/schemas/Period"
+          },
+          "subscriptionPeriod": {
+            "$ref": "#/components/schemas/Period"
+          }
+        },
+        "description": "The representation of a specific subscription created when an order to a product is processed."
+      },
+      "FulfilmentParameterValue": {
+        "required": [
+          "name",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of a specific fulfillment parameter.",
+            "example": "domain"
+          },
+          "value": {
+            "type": "object",
+            "description": "The value of a specific fulfillment parameter, which type can be one of: string, number, boolean, object, or array.",
+            "example": "example.org"
+          },
+          "structured_value": {
+            "type": "object"
+          }
+        },
+        "description": "The structure representing a fulfillment parameter.",
+        "example": {
+          "name": "domain",
+          "value": "example.com"
+        }
+      },
+      "OrderParameterValue": {
+        "required": [
+          "name",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of a specific order parameter.",
+            "example": "domain"
+          },
+          "value": {
+            "type": "object",
+            "description": "The value of a specific order parameter, which type can be one of: string, number, boolean, object, or array.",
+            "example": "example.org"
+          },
+          "structured_value": {
+            "type": "object"
+          }
+        },
+        "description": "The structure representing an order parameter.",
+        "example": {
+          "name": "domain",
+          "value": "example.com"
+        }
+      },
+      "SubscriptionDetailed": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the subscription.",
+            "readOnly": true,
+            "example": "Microsoft Office 365 E1"
+          },
+          "customerId": {
+            "type": "string",
+            "readOnly": true
+          },
+          "status": {
+            "type": "string",
+            "description": "The subscription status can be one of:\n\n* pending: The subscription and its services are not ready yet.\n* active: The subscription and its services are active.\n* hold: The subscription is on hold and its services are disabled.\n* terminated: The subscription is terminated and its services are disabled.\n* removed: The scubscription is terminated and its services are deprovisioned.",
+            "enum": [
+              "pending",
+              "active",
+              "hold",
+              "terminated",
+              "removed",
+              "unknown"
+            ]
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "description": "The dictionary of custom attributes"
+            },
+            "description": "The dictionary of custom attributes"
+          },
+          "renewalStatus": {
+            "type": "boolean",
+            "description": "The status displays will subscription automatically renew or not.",
+            "readOnly": true,
+            "example": true
+          },
+          "creationDate": {
+            "type": "string",
+            "description": "The subscription creation date.",
+            "format": "date",
+            "example": "2020-02-12"
+          },
+          "renewalDate": {
+            "type": "string",
+            "description": "The date when the subscription is up for renewal.",
+            "format": "date",
+            "example": "2020-06-12"
+          },
+          "lastModifiedDate": {
+            "type": "string",
+            "description": "The date when the subscription was last modified.",
+            "format": "date",
+            "example": "2020-06-12"
+          },
+          "expirationDate": {
+            "type": "string",
+            "description": "The date when the subscription expires.",
+            "format": "date",
+            "example": "2020-06-12"
+          },
+          "billingModel": {
+            "type": "string",
+            "description": "Billing model. Possible values:\n\n* chargeBeforeBillingPeriod\n* chargeAfterBillingPeriod\n* chargeBeforeSubscriptionPeriod\n* chargeExternalRating",
+            "example": "chargeBeforeBillingPeriod"
+          },
+          "billingPeriod": {
+            "$ref": "#/components/schemas/Period"
+          },
+          "subscriptionPeriod": {
+            "$ref": "#/components/schemas/Period"
+          },
+          "totalPrice": {
+            "$ref": "#/components/schemas/TotalPrice"
+          },
+          "totalSubscriptionPrice": {
+            "$ref": "#/components/schemas/TotalSubscriptionPrice"
+          },
+          "totalSubscriptionCost": {
+            "$ref": "#/components/schemas/TotalSubscriptionCost"
+          },
+          "totalSubscriptionProviderCost": {
+            "$ref": "#/components/schemas/TotalSubscriptionProviderCost"
+          },
+          "products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubscriptionProduct"
+            }
+          },
+          "orderParameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderParameterValue"
+            }
+          },
+          "fulfillmentParameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FulfilmentParameterValue"
+            }
+          },
+          "planId": {
+            "type": "integer",
+            "description": "Service plan id",
+            "format": "int32",
+            "readOnly": true,
+            "example": 10005
+          }
+        },
+        "description": "The representation of a specific subscription created when an order to a product is processed."
+      },
+      "SubscriptionProduct": {
+        "type": "object",
+        "properties": {
+          "mpn": {
+            "type": "string",
+            "description": "Manufacturer Part Number.",
+            "example": "d903a2db-bf6f-4434-83f1-21ba44017813_ANNUAL"
+          },
+          "vendor": {
+            "type": "string",
+            "description": "Manufacturer ID.",
+            "example": "NewVendor1"
+          },
+          "id": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "description": "The limit on the number of the product items that the subscriber can consume.",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string",
+            "description": "The product name.",
+            "example": "Office 365 E1"
+          },
+          "unitPrice": {
+            "$ref": "#/components/schemas/UnitPrice"
+          },
+          "unitCost": {
+            "$ref": "#/components/schemas/UnitCost"
+          },
+          "unitProviderCost": {
+            "$ref": "#/components/schemas/UnitProviderCost"
+          },
+          "extendedPrice": {
+            "$ref": "#/components/schemas/ExtendedPrice"
+          },
+          "vendorSubscriptionId": {
+            "type": "string",
+            "description": "Vendor subscription ID.",
+            "example": "10294983919204"
+          },
+          "totalSubscriptionPrice": {
+            "$ref": "#/components/schemas/TotalSubscriptionPrice"
+          },
+          "totalSubscriptionCost": {
+            "$ref": "#/components/schemas/TotalSubscriptionCost"
+          },
+          "totalSubscriptionProviderCost": {
+            "$ref": "#/components/schemas/TotalSubscriptionProviderCost"
+          }
+        },
+        "description": "The structure representing an individual product item in the subscription. A subscription may have one or more such items."
+      },
+      "TotalPrice": {
+        "required": [
+          "amount",
+          "currency"
+        ],
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "description": "The currency code.",
+            "example": "USD"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Amount of money.",
+            "example": "70.5"
+          }
+        },
+        "description": "A structure representing the total price of the subscription that is being charged each billing interval.",
+        "readOnly": true
+      },
+      "TotalSubscriptionCost": {
+        "required": [
+          "amount",
+          "currency"
+        ],
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "description": "The currency code.",
+            "example": "USD"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Amount of money.",
+            "example": "70.5"
+          }
+        },
+        "description": "A structure representing the total subscription cost of the subscription.",
+        "readOnly": true
+      },
+      "TotalSubscriptionPrice": {
+        "required": [
+          "amount",
+          "currency"
+        ],
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "description": "The currency code.",
+            "example": "USD"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Amount of money.",
+            "example": "70.5"
+          }
+        },
+        "description": "A structure representing the total subscription price of the subscription.",
+        "readOnly": true
+      },
+      "TotalSubscriptionProviderCost": {
+        "required": [
+          "amount",
+          "currency"
+        ],
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "description": "The currency code.",
+            "example": "USD"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Amount of money.",
+            "example": "70.5"
+          }
+        },
+        "description": "A structure representing the total subscription provider cost of the subscription.",
+        "readOnly": true
+      },
+      "UnitCost": {
+        "required": [
+          "amount",
+          "currency"
+        ],
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "description": "The currency code.",
+            "example": "USD"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Amount of money.",
+            "example": "70.5"
+          },
+          "priceTiers": {
+            "type": "array",
+            "description": "List of tiers for tier-priced products",
+            "items": {
+              "$ref": "#/components/schemas/OrderPriceTier"
+            }
+          }
+        },
+        "description": "A structure representing the unit cost of the product at which the product was ordered."
+      },
+      "UnitProviderCost": {
+        "required": [
+          "amount",
+          "currency"
+        ],
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "description": "The currency code.",
+            "example": "USD"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Amount of money.",
+            "example": "70.5"
+          }
+        },
+        "description": "A structure representing the unit provider cost of the product at which the product was ordered."
+      },
+      "SubscriptionProductUpdate": {
+        "type": "object",
+        "properties": {
+          "mpn": {
+            "type": "string",
+            "description": "Manufacturer Part Number.",
+            "example": "d903a2db-bf6f-4434-83f1-21ba44017813_ANNUAL"
+          },
+          "id": {
+            "type": "string"
+          },
+          "unitPrice": {
+            "$ref": "#/components/schemas/UnitPrice"
+          },
+          "unitCost": {
+            "$ref": "#/components/schemas/UnitCost"
+          },
+          "unitProviderCost": {
+            "$ref": "#/components/schemas/UnitProviderCost"
+          }
+        },
+        "description": "The structure representing an individual product item in the subscription. A subscription may have one or more such items."
+      },
+      "SubscriptionUpdate": {
+        "type": "object",
+        "properties": {
+          "products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubscriptionProductUpdate"
+            }
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "description": "The dictionary of custom attributes"
+            },
+            "description": "The dictionary of custom attributes"
+          },
+          "renewalStatus": {
+            "type": "boolean",
+            "description": "Status that displays whether the subscription will be automatically renewed or not."
+          }
+        },
+        "description": "The representation of a subscription update request"
+      },
+      "SubscriptionUpdateSpecialPricing": {
+        "required": [
+          "products"
+        ],
+        "type": "object",
+        "properties": {
+          "products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubscriptionProductUpdate"
+            }
+          }
+        },
+        "description": "The representation of a subscription prices update request."
+      },
+      "TokenRequest": {
+        "type": "object",
+        "properties": {
+          "marketplace": {
+            "type": "string",
+            "description": "The marketplace code.",
+            "example": "us"
+          }
+        },
+        "description": "Token request body with specific parameters."
+      },
+      "TokenInfo": {
+        "required": [
+          "expiresInSeconds",
+          "token"
+        ],
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "This is a JWT signed token.",
+            "readOnly": true,
+            "example": "eyJwcmluY2lwYWwiOiJwaGlsaXAucG9sbGljaDM3NzVAUE9BTU4tZDIyOWNkY2EyMWZlLmFxYS5pbnQuem9uZSIsImJ3SWQiOiJuOGtvZXluczNrYTZyOSIsImpTZXNzaW9uQ29va2llIjoiSlNFU1NJT05JRD1hbXhyMW9BTXdFdy0yeXhWd1N4R0d3TlMxX3NBOTNhSDd1U1pFNXhBLjEwLjMxLjI0LjE5NzsgcGF0aD0vOyBIdHRwT25seTsgU2VjdXJlIiwiYWxnIjoiSFMzODQifQ"
+          },
+          "expiresInSeconds": {
+            "type": "integer",
+            "description": "The period of time the token will be valid for, in seconds.",
+            "format": "int64",
+            "readOnly": true,
+            "example": 1500
+          }
+        },
+        "description": "After the authentication requester is recognized, the platform returns a\nJWT signed and encrypted token. This token must be used for the bearer\nauthentication in all other API calls."
+      },
+      "Choice": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "The text description of parameter value."
+          },
+          "value": {
+            "type": "string",
+            "description": "The value of current parameter."
+          },
+          "default": {
+            "type": "boolean",
+            "description": "The indicator of value."
+          }
+        },
+        "description": "The one of allowed parameter values."
+      },
+      "Parameter": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of a product activation parameter.",
+            "example": "domain"
+          },
+          "result": {
+            "type": "string",
+            "description": "The parameter validation result status:\n* `success`\n* `error`",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "description": "The parameter specific validation message.",
+            "example": "Domain available to purchase."
+          },
+          "value": {
+            "type": "string",
+            "description": "The parameter value."
+          },
+          "valueError": {
+            "type": "string",
+            "description": "The optional description of validation error."
+          },
+          "valueChoices": {
+            "type": "array",
+            "description": "The list of allowed parameter values.",
+            "items": {
+              "$ref": "#/components/schemas/Choice"
+            }
+          },
+          "phase": {
+            "type": "string",
+            "description": "The phase of validation."
+          },
+          "reconciliation": {
+            "type": "boolean",
+            "description": "The indicator of reconciliation."
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of parameter."
+          },
+          "structured_value": {
+            "type": "object",
+            "description": "The parameter value for non-plain parameters."
+          }
+        }
+      },
+      "ParameterValidationResult": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "mpn": {
+            "type": "string",
+            "description": "Manufacturer Part Number.",
+            "example": "d903a2db-bf6f-4434-83f1-21ba44017813_ANNUAL"
+          },
+          "vendor": {
+            "type": "string",
+            "description": "Manufacturer ID.",
+            "example": "NewVendor1"
+          },
+          "billingPeriod": {
+            "$ref": "#/components/schemas/Period"
+          },
+          "subscriptionPeriod": {
+            "$ref": "#/components/schemas/Period"
+          },
+          "draftRequestId": {
+            "type": "string",
+            "description": "Validation request identifier."
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Parameter"
+            }
+          }
+        },
+        "description": "The result of validation of the product specific activation parameters."
+      },
+      "ResultListParameterValidationResult": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ParameterValidationResult"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
+      "ParameterValidationRequest": {
+        "required": [
+          "customerId",
+          "products"
+        ],
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "string",
+            "description": "The ID of the customer that will receive the product or services.",
+            "example": "1000027"
+          },
+          "type": {
+            "type": "string",
+            "description": "The order type.",
+            "example": "sales",
+            "default": "sales",
+            "enum": [
+              "sales",
+              "change",
+              "renewal",
+              "cancellation",
+              "migration",
+              "unknown"
+            ]
+          },
+          "products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductWithParameters"
+            }
+          }
+        },
+        "description": "List of product specific activation parameters."
+      },
+      "ProductWithParameters": {
+        "required": [
+          "parameters"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "mpn": {
+            "type": "string",
+            "description": "Manufacturer Part Number.",
+            "example": "d903a2db-bf6f-4434-83f1-21ba44017813_ANNUAL"
+          },
+          "vendor": {
+            "type": "string",
+            "description": "Manufacturer ID.",
+            "example": "NewVendor1"
+          },
+          "billingPeriod": {
+            "$ref": "#/components/schemas/Period"
+          },
+          "subscriptionPeriod": {
+            "$ref": "#/components/schemas/Period"
+          },
+          "quantity": {
+            "type": "integer",
+            "description": "Product quantity.",
+            "format": "int32"
+          },
+          "draftRequestId": {
+            "type": "string",
+            "description": "Draft request ID.",
+            "example": "11ad4cec-9b55-497d-8c5a-874b33c59f6c"
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ParameterValue"
+            }
+          }
+        },
+        "description": "The structure representing an individual product parameter."
+      }
+    },
+    "securitySchemes": {
+      "BasicAuth": {
+        "type": "http",
+        "description": "Basic authentication is a simple authentication scheme built into the\n        HTTP protocol. The client sends HTTP requests with the `Authorization`\n        header that contains the word Basic followed by a space and a\n        base64-encoded string username:password.",
+        "scheme": "basic"
+      },
+      "BearerAuth": {
+        "type": "http",
+        "description": "Bearer authentication (also called token authentication) is an HTTP\n        authentication scheme that involves security tokens called bearer\n        tokens. The name \"Bearer authentication\" can be understood as \"give\n        access to the bearer of this token.\" The bearer token is a cryptic\n        string, usually generated by the server in response to a login request.\n        The client must send this token in the `Authorization` header when\n        making requests to protected resources.",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

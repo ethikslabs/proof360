@@ -1,61 +1,131 @@
+import { useState } from 'react';
 import { tokens, PERSONA, personaColor } from '../../tokens.js';
 
-// Persona names that can appear in body text
 const INLINE_PERSONAS = [
   { pattern: /\bSophia\b/g,   persona: 'sofia'    },
   { pattern: /\bLeonardo\b/g, persona: 'leonardo' },
   { pattern: /\bEdison\b/g,   persona: 'edison'   },
 ];
 
-// Split content into text segments and persona-name spans
-function parseContent(content, theme) {
+function parseContent(content) {
   if (!content) return [content];
-
-  // Build a single combined regex with named groups
   const combined = new RegExp(
-    INLINE_PERSONAS.map(p => `(${p.pattern.source})`).join('|'),
-    'g'
+    INLINE_PERSONAS.map(p => `(${p.pattern.source})`).join('|'), 'g'
   );
-
   const parts = [];
   let last = 0;
   let match;
-
   while ((match = combined.exec(content)) !== null) {
     if (match.index > last) parts.push(content.slice(last, match.index));
-
-    const matchedName = match[0];
-    const persona = INLINE_PERSONAS.find(p =>
-      new RegExp(p.pattern.source).test(matchedName)
-    );
-    parts.push({ name: matchedName, persona: persona?.persona });
-    last = match.index + matchedName.length;
+    const entry = INLINE_PERSONAS.find(p => new RegExp(p.pattern.source).test(match[0]));
+    parts.push({ name: match[0], persona: entry?.persona });
+    last = match.index + match[0].length;
   }
-
   if (last < content.length) parts.push(content.slice(last));
   return parts;
 }
 
-function RichContent({ content, theme, tk }) {
-  const parts = parseContent(content, theme);
+function PersonaTag({ name, persona, theme, tk, onPersonaRef }) {
+  const [hovered, setHovered] = useState(false);
+  const color = personaColor(persona, theme);
+  const meta = PERSONA[persona];
+
+  return (
+    <span style={{ position: 'relative', display: 'inline-block' }}>
+      <span
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        onClick={() => onPersonaRef?.(meta?.label || name)}
+        style={{
+          color, fontWeight: 650,
+          borderBottom: `1.5px solid ${color}60`,
+          paddingBottom: 1,
+          cursor: 'pointer',
+          transition: 'opacity 0.15s',
+          opacity: hovered ? 0.75 : 1,
+        }}
+      >{name}</span>
+
+      {hovered && meta && (
+        <span style={{
+          position: 'absolute',
+          bottom: 'calc(100% + 8px)',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 200,
+          pointerEvents: 'none',
+          minWidth: 200,
+        }}>
+          {/* Arrow */}
+          <span style={{
+            position: 'absolute', bottom: -5, left: '50%',
+            transform: 'translateX(-50%)',
+            width: 10, height: 10,
+            background: tk.surface,
+            border: `1px solid ${color}30`,
+            borderTop: 'none', borderLeft: 'none',
+            rotate: '45deg',
+          }} />
+          <span style={{
+            display: 'block',
+            background: tk.surface,
+            border: `1px solid ${color}30`,
+            borderRadius: 8,
+            padding: '10px 13px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.10)',
+          }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 5 }}>
+              <span style={{
+                background: color, borderRadius: 4, padding: '2px 8px',
+                fontFamily: '"IBM Plex Mono", monospace',
+                fontSize: 10, fontWeight: 700, letterSpacing: '0.12em',
+                textTransform: 'uppercase', color: tk.surface,
+              }}>{meta.label}</span>
+              <span style={{
+                fontFamily: '"Instrument Serif", Georgia, serif',
+                fontStyle: 'italic', fontSize: 12, color: tk.inkSoft,
+              }}>{meta.note}</span>
+            </span>
+            <span style={{
+              fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+              fontSize: 12, color: tk.inkMid, lineHeight: 1.5,
+              display: 'block',
+            }}>{meta.bio}</span>
+            <span style={{
+              display: 'block', marginTop: 7,
+              fontFamily: '"IBM Plex Mono", monospace',
+              fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase',
+              color: `${color}99`,
+            }}>click to address {meta.label}</span>
+          </span>
+        </span>
+      )}
+    </span>
+  );
+}
+
+function RichContent({ content, theme, tk, onPersonaRef }) {
+  const parts = parseContent(content);
   return (
     <>
       {parts.map((part, i) => {
         if (typeof part === 'string') return part;
-        const c = personaColor(part.persona, theme);
         return (
-          <span key={i} style={{
-            color: c, fontWeight: 650,
-            borderBottom: `1.5px solid ${c}60`,
-            paddingBottom: 1,
-          }}>{part.name}</span>
+          <PersonaTag
+            key={i}
+            name={part.name}
+            persona={part.persona}
+            theme={theme}
+            tk={tk}
+            onPersonaRef={onPersonaRef}
+          />
         );
       })}
     </>
   );
 }
 
-export function Bubble({ msg, t, isLatest }) {
+export function Bubble({ msg, t, isLatest, onPersonaRef }) {
   const tk = tokens(t.theme);
 
   if (msg.role === 'user') {
@@ -77,9 +147,7 @@ export function Bubble({ msg, t, isLatest }) {
   const color = personaColor(msg.persona, t.theme);
 
   const labelEl = (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10,
-    }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
       <span style={{
         display: 'inline-flex', alignItems: 'center',
         background: color, borderRadius: 5, padding: '3px 10px',
@@ -103,7 +171,7 @@ export function Bubble({ msg, t, isLatest }) {
 
   const body = (
     <div style={bodyStyle}>
-      <RichContent content={msg.content} theme={t.theme} tk={tk} />
+      <RichContent content={msg.content} theme={t.theme} tk={tk} onPersonaRef={onPersonaRef} />
     </div>
   );
 
@@ -147,7 +215,7 @@ export function Bubble({ msg, t, isLatest }) {
           padding: '14px 18px', borderRadius: '2px 14px 14px 14px',
           background: `${color}11`, border: `1px solid ${color}26`, ...bodyStyle,
         }}>
-          <RichContent content={msg.content} theme={t.theme} tk={tk} />
+          <RichContent content={msg.content} theme={t.theme} tk={tk} onPersonaRef={onPersonaRef} />
         </div>
         {sourceEl}
         {crumbEl}

@@ -16,6 +16,7 @@ import { useTrustPhase }       from '../hooks/useTrustPhase.js';
 import { deriveGraphNodes }    from '../utils/deriveGraphNodes.js';
 import { getPersonaResponses, getPersonaResponse } from '../data/mock/personas.js';
 import { getThinkingSteps } from '../data/mock/thinking.js';
+import { DEMO_STAGES, DEFAULT_STAGE_ID } from '../data/demoCompany.js';
 import { OperationalField } from '../components/OperationalField';
 
 const TWEAK_DEFAULTS = {
@@ -60,7 +61,16 @@ function buildOpening(feed) {
   ];
 }
 
-const SOPHIA_INTRO = "Hey — I'm Sophia. Leonardo and Edison are here with me. We exist because founders, investors, and enterprise buyers don't always speak the same language — and that gap costs deals. We're not going to assume you know any of this world. Quick question first —";
+// Ambient exchange — already in progress when the user arrives
+const AMBIENT_EXCHANGE = [
+  { id: 'amb-0', persona: 'leonardo', model: 'nvidia/nemotron-ultra-253b', tok: 61, ms: 380,
+    content: "Shadow DD window is narrowing. Buyers form impressions before page one of any deck." },
+  { id: 'amb-1', persona: 'edison',   model: 'claude-sonnet-4-6',          tok: 49, ms: 290,
+    content: "Public signals confirm it. Most don't know what's visible until they're already in the room." },
+];
+
+// Sophia notices the arrival and turns — she was already mid-discussion
+const SOPHIA_INTRO = "Oh — you're here. Good. I'm Sophia. Leonardo and Edison are right here with me. We exist because founders and the people who fund or buy from them don't always speak the same language — and that gap costs real deals. Quick question —";
 
 const DEMO_CO = {
   name: 'Hive & Co',
@@ -383,36 +393,449 @@ function BrowserPanel({ seedUrl, onTabsChange, onClose, tk }) {
 }
 
 function TriageCards({ onSelect, tk }) {
-  const opts = [
-    { id: 'browse',   label: 'Just looking around',            sub: 'Show me what this is about' },
-    { id: 'raise',    label: 'Raising money or landing deals', sub: 'I want investment or enterprise sales' },
-    { id: 'question', label: 'I have a specific question',     sub: "Let's just get into it" },
-  ];
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
-      {opts.map((o, i) => (
-        <button
-          key={o.id}
-          onClick={() => onSelect(o.id)}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = `${tk.plum}60`; e.currentTarget.style.background = `${tk.plum}08`; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = tk.hairline; e.currentTarget.style.background = tk.surface; }}
-          style={{
-            background: tk.surface, border: `1px solid ${tk.hairline}`, borderRadius: 10,
-            padding: '14px 18px', cursor: 'pointer', textAlign: 'left',
-            transition: 'border-color 0.2s, background 0.2s',
-            animation: `fadeSlideUp 0.45s ease ${i * 0.1}s both`,
-          }}
-        >
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
+
+      {/* Primary — show me how this works */}
+      <button
+        onClick={() => onSelect('browse')}
+        onMouseEnter={e => { e.currentTarget.style.background = `${tk.plum}12`; e.currentTarget.style.borderColor = `${tk.plum}50`; }}
+        onMouseLeave={e => { e.currentTarget.style.background = `${tk.plum}07`; e.currentTarget.style.borderColor = `${tk.plum}30`; }}
+        style={{
+          background: `${tk.plum}07`, border: `1px solid ${tk.plum}30`,
+          borderRadius: 12, padding: '18px 22px', cursor: 'pointer', textAlign: 'left',
+          transition: 'border-color 0.2s, background 0.2s',
+          animation: 'fadeSlideUp 0.45s ease both',
+        }}
+      >
+        <div style={{
+          fontFamily: '"Instrument Serif", Georgia, serif',
+          fontStyle: 'italic',
+          fontSize: 18, color: tk.ink, marginBottom: 5,
+        }}>Show me how this works</div>
+        <div style={{
+          fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+          fontSize: 12, color: tk.inkSoft, lineHeight: 1.5,
+        }}>Take me through a real example — a company from first idea to serious capital raise.</div>
+      </button>
+
+      {/* Secondary two — side by side */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        {[
+          { id: 'raise',    label: 'I need to raise or close',  sub: 'Investors or enterprise buyers are in the way' },
+          { id: 'question', label: 'I just have a question',    sub: "Skip the intro — let's get into it" },
+        ].map((o, i) => (
+          <button
+            key={o.id}
+            onClick={() => onSelect(o.id)}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = `${tk.hairStrong}`; e.currentTarget.style.background = `${tk.surfaceLo}`; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = tk.hairline; e.currentTarget.style.background = tk.surface; }}
+            style={{
+              background: tk.surface, border: `1px solid ${tk.hairline}`,
+              borderRadius: 12, padding: '14px 16px', cursor: 'pointer', textAlign: 'left',
+              transition: 'border-color 0.2s, background 0.2s',
+              animation: `fadeSlideUp 0.45s ease ${0.1 + i * 0.08}s both`,
+            }}
+          >
+            <div style={{
+              fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+              fontSize: 13, fontWeight: 500, color: tk.ink, marginBottom: 4,
+            }}>{o.label}</div>
+            <div style={{
+              fontFamily: '"IBM Plex Mono", monospace',
+              fontSize: 10, color: tk.inkSoft, letterSpacing: '0.04em', lineHeight: 1.5,
+            }}>{o.sub}</div>
+          </button>
+        ))}
+      </div>
+
+    </div>
+  );
+}
+
+/* ─── Cinematic intro ───────────────────────────────────────────────── */
+
+const INTRO_CARDS = [
+  { style: 'logo' },
+  { style: 'hero',   text: "Investors and enterprise buyers are evaluating you right now." },
+  { style: 'large',  text: "Before the pitch. Before the meeting. Before you even know they're looking." },
+  { style: 'stats' },
+  { style: 'medium', text: "Most founders never see what investors and enterprise buyers are actually checking." },
+  { style: 'team' },
+];
+
+const CARD_HOLD = [1800, 2800, 2500, 8200, 2000, 3000];
+// stats card (index 3) holds 8.2s — enough for 3 stats × ~2.5s each + transitions
+
+const STATS_FALLBACK = [
+  { number: '75%',  text: 'of investors say management track record is the top factor before they agree to take a meeting', source: 'CapitalHQ Investor Survey, 2026' },
+  { number: '96%',  text: 'of companies say GRC and compliance is getting more boardroom attention than ever before', source: 'Vanta State of GRC, 2025' },
+  { number: '51%',  text: 'are experiencing brand safety and reputation issues due to security or data breaches', source: 'Vanta State of GRC, 2025' },
+];
+const FADE_DUR  = 650;
+const CARD_GAP  = 350;
+
+function StatsCard({ visible, stats = STATS_FALLBACK }) {
+  const [idx,     setIdx]     = useState(0);
+  const [statVis, setStatVis] = useState(false);
+
+  useEffect(() => {
+    if (!visible) return;
+    let cancelled = false;
+    async function cycle() {
+      setIdx(0);
+      setStatVis(true);
+      for (let i = 0; i < stats.length - 1; i++) {
+        await sleep(2400);
+        if (cancelled) return;
+        setStatVis(false);
+        await sleep(450);
+        if (cancelled) return;
+        setIdx(i + 1);
+        setStatVis(true);
+      }
+    }
+    cycle();
+    return () => { cancelled = true; };
+  }, [visible, stats]);
+
+  const stat = stats[idx];
+  return (
+    <div style={{
+      textAlign: 'center', maxWidth: 580,
+      opacity: statVis ? 1 : 0,
+      transform: statVis ? 'translateY(0)' : 'translateY(8px)',
+      transition: 'opacity 0.45s ease, transform 0.45s ease',
+    }}>
+      <div style={{
+        fontFamily: '"Instrument Serif", Georgia, serif',
+        fontStyle: 'italic',
+        fontSize: 'clamp(72px, 12vw, 128px)',
+        fontWeight: 400, color: '#f0ece5',
+        letterSpacing: '-0.03em', lineHeight: 1,
+        marginBottom: 20,
+      }}>{stat.number}</div>
+      <div style={{
+        fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+        fontSize: 'clamp(15px, 2vw, 22px)',
+        fontWeight: 300, color: '#b8b2aa',
+        letterSpacing: '-0.005em', lineHeight: 1.5,
+        marginBottom: 18,
+      }}>{stat.text}</div>
+      <div style={{
+        fontFamily: '"IBM Plex Mono", monospace',
+        fontSize: 'clamp(9px, 1vw, 11px)',
+        color: '#3a3a3c', letterSpacing: '0.16em',
+        textTransform: 'uppercase',
+      }}>— {stat.source}</div>
+
+      {/* Progress dots */}
+      <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginTop: 28 }}>
+        {stats.map((_, i) => (
+          <div key={i} style={{
+            width: i === idx ? 20 : 5, height: 5, borderRadius: 3,
+            background: i === idx ? '#6b5de8' : '#2a2a2c',
+            transition: 'all 0.4s ease',
+          }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CinematicIntro({ onComplete, stats = STATS_FALLBACK }) {
+  const [cardIdx,       setCardIdx]       = useState(0);
+  const [cardVisible,   setCardVisible]   = useState(false);
+  const [overlayExit,   setOverlayExit]   = useState(false);
+  const doneRef = useRef(false);
+
+  const finish = useCallback(() => {
+    if (doneRef.current) return;
+    doneRef.current = true;
+    setOverlayExit(true);
+    setTimeout(onComplete, 750);
+  }, [onComplete]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function run() {
+      await sleep(300);
+      for (let i = 0; i < INTRO_CARDS.length; i++) {
+        if (cancelled || doneRef.current) return;
+        setCardIdx(i);
+        setCardVisible(true);
+        await sleep(CARD_HOLD[i]);
+        if (cancelled || doneRef.current) return;
+        setCardVisible(false);
+        await sleep(FADE_DUR + CARD_GAP);
+      }
+      if (!cancelled) finish();
+    }
+    run();
+    return () => { cancelled = true; };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const card = INTRO_CARDS[cardIdx];
+
+  return (
+    <div
+      onClick={finish}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: '#0c0c0d',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        opacity: overlayExit ? 0 : 1,
+        transition: overlayExit ? 'opacity 0.75s ease' : 'none',
+        cursor: 'pointer',
+        userSelect: 'none',
+      }}
+    >
+      <div style={{
+        position: 'absolute', top: 28, right: 32,
+        fontFamily: '"IBM Plex Mono", monospace',
+        fontSize: 9.5, letterSpacing: '0.22em', textTransform: 'uppercase',
+        color: '#3a3a3c',
+        transition: 'color 0.2s',
+      }}
+        onMouseEnter={e => { e.currentTarget.style.color = '#666'; }}
+        onMouseLeave={e => { e.currentTarget.style.color = '#3a3a3c'; }}
+      >skip →</div>
+
+      <div style={{
+        maxWidth: 620, padding: '0 48px', textAlign: 'center',
+        opacity: cardVisible ? 1 : 0,
+        transform: cardVisible ? 'translateY(0)' : 'translateY(-10px)',
+        transition: `opacity ${FADE_DUR}ms ease, transform ${FADE_DUR}ms ease`,
+      }}>
+        {card.style === 'logo' && (
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.18em', justifyContent: 'center' }}>
+            <span style={{
+              fontFamily: '"Instrument Serif", Georgia, serif',
+              fontStyle: 'italic', fontWeight: 400,
+              fontSize: 'clamp(38px, 5.5vw, 64px)',
+              color: '#f0ece5', letterSpacing: '-0.02em',
+            }}>proof</span>
+            <span style={{
+              fontFamily: '"IBM Plex Mono", monospace',
+              fontWeight: 400,
+              fontSize: 'clamp(22px, 3.2vw, 38px)',
+              color: '#7c6fff', letterSpacing: '-0.02em',
+            }}>360</span>
+          </div>
+        )}
+        {card.style === 'hero' && (
           <div style={{
-            fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-            fontSize: 14, fontWeight: 500, color: tk.ink, marginBottom: 3,
-          }}>{o.label}</div>
+            fontFamily: '"Instrument Serif", Georgia, serif',
+            fontSize: 'clamp(42px, 6.5vw, 76px)',
+            fontWeight: 400, fontStyle: 'italic',
+            color: '#f0ece5', letterSpacing: '-0.025em', lineHeight: 1.08,
+          }}>{card.text}</div>
+        )}
+        {card.style === 'large' && (
+          <div style={{
+            fontFamily: '"Instrument Serif", Georgia, serif',
+            fontStyle: 'italic',
+            fontSize: 'clamp(22px, 3.2vw, 38px)',
+            fontWeight: 400, color: '#b8b2aa',
+            letterSpacing: '-0.01em', lineHeight: 1.38,
+          }}>{card.text}</div>
+        )}
+        {card.style === 'stat' && (
           <div style={{
             fontFamily: '"IBM Plex Mono", monospace',
-            fontSize: 10, color: tk.inkSoft, letterSpacing: '0.06em',
-          }}>{o.sub}</div>
-        </button>
-      ))}
+            fontSize: 'clamp(11px, 1.3vw, 15px)',
+            color: '#555', letterSpacing: '0.12em',
+            lineHeight: 1.7, textTransform: 'uppercase',
+          }}>{card.text}</div>
+        )}
+        {card.style === 'stats' && (
+          <StatsCard visible={cardVisible} stats={stats} />
+        )}
+        {card.style === 'medium' && (
+          <div style={{
+            fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+            fontSize: 'clamp(17px, 2.2vw, 26px)',
+            fontWeight: 300, color: '#ccc7bf',
+            letterSpacing: '-0.005em', lineHeight: 1.45,
+          }}>{card.text}</div>
+        )}
+        {card.style === 'team' && (
+          <div style={{ display: 'flex', gap: 'clamp(32px, 6vw, 72px)', justifyContent: 'center', alignItems: 'flex-start' }}>
+            {[
+              { name: 'Sophia',   role: 'Narrative & trust',  color: '#c49a52' },
+              { name: 'Leonardo', role: 'Market & strategy',  color: '#9b7fd4' },
+              { name: 'Edison',   role: 'Technical posture',  color: '#3ba8bf' },
+            ].map((p, i) => (
+              <div key={p.name} style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                animation: `teamReveal 0.6s ease ${i * 0.18}s both`,
+              }}>
+                <div style={{
+                  fontFamily: '"Instrument Serif", Georgia, serif',
+                  fontStyle: 'italic',
+                  fontSize: 'clamp(22px, 3vw, 36px)',
+                  fontWeight: 400, color: p.color,
+                  letterSpacing: '-0.01em',
+                }}>{p.name}</div>
+                <div style={{
+                  fontFamily: '"IBM Plex Mono", monospace',
+                  fontSize: 'clamp(9px, 1vw, 11px)',
+                  color: '#4a4a4c', letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                }}>{p.role}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Subtle bottom pulse — "click to skip" affordance */}
+      <div style={{
+        position: 'absolute', bottom: 36,
+        fontFamily: '"IBM Plex Mono", monospace',
+        fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase',
+        color: '#2a2a2c',
+        animation: 'introPulse 2.4s ease-in-out infinite',
+      }}>click anywhere to skip</div>
+
+      <style>{`
+        @keyframes introPulse {
+          0%, 100% { opacity: 0.4; }
+          50%       { opacity: 1; }
+        }
+        @keyframes teamReveal {
+          from { opacity: 0; transform: translateY(12px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+// Stage story labels — map demoCompany stage ids to the moment as named in Sophia's message
+const STAGE_STORY = {
+  market:     { step: 1, moment: "King's Cross market",         hint: 'Saturday stall, two founders, zero infrastructure' },
+  sainsburys: { step: 2, moment: "Sainsbury's supply contract", hint: 'First national retailer — the paperwork wall hits' },
+  digital:    { step: 3, moment: 'Blockchain provenance play',  hint: 'QR codes, supply chain, global ambition' },
+  raising:    { step: 4, moment: 'Serious capital raise',       hint: 'Seed round — investors want proof, not promise' },
+};
+
+function JourneyConsentCards({ onSelect, stages, tk }) {
+  return (
+    <div style={{ marginTop: 10 }}>
+      <div style={{
+        fontFamily: '"IBM Plex Mono", monospace',
+        fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase',
+        color: tk.inkSoft, marginBottom: 8,
+      }}>jump to any stage →</div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+        {stages.map((stage, i) => {
+          const story = STAGE_STORY[stage.id] ?? { step: i + 1, moment: stage.label, hint: stage.sub };
+          return (
+            <button
+              key={stage.id}
+              onClick={() => onSelect(stage.id)}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = `${tk.plum}60`; e.currentTarget.style.background = `${tk.plum}07`; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = tk.hairline; e.currentTarget.style.background = tk.surface; }}
+              style={{
+                background: tk.surface, border: `1px solid ${tk.hairline}`, borderRadius: 10,
+                padding: '12px 14px', cursor: 'pointer', textAlign: 'left',
+                transition: 'border-color 0.2s, background 0.2s',
+                animation: `fadeSlideUp 0.42s ease ${i * 0.08}s both`,
+              }}
+            >
+              <div style={{
+                fontFamily: '"IBM Plex Mono", monospace',
+                fontSize: 9, color: tk.plum, letterSpacing: '0.1em',
+                textTransform: 'uppercase', marginBottom: 5,
+              }}>{story.step} ·</div>
+              <div style={{
+                fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                fontSize: 13, fontWeight: 600, color: tk.ink, marginBottom: 3, lineHeight: 1.2,
+              }}>{story.moment}</div>
+              <div style={{
+                fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                fontSize: 11, color: tk.inkSoft, lineHeight: 1.45,
+              }}>{story.hint}</div>
+            </button>
+          );
+        })}
+      </div>
+
+      <button
+        onClick={() => onSelect('question')}
+        style={{
+          background: 'none', border: 'none', cursor: 'pointer',
+          fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+          fontSize: 12, color: tk.inkSoft, padding: '2px 0',
+          textDecoration: 'underline', textDecorationColor: tk.hairStrong,
+          letterSpacing: '0.01em',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.color = tk.ink; }}
+        onMouseLeave={e => { e.currentTarget.style.color = tk.inkSoft; }}
+      >What does this mean for my situation? →</button>
+    </div>
+  );
+}
+
+function StageSelector({ stages, activeId, onSelect, tk }) {
+  const activeIdx = stages.findIndex(s => s.id === activeId);
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'flex-start',
+      padding: '18px 0 16px', marginBottom: 4,
+      borderBottom: `1px solid ${tk.hairline}`,
+      overflowX: 'auto',
+    }}>
+      {stages.map((stage, i) => {
+        const active = stage.id === activeId;
+        const past   = i < activeIdx;
+        const accentColor = tk.plum;
+        return (
+          <div key={stage.id} style={{ display: 'flex', alignItems: 'flex-start', flex: i < stages.length - 1 ? 1 : 'none', minWidth: 0 }}>
+            <button
+              onClick={() => onSelect(stage.id)}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                gap: 5, padding: '0 8px', flexShrink: 0,
+              }}
+            >
+              <div style={{
+                width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
+                background: active ? accentColor : past ? `${accentColor}50` : tk.hairStrong,
+                border: `2px solid ${active ? accentColor : past ? `${accentColor}40` : tk.hairStrong}`,
+                boxShadow: active ? `0 0 0 3px ${accentColor}20` : 'none',
+                transition: 'all 0.2s',
+              }} />
+              <div style={{
+                fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                fontSize: 12, fontWeight: active ? 600 : 400,
+                color: active ? tk.ink : tk.inkSoft,
+                whiteSpace: 'nowrap', transition: 'color 0.2s',
+              }}>{stage.label}</div>
+              <div style={{
+                fontFamily: '"IBM Plex Mono", monospace',
+                fontSize: 9, letterSpacing: '0.07em',
+                color: accentColor,
+                whiteSpace: 'nowrap',
+                opacity: active ? 1 : 0,
+                maxHeight: active ? 16 : 0,
+                overflow: 'hidden',
+                transition: 'opacity 0.2s, max-height 0.2s',
+              }}>{stage.sub}</div>
+            </button>
+            {i < stages.length - 1 && (
+              <div style={{
+                flex: 1, height: 1, marginTop: 6, minWidth: 16,
+                background: i < activeIdx ? `${accentColor}35` : tk.hairline,
+                transition: 'background 0.3s',
+              }} />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -437,11 +860,14 @@ export default function Chat() {
   const [previewOpen, setPreviewOpen]     = useState(false);
   const [browserTabs, setBrowserTabs] = useState([]);
 
+  const [activeStageId,   setActiveStageId]   = useState(DEFAULT_STAGE_ID);
   const [companyData,     setCompanyData]     = useState(null);
   // setInferenceError wired for post-MVP: call when inference polling times out or errors
   const [inferenceError,  setInferenceError]  = useState(false);
   const [analysisProfile, setAnalysisProfile] = useState('investor');
   const [logoCard,        setLogoCard]        = useState(null);
+  const [showIntro,       setShowIntro]       = useState(true);
+  const [cinStats,        setCinStats]        = useState(STATS_FALLBACK);
 
   const hasUserMsg  = messages.some(m => m.role === 'user');
   const hasMessages = messages.length > 0;
@@ -476,6 +902,14 @@ export default function Chat() {
     const t = setTimeout(() => setLogoCard(null), 6000);
     return () => clearTimeout(t);
   }, [logoCard]);
+
+  // Fetch live stats from CORPUS — fires immediately, resolves before stats card appears (~6s in)
+  useEffect(() => {
+    fetch('/api/v1/corpus/stats')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.stats?.length === 3) setCinStats(d.stats); })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (hasUserMsg) return;
@@ -522,9 +956,30 @@ export default function Chat() {
       setPreviewOpen(false);
       setBrowserTabs([]);
       setThinkingSteps([]);
-      await sleep(900);
+      setActiveStageId(DEFAULT_STAGE_ID);
+      setCompanyData(null);
+      // Ambient exchange — room already in motion before user arrives
+      await sleep(500);
+      const ambientSpeed = 5; // fast — this was already happening
+      for (const msg of AMBIENT_EXCHANGE) {
+        if (cancelled) return;
+        setMessages(prev => [...prev, { ...msg, content: '' }]);
+        if (speedMs === 0) {
+          setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, content: msg.content } : m));
+        } else {
+          for (let i = 1; i <= msg.content.length; i++) {
+            if (cancelled) return;
+            await sleep(ambientSpeed);
+            setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, content: msg.content.slice(0, i) } : m));
+          }
+        }
+        await sleep(320);
+      }
+
+      // Sophia notices the arrival — brief pause, then turns
+      await sleep(600);
       const introMsg = { id: 'sophia-intro', persona: 'sofia', model: 'claude-sonnet-4-6', tok: 148, ms: 740, content: SOPHIA_INTRO };
-      setMessages([{ ...introMsg, content: '' }]);
+      setMessages(prev => [...prev, { ...introMsg, content: '' }]);
       if (speedMs === 0) {
         setMessages(prev => prev.map(m => m.id === 'sophia-intro' ? { ...m, content: SOPHIA_INTRO } : m));
       } else {
@@ -716,10 +1171,29 @@ export default function Chat() {
   const selectIntent = useCallback(async (chosen) => {
     const speedMs = t.typeSpeed === 'fast' ? 8 : t.typeSpeed === 'instant' ? 0 : 18;
     setIntent(chosen);
-    setPhase('active');
-    const msgs = chosen === 'browse' ? BROWSE_OPENING
-               : chosen === 'question' ? QUESTION_OPENING
-               : buildOpening(feed);
+    if (chosen !== 'browse') setPhase('active');
+
+    if (chosen === 'browse') {
+      // Sophia explains the journey first — consent before demo starts
+      const setupMsg = {
+        id: 'br-setup', persona: 'sofia', model: 'claude-sonnet-4-6', tok: 194, ms: 890,
+        content: "Here's what we'll do. We're going to follow a real company — Hive & Co — from two founders selling Manuka honey at King's Cross market on a Saturday morning, through their first Sainsbury's supply contract, into a blockchain provenance play, and finally a serious capital raise. At each moment we'll show you exactly what investors and enterprise buyers see — the gaps, the signals, the language. Four stages. Real gaps. You can jump between them. Want to see how the story unfolds?",
+      };
+      setMessages(prev => [...prev, { ...setupMsg, content: '' }]);
+      if (speedMs === 0) {
+        setMessages(prev => prev.map(m => m.id === setupMsg.id ? { ...m, content: setupMsg.content } : m));
+      } else {
+        for (let i = 1; i <= setupMsg.content.length; i++) {
+          await sleep(speedMs);
+          setMessages(prev => prev.map(m => m.id === setupMsg.id ? { ...m, content: setupMsg.content.slice(0, i) } : m));
+        }
+      }
+      await sleep(350);
+      setPhase('journey-setup');
+      return;
+    }
+
+    const msgs = chosen === 'question' ? QUESTION_OPENING : buildOpening(feed);
     for (const msg of msgs) {
       setMessages(prev => [...prev, { ...msg, content: '' }]);
       if (speedMs === 0) {
@@ -732,11 +1206,6 @@ export default function Chat() {
       }
       if (msg.isHandoff) {
         await sleep(450);
-        if (chosen === 'browse') {
-          setPreviewUrl(`https://${DEMO_CO.url}`);
-          setPreviewOpen(true);
-          setInputValue(DEMO_CO.url);
-        }
         setInputReady(true);
         setPulsingQ(Math.floor(Math.random() * FLOATS.length));
         inputRef.current?.focus();
@@ -745,6 +1214,62 @@ export default function Chat() {
       }
     }
   }, [t.typeSpeed, feed]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const selectJourney = useCallback(async (choice) => {
+    if (choice === 'question') {
+      setIntent('question');
+      setPhase('active');
+      const speedMs = t.typeSpeed === 'fast' ? 8 : t.typeSpeed === 'instant' ? 0 : 18;
+      const msgs = QUESTION_OPENING;
+      for (const msg of msgs) {
+        setMessages(prev => [...prev, { ...msg, content: '' }]);
+        if (speedMs === 0) {
+          setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, content: msg.content } : m));
+        } else {
+          for (let i = 1; i <= msg.content.length; i++) {
+            await sleep(speedMs);
+            setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, content: msg.content.slice(0, i) } : m));
+          }
+        }
+        if (msg.isHandoff) {
+          await sleep(450);
+          setInputReady(true);
+          setPulsingQ(Math.floor(Math.random() * FLOATS.length));
+          inputRef.current?.focus();
+        }
+      }
+      return;
+    }
+
+    // Stage ID — jump directly to the chosen stage
+    setPhase('active');
+    const speedMs = t.typeSpeed === 'fast' ? 8 : t.typeSpeed === 'instant' ? 0 : 18;
+    const stage = DEMO_STAGES.find(s => s.id === choice) ?? DEMO_STAGES[0];
+    setActiveStageId(stage.id);
+    setCompanyData({
+      session_id: null,
+      company_name: stage.company.name,
+      trust_score: stage.trustScore,
+      gaps: stage.gaps,
+      deal_readiness: null,
+    });
+    const msgs = stage.messages.map(m => ({ ...m, role: 'assistant' }));
+    for (const msg of msgs) {
+      setMessages(prev => [...prev, { ...msg, content: '' }]);
+      if (speedMs === 0) {
+        setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, content: msg.content } : m));
+      } else {
+        for (let i = 1; i <= msg.content.length; i++) {
+          await sleep(speedMs);
+          setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, content: msg.content.slice(0, i) } : m));
+        }
+      }
+      await sleep(msg === msgs[msgs.length - 1] ? 300 : 420);
+    }
+    setInputReady(true);
+    setPulsingQ(Math.floor(Math.random() * FLOATS.length));
+    inputRef.current?.focus();
+  }, [t.typeSpeed]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const pullSignal = () => {
     setBriefShown(false);
@@ -765,7 +1290,12 @@ export default function Chat() {
       fontFamily: '"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif',
     }}>
 
-      <OperationalField onLogoClick={setLogoCard} />
+      {showIntro && <CinematicIntro stats={cinStats} onComplete={() => {
+        setShowIntro(false);
+        requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' }));
+      }} />}
+
+      <OperationalField onLogoClick={setLogoCard} active={!showIntro} />
 
       <TrustRail
         trustPhase={trustPhase}
@@ -830,10 +1360,26 @@ export default function Chat() {
                   {previewOpen ? '◁ hide' : '▷ preview'}
                 </button>
               )}
-              <span style={{
-                fontFamily: '"IBM Plex Mono", monospace',
-                fontSize: 10, color: tk.inkSoft, letterSpacing: '0.1em',
-              }}>{t.returningUser ? 'session resumed' : 'live'}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{
+                  width: 6, height: 6, borderRadius: '50%',
+                  background: t.returningUser ? tk.inkSoft : '#22c55e',
+                  boxShadow: t.returningUser ? 'none' : '0 0 0 0 #22c55e',
+                  animation: t.returningUser ? 'none' : 'liveping 2s ease-in-out infinite',
+                  flexShrink: 0,
+                }} />
+                <span style={{
+                  fontFamily: '"IBM Plex Mono", monospace',
+                  fontSize: 10, color: tk.inkSoft, letterSpacing: '0.1em',
+                }}>{t.returningUser ? 'session resumed' : 'live'}</span>
+              </span>
+              <style>{`
+                @keyframes liveping {
+                  0%   { box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
+                  70%  { box-shadow: 0 0 0 7px rgba(34,197,94,0); }
+                  100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+                }
+              `}</style>
             </div>
           </div>
 
@@ -843,45 +1389,119 @@ export default function Chat() {
               {briefShown ? (
                 <MorningBrief onPullSignal={pullSignal} t={t} />
               ) : (
-                <div style={{
-                  maxHeight: phase === 'active' ? 0 : 320,
-                  opacity: phase === 'active' ? 0 : 1, overflow: 'hidden',
-                  transition: 'opacity 0.7s ease, max-height 0.9s ease',
-                  marginBottom: phase === 'active' ? 0 : 44, paddingTop: 28,
-                }}>
+                <>
+                  {/* Hero — collapses once a conversation starts */}
                   <div style={{
-                    fontFamily: '"IBM Plex Mono", monospace',
-                    fontSize: 10, fontWeight: 500, color: tk.inkSoft,
-                    letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: 16,
-                  }}>The question on the table</div>
-                  <h1 style={{
-                    fontFamily: headingFamily, fontWeight: headingWeight,
-                    fontSize: 'clamp(30px, 4.2vw, 50px)',
-                    color: tk.ink, letterSpacing: '-0.018em', lineHeight: 1.12,
-                    margin: '0 0 18px',
-                    animation: 'fadeSlideUp 0.7s ease both',
+                    maxHeight: (phase === 'active' || phase === 'journey-setup') ? 0 : 400,
+                    opacity: (phase === 'active' || phase === 'journey-setup') ? 0 : 1, overflow: 'hidden',
+                    transition: 'opacity 0.7s ease, max-height 0.9s ease',
+                    marginBottom: (phase === 'active' || phase === 'journey-setup') ? 0 : 36, paddingTop: 36,
                   }}>
-                    How do I build and maintain trust with{' '}
-                    <span style={{ fontStyle: t.headingFamily === 'sans' ? 'normal' : 'italic', color: tk.plum }}>investors</span>{' '}
-                    and{' '}
-                    <span style={{ fontStyle: t.headingFamily === 'sans' ? 'normal' : 'italic', color: tk.teal }}>enterprise buyers</span>?
-                  </h1>
-                  <p style={{
-                    fontFamily: '"Instrument Serif", Georgia, serif',
-                    fontStyle: 'italic', fontSize: 17, color: tk.inkMid, lineHeight: 1.55,
-                    margin: 0, maxWidth: 520,
-                    animation: 'fadeSlideUp 0.7s ease 0.15s both',
-                  }}>
-                    You&apos;re being evaluated before you meet. Here&apos;s what they see — and what to do about it.
-                  </p>
-                </div>
+                    <p style={{
+                      fontFamily: '"IBM Plex Mono", monospace',
+                      fontSize: 10, color: tk.inkSoft,
+                      letterSpacing: '0.2em', textTransform: 'uppercase',
+                      margin: '0 0 18px',
+                      animation: 'fadeSlideUp 0.5s ease both',
+                    }}>You&apos;re in the right room.</p>
+                    <h1 style={{
+                      fontFamily: headingFamily, fontWeight: headingWeight,
+                      fontSize: 'clamp(26px, 3.4vw, 42px)',
+                      color: tk.ink, letterSpacing: '-0.018em', lineHeight: 1.18,
+                      margin: '0 0 16px',
+                      animation: 'fadeSlideUp 0.6s ease 0.1s both',
+                    }}>
+                      Founders, <em>investors</em> and <em>enterprise buyers</em> don&apos;t always speak the same language.
+                    </h1>
+                    <p style={{
+                      fontFamily: '"Instrument Serif", Georgia, serif',
+                      fontStyle: 'italic', fontSize: 17, color: tk.inkMid, lineHeight: 1.6,
+                      margin: '0 0 10px', maxWidth: 480,
+                      animation: 'fadeSlideUp 0.6s ease 0.2s both',
+                    }}>
+                      That gap costs deals. Sophia, Leonardo, and Edison are here to close it.
+                    </p>
+                  </div>
+
+                  {/* Hive & Co stage selector — shown only once journey is running */}
+                  {intent === 'browse' && phase === 'active' && (
+                    <div style={{ marginBottom: 24 }}>
+                      <StageSelector
+                        stages={DEMO_STAGES}
+                        activeId={activeStageId}
+                        onSelect={id => {
+                          setActiveStageId(id);
+                          const stage = DEMO_STAGES.find(s => s.id === id);
+                          // Keep Sophia/Leonardo/Edison intro messages, swap only the Hive & Co persona messages
+                          setMessages(prev => {
+                            const nonDemo = prev.filter(m => !m.id.startsWith('demo-'));
+                            return [...nonDemo, ...stage.messages.map(m => ({ ...m, role: 'assistant' }))];
+                          });
+                          setCompanyData({
+                            session_id: null,
+                            company_name: stage.company.name,
+                            trust_score: stage.trustScore,
+                            gaps: stage.gaps,
+                            deal_readiness: null,
+                          });
+                        }}
+                        tk={tk}
+                      />
+                      <div style={{
+                        display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+                        gap: 16, marginTop: 12,
+                      }}>
+                        <div>
+                          <div style={{
+                            fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                            fontSize: 13, fontWeight: 600, color: tk.ink,
+                          }}>{DEMO_STAGES.find(s => s.id === activeStageId)?.company.name}</div>
+                          <div style={{
+                            fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                            fontSize: 12, color: tk.inkSoft, marginTop: 3, lineHeight: 1.55,
+                          }}>{DEMO_STAGES.find(s => s.id === activeStageId)?.company.description}</div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setIntent(null);
+                            setMessages([]);
+                            setCompanyData(null);
+                            setInputValue('');
+                            setInputReady(true);
+                            setPhase('active');
+                            setTimeout(() => inputRef.current?.focus(), 100);
+                          }}
+                          style={{
+                            flexShrink: 0,
+                            background: 'none', border: `1px solid ${tk.hairline}`,
+                            borderRadius: 8, padding: '7px 14px', cursor: 'pointer',
+                            fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                            fontSize: 11, color: tk.inkSoft,
+                            transition: 'border-color 0.15s, color 0.15s',
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.borderColor = tk.plum; e.currentTarget.style.color = tk.plum; }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = tk.hairline; e.currentTarget.style.color = tk.inkSoft; }}
+                        >Try your company →</button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
 
               {messages.map((m, i) => {
                 const isLatest = i === messages.length - 1 && m.role !== 'user';
-                return <Bubble key={m.id} msg={m} t={t} isLatest={isLatest} />;
+                return (
+                  <Bubble
+                    key={m.id} msg={m} t={t} isLatest={isLatest}
+                    onPersonaRef={name => {
+                      setInputValue(v => (v.trim() ? v.trimEnd() + ' ' : '') + '@' + name + ' ');
+                      setTimeout(() => inputRef.current?.focus(), 0);
+                    }}
+                  />
+                );
               })}
               {phase === 'triage' && <TriageCards onSelect={selectIntent} tk={tk} />}
+              {phase === 'journey-setup' && <JourneyConsentCards onSelect={selectJourney} stages={DEMO_STAGES} tk={tk} />}
               {thinkingSteps.length > 0 && <ThinkingStream steps={thinkingSteps} visible t={t} />}
 
               <div style={{ marginTop: hasMessages || briefShown ? 18 : 4 }}>

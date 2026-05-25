@@ -1,0 +1,7 @@
+<svg viewBox="0 0 160 40" xmlns="http://www.w3.org/2000/svg">
+  <!-- C mark -->
+  <path d="M18 6 A14 14 0 1 0 18 34 L18 28 A8 8 0 1 1 18 12 Z" fill="#1B3A6B"/>
+  <!-- HQ wordmark -->
+  <text x="40" y="20" font-family="-apple-system,'Helvetica Neue',Arial,sans-serif" font-size="18" font-weight="800" fill="#1B3A6B" letter-spacing="-0.5">Capital</text>
+  <text x="40" y="36" font-family="-apple-system,'Helvetica Neue',Arial,sans-serif" font-size="13" font-weight="900" fill="#B8922A" letter-spacing="1">HQ</text>
+</svg>

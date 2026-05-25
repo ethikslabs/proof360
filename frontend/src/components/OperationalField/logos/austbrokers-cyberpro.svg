@@ -1,3 +1,11 @@
-<svg viewBox="0 0 380 50" xmlns="http://www.w3.org/2000/svg">
-  <text x="0" y="38" font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif" font-size="32" font-weight="700" fill="#003D7A" letter-spacing="-0.5">Austbrokers CyberPro</text>
+<svg viewBox="0 0 220 46" xmlns="http://www.w3.org/2000/svg">
+  <!-- A -->
+  <text x="0" y="34" font-family="-apple-system,'Helvetica Neue',Arial,sans-serif" font-size="36" font-weight="900" fill="#1B3A6B" letter-spacing="-1">A</text>
+  <!-- Red chevron/arrow between A and C -->
+  <polygon points="26,8 36,22 26,22" fill="#C0392B"/>
+  <polygon points="26,22 36,22 26,36" fill="#1A7B9A"/>
+  <!-- C -->
+  <text x="34" y="34" font-family="-apple-system,'Helvetica Neue',Arial,sans-serif" font-size="36" font-weight="900" fill="#1B3A6B" letter-spacing="-1">CP</text>
+  <!-- Subtitle -->
+  <text x="0" y="44" font-family="-apple-system,'Helvetica Neue',Arial,sans-serif" font-size="8" font-weight="500" fill="#1B3A6B" letter-spacing="1.2">AUSTBROKERS CYBER PRO</text>
 </svg>

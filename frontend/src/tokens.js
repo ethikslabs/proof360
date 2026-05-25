@@ -61,11 +61,11 @@ export const TOKEN = {
 export function tokens(theme) { return TOKEN[theme] || TOKEN.pearl; }
 
 export const PERSONA = {
-  sofia:    { label: 'Sophia',   token: 'umber',  note: 'Narrative & trust'         },
-  sophia:   { label: 'Sophia',   token: 'umber',  note: 'Narrative & trust'         },
-  leonardo: { label: 'Leonardo', token: 'plum',   note: 'Strategy & market'         },
-  edison:   { label: 'Edison',   token: 'teal',   note: 'Technical & execution'     },
-  john_ai:  { label: 'John',     token: 'indigo', note: "John's AI assistant"       },
+  sofia:    { label: 'Sophia',   token: 'umber',  note: 'Narrative & trust',     bio: 'Reads your trust story through investor and customer eyes.' },
+  sophia:   { label: 'Sophia',   token: 'umber',  note: 'Narrative & trust',     bio: 'Reads your trust story through investor and customer eyes.' },
+  leonardo: { label: 'Leonardo', token: 'plum',   note: 'Strategy & market',     bio: 'Translates trust gaps into fundraising and deal consequences.' },
+  edison:   { label: 'Edison',   token: 'teal',   note: 'Technical & execution', bio: 'Sequences what to fix, in what order, and how fast.' },
+  john_ai:  { label: 'John',     token: 'indigo', note: "John's AI assistant",   bio: 'Relays your message to John directly.' },
 };
 
 export function personaColor(persona, theme) {
