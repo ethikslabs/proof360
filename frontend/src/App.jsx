@@ -56,6 +56,22 @@ export default function App() {
       <FeatureFlagProvider>
         <ErrorBoundary>
           <ScrollToTop />
+          <a
+            href="https://t.me/alfred_ethikslabs_bot"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Chat with Alfred on Telegram"
+            style={{
+              position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
+              width: 48, height: 48, borderRadius: '50%',
+              background: '#229ED9', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.4)', textDecoration: 'none',
+            }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8l-1.68 7.92c-.12.56-.44.7-.9.44l-2.48-1.83-1.2 1.15c-.13.13-.24.24-.5.24l.18-2.52 4.56-4.12c.2-.18-.04-.28-.3-.1L7.82 14.4l-2.44-.76c-.53-.17-.54-.53.11-.78l9.54-3.68c.44-.16.82.11.61.62z"/>
+            </svg>
+          </a>
           <Routes>
             <Route path="/" element={<Navigate to="/chat" replace />} />
             <Route path="/home" element={<Home />} />
