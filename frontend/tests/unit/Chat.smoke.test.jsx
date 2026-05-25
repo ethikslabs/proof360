@@ -41,7 +41,7 @@ describe('ChatInput', () => {
   it('renders textarea and submit button', () => {
     render(<ChatInput onSubmit={() => {}} disabled={false} />);
     expect(screen.getByRole('textbox')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /start|send|go/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^(start|send)$/i })).toBeInTheDocument();
   });
 });
 
