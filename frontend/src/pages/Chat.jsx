@@ -1866,11 +1866,12 @@ export default function Chat() {
 
         </div>{/* end chat pane */}
 
-        {/* Company profile panel — appears after first message, hidden when preview open */}
-        {hasMessages && !previewOpen && (
+        {/* Company profile panel — discovery on landing, profile after first message */}
+        {!previewOpen && (
           <CompanyProfile
             profile={companyProfile}
             isBuilding={isProcessing}
+            hasMessages={hasMessages}
             tk={tk}
             t={t}
           />

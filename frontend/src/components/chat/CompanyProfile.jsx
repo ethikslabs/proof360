@@ -1,4 +1,8 @@
 import { useState, useEffect } from 'react';
+import awsUrl from '../OperationalField/logos/aws.svg';
+import microsoftUrl from '../OperationalField/logos/microsoft.svg';
+import cloudflareUrl from '../OperationalField/logos/cloudflare.svg';
+import vantaUrl from '../OperationalField/logos/vanta.svg';
 
 const HIVE_SCORES = {
   identity:   85,
@@ -16,6 +20,13 @@ const DOMAIN_META = [
   { id: 'financial',  label: 'Financial' },
   { id: 'legal',      label: 'Legal' },
   { id: 'team',       label: 'Team & Ops' },
+];
+
+const DISCOVERY_VENDORS = [
+  { logoUrl: awsUrl,        logoH: 18, alt: 'AWS',        value: '$220k+ available',    sub: '10 programs' },
+  { logoUrl: microsoftUrl,  logoH: 14, alt: 'Microsoft',  value: '$150k unclaimed',     sub: '6 programs' },
+  { logoUrl: vantaUrl,      logoH: 16, alt: 'Vanta',      value: 'SOC 2 fast track',    sub: '90-day path' },
+  { logoUrl: cloudflareUrl, logoH: 16, alt: 'Cloudflare', value: 'Edge + Zero Trust',   sub: 'Startup free' },
 ];
 
 function DomainRow({ id, label, userScore, tk }) {
@@ -64,7 +75,53 @@ function DomainRow({ id, label, userScore, tk }) {
   );
 }
 
-export function CompanyProfile({ profile, isBuilding, tk }) {
+function DiscoveryView({ tk }) {
+  return (
+    <div style={{ padding: '14px 16px', flex: 1 }}>
+      <div style={{
+        fontFamily: '"IBM Plex Mono", monospace',
+        fontSize: 8.5, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase',
+        color: tk.inkSoft, marginBottom: 14,
+      }}>Available to you</div>
+
+      {DISCOVERY_VENDORS.map(v => (
+        <div key={v.alt} style={{
+          display: 'flex', alignItems: 'center',
+          padding: '10px 0',
+          borderBottom: `1px solid ${tk.hairline}`,
+        }}>
+          <img
+            src={v.logoUrl}
+            alt={v.alt}
+            style={{ height: v.logoH, objectFit: 'contain', objectPosition: 'left', width: 80, flexShrink: 0 }}
+          />
+          <div style={{ marginLeft: 10, flex: 1, minWidth: 0 }}>
+            <div style={{
+              fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+              fontSize: 11, fontWeight: 600, color: tk.ink,
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            }}>{v.value}</div>
+            <div style={{
+              fontFamily: '"IBM Plex Mono", monospace',
+              fontSize: 9, color: tk.inkSoft, letterSpacing: '0.06em', marginTop: 1,
+            }}>{v.sub}</div>
+          </div>
+        </div>
+      ))}
+
+      <div style={{
+        marginTop: 16,
+        fontFamily: '"Instrument Serif", Georgia, serif',
+        fontStyle: 'italic',
+        fontSize: 11.5, color: tk.inkSoft, lineHeight: 1.55,
+      }}>
+        Tell us about your company — we'll map what's relevant to where you are.
+      </div>
+    </div>
+  );
+}
+
+export function CompanyProfile({ profile, isBuilding, hasMessages, tk }) {
   const [blink, setBlink] = useState(true);
 
   useEffect(() => {
@@ -94,7 +151,7 @@ export function CompanyProfile({ profile, isBuilding, tk }) {
           fontFamily: '"IBM Plex Mono", monospace',
           fontSize: 9, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase',
           color: tk.inkSoft,
-        }}>Your Profile</span>
+        }}>{hasMessages ? 'Your Profile' : 'Programs'}</span>
         {isBuilding && (
           <span style={{
             fontFamily: '"IBM Plex Mono", monospace',
@@ -106,106 +163,110 @@ export function CompanyProfile({ profile, isBuilding, tk }) {
         )}
       </div>
 
-      <div style={{ padding: '14px 16px', flex: 1 }}>
-        {/* Company info */}
-        <div style={{ marginBottom: 16 }}>
-          <div style={{
-            fontFamily: '"Instrument Serif", Georgia, serif',
-            fontSize: 15, fontStyle: 'italic', color: tk.ink, marginBottom: 5,
-            minHeight: 22,
-          }}>
-            {profile.name || <span style={{ color: tk.inkGhost }}>Your company</span>}
-          </div>
-          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-            {profile.stage ? (
-              <span style={{
-                fontSize: 9, fontFamily: '"IBM Plex Mono", monospace',
-                padding: '2px 6px', borderRadius: 3,
-                background: '#f0ebe3', border: `1px solid ${tk.hairline}`,
-                color: '#7c6f5a', letterSpacing: '0.07em',
-              }}>{profile.stage}</span>
-            ) : (
-              <span style={{
-                fontSize: 9, fontFamily: '"IBM Plex Mono", monospace',
-                padding: '2px 6px', borderRadius: 3,
-                background: 'transparent', border: `1px dashed ${tk.hairline}`,
-                color: tk.inkGhost, letterSpacing: '0.07em',
-              }}>stage unknown</span>
-            )}
-            {profile.industry && (
-              <span style={{
-                fontSize: 9, fontFamily: '"IBM Plex Mono", monospace',
-                padding: '2px 6px', borderRadius: 3,
-                background: '#f0ebe3', border: `1px solid ${tk.hairline}`,
-                color: '#7c6f5a', letterSpacing: '0.07em',
-              }}>{profile.industry}</span>
-            )}
-          </div>
-        </div>
-
-        {/* vs Hive&Co */}
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <span style={{
-              fontFamily: '"IBM Plex Mono", monospace',
-              fontSize: 8.5, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase',
-              color: tk.inkSoft,
-            }}>vs Hive&amp;Co</span>
-          </div>
-
-          {/* Legend */}
-          <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <div style={{ width: 10, height: 2, background: '#c4b8a8', borderRadius: 1, opacity: 0.8 }} />
-              <span style={{ fontSize: 8.5, fontFamily: '"IBM Plex Mono", monospace', color: tk.inkGhost }}>Hive&amp;Co</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <div style={{ width: 10, height: 2, background: '#b0956e', borderRadius: 1 }} />
-              <span style={{ fontSize: 8.5, fontFamily: '"IBM Plex Mono", monospace', color: tk.inkGhost }}>You</span>
-            </div>
-          </div>
-
-          {DOMAIN_META.map(d => (
-            <DomainRow
-              key={d.id}
-              id={d.id}
-              label={d.label}
-              userScore={profile.domains[d.id]}
-              tk={tk}
-            />
-          ))}
-        </div>
-
-        {/* Signals */}
-        {profile.signals.length > 0 && (
-          <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${tk.hairline}` }}>
+      {!hasMessages ? (
+        <DiscoveryView tk={tk} />
+      ) : (
+        <div style={{ padding: '14px 16px', flex: 1 }}>
+          {/* Company info */}
+          <div style={{ marginBottom: 16 }}>
             <div style={{
-              fontFamily: '"IBM Plex Mono", monospace',
-              fontSize: 8.5, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase',
-              color: tk.inkSoft, marginBottom: 8,
-            }}>Signals read</div>
-            {profile.signals.slice(-5).map((s, i) => (
-              <div key={i} style={{ display: 'flex', gap: 6, marginBottom: 5, alignItems: 'flex-start' }}>
-                <span style={{ color: '#b0956e', fontSize: 9, marginTop: 2, flexShrink: 0 }}>◆</span>
+              fontFamily: '"Instrument Serif", Georgia, serif',
+              fontSize: 15, fontStyle: 'italic', color: tk.ink, marginBottom: 5,
+              minHeight: 22,
+            }}>
+              {profile.name || <span style={{ color: tk.inkGhost }}>Your company</span>}
+            </div>
+            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+              {profile.stage ? (
                 <span style={{
-                  fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-                  fontSize: 10.5, color: tk.inkSoft, lineHeight: 1.4,
-                }}>{s}</span>
+                  fontSize: 9, fontFamily: '"IBM Plex Mono", monospace',
+                  padding: '2px 6px', borderRadius: 3,
+                  background: '#f0ebe3', border: `1px solid ${tk.hairline}`,
+                  color: '#7c6f5a', letterSpacing: '0.07em',
+                }}>{profile.stage}</span>
+              ) : (
+                <span style={{
+                  fontSize: 9, fontFamily: '"IBM Plex Mono", monospace',
+                  padding: '2px 6px', borderRadius: 3,
+                  background: 'transparent', border: `1px dashed ${tk.hairline}`,
+                  color: tk.inkGhost, letterSpacing: '0.07em',
+                }}>stage unknown</span>
+              )}
+              {profile.industry && (
+                <span style={{
+                  fontSize: 9, fontFamily: '"IBM Plex Mono", monospace',
+                  padding: '2px 6px', borderRadius: 3,
+                  background: '#f0ebe3', border: `1px solid ${tk.hairline}`,
+                  color: '#7c6f5a', letterSpacing: '0.07em',
+                }}>{profile.industry}</span>
+              )}
+            </div>
+          </div>
+
+          {/* vs Hive&Co */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <span style={{
+                fontFamily: '"IBM Plex Mono", monospace',
+                fontSize: 8.5, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase',
+                color: tk.inkSoft,
+              }}>vs Hive&amp;Co</span>
+            </div>
+
+            {/* Legend */}
+            <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <div style={{ width: 10, height: 2, background: '#c4b8a8', borderRadius: 1, opacity: 0.8 }} />
+                <span style={{ fontSize: 8.5, fontFamily: '"IBM Plex Mono", monospace', color: tk.inkGhost }}>Hive&amp;Co</span>
               </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <div style={{ width: 10, height: 2, background: '#b0956e', borderRadius: 1 }} />
+                <span style={{ fontSize: 8.5, fontFamily: '"IBM Plex Mono", monospace', color: tk.inkGhost }}>You</span>
+              </div>
+            </div>
+
+            {DOMAIN_META.map(d => (
+              <DomainRow
+                key={d.id}
+                id={d.id}
+                label={d.label}
+                userScore={profile.domains[d.id]}
+                tk={tk}
+              />
             ))}
           </div>
-        )}
 
-        {!anyDomain && !profile.name && !isBuilding && (
-          <div style={{
-            marginTop: 8,
-            fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-            fontSize: 11, color: tk.inkGhost, lineHeight: 1.55,
-          }}>
-            Ask about your investors, compliance, team, or security — your profile builds as we talk.
-          </div>
-        )}
-      </div>
+          {/* Signals */}
+          {profile.signals.length > 0 && (
+            <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${tk.hairline}` }}>
+              <div style={{
+                fontFamily: '"IBM Plex Mono", monospace',
+                fontSize: 8.5, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase',
+                color: tk.inkSoft, marginBottom: 8,
+              }}>Signals read</div>
+              {profile.signals.slice(-5).map((s, i) => (
+                <div key={i} style={{ display: 'flex', gap: 6, marginBottom: 5, alignItems: 'flex-start' }}>
+                  <span style={{ color: '#b0956e', fontSize: 9, marginTop: 2, flexShrink: 0 }}>◆</span>
+                  <span style={{
+                    fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                    fontSize: 10.5, color: tk.inkSoft, lineHeight: 1.4,
+                  }}>{s}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!anyDomain && !profile.name && !isBuilding && (
+            <div style={{
+              marginTop: 8,
+              fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+              fontSize: 11, color: tk.inkGhost, lineHeight: 1.55,
+            }}>
+              Ask about your investors, compliance, team, or security — your profile builds as we talk.
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
