@@ -25,34 +25,22 @@ const DOMAIN_META = [
   { id: 'team',       label: 'Team & Ops' },
 ];
 
-const VENDOR_GROUPS = [
+const DISCOVERY_VENDORS = [
   {
-    id: 'cloud', label: 'Cloud & Infra',
-    vendors: [
-      { logoUrl: awsUrl,        logoH: 18, alt: 'AWS',        value: '$220k+ available',  sub: '10 programs' },
-      { logoUrl: microsoftUrl,  logoH: 14, alt: 'Microsoft',  value: '$150k unclaimed',   sub: '6 programs' },
-      { logoUrl: cloudflareUrl, logoH: 16, alt: 'Cloudflare', value: 'Edge + Zero Trust', sub: 'Startup free' },
-    ],
+    logoUrl: awsUrl, logoH: 18, alt: 'AWS',
+    value: '$220k+ available',
+    programs: ['AWS Activate', 'ISV Accelerate', 'Marketplace', 'Partner Network', 'Generative AI', 'EdStart', 'Energy', 'Impact Computing', 'Startups', 'Credits'],
   },
   {
-    id: 'security', label: 'Security',
-    vendors: [
-      { logoUrl: vantaUrl,  logoH: 16, alt: 'Vanta', value: 'SOC 2 fast track', sub: '90-day path' },
-      { logoUrl: ciscoUrl,  logoH: 14, alt: 'Cisco',  value: 'MSP program',      sub: 'Partner track' },
-    ],
+    logoUrl: microsoftUrl, logoH: 14, alt: 'Microsoft',
+    value: '$150k unclaimed',
+    programs: ['M365 for Startups', 'Azure Credits', 'Partner Network', 'ISV Success', 'AI Cloud Partner', 'Marketplace'],
   },
-  {
-    id: 'insurance', label: 'Insurance',
-    vendors: [
-      { logoUrl: austbrokersUrl, logoH: 16, alt: 'AustBrokers', value: 'Cyber insurance', sub: 'Fast-track coverage' },
-    ],
-  },
-  {
-    id: 'investors', label: 'Investors',
-    vendors: [
-      { logoUrl: wholesaleInvestorUrl, logoH: 14, alt: 'Wholesale Investor', value: 'Investor access', sub: 'Accredited network' },
-    ],
-  },
+  { logoUrl: cloudflareUrl, logoH: 16, alt: 'Cloudflare', value: 'Edge + Zero Trust', sub: 'Startup free' },
+  { logoUrl: vantaUrl,      logoH: 16, alt: 'Vanta',      value: 'SOC 2 fast track',  sub: '90-day path' },
+  { logoUrl: ciscoUrl,      logoH: 14, alt: 'Cisco',       value: 'MSP program',        sub: 'Partner track' },
+  { logoUrl: austbrokersUrl,       logoH: 16, alt: 'AustBrokers',       value: 'Cyber insurance',  sub: 'Fast-track coverage' },
+  { logoUrl: wholesaleInvestorUrl, logoH: 14, alt: 'Wholesale Investor', value: 'Investor access',  sub: 'Accredited network' },
 ];
 
 function DomainRow({ id, label, userScore, tk }) {
@@ -102,92 +90,78 @@ function DomainRow({ id, label, userScore, tk }) {
 }
 
 function DiscoveryView({ tk }) {
-  const [collapsedGroups, setCollapsedGroups] = useState(new Set());
-  const [openVendorId, setOpenVendorId] = useState(null);
-
-  function toggleGroup(id) {
-    setCollapsedGroups(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  }
+  const [openId, setOpenId] = useState(null);
 
   return (
     <div style={{ flex: 1 }}>
-      {VENDOR_GROUPS.map((group, gi) => {
-        const isGroupOpen = !collapsedGroups.has(group.id);
-        const isLastGroup = gi === VENDOR_GROUPS.length - 1;
+      {DISCOVERY_VENDORS.map((v, i) => {
+        const isOpen = openId === v.alt;
+        const isLast = i === DISCOVERY_VENDORS.length - 1;
+        const count = v.programs?.length;
+        const expandHeight = count ? 16 + count * 24 + 16 : 58;
+
         return (
-          <div key={group.id} style={{ borderBottom: isLastGroup ? 'none' : `1px solid ${tk.hairline}` }}>
-            {/* Group header */}
+          <div key={v.alt} style={{ borderBottom: isLast ? 'none' : `1px solid ${tk.hairline}` }}>
             <button
-              onClick={() => toggleGroup(group.id)}
+              onClick={() => setOpenId(isOpen ? null : v.alt)}
               style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                width: '100%', padding: '8px 16px',
+                display: 'flex', alignItems: 'center', gap: 8,
+                width: '100%', padding: '13px 16px',
                 background: 'none', border: 'none', cursor: 'pointer',
               }}
             >
-              <span style={{
-                fontFamily: '"IBM Plex Mono", monospace',
-                fontSize: 8.5, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase',
-                color: tk.inkGhost,
-              }}>{group.label}</span>
+              <img
+                src={v.logoUrl} alt={v.alt}
+                style={{ height: v.logoH, objectFit: 'contain', objectPosition: 'left', maxWidth: 110, flexShrink: 0 }}
+              />
+              <div style={{ flex: 1 }} />
+              {count && !isOpen && (
+                <span style={{
+                  fontFamily: '"IBM Plex Mono", monospace',
+                  fontSize: 9, fontWeight: 700,
+                  color: '#a8651e',
+                  background: '#f5e6cc',
+                  border: '1px solid #e8c98a',
+                  borderRadius: 10,
+                  padding: '1px 7px',
+                  letterSpacing: '0.04em',
+                  flexShrink: 0,
+                }}>{count}</span>
+              )}
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
-                style={{ transform: isGroupOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.2s', flexShrink: 0, opacity: 0.35 }}>
+                style={{ transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.2s', flexShrink: 0, opacity: 0.4 }}>
                 <path d="M2 3.5 L5 6.5 L8 3.5" stroke="#8c8499" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
 
-            {/* Group vendors */}
             <div style={{
               overflow: 'hidden',
-              maxHeight: isGroupOpen ? group.vendors.length * 120 : 0,
+              maxHeight: isOpen ? expandHeight : 0,
               transition: 'max-height 0.25s cubic-bezier(0.32,0.72,0,1)',
             }}>
-              {group.vendors.map((v, vi) => {
-                const isOpen = openVendorId === v.alt;
-                const isLastVendor = vi === group.vendors.length - 1;
-                return (
-                  <div key={v.alt} style={{ borderTop: `1px solid ${tk.hairline}` }}>
-                    <button
-                      onClick={() => setOpenVendorId(isOpen ? null : v.alt)}
-                      style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        width: '100%', padding: '11px 16px',
-                        background: 'none', border: 'none', cursor: 'pointer',
-                      }}
-                    >
-                      <img
-                        src={v.logoUrl}
-                        alt={v.alt}
-                        style={{ height: v.logoH, objectFit: 'contain', objectPosition: 'left', maxWidth: 110 }}
-                      />
-                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
-                        style={{ transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.2s', flexShrink: 0, opacity: 0.4 }}>
-                        <path d="M2 3.5 L5 6.5 L8 3.5" stroke="#8c8499" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </button>
-                    <div style={{
-                      overflow: 'hidden',
-                      maxHeight: isOpen ? 70 : 0,
-                      transition: 'max-height 0.22s cubic-bezier(0.32,0.72,0,1)',
-                    }}>
-                      <div style={{ padding: '0 16px 11px' }}>
-                        <div style={{
-                          fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-                          fontSize: 12, fontWeight: 600, color: tk.ink, marginBottom: 2,
-                        }}>{v.value}</div>
-                        <div style={{
-                          fontFamily: '"IBM Plex Mono", monospace',
-                          fontSize: 9, color: tk.inkSoft, letterSpacing: '0.06em',
-                        }}>{v.sub}</div>
-                      </div>
-                    </div>
+              <div style={{ padding: '0 16px 13px' }}>
+                <div style={{
+                  fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                  fontSize: 12, fontWeight: 600, color: tk.ink, marginBottom: count ? 8 : 2,
+                }}>{v.value}</div>
+                {count ? (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                    {v.programs.map(p => (
+                      <span key={p} style={{
+                        fontFamily: '"IBM Plex Mono", monospace',
+                        fontSize: 8.5, color: '#7c6f5a', letterSpacing: '0.04em',
+                        background: '#f0ebe3', border: `1px solid ${tk.hairline}`,
+                        borderRadius: 4, padding: '2px 6px',
+                      }}>{p}</span>
+                    ))}
                   </div>
-                );
-              })}
+                ) : (
+                  <div style={{
+                    fontFamily: '"IBM Plex Mono", monospace',
+                    fontSize: 9, color: tk.inkSoft, letterSpacing: '0.06em',
+                  }}>{v.sub}</div>
+                )}
+              </div>
             </div>
           </div>
         );
