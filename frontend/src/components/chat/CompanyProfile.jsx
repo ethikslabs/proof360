@@ -29,38 +29,38 @@ const DISCOVERY_VENDORS = [
   {
     logoUrl: awsUrl, logoH: 18, alt: 'AWS',
     value: '$220k+ to build without burning cash',
-    applyUrl: 'https://aws.amazon.com/startups/',
+    chatQ: 'Help me figure out which AWS programs I qualify for and how to apply.',
     programs: [
-      { label: 'Activate (credits)',   url: 'https://aws.amazon.com/startups/' },
-      { label: 'ISV co-sell',          url: 'https://aws.amazon.com/partners/programs/isv-accelerate/' },
-      { label: 'Marketplace listing',  url: 'https://aws.amazon.com/marketplace/management/' },
-      { label: 'Partner Network',      url: 'https://aws.amazon.com/partners/' },
-      { label: 'Gen AI track',         url: 'https://aws.amazon.com/startups/generative-ai/' },
-      { label: 'EdStart',              url: 'https://aws.amazon.com/education/edstart/' },
-      { label: 'Energy',               url: 'https://aws.amazon.com/energy/solutions/' },
-      { label: 'Impact Computing',     url: 'https://aws.amazon.com/government-education/nonprofits/' },
-      { label: 'Startup pack',         url: 'https://aws.amazon.com/startups/' },
-      { label: 'Direct credits',       url: 'https://aws.amazon.com/startups/credits/' },
+      { label: 'Activate (credits)',  ask: 'What is AWS Activate and how much credit could I get for my stage?' },
+      { label: 'ISV co-sell',         ask: 'How does the AWS ISV co-sell program work and is it right for me?' },
+      { label: 'Marketplace listing', ask: 'What does it take to get listed on the AWS Marketplace?' },
+      { label: 'Partner Network',     ask: 'What does the AWS Partner Network give me as a startup?' },
+      { label: 'Gen AI track',        ask: 'Tell me about the AWS Generative AI startup track.' },
+      { label: 'EdStart',             ask: 'What is AWS EdStart and do I qualify?' },
+      { label: 'Energy',              ask: 'What does the AWS Energy program offer?' },
+      { label: 'Impact Computing',    ask: 'What is the AWS Impact Computing program?' },
+      { label: 'Startup pack',        ask: 'What is included in the AWS Startup pack?' },
+      { label: 'Direct credits',      ask: 'How do I apply for direct AWS credits?' },
     ],
   },
   {
     logoUrl: microsoftUrl, logoH: 14, alt: 'Microsoft',
     value: 'Sell into enterprise through Microsoft',
-    applyUrl: 'https://foundershub.startups.microsoft.com/',
+    chatQ: 'Which Microsoft programs should I be in to access enterprise customers and get credits?',
     programs: [
-      { label: 'Founders Hub (free)',  url: 'https://foundershub.startups.microsoft.com/' },
-      { label: 'Azure credits',        url: 'https://azure.microsoft.com/en-au/free/' },
-      { label: 'Partner Network',      url: 'https://partner.microsoft.com/' },
-      { label: 'ISV co-sell',          url: 'https://partner.microsoft.com/en-us/solutions/build-and-modernize-apps/isv-success' },
-      { label: 'AI Cloud Partner',     url: 'https://partner.microsoft.com/en-us/solutions/azure/' },
-      { label: 'Marketplace listing',  url: 'https://partner.microsoft.com/en-us/solutions/azure/marketplace' },
+      { label: 'Founders Hub',    ask: 'What does Microsoft Founders Hub give me and how do I join?' },
+      { label: 'Azure credits',   ask: 'How much Azure credit can I get as a startup and how do I claim it?' },
+      { label: 'Partner Network', ask: 'What does joining the Microsoft Partner Network unlock?' },
+      { label: 'ISV co-sell',     ask: 'How does Microsoft ISV co-sell work — can it help me close enterprise deals?' },
+      { label: 'AI Cloud Partner', ask: 'What is the Microsoft AI Cloud Partner program?' },
+      { label: 'Marketplace',     ask: 'What does getting listed on the Microsoft Marketplace do for my sales?' },
     ],
   },
-  { logoUrl: cloudflareUrl, logoH: 16, alt: 'Cloudflare', value: 'Enterprise security posture, zero cost',    sub: 'What DD teams check — free for startups',    applyUrl: 'https://www.cloudflare.com/forstartups/' },
-  { logoUrl: vantaUrl,      logoH: 16, alt: 'Vanta',      value: 'SOC 2 — the cert that unlocks B2B deals',   sub: '90-day automated path to certified',          applyUrl: 'https://www.vanta.com/' },
-  { logoUrl: ciscoUrl,      logoH: 14, alt: 'Cisco',       value: 'Security stack enterprise buyers trust',    sub: 'Startup partner access',                     applyUrl: 'https://developer.cisco.com/startups/' },
-  { logoUrl: austbrokersUrl,       logoH: 16, alt: 'AustBrokers',       value: 'Cyber cover enterprise procurement requires', sub: 'AU specialist — fast-track quote',   applyUrl: 'https://austbrokerscyberpro.com.au/' },
-  { logoUrl: wholesaleInvestorUrl, logoH: 14, alt: 'Wholesale Investor', value: '10,000+ AU accredited investors',              sub: 'When your posture is ready to raise', applyUrl: 'https://wholesaleinvestor.com.au/' },
+  { logoUrl: cloudflareUrl, logoH: 16, alt: 'Cloudflare', value: 'Enterprise security posture, zero cost',    sub: 'What DD teams check — free for startups',    chatQ: 'How do I get Cloudflare free as a startup and what does it do for my security posture?' },
+  { logoUrl: vantaUrl,      logoH: 16, alt: 'Vanta',      value: 'SOC 2 — the cert that unlocks B2B deals',   sub: '90-day automated path to certified',          chatQ: 'Walk me through the 90-day SOC 2 path with Vanta and what it costs.' },
+  { logoUrl: ciscoUrl,      logoH: 14, alt: 'Cisco',       value: 'Security stack enterprise buyers trust',    sub: 'Startup partner access',                     chatQ: 'How does Cisco help startups build a security stack that enterprise buyers trust?' },
+  { logoUrl: austbrokersUrl,       logoH: 16, alt: 'AustBrokers',       value: 'Cyber cover enterprise procurement requires', sub: 'AU specialist — fast-track quote',   chatQ: 'What cyber insurance do I need before enterprise procurement will sign off, and how fast can I get it?' },
+  { logoUrl: wholesaleInvestorUrl, logoH: 14, alt: 'Wholesale Investor', value: '10,000+ AU accredited investors',              sub: 'When your posture is ready to raise', chatQ: 'How do I connect with AU accredited investors through Wholesale Investor, and what do I need to have in place first?' },
 ];
 
 function DomainRow({ id, label, userScore, tk }) {
@@ -109,7 +109,7 @@ function DomainRow({ id, label, userScore, tk }) {
   );
 }
 
-function DiscoveryView({ tk }) {
+function DiscoveryView({ tk, onAsk }) {
   const [openId, setOpenId] = useState(null);
 
   return (
@@ -163,21 +163,17 @@ function DiscoveryView({ tk }) {
                 {count ? (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 10 }}>
                     {v.programs.map(p => (
-                      <a
+                      <button
                         key={p.label}
-                        href={p.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={e => e.stopPropagation()}
+                        onClick={e => { e.stopPropagation(); onAsk?.(p.ask); }}
                         style={{
                           fontFamily: '"IBM Plex Mono", monospace',
                           fontSize: 8.5, color: '#5a4e3a', letterSpacing: '0.04em',
                           background: '#ede5d8', border: `1px solid #cfc4b0`,
                           borderRadius: 4, padding: '3px 7px',
-                          textDecoration: 'none', cursor: 'pointer',
-                          display: 'inline-block',
+                          cursor: 'pointer',
                         }}
-                      >{p.label} ↗</a>
+                      >{p.label}</button>
                     ))}
                   </div>
                 ) : (
@@ -186,21 +182,18 @@ function DiscoveryView({ tk }) {
                     fontSize: 9, color: tk.inkSoft, letterSpacing: '0.06em', marginBottom: 10,
                   }}>{v.sub}</div>
                 )}
-                <a
-                  href={v.applyUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={e => e.stopPropagation()}
+                <button
+                  onClick={e => { e.stopPropagation(); onAsk?.(v.chatQ); }}
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: 5,
                     fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
                     fontSize: 11, fontWeight: 600,
                     color: '#fff', background: '#241f31',
                     borderRadius: 6, padding: '6px 12px',
-                    textDecoration: 'none', cursor: 'pointer',
+                    border: 'none', cursor: 'pointer',
                     letterSpacing: '0.01em',
                   }}
-                >Apply ↗</a>
+                >Ask about this →</button>
               </div>
             </div>
           </div>
@@ -220,7 +213,7 @@ function DiscoveryView({ tk }) {
   );
 }
 
-export function CompanyProfile({ profile, isBuilding, hasMessages, tk }) {
+export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onAsk }) {
   const [blink, setBlink] = useState(true);
 
   useEffect(() => {
@@ -263,7 +256,7 @@ export function CompanyProfile({ profile, isBuilding, hasMessages, tk }) {
       </div>
 
       {!hasMessages ? (
-        <DiscoveryView tk={tk} />
+        <DiscoveryView tk={tk} onAsk={onAsk} />
       ) : (
         <div style={{ padding: '14px 16px', flex: 1 }}>
           {/* Company info */}

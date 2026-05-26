@@ -1874,6 +1874,7 @@ export default function Chat() {
             hasMessages={hasMessages}
             tk={tk}
             t={t}
+            onAsk={q => setInputValue(q)}
           />
         )}
 
