@@ -877,6 +877,7 @@ export default function Chat() {
 
   const hasUserMsg  = messages.some(m => m.role === 'user');
   const hasMessages = messages.length > 0;
+  const isHeroState = !hasMessages && phase === 'active';
 
   const userMessageCount = messages.filter(m => m.role === 'user').length;
   const trustPhase = useTrustPhase({ phase, inputReady, userMessageCount, companyData });
@@ -1359,6 +1360,65 @@ export default function Chat() {
           display: 'flex',
           flexDirection: 'column',
         }}>
+          {isHeroState ? (
+            /* ── Hero / empty state — input centred like Claude.ai ── */
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: '100%', maxWidth: 620, padding: '0 36px 48px' }}>
+                <div style={{ textAlign: 'center', marginBottom: 36 }}>
+                  <div style={{
+                    fontFamily: '"Instrument Serif", Georgia, serif',
+                    fontSize: 40, letterSpacing: '-0.02em', color: tk.ink, marginBottom: 10,
+                  }}>
+                    proof<span style={{ color: tk.plum, fontStyle: 'italic' }}>360</span>
+                  </div>
+                  <div style={{
+                    fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                    fontSize: 15, color: tk.inkSoft, fontWeight: 300,
+                  }}>What do you want to explore?</div>
+                </div>
+                <ChatInput
+                  ref={inputRef}
+                  value={inputValue}
+                  onChange={setInputValue}
+                  onSubmit={val => { submit(val); setInputValue(''); }}
+                  onContextInject={label => {
+                    const tok = 40 + Math.floor(Math.random() * 20);
+                    const ms  = 300 + Math.floor(Math.random() * 200);
+                    setMessages(prev => [...prev, {
+                      id: `inject-${Date.now()}`, persona: 'edison', model: 'claude-sonnet-4-6', role: 'assistant', tok, ms,
+                      content: `Got it — adding ${label.toLowerCase()} to the analysis context.`,
+                    }]);
+                  }}
+                  disabled={!inputReady || isProcessing}
+                  messages={messages}
+                  mode={analysisProfile}
+                  onModeChange={setAnalysisProfile}
+                  hideChips
+                />
+                <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap', justifyContent: 'center' }}>
+                  {[
+                    { id: 'demo',      label: 'Show me how it works', action: () => selectIntent('browse') },
+                    { id: 'microsoft', label: 'Microsoft Programs',   action: () => setActiveSpace('microsoft') },
+                    { id: 'investors', label: 'Investor readiness',   action: () => submit('What does investor readiness look like for a seed-stage founder?') },
+                    { id: 'question',  label: 'I have a question',    action: () => inputRef.current?.focus() },
+                  ].map(chip => (
+                    <button key={chip.id} type="button" onClick={chip.action}
+                      style={{
+                        padding: '8px 16px', borderRadius: 20,
+                        border: `1px solid ${tk.hairline}`, background: '#ffffff',
+                        color: tk.inkSoft, fontSize: 13,
+                        fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                        cursor: 'pointer', transition: 'border-color 0.15s, color 0.15s',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = '#9ca3af'; e.currentTarget.style.color = tk.ink; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = tk.hairline; e.currentTarget.style.color = tk.inkSoft; }}
+                    >{chip.label}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+          <>
           {/* Floating questions — appear after intent is declared, hidden when preview is open */}
           {!briefShown && intent !== null && !previewOpen && FLOATS.map((fq, i) => {
             const isFront = pulsingQ !== null ? pulsingQ === i : surfaced === i;
@@ -1580,6 +1640,7 @@ export default function Chat() {
               />
             </div>
           </div>
+          </>)}
         </div>
 
         </div>{/* end chat pane */}

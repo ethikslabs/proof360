@@ -313,7 +313,7 @@ const FOLLOWUP_CHIPS = [
 
 // ── Main component ────────────────────────────────────────────────────────────
 export const ChatInput = forwardRef(function ChatInput(
-  { onSubmit, disabled, messages = [], onContextInject, value: valueProp, onChange: onChangeProp, mode = 'investor', onModeChange },
+  { onSubmit, disabled, messages = [], onContextInject, value: valueProp, onChange: onChangeProp, mode = 'investor', onModeChange, hideChips },
   ref
 ) {
   const hasExchange = messages.length >= 2;
@@ -399,7 +399,7 @@ export const ChatInput = forwardRef(function ChatInput(
         </div>
 
         {/* Suggested chips — visible when box is empty, slide away when typing */}
-        <div style={{
+        {!hideChips && <div style={{
           padding: '0 12px 8px',
           display: 'flex', gap: 6, flexWrap: 'wrap',
           maxHeight: isEmpty ? 60 : 0,
@@ -424,7 +424,7 @@ export const ChatInput = forwardRef(function ChatInput(
               onMouseLeave={e => { e.currentTarget.style.borderColor = '#f0f0f0'; e.currentTarget.style.color = '#9ca3af'; }}
             >{chip}</button>
           ))}
-        </div>
+        </div>}
 
         {/* Bottom bar: + | mode | space | mic | send */}
         <div style={{
