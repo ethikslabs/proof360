@@ -109,8 +109,55 @@ function DomainRow({ id, label, userScore, tk }) {
   );
 }
 
+function BookingModal({ onClose }) {
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 200,
+        background: 'rgba(24,20,32,0.55)', backdropFilter: 'blur(3px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: '#fbf8f1',
+          borderRadius: 14,
+          width: 'min(680px, 95vw)',
+          height: 'min(680px, 88vh)',
+          display: 'flex', flexDirection: 'column',
+          overflow: 'hidden',
+          boxShadow: '0 24px 80px rgba(0,0,0,0.28)',
+        }}
+      >
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '13px 18px', borderBottom: '1px solid #e0d8c9', flexShrink: 0,
+        }}>
+          <span style={{
+            fontFamily: '"IBM Plex Mono", monospace',
+            fontSize: 9, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase',
+            color: '#8c8499',
+          }}>Book time with John</span>
+          <button onClick={onClose} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontSize: 20, color: '#8c8499', lineHeight: 1, padding: 0,
+          }}>×</button>
+        </div>
+        <iframe
+          src="https://meetings.hubspot.com/john3174?embed=true"
+          title="Book a meeting with John"
+          style={{ flex: 1, border: 'none', width: '100%' }}
+        />
+      </div>
+    </div>
+  );
+}
+
 function DiscoveryView({ tk, onAsk }) {
   const [openId, setOpenId] = useState(null);
+  const [bookingOpen, setBookingOpen] = useState(false);
 
   return (
     <div style={{ flex: 1 }}>
@@ -201,14 +248,31 @@ function DiscoveryView({ tk, onAsk }) {
       })}
 
       <div style={{
-        padding: '16px 16px 14px',
-        fontFamily: '"Instrument Serif", Georgia, serif',
-        fontStyle: 'italic',
-        fontSize: 11.5, color: tk.inkSoft, lineHeight: 1.55,
+        padding: '16px 16px 16px',
         borderTop: `1px solid ${tk.hairline}`,
       }}>
-        Tell us about your company — we'll map what's relevant to where you are.
+        <div style={{
+          fontFamily: '"Instrument Serif", Georgia, serif',
+          fontStyle: 'italic',
+          fontSize: 11.5, color: tk.inkSoft, lineHeight: 1.55, marginBottom: 12,
+        }}>
+          Tell us about your company — we'll map what's relevant to where you are.
+        </div>
+        <button
+          onClick={() => setBookingOpen(true)}
+          style={{
+            width: '100%',
+            fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+            fontSize: 11.5, fontWeight: 600,
+            color: '#fff', background: '#241f31',
+            border: 'none', borderRadius: 8,
+            padding: '9px 14px',
+            cursor: 'pointer', letterSpacing: '0.01em',
+          }}
+        >Book time with John →</button>
       </div>
+
+      {bookingOpen && <BookingModal onClose={() => setBookingOpen(false)} />}
     </div>
   );
 }
