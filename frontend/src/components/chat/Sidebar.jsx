@@ -251,7 +251,14 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
 
       <div style={{ overflowY: 'auto', flex: 1 }}>
 
-        {/* ── Hive & Co — reference founder with stage timeline ── */}
+        {/* ── Hive & Co — reference founder, visually distinct from user's section ── */}
+        <div style={{
+          margin: '8px 8px 4px',
+          border: `1px solid ${tk.umber}30`,
+          borderRadius: 10,
+          background: `${tk.umber}05`,
+          overflow: 'hidden',
+        }}>
         <AccordionSection
           title="Hive & Co"
           accent={tk.umber}
@@ -312,6 +319,7 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
             />
           ))}
         </AccordionSection>
+        </div>{/* end Hive & Co box */}
 
         {/* ── Your company section ── */}
         {userTabs.length === 0 ? (

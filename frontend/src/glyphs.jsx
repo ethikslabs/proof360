@@ -1,3 +1,5 @@
+import awsSvgUrl from './components/OperationalField/logos/aws.svg';
+
 export const SPACE_GLYPHS = {
   chat: (c) => (
     <svg viewBox="0 0 22 22" width="14" height="14">
@@ -19,12 +21,8 @@ export const SPACE_GLYPHS = {
       <rect x="15" y="3"  width="5" height="14" fill={c} opacity="0.85"/>
     </svg>
   ),
-  aws: (c) => (
-    <svg viewBox="0 0 22 22" width="14" height="14">
-      <path d="M3 14 Q11 6 19 14" fill="none" stroke={c} strokeWidth="1.2"/>
-      <circle cx="11" cy="10" r="1.5" fill={c}/>
-      <path d="M3 17 L19 17" stroke={c} strokeWidth="0.8" opacity="0.45"/>
-    </svg>
+  aws: (_c) => (
+    <img src={awsSvgUrl} alt="AWS" style={{ width: 22, height: 13, objectFit: 'contain' }} />
   ),
   posture: (c) => (
     <svg viewBox="0 0 22 22" width="14" height="14">
@@ -39,12 +37,12 @@ export const SPACE_GLYPHS = {
       <circle cx="14" cy="13" r="1.8" fill={c}/>
     </svg>
   ),
-  microsoft: (c) => (
+  microsoft: (_c) => (
     <svg viewBox="0 0 22 22" width="14" height="14">
-      <rect x="3"  y="3"  width="7" height="7" fill={c} opacity="0.9"/>
-      <rect x="12" y="3"  width="7" height="7" fill={c} opacity="0.55"/>
-      <rect x="3"  y="12" width="7" height="7" fill={c} opacity="0.55"/>
-      <rect x="12" y="12" width="7" height="7" fill={c} opacity="0.9"/>
+      <rect x="2"  y="2"  width="9" height="9" fill="#F25022"/>
+      <rect x="12" y="2"  width="9" height="9" fill="#7FBA00"/>
+      <rect x="2"  y="12" width="9" height="9" fill="#00A4EF"/>
+      <rect x="12" y="12" width="9" height="9" fill="#FFB900"/>
     </svg>
   ),
 };
