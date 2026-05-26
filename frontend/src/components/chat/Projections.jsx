@@ -308,6 +308,14 @@ const YOURS_AWS = {
   ],
 };
 
+const YOURS_MICROSOFT = {
+  summary: "Two Microsoft programs available at your stage. Founders Hub is the fastest — 20 minutes to apply, up to $150k in Azure credits available now.",
+  programs: [
+    { name: 'Microsoft for Startups Founders Hub', status: 'available', value: 'Up to $150k Azure credits + GitHub Enterprise', detail: 'Apply now · startup stage qualifies', url: 'https://www.microsoft.com/en-us/startups' },
+    { name: 'Ingram Micro Xvantage — CSP',         status: 'eligible',  value: 'Microsoft 365 via CSP',                         detail: 'Available through Ingram Micro ANZ channel', url: 'https://xvantage.ingrammicro.com'        },
+  ],
+};
+
 function AwsProjection({ panel, company, t }) {
   const tk = tokens(t.theme);
   const tile = { kind: 'Programs', token: 'teal', glyphKey: 'aws', title: 'AWS programs matched to your stage' };
@@ -341,6 +349,55 @@ function AwsProjection({ panel, company, t }) {
               </div>
               {(p.status === 'available' || p.status === 'eligible') && (
                 <span style={{ alignSelf: 'center', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.teal, cursor: 'pointer', borderBottom: `1px solid ${tk.teal}66`, paddingBottom: 1, letterSpacing: '0.04em' }}>Apply →</span>
+              )}
+            </div>
+          ))}
+        </PSection>
+      )}
+    </ProjectionShell>
+  );
+}
+
+function MicrosoftProjection({ panel, company, t }) {
+  const tk = tokens(t.theme);
+  const tile = { kind: 'Programs', token: 'teal', glyphKey: 'microsoft', title: 'Microsoft programs matched to your stage' };
+  const d = panel ?? YOURS_MICROSOFT;
+  const statusColor = (s) => s === 'available' ? tk.sevOk : s === 'eligible' ? tk.umber : tk.inkSoft;
+  const statusLabel = (s) => s === 'available' ? 'Available' : s === 'eligible' ? 'Eligible' : 'Not enrolled';
+
+  return (
+    <ProjectionShell tile={tile} company={company} attributedTo="leonardo" lastUpdated="5m ago" t={t}>
+      <p style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic', fontSize: 20, lineHeight: 1.4, color: tk.inkMid, margin: '0 0 36px', maxWidth: 640 }}>
+        {d.summary}
+      </p>
+      {d.programs.length === 0 ? (
+        <div style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic', fontSize: 17, color: tk.inkSoft, padding: '32px 0' }}>
+          {d.emptyNote ?? "No programs matched yet."}
+        </div>
+      ) : (
+        <PSection kicker="Programs" title="Where you can apply now" source="Microsoft Partner Network · Ingram Micro ANZ" t={t}>
+          {d.programs.map((p, i) => (
+            <div key={p.name} style={{
+              padding: '18px 0',
+              borderBottom: i < d.programs.length - 1 ? `1px solid ${tk.hairline}` : 'none',
+              display: 'grid', gridTemplateColumns: '1fr auto', gap: 12,
+            }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 4 }}>
+                  <span style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontSize: 18, color: tk.ink, letterSpacing: '-0.005em' }}>{p.name}</span>
+                  <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9.5, color: statusColor(p.status), letterSpacing: '0.16em', textTransform: 'uppercase' }}>{statusLabel(p.status)}</span>
+                </div>
+                <div style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic', fontSize: 14, color: tk.inkMid }}>{p.value} · {p.detail}</div>
+              </div>
+              {(p.status === 'available' || p.status === 'eligible') && p.url && (
+                <a
+                  href={p.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ alignSelf: 'center', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.teal, borderBottom: `1px solid ${tk.teal}66`, paddingBottom: 1, letterSpacing: '0.04em', textDecoration: 'none' }}
+                >
+                  Apply →
+                </a>
               )}
             </div>
           ))}
@@ -431,11 +488,12 @@ export function Projection({ id, company, hiveStage, onBack, t }) {
   const hive = company === 'hive';
   const stagePanel = hive ? HIVE_STAGES[hiveStage ?? 1]?.panel : null;
 
-  const inner = id === 'investor' ? <InvestorProjection panel={stagePanel?.investor} company={company} t={t} />
-              : id === 'vendors'  ? <VendorsProjection  panel={stagePanel?.vendors}  company={company} t={t} />
-              : id === 'aws'      ? <AwsProjection      panel={stagePanel?.aws}      company={company} t={t} />
-              : id === 'posture'  ? <PostureProjection  panel={stagePanel?.posture}  company={company} t={t} />
-              : id === 'spv'      ? <SpvProjection      panel={stagePanel?.spv}      company={company} t={t} />
+  const inner = id === 'investor'  ? <InvestorProjection   panel={stagePanel?.investor}  company={company} t={t} />
+              : id === 'vendors'   ? <VendorsProjection    panel={stagePanel?.vendors}   company={company} t={t} />
+              : id === 'aws'       ? <AwsProjection        panel={stagePanel?.aws}       company={company} t={t} />
+              : id === 'microsoft' ? <MicrosoftProjection  panel={stagePanel?.microsoft} company={company} t={t} />
+              : id === 'posture'   ? <PostureProjection    panel={stagePanel?.posture}   company={company} t={t} />
+              : id === 'spv'       ? <SpvProjection        panel={stagePanel?.spv}       company={company} t={t} />
               : null;
   if (!inner) return null;
   return (

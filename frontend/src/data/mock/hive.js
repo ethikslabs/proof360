@@ -9,9 +9,10 @@ export const HIVE_STAGES = [
     spaces: {
       investor: { lit: false, sub: 'Score 12',   persona: 'sofia',    msg: "No data room. No cap table documentation. No investor story beyond the founder telling it in person. The product was real — the evidence layer wasn't." },
       vendors:  { lit: false, sub: '0 matched',  persona: 'leonardo', msg: "Nothing in the vendor stack. Everything manual. Supplier relationships existed in WhatsApp conversations and handshake deals — none of which a buyer or investor could audit." },
-      aws:      { lit: false, sub: '0 eligible', persona: 'edison',   msg: "No AWS footprint, no cloud infrastructure, no program eligibility. Shopify and spreadsheets." },
-      posture:  { lit: false, sub: '1 check',    persona: 'edison',   msg: "One check: SSL on the domain. No access control evidence, no breach monitoring. A single enterprise buyer's security questionnaire would have surfaced every gap in ten minutes." },
-      spv:      { lit: false, sub: 'None',       persona: 'sofia',    msg: "No legal structure for raising. A willing investor couldn't have wired money even if they wanted to." },
+      aws:       { lit: false, sub: '0 eligible', persona: 'edison',   msg: "No AWS footprint, no cloud infrastructure, no program eligibility. Shopify and spreadsheets." },
+      microsoft: { lit: false, sub: '0 eligible', persona: 'edison',   msg: "No digital product, no cloud infrastructure — Microsoft Founders Hub requires at least a SaaS product or hosted service. Shopify-only doesn't qualify." },
+      posture:   { lit: false, sub: '1 check',    persona: 'edison',   msg: "One check: SSL on the domain. No access control evidence, no breach monitoring. A single enterprise buyer's security questionnaire would have surfaced every gap in ten minutes." },
+      spv:       { lit: false, sub: 'None',       persona: 'sofia',    msg: "No legal structure for raising. A willing investor couldn't have wired money even if they wanted to." },
     },
     panel: {
       investor: {
@@ -49,6 +50,11 @@ export const HIVE_STAGES = [
         programs: [],
         emptyNote: "AWS program eligibility requires an AWS footprint. Moving off Shopify is a precondition.",
       },
+      microsoft: {
+        summary: "No Microsoft programs matched yet. Founders Hub requires a digital product or hosted service — Shopify alone doesn't qualify.",
+        programs: [],
+        emptyNote: "Microsoft Founders Hub requires a SaaS or hosted product. Moving off Shopify-only is the precondition.",
+      },
       posture: {
         summary: "One check passes. Everything else is invisible or missing.",
         items: [
@@ -82,8 +88,9 @@ export const HIVE_STAGES = [
     spaces: {
       investor: { lit: true, sub: 'Score 38',   persona: 'sofia',    msg: "Score 38 reflects a company that's started the documentation process but hasn't finished it. Data room is open. Cap table is clean. But the evidence layer underneath is still thin. Enough to start conversations. Not enough to close them." },
       vendors:  { lit: true, sub: '6 matched',  persona: 'leonardo', msg: "Six vendors matched once they started looking: Vanta for compliance, Cloudflare for edge security, two insurance products, two AWS programs. The vendor stack tells investors: this company has started building infrastructure." },
-      aws:      { lit: true, sub: '0 eligible', persona: 'edison',   msg: "Still zero AWS eligibility — the Shopify stack doesn't qualify for programs or credits. That changes when blockchain infrastructure moves onto AWS in Stage 3." },
-      posture:  { lit: true, sub: '2 checks',   persona: 'edison',   msg: "Two checks: SSL plus a basic access control audit. Enough to put something in a security questionnaire. Not enough to satisfy enterprise procurement." },
+      aws:       { lit: true,  sub: '0 eligible', persona: 'edison',   msg: "Still zero AWS eligibility — the Shopify stack doesn't qualify for programs or credits. That changes when blockchain infrastructure moves onto AWS in Stage 3." },
+      microsoft: { lit: true,  sub: '2 programs', persona: 'leonardo', msg: "Two Microsoft programs available now. The Founders Hub application takes 20 minutes and unlocks up to $150k in Azure credits plus GitHub Enterprise. The Ingram Micro Xvantage CSP is the fastest path to Microsoft 365 at startup pricing." },
+      posture:   { lit: true,  sub: '2 checks',   persona: 'edison',   msg: "Two checks: SSL plus a basic access control audit. Enough to put something in a security questionnaire. Not enough to satisfy enterprise procurement." },
       spv:      { lit: true, sub: 'None',       persona: 'sofia',    msg: "No SPV yet, but SAFE documentation is in progress. An investor could wire money — it would just take two weeks of legal work first." },
     },
     panel: {
@@ -128,6 +135,13 @@ export const HIVE_STAGES = [
           { name: 'Well-Architected', status: 'not_enrolled', value: 'Free review',        detail: 'Available once on AWS infrastructure'               },
         ],
       },
+      microsoft: {
+        summary: "Two Microsoft programs available at seed stage. Founders Hub is the single fastest infrastructure decision — $150k in credits, 20-minute application, available now.",
+        programs: [
+          { name: 'Microsoft for Startups Founders Hub', status: 'available',    value: 'Up to $150k Azure credits + GitHub Enterprise', detail: 'Seed stage qualifies · apply now', url: 'https://www.microsoft.com/en-us/startups'       },
+          { name: 'Ingram Micro Xvantage — CSP',         status: 'eligible',     value: 'Microsoft 365 via CSP',                         detail: 'Available through Ingram Micro ANZ channel', url: 'https://xvantage.ingrammicro.com'              },
+        ],
+      },
       posture: {
         summary: "Two checks. Enough to answer the first line of a security questionnaire. Not enough to satisfy enterprise procurement or a serious investor.",
         items: [
@@ -162,7 +176,8 @@ export const HIVE_STAGES = [
     spaces: {
       investor: { lit: true, sub: 'Score 84',   persona: 'sofia',    msg: "Score 84 is unusual for a food brand at this stage. Blockchain provenance generates compliance evidence automatically. Investors who've seen food supply chain fraud respond to that very differently than to a manually-assembled data room." },
       vendors:  { lit: true, sub: '8 matched',  persona: 'leonardo', msg: "Eight vendor matches. The two additions over Stage 2 are blockchain infrastructure vendors — one for on-chain attestation, one for the enterprise API connecting provenance to buyer procurement platforms." },
-      aws:      { lit: true, sub: '2 eligible', persona: 'edison',   msg: "Two AWS programs now in play. Blockchain infrastructure qualifies for Activate credits; data volume triggers a second program. Roughly $50k in credits." },
+      aws:       { lit: true, sub: '2 eligible', persona: 'edison',   msg: "Two AWS programs now in play. Blockchain infrastructure qualifies for Activate credits; data volume triggers a second program. Roughly $50k in credits." },
+      microsoft: { lit: true, sub: '4 programs', persona: 'leonardo', msg: "Four Microsoft programs matched once the B2B platform went live. The Ingram Micro AMP assessment is free and available now — that's the immediate priority. Founders Hub covers the Azure migration. Marketplace listing is the Phase 2 play." },
       posture:  { lit: true, sub: '9 checks',   persona: 'edison',   msg: "Nine checks. The blockchain layer introduced audit-trail-by-default. Every batch record, every access event, logged on-chain. A security questionnaire that took three weeks now takes three minutes." },
       spv:      { lit: true, sub: 'Draft',      persona: 'sofia',    msg: "SPV in draft — the provenance protocol carved out as a separate investable entity from the honey brand. Investors can take the IP without the operational DTC risk." },
     },
@@ -208,6 +223,15 @@ export const HIVE_STAGES = [
           { name: 'AWS ISV Accelerate', status: 'eligible',     value: 'Co-sell motion', detail: 'Marketplace listing in progress'                     },
           { name: 'Well-Architected',   status: 'available',    value: 'Free review',   detail: 'Schedule now — provenance API architecture review'   },
           { name: 'AWS Marketplace',    status: 'not_enrolled', value: 'Protocol listing', detail: 'Phase 2 after ISV Accelerate'                      },
+        ],
+      },
+      microsoft: {
+        summary: "Four Microsoft programs matched. The Ingram Micro AMP assessment is free and available now — the fastest path to funded Azure infrastructure. Founders Hub credits cover the migration cost.",
+        programs: [
+          { name: 'Microsoft for Startups Founders Hub',  status: 'available',    value: 'Up to $150k Azure credits + GitHub Enterprise + M365', detail: 'Series A stage qualifies · apply now',                      url: 'https://www.microsoft.com/en-us/startups'                             },
+          { name: 'Ingram Micro AMP — Azure Assessment',  status: 'available',    value: 'Free Azure assessment + migration planning',            detail: 'Free via Ingram channel (ANZ) — no Azure footprint needed', url: 'https://www.ingrammicro.com/en-AU/services/microsoft'                 },
+          { name: 'Ingram Micro Xvantage — CSP',          status: 'eligible',     value: 'Microsoft 365 via CSP',                                 detail: 'Bundled with Ingram cloud management tooling',              url: 'https://xvantage.ingrammicro.com'                                     },
+          { name: 'Azure Marketplace Seller',             status: 'not_enrolled', value: 'Transact listing + 10% marketplace reward',             detail: 'Phase 2 — after Founders Hub onboarding + Series A',        url: 'https://partner.microsoft.com/en-us/partnership/azure-marketplace'    },
         ],
       },
       posture: {

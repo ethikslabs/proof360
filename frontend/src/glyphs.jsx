@@ -39,4 +39,12 @@ export const SPACE_GLYPHS = {
       <circle cx="14" cy="13" r="1.8" fill={c}/>
     </svg>
   ),
+  microsoft: (c) => (
+    <svg viewBox="0 0 22 22" width="14" height="14">
+      <rect x="3"  y="3"  width="7" height="7" fill={c} opacity="0.9"/>
+      <rect x="12" y="3"  width="7" height="7" fill={c} opacity="0.55"/>
+      <rect x="3"  y="12" width="7" height="7" fill={c} opacity="0.55"/>
+      <rect x="12" y="12" width="7" height="7" fill={c} opacity="0.9"/>
+    </svg>
+  ),
 };

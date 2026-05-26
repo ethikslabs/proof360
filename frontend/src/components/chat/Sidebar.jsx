@@ -4,17 +4,19 @@ import { SPACE_GLYPHS } from '../../glyphs.jsx';
 import { HIVE_STAGES } from '../../data/mock/hive.js';
 
 const SPACES = [
-  { id: 'investor', label: 'Investor Readiness', glyphKey: 'investor', token: 'plum'  },
-  { id: 'vendors',  label: 'Vendors',            glyphKey: 'vendors',  token: 'umber' },
-  { id: 'aws',      label: 'AWS Programs',       glyphKey: 'aws',      token: 'teal'  },
-  { id: 'posture',  label: 'Posture',            glyphKey: 'posture',  token: 'teal'  },
-  { id: 'spv',      label: 'SPV Status',         glyphKey: 'spv',      token: 'plum'  },
+  { id: 'investor',  label: 'Investor Readiness',   glyphKey: 'investor',  token: 'plum'  },
+  { id: 'vendors',   label: 'Vendors',              glyphKey: 'vendors',   token: 'umber' },
+  { id: 'aws',       label: 'AWS Programs',         glyphKey: 'aws',       token: 'teal'  },
+  { id: 'microsoft', label: 'Microsoft Programs',   glyphKey: 'microsoft', token: 'teal'  },
+  { id: 'posture',   label: 'Posture',              glyphKey: 'posture',   token: 'teal'  },
+  { id: 'spv',       label: 'SPV Status',           glyphKey: 'spv',       token: 'plum'  },
 ];
 
 
 const YOURS_SUBS = {
-  investor: 'Score 72', vendors: '4 matched',
-  aws: '3 eligible',    posture: '7 checks', spv: 'Draft',
+  investor:  'Score 72', vendors: '4 matched',
+  aws:       '3 eligible', microsoft: '2 programs',
+  posture:   '7 checks',  spv: 'Draft',
 };
 
 function ProjectionItem({ glyphKey, label, sublabel, lit, active, color, collapsed, onClick, forceClickable }) {
@@ -240,7 +242,7 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
         <AccordionSection
           title="Hive & Co"
           accent={tk.umber}
-          count={hiveCount} total={5}
+          count={hiveCount} total={6}
           open={demoOpen} onToggle={() => setDemoOpen(o => !o)}
           collapsed={collapsed}
           stageRail={!collapsed && (
@@ -291,7 +293,7 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
           <AccordionSection
             title="Yours"
             accent={tk.plum}
-            count={litCount} total={5}
+            count={litCount} total={6}
             open={isSectionOpen('__yours')} onToggle={() => toggleSection('__yours')}
             collapsed={collapsed}
           >
