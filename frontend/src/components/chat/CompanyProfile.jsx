@@ -315,10 +315,8 @@ export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onAsk, fo
         )}
       </div>
 
-      {!hasMessages ? (
-        <DiscoveryView tk={tk} onAsk={onAsk} focusedProgram={focusedProgram} />
-      ) : (
-        <div style={{ padding: '14px 16px', flex: 1 }}>
+      {hasMessages && (
+        <div style={{ padding: '14px 16px', borderBottom: `1px solid ${tk.hairline}` }}>
           {/* Company info */}
           <div style={{ marginBottom: 16 }}>
             <div style={{
@@ -419,6 +417,7 @@ export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onAsk, fo
           )}
         </div>
       )}
+      <DiscoveryView tk={tk} onAsk={onAsk} focusedProgram={focusedProgram} />
     </div>
   );
 }

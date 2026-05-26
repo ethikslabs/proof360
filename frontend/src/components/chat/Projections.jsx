@@ -276,7 +276,7 @@ function VendorsProjection({ panel, company, t }) {
             <div key={v.name} style={{
               padding: '20px 0',
               borderBottom: i < d.vendors.length - 1 ? `1px solid ${tk.hairline}` : 'none',
-              display: 'grid', gridTemplateColumns: '28px 1fr 1fr', gap: 16,
+              display: 'grid', gridTemplateColumns: '28px 1fr 1fr auto', gap: 16,
             }}>
               <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.inkSoft, letterSpacing: '0.08em', paddingTop: 4 }}>{String(i + 1).padStart(2, '0')}</span>
               <div>
@@ -290,6 +290,7 @@ function VendorsProjection({ panel, company, t }) {
                 <div style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic', fontSize: 15, color: tk.inkMid, lineHeight: 1.5, marginBottom: 8 }}>{v.why}</div>
                 <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9.5, color: tk.inkSoft, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Addresses · {v.addresses}</div>
               </div>
+              <a href="https://meetings.hubspot.com/john3174" target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ alignSelf: 'center', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.teal, borderBottom: `1px solid ${tk.teal}66`, paddingBottom: 1, letterSpacing: '0.04em', textDecoration: 'none', whiteSpace: 'nowrap' }}>Apply →</a>
             </div>
           ))}
         </PSection>
@@ -358,7 +359,7 @@ function AwsProjection({ panel, company, t }) {
                 <div style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic', fontSize: 14, color: tk.inkMid }}>{p.value} · {p.detail}</div>
               </div>
               {(p.status === 'available' || p.status === 'eligible') && (
-                <a href="https://meetings.hubspot.com/john3174" target="_blank" rel="noopener noreferrer" style={{ alignSelf: 'center', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.teal, borderBottom: `1px solid ${tk.teal}66`, paddingBottom: 1, letterSpacing: '0.04em', textDecoration: 'none' }}>Apply →</a>
+                <a href="https://meetings.hubspot.com/john3174" target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ alignSelf: 'center', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.teal, borderBottom: `1px solid ${tk.teal}66`, paddingBottom: 1, letterSpacing: '0.04em', textDecoration: 'none', whiteSpace: 'nowrap' }}>Apply →</a>
               )}
             </div>
           ))}
@@ -400,7 +401,7 @@ function MicrosoftProjection({ panel, company, t }) {
                 <div style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic', fontSize: 14, color: tk.inkMid }}>{p.value} · {p.detail}</div>
               </div>
               {(p.status === 'available' || p.status === 'eligible') && (
-                <a href="https://meetings.hubspot.com/john3174" target="_blank" rel="noopener noreferrer" style={{ alignSelf: 'center', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.teal, borderBottom: `1px solid ${tk.teal}66`, paddingBottom: 1, letterSpacing: '0.04em', textDecoration: 'none' }}>Apply →</a>
+                <a href="https://meetings.hubspot.com/john3174" target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ alignSelf: 'center', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.teal, borderBottom: `1px solid ${tk.teal}66`, paddingBottom: 1, letterSpacing: '0.04em', textDecoration: 'none', whiteSpace: 'nowrap' }}>Apply →</a>
               )}
             </div>
           ))}
