@@ -1604,7 +1604,6 @@ export default function Chat() {
       <MachineDrawer
         trustPhase={trustPhase}
         stats={drawerStatsDerived}
-        autoOpen={trustPhase === 't1' || trustPhase === 't2' || trustPhase === 'tn'}
       >
         <GraphView nodes={graphNodes} />
         <ProvenanceAccordion trails={[]} />
