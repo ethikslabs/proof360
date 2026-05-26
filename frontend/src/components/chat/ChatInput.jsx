@@ -1,19 +1,5 @@
 import { useState, useRef, forwardRef } from 'react';
 
-import awsSvg        from '../OperationalField/logos/aws.svg';
-import vantaSvg      from '../OperationalField/logos/vanta.svg';
-import perplexitySvg from '../OperationalField/logos/perplexity.svg';
-import openaiSvg     from '../OperationalField/logos/openai.svg';
-import nvidiaSvg     from '../OperationalField/logos/nvidia.svg';
-
-const MODES = [
-  { id: 'investor',   label: 'Investors',  logo: vantaSvg,      desc: 'Due diligence & trust narrative' },
-  { id: 'technical',  label: 'Technical',  logo: awsSvg,         desc: 'Security architecture & posture' },
-  { id: 'compliance', label: 'Compliance', logo: vantaSvg,       desc: 'SOC 2, ISO 27001, regulatory' },
-  { id: 'market',     label: 'Market',     logo: perplexitySvg,  desc: 'Competitive trust positioning' },
-  { id: 'deep',       label: 'Deep',       logo: openaiSvg,      desc: 'Full multi-model analysis' },
-  { id: 'fast',       label: 'Fast',       logo: nvidiaSvg,      desc: 'Quick scan — top 3 critical gaps' },
-];
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 const IconPlus = () => (
@@ -33,11 +19,6 @@ const IconMic = () => (
     <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
     <line x1="12" y1="19" x2="12" y2="23"/>
     <line x1="8" y1="23" x2="16" y2="23"/>
-  </svg>
-);
-const IconChevronDown = () => (
-  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-    <path d="M2 3.5 L5 6.5 L8 3.5"/>
   </svg>
 );
 const IconPaperclip = () => (
@@ -172,11 +153,21 @@ function PlusMenu({ onSelect }) {
   );
 }
 
-// ── Mode selector ─────────────────────────────────────────────────────────────
-function ModeSelector({ mode, onModeChange }) {
+const VECTOR_MODELS = [
+  { id: 'claude-sonnet-4-6',  label: 'Claude Sonnet 4.6', desc: 'Balanced · everyday work',    provider: 'Bedrock',  providerColor: '#c07a00' },
+  { id: 'claude-opus-4-7',    label: 'Claude Opus 4.7',   desc: 'Most capable · deep analysis', provider: 'Bedrock',  providerColor: '#c07a00' },
+  { id: 'claude-haiku-4-5',   label: 'Claude Haiku 4.5',  desc: 'Fast · low latency',           provider: 'Bedrock',  providerColor: '#c07a00' },
+  { id: 'llama-nemotron',     label: 'Llama Nemotron',    desc: '253B · open weights',          provider: 'NVIDIA',   providerColor: '#527a00' },
+  { id: 'gemini-flash',       label: 'Gemini 2.0 Flash',  desc: 'Fast · multimodal',            provider: 'Google',   providerColor: '#1a56c2' },
+  { id: 'perplexity-sonar',   label: 'Perplexity Sonar',  desc: 'Real-time · cited sources',    provider: 'Live',     providerColor: '#7c3aed' },
+  { id: 'gpt-4o',             label: 'GPT-4o',            desc: 'OpenAI · via Azure',           provider: 'Foundry',  providerColor: '#0063a8' },
+];
+
+function ModelPicker({ model, onModelChange }) {
   const [open, setOpen] = useState(false);
+  const [adaptive, setAdaptive] = useState(false);
   const { btnRef, pos, openMenu } = useDropdownPos(open);
-  const current = MODES.find(m => m.id === mode) ?? MODES[0];
+  const current = VECTOR_MODELS.find(m => m.id === model) ?? VECTOR_MODELS[0];
 
   function toggle() {
     if (!open) openMenu();
@@ -191,20 +182,18 @@ function ModeSelector({ mode, onModeChange }) {
         onClick={toggle}
         style={{
           display: 'flex', alignItems: 'center', gap: 5,
-          padding: '4px 8px 4px 6px', borderRadius: 7,
+          padding: '4px 8px', borderRadius: 7,
           border: '1px solid #e5e7eb',
-          background: open ? '#f9fafb' : 'transparent',
-          color: '#6b7280', cursor: 'pointer',
-          fontSize: 12, fontWeight: 500,
-          fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-          transition: 'background 0.12s', flexShrink: 0,
+          background: open ? '#f3f4f6' : 'transparent',
+          cursor: 'pointer', fontSize: 11, fontWeight: 600,
+          color: '#374151', fontFamily: '"IBM Plex Mono", monospace',
+          whiteSpace: 'nowrap', flexShrink: 0,
+          transition: 'background 0.12s',
         }}
-        onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
-        onMouseLeave={e => e.currentTarget.style.background = open ? '#f9fafb' : 'transparent'}
       >
-        <img src={current.logo} alt={current.label} style={{ height: 13, maxWidth: 40, objectFit: 'contain', opacity: 0.8 }} />
-        <span>{current.label}</span>
-        <IconChevronDown />
+        <span style={{ width: 6, height: 6, borderRadius: '50%', background: current.providerColor, flexShrink: 0, display: 'inline-block' }} />
+        {current.label}
+        <span style={{ color: '#9ca3af', fontSize: 9 }}>▾</span>
       </button>
 
       {open && pos && (
@@ -215,33 +204,65 @@ function ModeSelector({ mode, onModeChange }) {
             bottom: pos.bottom, left: pos.left,
             background: '#ffffff', border: '1px solid #e5e7eb',
             borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.14)',
-            padding: '6px 0', minWidth: 250, zIndex: 200,
+            padding: '6px 0', minWidth: 260, zIndex: 200,
           }}>
-            {MODES.map(m => (
-              <button
-                key={m.id} type="button"
-                onClick={() => { onModeChange?.(m.id); setOpen(false); }}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 10,
-                  width: '100%', padding: '8px 14px',
-                  background: m.id === mode ? '#f9fafb' : 'none',
-                  border: 'none', cursor: 'pointer', textAlign: 'left',
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
-                onMouseLeave={e => e.currentTarget.style.background = m.id === mode ? '#f9fafb' : 'none'}
-              >
-                <img src={m.logo} alt={m.label} style={{ height: 16, maxWidth: 50, objectFit: 'contain', opacity: 0.8, flexShrink: 0 }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: '#111827', fontFamily: '"IBM Plex Sans", system-ui, sans-serif' }}>
-                    {m.label}
-                    {m.id === mode && <span style={{ marginLeft: 6, color: '#9ca3af', fontSize: 11 }}>✓</span>}
+            {['Bedrock', 'NVIDIA', 'Google', 'Live', 'Foundry'].map((provider, pi) => {
+              const group = VECTOR_MODELS.filter(m => m.provider === provider);
+              if (!group.length) return null;
+              return (
+                <div key={provider}>
+                  {pi > 0 && <div style={{ height: 1, background: '#f3f4f6', margin: '4px 0' }} />}
+                  <div style={{ padding: '4px 14px 2px', fontSize: 9, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#9ca3af', fontFamily: '"IBM Plex Mono", monospace' }}>
+                    {provider}
                   </div>
-                  <div style={{ fontSize: 11, color: '#9ca3af', fontFamily: '"IBM Plex Sans", system-ui, sans-serif', marginTop: 1 }}>
-                    {m.desc}
-                  </div>
+                  {group.map(m => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => { onModelChange(m.id); setOpen(false); }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 10,
+                        width: '100%', padding: '8px 14px',
+                        background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left',
+                        fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 12.5, fontWeight: 600, color: '#111827', display: 'flex', alignItems: 'center', gap: 6 }}>
+                          {m.label}
+                          {m.id === model && <span style={{ color: '#b0956e' }}>✓</span>}
+                        </div>
+                        <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 1 }}>{m.desc}</div>
+                      </div>
+                    </button>
+                  ))}
                 </div>
-              </button>
-            ))}
+              );
+            })}
+            <div style={{ height: 1, background: '#f3f4f6', margin: '4px 0' }} />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#fafafa' }}>
+              <div>
+                <div style={{ fontSize: 12.5, fontWeight: 600, color: '#111827' }}>Adaptive thinking</div>
+                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 1 }}>Extended reasoning for complex questions</div>
+              </div>
+              <div
+                onClick={() => setAdaptive(a => !a)}
+                style={{
+                  width: 36, height: 20, borderRadius: 10,
+                  background: adaptive ? '#b0956e' : '#e5e7eb',
+                  position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0,
+                }}
+              >
+                <div style={{
+                  position: 'absolute', top: 3,
+                  left: adaptive ? 19 : 3,
+                  width: 14, height: 14, borderRadius: 7, background: '#fff',
+                  transition: 'left 0.2s',
+                }} />
+              </div>
+            </div>
           </div>
         </>
       )}
@@ -313,7 +334,7 @@ const FOLLOWUP_CHIPS = [
 
 // ── Main component ────────────────────────────────────────────────────────────
 export const ChatInput = forwardRef(function ChatInput(
-  { onSubmit, disabled, messages = [], onContextInject, value: valueProp, onChange: onChangeProp, mode = 'investor', onModeChange, hideChips },
+  { onSubmit, disabled, messages = [], onContextInject, value: valueProp, onChange: onChangeProp, mode = 'investor', onModeChange, hideChips, model, onModelChange },
   ref
 ) {
   const hasExchange = messages.length >= 2;
@@ -434,7 +455,7 @@ export const ChatInput = forwardRef(function ChatInput(
           borderTop: '1px solid #f3f4f6',
         }}>
           <PlusMenu onSelect={onContextInject ?? (() => {})} />
-          <ModeSelector mode={mode} onModeChange={onModeChange} />
+          <ModelPicker model={model ?? 'claude-sonnet-4-6'} onModelChange={onModelChange ?? (() => {})} />
           <div style={{ flex: 1 }} />
           {/* Mic — press to hold STT (subtle, wired later) */}
           <button

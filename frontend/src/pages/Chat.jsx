@@ -876,6 +876,7 @@ export default function Chat() {
     () => !new URLSearchParams(window.location.search).has('demo')
   );
   const [cinStats,        setCinStats]        = useState(STATS_FALLBACK);
+  const [selectedModel,   setSelectedModel]   = useState('claude-sonnet-4-6');
 
   const hasUserMsg  = messages.some(m => m.role === 'user');
   const hasMessages = messages.length > 0;
@@ -1374,6 +1375,8 @@ export default function Chat() {
                   mode={analysisProfile}
                   onModeChange={setAnalysisProfile}
                   hideChips
+                  model={selectedModel}
+                  onModelChange={setSelectedModel}
                 />
                 {/* Mode tiles — replace intent chips */}
                 {(phase === 'triage' || (phase === 'active' && !hasMessages)) && (
@@ -1591,6 +1594,8 @@ export default function Chat() {
                 messages={messages}
                 mode={analysisProfile}
                 onModeChange={setAnalysisProfile}
+                model={selectedModel}
+                onModelChange={setSelectedModel}
               />
             </div>
           </div>
