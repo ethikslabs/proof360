@@ -1319,6 +1319,33 @@ export default function Chat() {
 
       <main style={{ flex: 1, display: 'flex', minWidth: 0, overflow: 'hidden' }}>
 
+        {/* Left icon rail — section spaces, like Claude's left nav */}
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(c => !c)}
+          activeSpace={activeSpace}
+          onSwitch={(id, ctx) => {
+            setActiveSpace(prev => prev === id ? 'chat' : id);
+            if (ctx?.stage !== undefined) setHiveStage(ctx.stage);
+          }}
+          litTiles={litTiles}
+          browserTabs={browserTabs}
+          onInject={({ persona, content }) => {
+            setMessages(prev => [...prev, {
+              id: `stage-${Date.now()}`,
+              persona, content,
+              role: 'assistant',
+              model: 'claude-sonnet-4-6',
+              tok: 0, ms: 0,
+            }]);
+          }}
+          hiveStage={hiveStage}
+          onHiveStageChange={setHiveStage}
+          sessionTok={0}
+          sessionModels={[]}
+          t={t}
+        />
+
         {/* Chat pane — shrinks to make room for preview */}
         <div style={{
           position: 'relative', overflow: 'hidden',
@@ -1616,33 +1643,6 @@ export default function Chat() {
           </div>
         )}
 
-        {/* Right icon rail — sections live here */}
-        <Sidebar
-          collapsed={sidebarCollapsed}
-          onToggleCollapse={() => setSidebarCollapsed(c => !c)}
-          activeSpace={activeSpace}
-          onSwitch={(id, ctx) => {
-            setActiveSpace(prev => prev === id ? 'chat' : id);
-            if (ctx?.stage !== undefined) setHiveStage(ctx.stage);
-          }}
-          litTiles={litTiles}
-          browserTabs={browserTabs}
-          onInject={({ persona, content }) => {
-            setMessages(prev => [...prev, {
-              id: `stage-${Date.now()}`,
-              persona, content,
-              role: 'assistant',
-              model: 'claude-sonnet-4-6',
-              tok: 0, ms: 0,
-            }]);
-          }}
-          hiveStage={hiveStage}
-          onHiveStageChange={setHiveStage}
-          sessionTok={0}
-          sessionModels={[]}
-          noLogo
-          t={t}
-        />
 
       </main>
 

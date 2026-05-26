@@ -184,7 +184,7 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
     <aside style={{
       width: collapsed ? 56 : 240,
       flexShrink: 0,
-      borderLeft: `1px solid ${tk.hairline}`,
+      borderRight: `1px solid ${tk.hairline}`,
       background: `${tk.surfaceLo}90`,
       display: 'flex', flexDirection: 'column',
       transition: 'width 0.28s cubic-bezier(0.32, 0.72, 0, 1)',
@@ -215,7 +215,7 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
             width: (collapsed || noLogo) ? '100%' : 'auto',
           }}>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d={collapsed ? 'M9 3 L4 7 L9 11' : 'M5 3 L10 7 L5 11'}
+            <path d={collapsed ? 'M5 3 L10 7 L5 11' : 'M9 3 L4 7 L9 11'}
                   stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
