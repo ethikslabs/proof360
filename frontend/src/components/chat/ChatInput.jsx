@@ -1,4 +1,4 @@
-import { useState, forwardRef } from 'react';
+import { useState, useRef, forwardRef } from 'react';
 
 import awsSvg        from '../OperationalField/logos/aws.svg';
 import vantaSvg      from '../OperationalField/logos/vanta.svg';
@@ -6,7 +6,6 @@ import perplexitySvg from '../OperationalField/logos/perplexity.svg';
 import openaiSvg     from '../OperationalField/logos/openai.svg';
 import nvidiaSvg     from '../OperationalField/logos/nvidia.svg';
 
-// ── Modes — our equivalent of Claude's model selector ────────────────────────
 const MODES = [
   { id: 'investor',   label: 'Investors',  logo: vantaSvg,      desc: 'Due diligence & trust narrative' },
   { id: 'technical',  label: 'Technical',  logo: awsSvg,         desc: 'Security architecture & posture' },
@@ -16,7 +15,7 @@ const MODES = [
   { id: 'fast',       label: 'Fast',       logo: nvidiaSvg,      desc: 'Quick scan — top 3 critical gaps' },
 ];
 
-// ── SVG icons ─────────────────────────────────────────────────────────────────
+// ── Icons ─────────────────────────────────────────────────────────────────────
 const IconPlus = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
     <line x1="7" y1="1" x2="7" y2="13"/><line x1="1" y1="7" x2="13" y2="7"/>
@@ -26,6 +25,14 @@ const IconSend = ({ color = 'currentColor' }) => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="22" y1="2" x2="11" y2="13"/>
     <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+  </svg>
+);
+const IconMic = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+    <line x1="12" y1="19" x2="12" y2="23"/>
+    <line x1="8" y1="23" x2="16" y2="23"/>
   </svg>
 );
 const IconChevronDown = () => (
@@ -56,10 +63,24 @@ const IconGlobe = () => (
   </svg>
 );
 const IconCheck = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20 6 9 17 4 12"/>
-  </svg>
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
 );
+
+// ── Fixed-position dropdown helper ────────────────────────────────────────────
+// Measures the trigger button and positions the menu in viewport space,
+// so it floats freely above overflow:hidden parents.
+function useDropdownPos(open) {
+  const btnRef = useRef(null);
+  const [pos, setPos] = useState(null);
+
+  function openMenu() {
+    if (btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect();
+      setPos({ bottom: window.innerHeight - r.top + 6, left: r.left });
+    }
+  }
+  return { btnRef, pos: open ? pos : null, openMenu };
+}
 
 // ── Plus menu ─────────────────────────────────────────────────────────────────
 const PLUS_GROUPS = [
@@ -68,20 +89,27 @@ const PLUS_GROUPS = [
     { id: 'url',   label: 'Paste a URL',         Icon: IconLink },
   ],
   [
-    { id: 'aws-bill', label: 'Add AWS bill',         Icon: IconCloud },
-    { id: 'web',      label: 'Web search',            Icon: IconGlobe, toggle: true },
+    { id: 'aws-bill', label: 'Add AWS bill',    Icon: IconCloud },
+    { id: 'web',      label: 'Web search',       Icon: IconGlobe, toggle: true },
   ],
 ];
 
 function PlusMenu({ onSelect }) {
   const [open, setOpen] = useState(false);
   const [webOn, setWebOn] = useState(false);
+  const { btnRef, pos, openMenu } = useDropdownPos(open);
+
+  function toggle() {
+    if (!open) openMenu();
+    setOpen(o => !o);
+  }
 
   return (
-    <div style={{ position: 'relative' }}>
+    <>
       <button
+        ref={btnRef}
         type="button"
-        onClick={() => setOpen(o => !o)}
+        onClick={toggle}
         aria-label="Add context"
         style={{
           width: 28, height: 28, borderRadius: 7,
@@ -97,14 +125,15 @@ function PlusMenu({ onSelect }) {
         <IconPlus />
       </button>
 
-      {open && (
+      {open && pos && (
         <>
-          <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setOpen(false)} />
+          <div style={{ position: 'fixed', inset: 0, zIndex: 199 }} onClick={() => setOpen(false)} />
           <div style={{
-            position: 'absolute', bottom: 36, left: 0,
+            position: 'fixed',
+            bottom: pos.bottom, left: pos.left,
             background: '#ffffff', border: '1px solid #e5e7eb',
-            borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-            padding: '6px 0', minWidth: 210, zIndex: 100,
+            borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.14)',
+            padding: '6px 0', minWidth: 220, zIndex: 200,
           }}>
             {PLUS_GROUPS.map((group, gi) => (
               <div key={gi}>
@@ -122,6 +151,7 @@ function PlusMenu({ onSelect }) {
                       background: 'none', border: 'none',
                       fontSize: 13, color: item.toggle && webOn ? '#2563eb' : '#111827',
                       cursor: 'pointer', textAlign: 'left',
+                      fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
                     }}
                     onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
                     onMouseLeave={e => e.currentTarget.style.background = 'none'}
@@ -138,20 +168,27 @@ function PlusMenu({ onSelect }) {
           </div>
         </>
       )}
-    </div>
+    </>
   );
 }
 
-// ── Mode selector — like Claude's model picker ────────────────────────────────
+// ── Mode selector ─────────────────────────────────────────────────────────────
 function ModeSelector({ mode, onModeChange }) {
   const [open, setOpen] = useState(false);
+  const { btnRef, pos, openMenu } = useDropdownPos(open);
   const current = MODES.find(m => m.id === mode) ?? MODES[0];
 
+  function toggle() {
+    if (!open) openMenu();
+    setOpen(o => !o);
+  }
+
   return (
-    <div style={{ position: 'relative' }}>
+    <>
       <button
+        ref={btnRef}
         type="button"
-        onClick={() => setOpen(o => !o)}
+        onClick={toggle}
         style={{
           display: 'flex', alignItems: 'center', gap: 5,
           padding: '4px 8px 4px 6px', borderRadius: 7,
@@ -160,8 +197,7 @@ function ModeSelector({ mode, onModeChange }) {
           color: '#6b7280', cursor: 'pointer',
           fontSize: 12, fontWeight: 500,
           fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-          transition: 'background 0.12s',
-          flexShrink: 0,
+          transition: 'background 0.12s', flexShrink: 0,
         }}
         onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
         onMouseLeave={e => e.currentTarget.style.background = open ? '#f9fafb' : 'transparent'}
@@ -171,14 +207,15 @@ function ModeSelector({ mode, onModeChange }) {
         <IconChevronDown />
       </button>
 
-      {open && (
+      {open && pos && (
         <>
-          <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setOpen(false)} />
+          <div style={{ position: 'fixed', inset: 0, zIndex: 199 }} onClick={() => setOpen(false)} />
           <div style={{
-            position: 'absolute', bottom: 36, left: 0,
+            position: 'fixed',
+            bottom: pos.bottom, left: pos.left,
             background: '#ffffff', border: '1px solid #e5e7eb',
-            borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-            padding: '6px 0', minWidth: 240, zIndex: 100,
+            borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.14)',
+            padding: '6px 0', minWidth: 250, zIndex: 200,
           }}>
             {MODES.map(m => (
               <button
@@ -194,7 +231,7 @@ function ModeSelector({ mode, onModeChange }) {
                 onMouseLeave={e => e.currentTarget.style.background = m.id === mode ? '#f9fafb' : 'none'}
               >
                 <img src={m.logo} alt={m.label} style={{ height: 16, maxWidth: 50, objectFit: 'contain', opacity: 0.8, flexShrink: 0 }} />
-                <div>
+                <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13, fontWeight: 500, color: '#111827', fontFamily: '"IBM Plex Sans", system-ui, sans-serif' }}>
                     {m.label}
                     {m.id === mode && <span style={{ marginLeft: 6, color: '#9ca3af', fontSize: 11 }}>✓</span>}
@@ -208,7 +245,7 @@ function ModeSelector({ mode, onModeChange }) {
           </div>
         </>
       )}
-    </div>
+    </>
   );
 }
 
@@ -237,17 +274,15 @@ function parseMentions(text) {
 
 const INPUT_STYLE = {
   fontFamily: '"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif',
-  fontSize: 14,
-  lineHeight: 1.6,
-  padding: '14px 16px 6px',
+  fontSize: 14, lineHeight: 1.6,
+  padding: '12px 16px 4px',
 };
 
 function MentionMirror({ value }) {
   const parts = parseMentions(value);
   return (
     <div style={{
-      ...INPUT_STYLE,
-      position: 'absolute', top: 0, left: 0, right: 0,
+      ...INPUT_STYLE, position: 'absolute', top: 0, left: 0, right: 0,
       whiteSpace: 'pre-wrap', wordBreak: 'break-word',
       pointerEvents: 'none', overflow: 'hidden', color: '#111827', zIndex: 0,
     }}>
@@ -262,9 +297,9 @@ function MentionMirror({ value }) {
   );
 }
 
-// ── Chips shown inside the box when it's empty ────────────────────────────────
+// ── Chips ─────────────────────────────────────────────────────────────────────
 const STARTER_CHIPS = [
-  "Manuka honey brand, King's Cross market stall → global opportunity → burned cash → need investors. What do I do?",
+  "Manuka honey brand, King's Cross → global opportunity → burned cash → need investors. What do I do?",
   "Enterprise deal died when they sent a security questionnaire. Help me prevent that.",
   "20 minutes with a VC next Tuesday. They'll ask about security posture. I don't know what to say.",
 ];
@@ -335,12 +370,10 @@ export const ChatInput = forwardRef(function ChatInput(
         background: '#ffffff',
         boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
         transition: 'border-color 0.15s, box-shadow 0.15s',
-        overflow: 'hidden',
       }}
         onDragOver={e => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
         onDrop={e => { e.preventDefault(); setDragOver(false); }}
-        onFocus={() => {}}
       >
         {/* Textarea */}
         <div style={{ position: 'relative' }}>
@@ -352,7 +385,7 @@ export const ChatInput = forwardRef(function ChatInput(
             onKeyDown={handleKeyDown}
             placeholder="Paste your website, upload a deck, or describe what you're building…"
             disabled={disabled}
-            rows={3}
+            rows={2}
             style={{
               ...INPUT_STYLE,
               width: '100%', resize: 'none',
@@ -365,11 +398,11 @@ export const ChatInput = forwardRef(function ChatInput(
           />
         </div>
 
-        {/* Suggested chips — inside the box, fade when typing */}
+        {/* Suggested chips — visible when box is empty, slide away when typing */}
         <div style={{
           padding: '0 12px 8px',
           display: 'flex', gap: 6, flexWrap: 'wrap',
-          maxHeight: isEmpty ? 80 : 0,
+          maxHeight: isEmpty ? 60 : 0,
           overflow: 'hidden',
           opacity: isEmpty ? 1 : 0,
           transition: 'opacity 0.18s ease, max-height 0.2s ease',
@@ -385,8 +418,7 @@ export const ChatInput = forwardRef(function ChatInput(
                 color: '#9ca3af', fontSize: 11.5, cursor: 'pointer',
                 fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
                 whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                maxWidth: 260,
-                transition: 'border-color 0.1s, color 0.1s',
+                maxWidth: 260, transition: 'border-color 0.1s, color 0.1s',
               }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.color = '#6b7280'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = '#f0f0f0'; e.currentTarget.style.color = '#9ca3af'; }}
@@ -394,17 +426,30 @@ export const ChatInput = forwardRef(function ChatInput(
           ))}
         </div>
 
-        {/* Bottom bar — + | mode selector | space | send */}
+        {/* Bottom bar: + | mode | space | mic | send */}
         <div style={{
           display: 'flex', alignItems: 'center',
-          padding: '0 10px 10px',
+          padding: '0 10px 10px', paddingTop: 8,
           gap: 6,
           borderTop: '1px solid #f3f4f6',
-          paddingTop: 8,
         }}>
           <PlusMenu onSelect={onContextInject ?? (() => {})} />
           <ModeSelector mode={mode} onModeChange={onModeChange} />
           <div style={{ flex: 1 }} />
+          {/* Mic — press to hold STT (subtle, wired later) */}
+          <button
+            type="button"
+            title="Hold to speak"
+            style={{
+              width: 28, height: 28, borderRadius: 7,
+              border: 'none', background: 'transparent',
+              color: '#d1d5db', cursor: 'default',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <IconMic />
+          </button>
           <button
             type="submit"
             disabled={!canSend}
