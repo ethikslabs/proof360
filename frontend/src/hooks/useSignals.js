@@ -31,18 +31,17 @@ export function useSignals(initialSignals = MOCK_SIGNALS) {
 
   // User says signal is wrong — confidence → 0, triggers soft regeneration
   const correctSignal = useCallback((signalId) => {
-    setSignals(prev => prev.map(s =>
-      s.id === signalId ? { ...s, confidence: 0, _corrected: true } : s
-    ));
-    // Mark the domain as regenerating for soft-transition UX
-    const sig = signals.find(s => s.id === signalId);
-    if (sig) {
-      setRegeneratingDomains(prev => new Set([...prev, sig.domain]));
-      setTimeout(() => {
-        setRegeneratingDomains(prev => { const n = new Set(prev); n.delete(sig.domain); return n; });
-      }, 1800);
-    }
-  }, [signals]);
+    setSignals(prev => {
+      const sig = prev.find(s => s.id === signalId);
+      if (sig) {
+        setRegeneratingDomains(p => new Set([...p, sig.domain]));
+        setTimeout(() => {
+          setRegeneratingDomains(p => { const n = new Set(p); n.delete(sig.domain); return n; });
+        }, 1800);
+      }
+      return prev.map(s => s.id === signalId ? { ...s, confidence: 0, _corrected: true } : s);
+    });
+  }, []);
 
   // User ignores signal — weight → 0 but signal stays
   const ignoreSignal = useCallback((signalId) => {
@@ -62,11 +61,10 @@ export function useSignals(initialSignals = MOCK_SIGNALS) {
       confidence: 0.97,
       disprovable_by: 'User can update or remove this context at any time',
     });
-    setSignals(prev => [...prev, sig]);
-    // Also mark the original signal as superseded
-    setSignals(prev => prev.map(s =>
-      s.id === forSignalId ? { ...s, _superseded: true } : s
-    ));
+    setSignals(prev => [
+      ...prev.map(s => s.id === forSignalId ? { ...s, _superseded: true } : s),
+      sig,
+    ]);
   }, []);
 
   // Active signals: not corrected, not ignored, not superseded
