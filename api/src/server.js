@@ -22,6 +22,7 @@ import { engageHandler } from './handlers/engage.js';
 import { telegramWebhookHandler } from './handlers/telegram-webhook.js';
 import { johnMessagesHandler } from './handlers/john-messages.js';
 import { corpusStatsHandler } from './handlers/corpus-stats.js';
+import { notifyHandler } from './handlers/notify.js';
 
 const PORT = parseInt(process.env.PORT || '3002', 10);
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
@@ -69,6 +70,7 @@ app.get('/api/v1/session/:id/chat/history', sessionChatHistoryHandler);
 // --- John relay ---
 app.post('/api/telegram/webhook', telegramWebhookHandler);
 app.get('/api/v1/session/:id/john-messages', johnMessagesHandler);
+app.post('/api/v1/notify', notifyHandler);
 
 // --- CORPUS ---
 app.get('/api/v1/corpus/stats', corpusStatsHandler);

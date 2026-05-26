@@ -278,7 +278,7 @@ function BookingModal({ onClose, context }) {
   );
 }
 
-function DiscoveryView({ tk, onAsk }) {
+function DiscoveryView({ tk, onAsk, currentUser, onSignIn, onTelegram }) {
   const [openId, setOpenId] = useState(null);
   const [bookingOpen, setBookingOpen] = useState(false);
 
@@ -393,6 +393,42 @@ function DiscoveryView({ tk, onAsk }) {
             cursor: 'pointer', letterSpacing: '0.01em',
           }}
         >Book time with John →</button>
+
+        {/* Sign in / user state */}
+        {currentUser ? (
+          <div style={{
+            marginTop: 10, padding: '8px 12px', borderRadius: 8,
+            background: '#f4efe6', border: '1px solid #e0d8c9',
+            display: 'flex', alignItems: 'center', gap: 8,
+          }}>
+            <span style={{
+              width: 22, height: 22, borderRadius: '50%', background: '#a8651e',
+              color: '#fff', fontSize: 10, fontWeight: 700, flexShrink: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>{(currentUser.name || currentUser.email || '?')[0].toUpperCase()}</span>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#241f31' }}>
+                {currentUser.name?.split(' ')[0] || currentUser.email?.split('@')[0]}
+              </div>
+              <div style={{ fontSize: 10, color: '#8c8499' }}>Signed in</div>
+            </div>
+            {onTelegram && (
+              <button onClick={onTelegram} style={{
+                marginLeft: 'auto', fontSize: 10, color: '#4f46e5',
+                background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                fontFamily: '"IBM Plex Mono", monospace',
+              }}>msg John</button>
+            )}
+          </div>
+        ) : onSignIn ? (
+          <button onClick={onSignIn} style={{
+            marginTop: 10, width: '100%', padding: '8px 0',
+            borderRadius: 8, border: '1px dashed #c8b89a',
+            background: 'transparent', cursor: 'pointer',
+            fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+            fontSize: 11, fontWeight: 600, color: '#8c8499',
+          }}>Sign in to track your programs →</button>
+        ) : null}
       </div>
 
       {bookingOpen && <BookingModal onClose={() => setBookingOpen(false)} context={openId} />}
@@ -400,7 +436,7 @@ function DiscoveryView({ tk, onAsk }) {
   );
 }
 
-export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onAsk }) {
+export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onAsk, currentUser, onSignIn, onTelegram }) {
   const [blink, setBlink] = useState(true);
 
   useEffect(() => {
@@ -443,7 +479,7 @@ export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onAsk }) 
       </div>
 
       {!hasMessages ? (
-        <DiscoveryView tk={tk} onAsk={onAsk} />
+        <DiscoveryView tk={tk} onAsk={onAsk} currentUser={currentUser} onSignIn={onSignIn} onTelegram={onTelegram} />
       ) : (
         <div style={{ padding: '14px 16px', flex: 1 }}>
           {/* Company info */}

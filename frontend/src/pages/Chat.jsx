@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo, useLayoutEffect } from 'react';
 import { tokens } from '../tokens.js';
 import { FloatQ }        from '../components/chat/FloatQ.jsx';
 import { Bubble }        from '../components/chat/Bubble.jsx';
@@ -20,6 +20,252 @@ import { getPersonaResponses, getPersonaResponse } from '../data/mock/personas.j
 import { getThinkingSteps } from '../data/mock/thinking.js';
 import { DEMO_STAGES, DEFAULT_STAGE_ID } from '../data/demoCompany.js';
 import { OperationalField } from '../components/OperationalField';
+
+/* ─── Auth constants ─────────────────────────────────────────────────────── */
+const AUTH0_DOMAIN    = import.meta.env.VITE_AUTH0_DOMAIN    || 'dev-ethikslabs.au.auth0.com';
+const AUTH0_CLIENT_ID = import.meta.env.VITE_AUTH0_CLIENT_ID || 'bh2RJb3CO25HFF6rqOVzd9uk2WUKiCGM';
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+const CF_TURNSTILE_SITEKEY = import.meta.env.VITE_CF_TURNSTILE_SITEKEY || '1x00000000000000000000AA';
+
+async function generatePKCE() {
+  const arr = new Uint8Array(32);
+  crypto.getRandomValues(arr);
+  const v = btoa(String.fromCharCode(...arr)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+  const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v));
+  const c = btoa(String.fromCharCode(...new Uint8Array(d))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+  return { verifier: v, challenge: c };
+}
+
+/* ─── Telegram preview modal ─────────────────────────────────────────────── */
+function TelegramPreviewModal({ initialMessage, currentUser, onClose }) {
+  const [msg, setMsg] = useState(initialMessage);
+  const [status, setStatus] = useState('idle'); // idle | sending | sent | error
+
+  async function send() {
+    setStatus('sending');
+    try {
+      const res = await fetch('/api/v1/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: msg,
+          name:  currentUser?.name  || null,
+          email: currentUser?.email || null,
+          context: 'proof360 chat',
+        }),
+      });
+      setStatus(res.ok ? 'sent' : 'error');
+    } catch {
+      setStatus('error');
+    }
+  }
+
+  return (
+    <div onClick={onClose} style={{
+      position: 'fixed', inset: 0, zIndex: 300,
+      background: 'rgba(20,16,28,0.6)', backdropFilter: 'blur(4px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: '#fbf8f1', borderRadius: 14,
+        width: 'min(520px, 95vw)', padding: '28px 28px 24px',
+        boxShadow: '0 24px 64px rgba(0,0,0,0.18)',
+        fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+      }}>
+        {status === 'sent' ? (
+          <div style={{ textAlign: 'center', padding: '16px 0' }}>
+            <div style={{ fontSize: 28, marginBottom: 12 }}>✓</div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: '#1a1a2e', marginBottom: 6 }}>Sent to John</div>
+            <div style={{ fontSize: 13, color: '#6b7280' }}>He'll respond on Telegram or email within a day.</div>
+            <button onClick={onClose} style={{
+              marginTop: 20, padding: '8px 24px', borderRadius: 8,
+              background: '#1a1a2e', color: '#fff', border: 'none', cursor: 'pointer',
+              fontSize: 13, fontWeight: 600,
+            }}>Close</button>
+          </div>
+        ) : (
+          <>
+            <div style={{ fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#9ca3af', marginBottom: 16 }}>Message to John</div>
+            <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12, lineHeight: 1.5 }}>
+              This will be sent directly to John on Telegram. Edit before sending.
+            </div>
+            <textarea
+              value={msg}
+              onChange={e => setMsg(e.target.value)}
+              style={{
+                width: '100%', minHeight: 120, padding: '12px 14px',
+                borderRadius: 8, border: '1px solid #e5e7eb',
+                background: '#f9fafb', fontSize: 14, color: '#1a1a2e',
+                lineHeight: 1.6, resize: 'vertical', boxSizing: 'border-box',
+                fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                outline: 'none',
+              }}
+            />
+            {status === 'error' && (
+              <div style={{ fontSize: 12, color: '#dc2626', marginTop: 8 }}>Something went wrong — try again.</div>
+            )}
+            <div style={{ display: 'flex', gap: 10, marginTop: 16, justifyContent: 'flex-end' }}>
+              <button onClick={onClose} style={{
+                padding: '8px 18px', borderRadius: 8, border: '1px solid #e5e7eb',
+                background: 'transparent', fontSize: 13, color: '#6b7280', cursor: 'pointer',
+              }}>Cancel</button>
+              <button
+                onClick={send}
+                disabled={status === 'sending' || !msg.trim()}
+                style={{
+                  padding: '8px 22px', borderRadius: 8, border: 'none',
+                  background: status === 'sending' ? '#6b7280' : '#1a1a2e',
+                  color: '#fff', fontSize: 13, fontWeight: 600,
+                  cursor: status === 'sending' ? 'default' : 'pointer',
+                  transition: 'background 0.15s',
+                }}
+              >{status === 'sending' ? 'Sending…' : 'Send →'}</button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Login modal ────────────────────────────────────────────────────────── */
+function LoginModal({ onClose, onUser }) {
+  const [turnstileToken, setTurnstileToken] = useState(null);
+  const [tsError, setTsError] = useState(false);
+  const tsRef = useRef(null);
+  const widgetId = useRef(null);
+
+  useLayoutEffect(() => {
+    function mountWidget() {
+      if (!window.turnstile || !tsRef.current || widgetId.current) return;
+      widgetId.current = window.turnstile.render(tsRef.current, {
+        sitekey: CF_TURNSTILE_SITEKEY,
+        theme: 'light',
+        callback: (token) => { setTurnstileToken(token); setTsError(false); },
+        'error-callback': () => setTsError(true),
+        'expired-callback': () => setTurnstileToken(null),
+      });
+    }
+    if (window.turnstile) { mountWidget(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+    s.async = true;
+    s.onload = mountWidget;
+    document.head.appendChild(s);
+    return () => { if (widgetId.current && window.turnstile) window.turnstile.remove(widgetId.current); };
+  }, []);
+
+  async function loginGoogle() {
+    if (!turnstileToken) { setTsError(true); return; }
+    if (!GOOGLE_CLIENT_ID) return;
+    sessionStorage.setItem('auth0_intent', 'chat');
+    const params = new URLSearchParams({
+      client_id: GOOGLE_CLIENT_ID,
+      redirect_uri: `${window.location.origin}/portal/callback`,
+      response_type: 'token',
+      scope: 'openid email profile',
+      state: 'google',
+    });
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+  }
+
+  async function loginAuth0() {
+    if (!turnstileToken) { setTsError(true); return; }
+    sessionStorage.setItem('auth0_intent', 'chat');
+    const { verifier, challenge } = await generatePKCE();
+    sessionStorage.setItem('auth0_pkce_verifier', verifier);
+    const params = new URLSearchParams({
+      client_id: AUTH0_CLIENT_ID,
+      redirect_uri: `${window.location.origin}/portal/callback`,
+      response_type: 'code',
+      scope: 'openid email profile',
+      code_challenge: challenge,
+      code_challenge_method: 'S256',
+      state: 'auth0',
+    });
+    window.location.href = `https://${AUTH0_DOMAIN}/authorize?${params}`;
+  }
+
+  function demoLogin() {
+    const user = { name: 'Demo Founder', email: 'demo@startup.com' };
+    localStorage.setItem('founder_auth', JSON.stringify({ user }));
+    onUser(user);
+    onClose();
+  }
+
+  const ready = !!turnstileToken;
+
+  return (
+    <div onClick={onClose} style={{
+      position: 'fixed', inset: 0, zIndex: 300,
+      background: 'rgba(20,16,28,0.65)', backdropFilter: 'blur(6px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: '#fbf8f1', borderRadius: 16,
+        width: 'min(440px, 95vw)', padding: '36px 32px 28px',
+        boxShadow: '0 32px 80px rgba(0,0,0,0.22)',
+        fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <div style={{
+            fontFamily: '"Instrument Serif", Georgia, serif',
+            fontSize: 22, fontWeight: 400, color: '#1a1a2e', marginBottom: 6,
+          }}>Sign in to proof360</div>
+          <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.5 }}>
+            Save your progress, unlock artifacts, and track your programs.
+          </div>
+        </div>
+
+        {/* Cloudflare Turnstile */}
+        <div style={{
+          background: '#f4f4f5', borderRadius: 10, padding: '14px 14px 10px',
+          marginBottom: 20, border: tsError ? '1px solid #fca5a5' : '1px solid #e5e7eb',
+        }}>
+          <div style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#9ca3af', marginBottom: 10 }}>
+            Cloudflare verification
+          </div>
+          <div ref={tsRef} />
+          {tsError && <div style={{ fontSize: 11, color: '#dc2626', marginTop: 6 }}>Verification required to continue.</div>}
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {GOOGLE_CLIENT_ID && (
+            <button onClick={loginGoogle} disabled={!ready} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+              padding: '11px 0', borderRadius: 10, border: '1px solid #e5e7eb',
+              background: ready ? '#fff' : '#f9fafb', cursor: ready ? 'pointer' : 'default',
+              fontSize: 14, fontWeight: 500, color: ready ? '#1a1a2e' : '#9ca3af',
+              transition: 'all 0.15s',
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              Continue with Google
+            </button>
+          )}
+          <button onClick={loginAuth0} disabled={!ready} style={{
+            padding: '11px 0', borderRadius: 10, border: 'none',
+            background: ready ? '#1a1a2e' : '#d1d5db', cursor: ready ? 'pointer' : 'default',
+            fontSize: 14, fontWeight: 600, color: ready ? '#fff' : '#9ca3af',
+            transition: 'all 0.15s',
+          }}>
+            Continue with email / M365
+          </button>
+          <button onClick={demoLogin} style={{
+            padding: '8px 0', borderRadius: 10, border: 'none',
+            background: 'transparent', cursor: 'pointer',
+            fontSize: 12, color: '#9ca3af', textDecoration: 'underline',
+          }}>
+            Demo mode (skip sign-in)
+          </button>
+        </div>
+
+        <div style={{ marginTop: 20, fontSize: 11, color: '#9ca3af', textAlign: 'center', lineHeight: 1.5 }}>
+          Protected by Cloudflare · Auth0 identity
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const TWEAK_DEFAULTS = {
   theme:            'pearl',
@@ -930,6 +1176,11 @@ export default function Chat() {
   });
   const [logoCard,        setLogoCard]        = useState(null);
   const [activeSpace,     setActiveSpace]     = useState('chat');
+  const [currentUser,     setCurrentUser]     = useState(() => {
+    try { const s = localStorage.getItem('founder_auth'); return s ? JSON.parse(s).user : null; } catch { return null; }
+  });
+  const [loginOpen,       setLoginOpen]       = useState(false);
+  const [telegramOpen,    setTelegramOpen]    = useState(false);
   const [drawerCollapsed, setDrawerCollapsed] = useState(false);
   const [sidebarCollapsed,setSidebarCollapsed]= useState(true);
   const [hiveStage,       setHiveStage]       = useState(1);
@@ -1475,6 +1726,40 @@ export default function Chat() {
           {isHeroState ? (
             /* ── Hero / centered state ── */
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', minHeight: 0 }}>
+              {/* Hero auth bar */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '10px 24px 0' }}>
+                {currentUser ? (
+                  <button
+                    onClick={() => { localStorage.removeItem('founder_auth'); setCurrentUser(null); }}
+                    title="Sign out"
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 6, padding: '3px 10px',
+                      borderRadius: 14, border: `1px solid ${tk.hairline}`,
+                      background: 'transparent', cursor: 'pointer',
+                      fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                      fontSize: 11, color: tk.inkSoft,
+                    }}
+                  >
+                    <span style={{
+                      width: 18, height: 18, borderRadius: '50%', background: tk.umber,
+                      color: '#fff', fontSize: 9, fontWeight: 700,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                    }}>{(currentUser.name || currentUser.email || '?')[0].toUpperCase()}</span>
+                    {currentUser.name?.split(' ')[0] || currentUser.email?.split('@')[0]}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setLoginOpen(true)}
+                    style={{
+                      padding: '4px 13px', borderRadius: 14,
+                      border: `1px solid ${tk.hairline}`,
+                      background: 'transparent', cursor: 'pointer',
+                      fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                      fontSize: 11, fontWeight: 600, color: tk.inkSoft,
+                    }}
+                  >Sign in</button>
+                )}
+              </div>
               <div style={{ width: '100%', maxWidth: 860, padding: '0 24px 48px', margin: 'auto', boxSizing: 'border-box' }}>
                 <div style={{ textAlign: 'center', marginBottom: hasMessages ? 24 : 36 }}>
                   <div style={{
@@ -1653,6 +1938,38 @@ export default function Chat() {
                   fontSize: 10, color: tk.inkSoft, letterSpacing: '0.1em',
                 }}>{t.returningUser ? 'session resumed' : 'live'}</span>
               </span>
+              {currentUser ? (
+                <button
+                  onClick={() => { localStorage.removeItem('founder_auth'); setCurrentUser(null); }}
+                  title="Sign out"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6, padding: '3px 10px',
+                    borderRadius: 14, border: `1px solid ${tk.hairline}`,
+                    background: 'transparent', cursor: 'pointer',
+                    fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                    fontSize: 11, color: tk.inkSoft,
+                  }}
+                >
+                  <span style={{
+                    width: 18, height: 18, borderRadius: '50%', background: tk.umber,
+                    color: '#fff', fontSize: 9, fontWeight: 700,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}>{(currentUser.name || currentUser.email || '?')[0].toUpperCase()}</span>
+                  {currentUser.name?.split(' ')[0] || currentUser.email?.split('@')[0]}
+                </button>
+              ) : (
+                <button
+                  onClick={() => setLoginOpen(true)}
+                  style={{
+                    padding: '4px 13px', borderRadius: 14,
+                    border: `1px solid ${tk.hairline}`,
+                    background: 'transparent', cursor: 'pointer',
+                    fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                    fontSize: 11, fontWeight: 600, color: tk.inkSoft,
+                    transition: 'all 0.15s',
+                  }}
+                >Sign in</button>
+              )}
               <style>{`
                 @keyframes liveping {
                   0%   { box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
@@ -1887,6 +2204,9 @@ export default function Chat() {
             tk={tk}
             t={t}
             onAsk={q => setInputValue(q)}
+            currentUser={currentUser}
+            onSignIn={() => setLoginOpen(true)}
+            onTelegram={() => setTelegramOpen(true)}
           />
         )}
 
@@ -2004,10 +2324,31 @@ export default function Chat() {
           message={companyData?.gaps?.length > 2
             ? "There are gaps here that typically benefit from a guided conversation. We can introduce relevant partners."
             : null}
-          telegramUrl="https://t.me/ethikslabs"
+          onTelegram={() => setTelegramOpen(true)}
           email="hello@ethikslabs.com"
         />
       </MachineDrawer>
+
+      {/* Telegram preview modal */}
+      {telegramOpen && (
+        <TelegramPreviewModal
+          currentUser={currentUser}
+          initialMessage={
+            companyData?.company_name
+              ? `Hi John — I'm looking at ${companyData.company_name} on proof360 and have a few questions. Can we connect?`
+              : `Hi John — I've been using proof360 and would love to connect. Can we set up a call?`
+          }
+          onClose={() => setTelegramOpen(false)}
+        />
+      )}
+
+      {/* Login modal */}
+      {loginOpen && (
+        <LoginModal
+          onClose={() => setLoginOpen(false)}
+          onUser={user => { setCurrentUser(user); setLoginOpen(false); }}
+        />
+      )}
 
       {logoCard && (
         <div

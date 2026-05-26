@@ -136,6 +136,16 @@ export default function Portal() {
         const data = await res.json();
         email = data.mail || data.userPrincipalName; name = data.displayName;
       }
+
+      const intent = sessionStorage.getItem('auth0_intent') || 'portal';
+      sessionStorage.removeItem('auth0_intent');
+
+      if (intent === 'chat') {
+        localStorage.setItem('founder_auth', JSON.stringify({ user: { name, email, picture: avatar || null } }));
+        navigate('/chat');
+        return;
+      }
+
       const tenantKey = tenantFromEmail(email);
       if (!tenantKey) {
         alert(`No partner account found for ${email}. Contact your Proof360 partner manager.`);
@@ -203,6 +213,15 @@ export default function Portal() {
         }));
         mergePendingReport();
         navigate('/account');
+        return;
+      }
+
+      if (intent === 'chat') {
+        localStorage.setItem('founder_auth', JSON.stringify({
+          user: { name: data.name, email, picture: data.picture || null },
+        }));
+        mergePendingReport();
+        navigate('/chat');
         return;
       }
 

@@ -1,5 +1,5 @@
 // Warm, contextual — never a sales CTA.
-export function EscalationCTA({ message, telegramUrl, email }) {
+export function EscalationCTA({ message, onTelegram, email }) {
   if (!message) return null;
 
   return (
@@ -14,14 +14,14 @@ export function EscalationCTA({ message, telegramUrl, email }) {
         {message}
       </div>
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        {telegramUrl && (
-          <a href={telegramUrl} target="_blank" rel="noreferrer" style={{
+        {onTelegram && (
+          <button onClick={onTelegram} style={{
             fontSize: 12, fontWeight: 600, color: '#4f46e5',
             background: '#ede9fe', padding: '6px 14px', borderRadius: 20,
-            textDecoration: 'none',
+            border: 'none', cursor: 'pointer',
           }}>
-            → Telegram
-          </a>
+            → Message John
+          </button>
         )}
         {email && (
           <a href={`mailto:${email}`} style={{
