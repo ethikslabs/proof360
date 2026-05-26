@@ -251,33 +251,44 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
 
       <div style={{ overflowY: 'auto', flex: 1 }}>
 
-        {/* ── Hive & Co — demo company with stage rail ── */}
+        {/* ── Hive & Co — reference founder with stage timeline ── */}
         <AccordionSection
           title="Hive & Co"
-          tag="demo"
           accent={tk.umber}
           count={hiveCount} total={6}
           open={demoOpen} onToggle={() => setDemoOpen(o => !o)}
           collapsed={collapsed}
-          stageRail={!collapsed && (
-            <StageRail
-              stages={HIVE_STAGES}
-              activeIdx={hiveStage}
-              onSelect={handleStageSelect}
-              accent={tk.umber}
-            />
-          )}
         >
-          {/* Stage label + description */}
           {!collapsed && (
-            <div style={{ padding: '0 14px 8px 22px' }}>
+            <div style={{ padding: '0 14px 10px 22px' }}>
+              {/* Reference label */}
               <div style={{
                 fontFamily: '"IBM Plex Mono", monospace',
-                fontSize: 9, color: tk.umber, letterSpacing: '0.16em',
-                textTransform: 'uppercase', marginBottom: 5,
-              }}>
-                {HIVE_STAGES[hiveStage].label}
+                fontSize: 8.5, color: '#b0956e', letterSpacing: '0.12em',
+                textTransform: 'uppercase', marginBottom: 8,
+              }}>reference founder — funded, attested</div>
+
+              {/* Stage timeline */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span style={{
+                  fontFamily: '"IBM Plex Mono", monospace',
+                  fontSize: 8.5, color: tk.inkSoft, letterSpacing: '0.08em',
+                  flexShrink: 0,
+                }}>stage</span>
+                <StageRail
+                  stages={HIVE_STAGES}
+                  activeIdx={hiveStage}
+                  onSelect={handleStageSelect}
+                  accent={tk.umber}
+                />
+                <span style={{
+                  fontFamily: '"IBM Plex Mono", monospace',
+                  fontSize: 8.5, color: tk.umber, letterSpacing: '0.1em',
+                  textTransform: 'uppercase', flexShrink: 0,
+                }}>{HIVE_STAGES[hiveStage].label}</span>
               </div>
+
+              {/* Stage description */}
               <div style={{
                 fontFamily: '"Instrument Serif", Georgia, serif',
                 fontStyle: 'italic', fontSize: 11.5, color: tk.inkSoft,
@@ -313,7 +324,7 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
           >
             {litCount === 0 && !collapsed && (
               <div style={{
-                padding: '2px 22px 10px',
+                padding: '2px 22px 12px',
                 fontFamily: '"Instrument Serif", Georgia, serif',
                 fontStyle: 'italic', fontSize: 11.5, color: tk.inkSoft,
                 lineHeight: 1.5,
@@ -321,7 +332,7 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
                 Tell us about your company in the chat — this fills in as we learn.
               </div>
             )}
-            {SPACES.map(s => (
+            {litCount > 0 && SPACES.map(s => (
               <ProjectionItem
                 key={s.id}
                 glyphKey={s.glyphKey} label={s.label} sublabel={YOURS_SUBS[s.id]}
