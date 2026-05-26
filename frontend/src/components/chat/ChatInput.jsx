@@ -1,4 +1,5 @@
 import { useState, useRef, forwardRef } from 'react';
+import { useStt } from '../../hooks/useStt.js';
 
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
@@ -475,6 +476,13 @@ export const ChatInput = forwardRef(function ChatInput(
     }
   }
 
+  const { listening, toggle: toggleStt, supported: sttSupported } = useStt({
+    onTranscript: (text) => {
+      if (isControlled) onChangeProp?.(text);
+      else setInputValue(text);
+    },
+  });
+
   const canSend = !disabled && !isEmpty;
 
   return (
@@ -498,7 +506,7 @@ export const ChatInput = forwardRef(function ChatInput(
             value={currentValue}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            placeholder="Paste your website, upload a deck, or describe what you're building…"
+            placeholder={listening ? 'Listening…' : (messages?.length > 0 ? 'Ask a follow-up…' : "Paste your website, upload a deck, or describe what you’re building…")}
             disabled={disabled}
             rows={2}
             style={{
@@ -551,22 +559,27 @@ export const ChatInput = forwardRef(function ChatInput(
           <PlusMenu onSelect={onContextInject ?? (() => {})} />
           <ModelPicker model={model ?? 'claude-sonnet-4-6'} onModelChange={onModelChange ?? (() => {})} />
           <div style={{ flex: 1 }} />
-          {/* Mic — press to hold STT (subtle, wired later) */}
+          {/* Mic — STT */}
           <button
             type="button"
-            title="Hold to speak"
+            title={sttSupported ? (listening ? 'Stop listening' : 'Speak your question') : 'Speech not supported'}
+            onClick={sttSupported ? toggleStt : undefined}
             style={{
               width: 28, height: 28, borderRadius: 7,
-              border: 'none', background: 'transparent',
-              color: '#d1d5db', cursor: 'default',
+              border: listening ? '1px solid #b0956e' : 'none',
+              background: listening ? '#fff8f4' : 'transparent',
+              color: listening ? '#b0956e' : '#d1d5db',
+              cursor: sttSupported ? 'pointer' : 'default',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0,
+              animation: listening ? 'liveping 1.5s ease-in-out infinite' : 'none',
             }}
           >
             <IconMic />
           </button>
           <button
             type="submit"
+            title="Send"
             disabled={!canSend}
             style={{
               width: 30, height: 30, borderRadius: 8,
