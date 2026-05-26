@@ -594,11 +594,11 @@ function CinematicIntro({ onComplete, stats = STATS_FALLBACK }) {
         position: 'absolute', top: 28, right: 32,
         fontFamily: '"IBM Plex Mono", monospace',
         fontSize: 9.5, letterSpacing: '0.22em', textTransform: 'uppercase',
-        color: '#3a3a3c',
+        color: '#666',
         transition: 'color 0.2s',
       }}
-        onMouseEnter={e => { e.currentTarget.style.color = '#666'; }}
-        onMouseLeave={e => { e.currentTarget.style.color = '#3a3a3c'; }}
+        onMouseEnter={e => { e.currentTarget.style.color = '#aaa'; }}
+        onMouseLeave={e => { e.currentTarget.style.color = '#666'; }}
       >skip →</div>
 
       <div style={{
@@ -689,12 +689,12 @@ function CinematicIntro({ onComplete, stats = STATS_FALLBACK }) {
         )}
       </div>
 
-      {/* Subtle bottom pulse — "click to skip" affordance */}
+      {/* Bottom skip affordance */}
       <div style={{
         position: 'absolute', bottom: 36,
         fontFamily: '"IBM Plex Mono", monospace',
         fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase',
-        color: '#2a2a2c',
+        color: '#555',
         animation: 'introPulse 2.4s ease-in-out infinite',
       }}>click anywhere to skip</div>
 
@@ -866,7 +866,9 @@ export default function Chat() {
   const [inferenceError,  setInferenceError]  = useState(false);
   const [analysisProfile, setAnalysisProfile] = useState('investor');
   const [logoCard,        setLogoCard]        = useState(null);
-  const [showIntro,       setShowIntro]       = useState(true);
+  const [showIntro,       setShowIntro]       = useState(
+    () => !new URLSearchParams(window.location.search).has('demo')
+  );
   const [cinStats,        setCinStats]        = useState(STATS_FALLBACK);
 
   const hasUserMsg  = messages.some(m => m.role === 'user');
