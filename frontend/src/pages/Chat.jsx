@@ -1329,7 +1329,8 @@ export default function Chat() {
 
         {/* Chat space — kept mounted so theatrical doesn't reset on tab-switch */}
         <div style={{
-          position: 'absolute', inset: 0,
+          position: 'absolute', top: 0, left: 0, right: 0,
+          bottom: trustPhase !== 't0' ? 40 : 0,
           display: 'flex',
           flexDirection: 'column',
         }}>
@@ -1399,7 +1400,7 @@ export default function Chat() {
           </div>
 
           <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', position: 'relative', zIndex: 2 }}>
-            <div style={{ maxWidth: 660, margin: '0 auto', padding: '0 36px 60px' }}>
+            <div style={{ maxWidth: 660, margin: '0 auto', padding: '0 36px 20px' }}>
 
               {briefShown ? (
                 <MorningBrief onPullSignal={pullSignal} t={t} />
@@ -1519,36 +1520,44 @@ export default function Chat() {
               {phase === 'journey-setup' && <JourneyConsentCards onSelect={selectJourney} stages={DEMO_STAGES} tk={tk} />}
               {thinkingSteps.length > 0 && <ThinkingStream steps={thinkingSteps} visible t={t} />}
 
-              <div style={{ marginTop: hasMessages || briefShown ? 18 : 4 }}>
-                <ProfileSelector
-                  value={analysisProfile}
-                  onChange={(profileId, subItem) => {
-                    setAnalysisProfile(profileId);
-                    if (subItem) setInputValue(subItem);
-                  }}
-                />
-                <ChatInput
-                  ref={inputRef}
-                  value={inputValue}
-                  onChange={setInputValue}
-                  onSubmit={val => { submit(val); setInputValue(''); }}
-                  onContextInject={label => {
-                    const tok = 40 + Math.floor(Math.random() * 20);
-                    const ms  = 300 + Math.floor(Math.random() * 200);
-                    setMessages(prev => [...prev, {
-                      id: `inject-${Date.now()}`,
-                      persona: 'edison',
-                      model: 'claude-sonnet-4-6',
-                      role: 'assistant',
-                      tok, ms,
-                      content: `Got it — adding ${label.toLowerCase()} to the analysis context.`,
-                    }]);
-                  }}
-                  disabled={!inputReady || isProcessing}
-                  messages={messages}
-                />
-              </div>
+            </div>
+          </div>
 
+          {/* Pinned input — always visible at the bottom of the chat pane */}
+          <div style={{
+            borderTop: `1px solid ${tk.hairline}`,
+            background: tk.bg,
+            flexShrink: 0,
+            zIndex: 3,
+          }}>
+            <div style={{ maxWidth: 660, margin: '0 auto', padding: '0 36px 16px' }}>
+              <ProfileSelector
+                value={analysisProfile}
+                onChange={(profileId, subItem) => {
+                  setAnalysisProfile(profileId);
+                  if (subItem) setInputValue(subItem);
+                }}
+              />
+              <ChatInput
+                ref={inputRef}
+                value={inputValue}
+                onChange={setInputValue}
+                onSubmit={val => { submit(val); setInputValue(''); }}
+                onContextInject={label => {
+                  const tok = 40 + Math.floor(Math.random() * 20);
+                  const ms  = 300 + Math.floor(Math.random() * 200);
+                  setMessages(prev => [...prev, {
+                    id: `inject-${Date.now()}`,
+                    persona: 'edison',
+                    model: 'claude-sonnet-4-6',
+                    role: 'assistant',
+                    tok, ms,
+                    content: `Got it — adding ${label.toLowerCase()} to the analysis context.`,
+                  }]);
+                }}
+                disabled={!inputReady || isProcessing}
+                messages={messages}
+              />
             </div>
           </div>
         </div>
