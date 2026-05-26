@@ -15,6 +15,8 @@ Phase 0 is the immediate build: mock shell, no backend, honey demo runs end-to-e
 
 **Design constraint (frontend/):** Before touching any file in `frontend/`, read `docs/design/landing-emotional-contract.md`. The landing emotional contract governs every surface decision. The plan describes mechanics; the contract describes intent. If they conflict, the contract wins.
 
+**Rendering invariants (frontend/):** Before touching any file in `frontend/`, also read `INVARIANTS.md`. The rendering invariants are the frozen architectural contract — rendering protocol, shortlist provenance model, demo/workspace trust boundary, persona-as-lens rule, no-canned-text rule. If the landing emotional contract and INVARIANTS.md conflict, surface it — do not resolve silently. Both are constitutional.
+
 ## Universal init
 
 On `/init`, follow `../CONTROL/INIT_PROTOCOL.md`. This repo file adds local rules only; it does not own the workspace init protocol.
