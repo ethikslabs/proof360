@@ -11,6 +11,8 @@ import austradeUrl from '../OperationalField/logos/austrade.svg';
 import rimonUrl from '../OperationalField/logos/rimon.svg';
 import prescientSecurityUrl from '../OperationalField/logos/prescient-security.svg';
 import arcticWolfUrl from '../OperationalField/logos/arctic-wolf.svg';
+import cognitiveViewUrl from '../OperationalField/logos/cognitive-view.svg';
+import auAiExpertGroupUrl from '../OperationalField/logos/au-ai-expert-group.svg';
 
 const HIVE_SCORES = {
   identity:   85,
@@ -70,7 +72,9 @@ const DISCOVERY_VENDORS = [
   { logoUrl: austradeUrl,          logoH: 16, alt: 'Austrade',           value: 'Government grants to take your product global',  sub: 'AU Trade & Investment Commission',    chatQ: 'What Austrade programs are available for AU tech founders looking to export?' },
   { logoUrl: rimonUrl,             logoH: 22, alt: 'Rimon',              value: 'Startup legal without the big-firm overhead',    sub: 'Corporate, IP & investment law',      chatQ: 'How can Rimon Advisory help me with startup legal — term sheets, IP, cap table?' },
   { logoUrl: prescientSecurityUrl, logoH: 22, alt: 'Prescient Security', value: 'Independent audit that unlocks enterprise trust',  sub: 'SOC 2, ISO 27001, pen testing',       chatQ: 'When do I need an independent security audit and what does Prescient Security do?' },
-  { logoUrl: arcticWolfUrl,        logoH: 22, alt: 'Arctic Wolf',        value: '24/7 security monitoring — without a SOC team',  sub: 'Managed detection & response',        chatQ: 'What does Arctic Wolf provide and when does a scaling startup need managed security?' },
+  { logoUrl: arcticWolfUrl,        logoH: 22, alt: 'Arctic Wolf',        value: '24/7 security monitoring — without a SOC team',  sub: 'Managed detection & response',           chatQ: 'What does Arctic Wolf provide and when does a scaling startup need managed security?' },
+  { logoUrl: cognitiveViewUrl,     logoH: 18, alt: 'Cognitive View',     value: 'AI governance that satisfies investor DD',        sub: 'AI risk, compliance & monitoring',       chatQ: 'What does Cognitive View do and when do I need AI governance tooling?' },
+  { logoUrl: auAiExpertGroupUrl,   logoH: 22, alt: 'AU AI Expert Group', value: 'Stay ahead of AU AI regulation',                  sub: 'Dept. of Industry advisory body',        chatQ: 'What is Australia\'s AI Expert Group and how does its guidance affect my product or fundraising?' },
 ];
 
 function DomainRow({ id, label, userScore, tk }) {
@@ -167,6 +171,14 @@ const BOOKING_WHY = {
   'Arctic Wolf': {
     headline: 'Enterprise buyers check whether you have security monitoring before they sign.',
     body: 'Arctic Wolf gives you a 24/7 security operations centre without the headcount. It\'s the signal that tells enterprise procurement you take security seriously — and it shows up in due diligence.',
+  },
+  'Cognitive View': {
+    headline: 'AI governance is the next compliance checkbox — and it\'s arriving fast.',
+    body: 'If you\'re building with AI, investors and enterprise buyers are already asking about governance, bias controls, and audit trails. Cognitive View gives you the tooling to answer those questions with evidence.',
+  },
+  'AU AI Expert Group': {
+    headline: 'AU AI regulation is being written right now — get ahead of it.',
+    body: 'The Australian Government\'s AI Expert Group is shaping the guardrails that will affect every AI product. We track what\'s coming and help you build compliance posture before it\'s mandatory.',
   },
 };
 

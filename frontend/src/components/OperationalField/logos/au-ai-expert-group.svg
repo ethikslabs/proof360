@@ -1,0 +1,6 @@
+<svg viewBox="0 0 220 40" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="2" width="5" height="36" fill="#002D6E" rx="1"/>
+  <rect x="8" y="2" width="5" height="36" fill="#FFB800" rx="1"/>
+  <text x="20" y="17" font-family="'Arial', Helvetica, sans-serif" font-size="10" font-weight="700" fill="#002D6E" letter-spacing="0.2">Australian Government</text>
+  <text x="20" y="31" font-family="'Arial', Helvetica, sans-serif" font-size="10" font-weight="400" fill="#444" letter-spacing="0.1">AI Expert Group</text>
+</svg>
