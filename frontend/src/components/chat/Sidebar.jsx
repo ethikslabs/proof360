@@ -16,7 +16,7 @@ const SPACES = [
 
 const YOURS_SUBS = {
   investor:  'Score 72', vendors: '4 matched',
-  aws:       '3 eligible', microsoft: '2 programs',
+  aws:       '10 programs', microsoft: '6 programs',
   posture:   '7 checks',  spv: 'Draft',
 };
 

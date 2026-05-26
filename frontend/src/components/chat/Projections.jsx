@@ -299,20 +299,30 @@ function VendorsProjection({ panel, company, t }) {
 }
 
 const YOURS_AWS = {
-  summary: "Two of these need an application this quarter. The other two are sitting there.",
+  summary: "Ten programs. Most founders apply for one or two and stop. $220k+ in credits and co-sell opportunities are sitting unclaimed at your stage.",
   programs: [
-    { name: 'AWS Activate',       status: 'not_enrolled', value: 'Up to $5k credits', detail: 'Apply via portfolio program'       },
-    { name: 'AWS ISV Accelerate', status: 'eligible',     value: 'Co-sell motion',    detail: 'Listed in Marketplace required'   },
-    { name: 'Startup Credits',    status: 'available',    value: '$10k unclaimed',    detail: 'Available now · expires Q4'       },
-    { name: 'Well-Architected',   status: 'available',    value: 'Free review',       detail: 'Schedule via solutions architect' },
+    { name: 'AWS Activate',                   status: 'available',    value: 'Up to $100k credits',                  detail: 'Portfolio org unlocks higher tier · apply now',                    url: 'https://aws.amazon.com/activate'                                 },
+    { name: 'Startup Credits',                status: 'available',    value: '$10k unclaimed',                       detail: 'Already granted · expires Q4 · log in to redeem',                url: 'https://console.aws.amazon.com'                                  },
+    { name: 'Well-Architected Review',        status: 'available',    value: 'Free architectural review',            detail: 'No cost · schedule with Solutions Architect this week',           url: 'https://aws.amazon.com/architecture/well-architected'            },
+    { name: 'AWS Global Startup Program',     status: 'available',    value: 'Technical mentorship + $25k credits',  detail: 'Startup stage qualifies · 4–6 week engagement',                   url: 'https://aws.amazon.com/startups/startup-programs'                },
+    { name: 'AWS ISV Accelerate',             status: 'eligible',     value: 'Co-sell with AWS field reps',          detail: 'Requires Marketplace listing + APN membership',                   url: 'https://aws.amazon.com/partners/programs/isv-accelerate'         },
+    { name: 'Foundational Technical Review',  status: 'eligible',     value: 'Pre-market security clearance',        detail: 'Required before ISV Accelerate · ~2-week assessment',             url: 'https://aws.amazon.com/partners/foundational-technical-review'   },
+    { name: 'AWS Marketplace Seller',         status: 'eligible',     value: '300k+ enterprise buyers',              detail: 'SaaS listing takes 2–4 weeks via APN portal',                     url: 'https://aws.amazon.com/marketplace/management'                   },
+    { name: 'AWS Partner Network — ISV Track',status: 'not_enrolled', value: 'Advanced partner discounts + MDF',     detail: 'Two validated customer references required to qualify'                                                                                    },
+    { name: 'Migration Acceleration Program', status: 'not_enrolled', value: 'Up to 25% AWS cost offset',            detail: 'Requires projected workload ≥ $25k/mo — unlocks at scale'                                                                               },
+    { name: 'AWS MSSP Competency',            status: 'not_enrolled', value: 'Managed security co-sell motion',      detail: 'Requires 3 active managed security customers first'                                                                                      },
   ],
 };
 
 const YOURS_MICROSOFT = {
-  summary: "Two Microsoft programs available at your stage. Founders Hub is the fastest — 20 minutes to apply, up to $150k in Azure credits available now.",
+  summary: "Six Microsoft programs. Founders Hub is unclaimed — that's $150k in Azure credits sitting there. The other five range from immediate to a 60-day path.",
   programs: [
-    { name: 'Microsoft for Startups Founders Hub', status: 'available', value: 'Up to $150k Azure credits + GitHub Enterprise', detail: 'Apply now · startup stage qualifies', url: 'https://www.microsoft.com/en-us/startups' },
-    { name: 'Ingram Micro Xvantage — CSP',         status: 'eligible',  value: 'Microsoft 365 via CSP',                         detail: 'Available through Ingram Micro ANZ channel', url: 'https://xvantage.ingrammicro.com'        },
+    { name: 'Microsoft for Startups Founders Hub',  status: 'available',    value: 'Up to $150k Azure credits + GitHub Enterprise + M365', detail: 'Startup stage qualifies · 20-minute application',             url: 'https://www.microsoft.com/en-us/startups'                             },
+    { name: 'GitHub Copilot for Business',          status: 'available',    value: 'Free via Founders Hub',                               detail: 'Included · activate in GitHub settings after Hub onboarding', url: 'https://github.com/features/copilot'                                  },
+    { name: 'Ingram Micro AMP — Azure Assessment',  status: 'available',    value: 'Free Azure migration assessment',                     detail: 'Free via Ingram ANZ · no existing Azure footprint needed',    url: 'https://www.ingrammicro.com/en-AU/services/microsoft'                 },
+    { name: 'Ingram Micro Xvantage — CSP',          status: 'eligible',     value: 'Microsoft 365 via CSP channel',                       detail: 'Available through Ingram Micro ANZ · bundled management',     url: 'https://xvantage.ingrammicro.com'                                     },
+    { name: 'Microsoft AI Cloud Partner Program',   status: 'eligible',     value: 'Azure OpenAI Service credits + technical support',    detail: 'AI workload qualifies · partner designation required',        url: 'https://partner.microsoft.com'                                        },
+    { name: 'Azure Marketplace — Transact Listing', status: 'not_enrolled', value: '10% marketplace reward on all transactions',          detail: 'Phase 2 play · after Founders Hub onboarding and scale',      url: 'https://partner.microsoft.com/en-us/partnership/azure-marketplace'    },
   ],
 };
 
