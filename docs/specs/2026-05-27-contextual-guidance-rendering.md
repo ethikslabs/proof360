@@ -56,16 +56,23 @@ Derived from this session: scans, conversation, geography, stage, industry, self
 ```ts
 type ObservedSignal = {
   id: string;                  // e.g. "no_soc2_detected"
-  type: string;                // "compliance_gap" | "market_context" | "stage" | "self_disclosed" | ...
+  type: string;                // "compliance_gap" | "capability" | "market_context" | "stage" | "self_disclosed" | ...
+  polarity: "gap" | "capability"; // gap = deficiency; capability = existing strength
   domain: string;              // "compliance" | "security" | "financial" | "identity" | "legal" | "team"
-  value: string;               // human-readable: "No SOC 2 detected"
+  value: string;               // human-readable: "No SOC 2 detected" or "AWS partner enrolled"
   source: SignalSource;        // "github_scan" | "conversation" | "url_scrape" | "self_disclosed"
-  confidence: number;          // 0–1
+  confidence: number;          // 0–1 — see confidence semantics below
   observed_at: string;         // ISO timestamp
+  last_verified: string;       // ISO timestamp — when this was last confirmed still true
+  freshness_weight: number;    // 0–1 — decays from 1.0 toward 0 as signal ages; applied at render time
   conversation_turn: number;   // which turn produced this signal
   disprovable_by: string;      // what the user could say to correct it
 };
 ```
+
+**Confidence semantics:** `confidence` represents confidence that the observation exists — not confidence in any recommendation outcome. A confidence of 0.82 means "we are 82% confident this signal is currently true." It does not mean the recommended action has an 82% chance of success. This distinction must be preserved in all UI language.
+
+**Signal decay:** `freshness_weight` decays linearly from 1.0 toward 0 over 14 days from `last_verified`. At freshness_weight < 0.5, the signal is considered stale and the UI shows `last verified [date]` instead of `observed [time]`. Stale signals still contribute to GuidanceBlocks but at reduced weight. A self-disclosed signal (`source: "self_disclosed"`) does not decay — the user said it, it is current until they correct it.
 
 ObservedSignals are the trust foundation. They are shown to the user before any recommendation. The user can correct them.
 
@@ -156,11 +163,39 @@ Premature CTAs (before the observation/synthesis sequence is complete) destroy t
 
 ---
 
-## Signal chips
+## Counter-signals
 
-Signal chips are the primary trust interface. They make the system inspectable.
+ObservedSignals are not only deficiencies. The system must detect and surface positive capability signals — existing strengths that reduce risk, increase investor confidence, or unlock program eligibility.
 
-**Visual:** Small clickable chips in the "Observed this session" strip at the top of the conversation, and in the profile panel signals section. Warm green styling — not aggressive.
+**Gap signals** (polarity: "gap") — the system today:
+- No SOC 2 detected
+- No IR controls in repo
+- No compliance evidence found
+
+**Capability signals** (polarity: "capability") — v2 must also detect:
+- AWS partner program enrolled
+- Cloudflare enterprise tier active
+- Vanta MSP relationship confirmed
+- Existing policy maturity detected in repo
+- Strong repo hygiene (branch protection, signed commits)
+- Investor-ready infra posture (monitoring, logging, DR docs)
+- Self-disclosed: "we have SOC 2 in progress"
+
+Capability signals float to the top of the Observed strip with distinct styling. They affect vendor ranking: a founder already on AWS Activate should not be told to apply for it.
+
+The emotional tone of the product must be "system understands operational posture" — not "system finds problems." Without capability signals, the observation strip becomes a deficiency list, which creates anxiety rather than orientation.
+
+---
+
+## The reasoning ledger (signal chips)
+
+Signal chips are not a secondary feature. They are the primary trust surface of the product.
+
+Each chip is a reasoning ledger entry: evidence, inference, provenance, correction. Clicking a chip opens the full reasoning chain for that observation. This is what makes the product inspectable rather than opaque.
+
+Signal chips make the system inspectable.
+
+**Visual:** Small clickable chips in the "Observed this session" strip at the top of the conversation, and in the profile panel signals section. Gap signals: warm green. Capability signals: soft amber (the umber token — same as the Hive&Co reference bar). Not aggressive.
 
 **Interaction:** Click any chip → evidence drawer slides in.
 
@@ -170,8 +205,9 @@ Signal chips are the primary trust interface. They make the system inspectable.
 Signal: No SOC 2 detected
 
 Source:     GitHub public repo scan
-Confidence: 82%
+Confidence: 82% (observation confidence — how certain we are this is true)
 Observed:   Turn 0 · 08:12 AEST
+Freshness:  Current (last verified today)
 
 How inferred:
   No .compliance/ directory
@@ -199,7 +235,20 @@ Every signal chip has three correction actions:
 - **Ignore** — user does not dispute the signal but does not want it to drive recommendations. Signal remains but weight is zeroed.
 - **Add context** — user can type a clarification. This becomes a `self_disclosed` ObservedSignal with higher confidence than the inferred one.
 
-Correction loops are how the system earns trust from a skeptical user. The agent is not asserting facts — it is showing observations and inviting correction.
+Correction loops are how the system earns trust from a skeptical user. The agent is not asserting facts — it is showing observations and inviting correction. This is collaborative calibration, not error recovery.
+
+### Guidance regeneration UX
+
+When a signal correction triggers GuidanceBlock invalidation and regeneration, the transition must be visually soft. Abrupt rewrites feel like hallucination, not recalculation.
+
+Regeneration sequence:
+1. Corrected signal chip updates immediately (strike-through then fade to corrected state)
+2. Affected GuidanceBlocks show a brief `↻ Updating based on your correction…` line (300ms)
+3. New GuidanceBlock fades in — 200ms ease-in, not an instant replace
+4. Vendor reason lines update in the same soft transition
+5. If vendor rank changes, cards reorder with a subtle slide animation (not a jump)
+
+The UI language must say "recalculating" not "error." The correction loop is a feature, not a recovery path.
 
 ---
 
@@ -257,6 +306,47 @@ When the active session is the user's own company:
 
 ---
 
+## Temporal narrative
+
+Founders think in trajectory, not snapshots. The system must be capable of answering: what changed, what improved, what unlocked, what became possible.
+
+This is the moat. A static analyzer describes the current state. A progression engine describes movement — and movement is what investors and enterprise buyers actually want to see.
+
+**v2 scope:** The temporal narrative surface is defined here but implemented incrementally. The data model must support it from v2 even if the UI rendering comes later.
+
+**What the data model must support (v2):**
+
+Each session writes a `session_snapshot` on close:
+```ts
+type SessionSnapshot = {
+  session_id: string;
+  entity_id: string;         // company identifier
+  timestamp: string;         // ISO
+  signals: ObservedSignal[]; // state at session close
+  domain_scores: Record<domain, number>;
+  guidance_blocks_rendered: string[]; // GuidanceBlock IDs
+};
+```
+
+When a subsequent session opens for the same entity, the system compares the current signal set to the prior snapshot and surfaces a delta:
+
+```
+Since last session:
+  ✓ IR policy added to repo          (gap → resolved)
+  ✓ Vanta connected                  (capability signal)
+  → Compliance readiness: +18 points
+
+Now unlocked:
+  → Healthcare enterprise procurement checklist: 2 of 5 items met
+  → AWS ISV co-sell eligibility: check requirements
+```
+
+**UI placement:** The temporal delta surfaces at the top of the session, above the Observed strip — but only when a prior snapshot exists. First-session users see the standard Observed strip. Returning users see "What changed" first, then current signals.
+
+**Emotional intent:** The system becomes a progression engine. Not "here are your problems." But "here is what you've done, here is what it unlocked, here is what's next." That is what makes the platform sticky in a way dashboards are not.
+
+---
+
 ## What this is not
 
 - Not a replacement of CanonicalClaims with generated text. Canonical truths stay canonical. Generation composes with them.
@@ -270,9 +360,13 @@ When the active session is the user's own company:
 
 1. No GuidanceBlock renders without first rendering the ObservedSignals that contributed to it.
 2. Every vendor in the ranked list shows a reason line derived from current signals.
-3. Every signal chip opens an evidence drawer with source, confidence, disprovable_by, and correction loop.
-4. Every GuidanceBlock ends with a concrete next move.
-5. Demo mode signals are visually distinct and have no correction loop.
-6. No CTA appears on a domain where the user has had zero conversation turns.
-7. If a user corrects a signal, all downstream GuidanceBlocks where `signal.domain` matches the corrected signal's `domain` invalidate and regenerate. Domain-scoped invalidation uses `ObservedSignal.domain` as the key — not `type`.
+3. Every signal chip opens an evidence drawer with source, observation confidence (labelled as such — not predictive confidence), freshness state, disprovable_by, and correction loop.
+4. Every GuidanceBlock ends with a concrete next move decoupled from vendor CTAs.
+5. Demo mode signals are visually distinct (reduced opacity) and have no correction loop.
+6. No CTA appears on a domain where `domain_turns[domain] < 1`.
+7. If a user corrects a signal, all downstream GuidanceBlocks where `signal.domain` matches the corrected signal's `domain` invalidate and regenerate with a soft transition (no abrupt replace). UI shows `↻ Updating based on your correction…` during regeneration.
 8. The CanonicalClaim / ObservedSignal / GuidanceBlock classification is never visible as a label to the user.
+9. The ObservedSignal schema includes `polarity` ("gap" | "capability"), `last_verified`, and `freshness_weight`. Gap signals style green; capability signals style amber.
+10. Signals with `freshness_weight < 0.5` display `last verified [date]` not `observed [time]` in the evidence drawer.
+11. The session writes a `SessionSnapshot` on close containing signals, domain scores, and rendered GuidanceBlock IDs. This is the data foundation for the temporal narrative.
+12. On a return session for a known entity, the temporal delta (what changed since last session) surfaces above the Observed strip before current signals.
