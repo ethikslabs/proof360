@@ -900,19 +900,6 @@ export default function Chat() {
   const browserTabsRef = useRef([]);
 
   useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    // Double-rAF: first frame triggers layout, second frame reads the settled scrollHeight
-    let outer, inner;
-    outer = requestAnimationFrame(() => {
-      inner = requestAnimationFrame(() => {
-        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
-      });
-    });
-    return () => { cancelAnimationFrame(outer); cancelAnimationFrame(inner); };
-  }, [messages, thinkingSteps]);
-
-  useEffect(() => {
     if (!logoCard) return;
     const t = setTimeout(() => setLogoCard(null), 6000);
     return () => clearTimeout(t);
