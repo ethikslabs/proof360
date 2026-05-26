@@ -299,6 +299,172 @@ function VendorsProjection({ panel, company, t }) {
   );
 }
 
+const VENDOR_PAGES = {
+  vanta: {
+    title: 'Vanta compliance programs for your stage',
+    attributedTo: 'edison', glyphKey: 'vanta', token: 'teal',
+    source: 'Vanta · direct partner',
+    summary: "SOC 2 in 90 days. Most founders delay this until a deal demands it — by then you're already 3 months from closing.",
+    programs: [
+      { name: 'SOC 2 Type I',       status: 'available',    value: 'Readiness in 30 days',                  detail: 'Point-in-time audit — fastest path to a trust report' },
+      { name: 'SOC 2 Type II',      status: 'available',    value: 'Full 6-month audit period',             detail: 'The standard enterprise buyers require — start now, close in Q3' },
+      { name: 'ISO 27001',          status: 'eligible',     value: 'International certification',           detail: 'Required for EU + APAC enterprise deals — available after Type II' },
+      { name: 'HIPAA compliance',   status: 'eligible',     value: 'Healthcare sector access',              detail: 'Required if you touch health data — Vanta automates 80% of evidence' },
+      { name: 'GDPR readiness',     status: 'available',    value: 'EU data compliance',                    detail: 'Required for any EU customer data — available now' },
+      { name: 'PCI DSS',            status: 'not_enrolled', value: 'Cardholder data security',              detail: 'Required if you process payments directly' },
+    ],
+  },
+  cisco: {
+    title: 'Cisco security programs via Ingram Micro',
+    attributedTo: 'edison', glyphKey: 'cisco', token: 'teal',
+    source: 'Cisco · via Ingram Micro ANZ',
+    summary: "Enterprise procurement trusts Cisco on sight. Duo takes a day to deploy. Umbrella runs at the DNS layer. Meraki is the network enterprise buyers expect.",
+    programs: [
+      { name: 'Cisco Duo MFA',          status: 'available',    value: 'MFA for any stack in one day',      detail: 'Works with Google, Microsoft, AWS, Slack — no infrastructure changes' },
+      { name: 'Cisco Umbrella',         status: 'available',    value: 'DNS-layer threat protection',       detail: 'Blocks malware, phishing, ransomware before it reaches your network' },
+      { name: 'Cisco Meraki',           status: 'eligible',     value: 'Cloud-managed networking',          detail: 'The network stack enterprise IT departments recognise and trust' },
+      { name: 'Cisco Secure Firewall',  status: 'eligible',     value: 'Next-gen perimeter security',       detail: 'Required for enterprise network compliance posture' },
+      { name: 'Cisco SecureX',          status: 'not_enrolled', value: 'Unified security platform',         detail: 'Integrates all Cisco security tools — unlock after Duo and Umbrella' },
+    ],
+  },
+  ingram: {
+    title: 'Ingram Micro channel programs',
+    attributedTo: 'leonardo', glyphKey: 'vendors', token: 'umber',
+    source: 'Ingram Micro ANZ · channel partner',
+    summary: "23,000+ products. The distribution layer behind AWS, Microsoft, Cisco, and Cloudflare. One reseller account unlocks the entire stack.",
+    programs: [
+      { name: 'Reseller onboarding',        status: 'available',    value: 'Access 23,000+ products',           detail: 'Get reseller pricing on the full Ingram ANZ catalog — apply online' },
+      { name: 'Microsoft CSP',              status: 'available',    value: 'Microsoft 365 via CSP channel',     detail: 'Bundle M365, Azure, Teams, and Copilot through a single Ingram order' },
+      { name: 'Cisco partner access',       status: 'available',    value: 'Full Cisco portfolio',              detail: 'Duo, Umbrella, Meraki — partner pricing through Ingram ANZ' },
+      { name: 'Xvantage Cloud marketplace', status: 'eligible',     value: 'SaaS licensing platform',           detail: 'Manage all cloud subscriptions from a single Ingram portal' },
+    ],
+  },
+  stripe: {
+    title: 'Stripe programs for scaling startups',
+    attributedTo: 'leonardo', glyphKey: 'vendors', token: 'umber',
+    source: 'Stripe · direct',
+    summary: "Investors look at your Stripe dashboard before they look at your deck. Revenue Recognition, Atlas, and Capital are the three Stripe products that change your fundraise story.",
+    programs: [
+      { name: 'Stripe Atlas',             status: 'available',    value: 'US incorporation in 2 days',        detail: 'Delaware C-Corp or LLC — preferred structure for US venture capital' },
+      { name: 'Revenue Recognition',      status: 'available',    value: 'Investor-grade revenue reporting',  detail: 'GAAP-compliant revenue reporting that auditors and investors trust' },
+      { name: 'Stripe Tax',               status: 'available',    value: 'Automated global tax compliance',   detail: 'Required once you sell across AU state lines or internationally' },
+      { name: 'Stripe Invoicing',         status: 'available',    value: 'B2B payment infrastructure',        detail: 'Enterprise invoicing with auto-reconciliation to your accounting stack' },
+      { name: 'Stripe Capital',           status: 'eligible',     value: 'Revenue-based financing',           detail: 'Up to 12 months MRR as a cash advance — no dilution, no VC' },
+    ],
+  },
+  nvidia: {
+    title: 'NVIDIA programs for AI startups',
+    attributedTo: 'edison', glyphKey: 'vendors', token: 'teal',
+    source: 'NVIDIA · developer program',
+    summary: "Inception gives you GPU credits and technical access. NIM API is free-tier inference today. DGX Cloud is the path to dedicated compute at scale.",
+    programs: [
+      { name: 'NVIDIA Inception',         status: 'available',    value: 'Free GPU credits + technical support', detail: 'Startup program — DGX Cloud credits, training, and enterprise introductions' },
+      { name: 'NIM API (free tier)',       status: 'available',    value: 'Hosted inference — 0 cost to start',  detail: 'Access to 50+ foundation models via OpenAI-compatible API' },
+      { name: 'DGX Cloud',                status: 'eligible',     value: 'Dedicated AI compute',               detail: 'Bare-metal H100 clusters — unlocks when workload justifies dedicated GPU' },
+      { name: 'NVAIE (AI Enterprise)',    status: 'not_enrolled', value: 'Enterprise AI software stack',        detail: 'Full NVIDIA software suite for enterprise deployment — contact for pricing' },
+    ],
+  },
+  perplexity: {
+    title: 'Perplexity for research and due diligence',
+    attributedTo: 'edison', glyphKey: 'vendors', token: 'teal',
+    source: 'Perplexity AI · direct',
+    summary: "Live web intelligence. Not cached knowledge. For due diligence, market research, and competitive analysis where recency is the whole point.",
+    programs: [
+      { name: 'Perplexity Pro',           status: 'available',    value: 'Unlimited live web search',         detail: 'Real-time retrieval across the entire web — $20/mo, cancel anytime' },
+      { name: 'Perplexity API',           status: 'available',    value: 'Programmatic search access',        detail: 'Build live research into your product — OpenAI-compatible endpoint' },
+      { name: 'Enterprise Pro',           status: 'eligible',     value: 'Team search + SSO',                 detail: 'Private search history, SOC 2 compliant, SAML SSO — contact for pricing' },
+    ],
+  },
+  gemini: {
+    title: 'Google Gemini and Cloud AI programs',
+    attributedTo: 'edison', glyphKey: 'vendors', token: 'teal',
+    source: 'Google · via Vertex AI',
+    summary: "1M token context. Multimodal. Google for Startups gives you $200k in Cloud credits. Gemini is the right tool for long document synthesis and large-context reasoning.",
+    programs: [
+      { name: 'Google for Startups',      status: 'available',    value: 'Up to $200k Cloud credits',         detail: 'AI-focused startups qualify — apply via Google Cloud startup program' },
+      { name: 'Gemini API (free tier)',   status: 'available',    value: 'Free inference to prototype',        detail: '15 RPM, 1M context window — enough to build without cost' },
+      { name: 'Vertex AI',               status: 'available',    value: 'Production AI platform',             detail: 'Managed ML pipeline on Google Cloud — access via Cloud credits' },
+      { name: 'Google AI Studio',        status: 'available',    value: 'No-code model access',               detail: 'Prototype with Gemini and Gemma models — free, no credit card' },
+      { name: 'Workspace Business',      status: 'eligible',     value: 'Gemini in Docs + Gmail',             detail: 'AI writing and summarisation built into your existing Workspace' },
+    ],
+  },
+  anthropic: {
+    title: 'Anthropic Claude programs',
+    attributedTo: 'edison', glyphKey: 'vendors', token: 'teal',
+    source: 'Anthropic · direct',
+    summary: "The reasoning model enterprise buyers trust for sensitive workloads. Constitutional AI, long context, and the lowest hallucination rate of any frontier model.",
+    programs: [
+      { name: 'Claude API (Haiku)',       status: 'available',    value: '$0.25 per 1M tokens — fast and cheap', detail: 'Production-grade inference for high-volume, latency-sensitive tasks' },
+      { name: 'Claude API (Sonnet)',      status: 'available',    value: 'Balanced — the most deployed model',    detail: 'Best performance-to-cost ratio for most enterprise workloads' },
+      { name: 'Claude API (Opus)',        status: 'available',    value: 'Frontier reasoning',                   detail: 'Highest-capability model for complex analysis and multi-step reasoning' },
+      { name: 'Claude Enterprise',       status: 'eligible',     value: 'SSO + data privacy + SLAs',            detail: 'SOC 2 Type II, HIPAA BAA, zero data retention — contact sales' },
+      { name: 'Claude via AWS Bedrock',  status: 'eligible',     value: 'Claude inside your AWS environment',   detail: 'Keep everything in AWS — no separate API key, same pricing' },
+    ],
+  },
+  xero: {
+    title: 'Xero financial programs for founders',
+    attributedTo: 'sofia', glyphKey: 'vendors', token: 'umber',
+    source: 'Xero · direct partner',
+    summary: "Clean books are the fastest due diligence signal. Investor DD starts with your Xero dashboard — what they see in the first 10 minutes determines whether the process continues.",
+    programs: [
+      { name: 'Xero Starter',            status: 'available',    value: '5 invoices + bank reconciliation',  detail: 'The baseline — get clean books before your next investor meeting' },
+      { name: 'Xero Standard',           status: 'available',    value: 'Unlimited invoicing + payroll',     detail: 'The right tier for most startups — $65/mo' },
+      { name: 'Xero Premium',            status: 'eligible',     value: 'Multi-currency + advanced reporting', detail: 'Required once you have international revenue or investors in multiple currencies' },
+      { name: 'Xero for Accountants',   status: 'eligible',     value: 'Direct accountant access',           detail: 'Your accountant works in the same system — no export/import cycle' },
+    ],
+  },
+  hubspot: {
+    title: 'HubSpot CRM programs for founders',
+    attributedTo: 'leonardo', glyphKey: 'vendors', token: 'umber',
+    source: 'HubSpot for Startups',
+    summary: "Pipeline evidence is what investors ask for after financials. HubSpot for Startups is 90% off year one. Your CRM data tells the revenue story your deck only hints at.",
+    programs: [
+      { name: 'HubSpot for Startups',    status: 'available',    value: 'Up to 90% off year one',          detail: 'Seed and Series A startups qualify — apply via an approved VC or accelerator' },
+      { name: 'CRM (free)',              status: 'available',    value: 'Contact management — no cost',    detail: 'Full CRM free forever — upgrade when you need automation' },
+      { name: 'Marketing Hub',           status: 'available',    value: 'Email + landing pages + forms',   detail: 'Investor-grade acquisition funnel evidence' },
+      { name: 'Sales Hub',               status: 'eligible',     value: 'Pipeline + deal tracking',        detail: 'The data investors want — close rate, deal velocity, pipeline coverage ratio' },
+      { name: 'Service Hub',             status: 'eligible',     value: 'Customer retention evidence',     detail: 'Churn data and NPS scores are what Series B investors look at first' },
+      { name: 'HubSpot Marketplace',    status: 'not_enrolled', value: '500+ integrations',               detail: 'Connect to Xero, Stripe, Slack, and your full stack' },
+    ],
+  },
+};
+
+function VendorDetailProjection({ id, company, t }) {
+  const tk = tokens(t.theme);
+  const d = VENDOR_PAGES[id];
+  if (!d) return null;
+  const tile = { kind: 'Programs', token: d.token, glyphKey: d.glyphKey, title: d.title };
+  const statusColor = (s) => s === 'available' ? tk.sevOk : s === 'eligible' ? tk.umber : tk.inkSoft;
+  const statusLabel = (s) => s === 'available' ? 'Available' : s === 'eligible' ? 'Eligible' : 'Not enrolled';
+  return (
+    <ProjectionShell tile={tile} company={company} attributedTo={d.attributedTo} lastUpdated="live" t={t}>
+      <p style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic', fontSize: 20, lineHeight: 1.4, color: tk.inkMid, margin: '0 0 36px', maxWidth: 640 }}>
+        {d.summary}
+      </p>
+      <PSection kicker="Programs" title="Where you can apply now" source={d.source} t={t}>
+        {d.programs.map((p, i) => (
+          <div key={p.name} style={{
+            padding: '18px 0',
+            borderBottom: i < d.programs.length - 1 ? `1px solid ${tk.hairline}` : 'none',
+            display: 'grid', gridTemplateColumns: '1fr auto', gap: 12,
+          }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 4 }}>
+                <span style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontSize: 18, color: tk.ink, letterSpacing: '-0.005em' }}>{p.name}</span>
+                <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9.5, color: statusColor(p.status), letterSpacing: '0.16em', textTransform: 'uppercase' }}>{statusLabel(p.status)}</span>
+              </div>
+              <div style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic', fontSize: 14, color: tk.inkMid }}>{p.value} · {p.detail}</div>
+            </div>
+            {(p.status === 'available' || p.status === 'eligible') && (
+              <a href="https://meetings.hubspot.com/john3174" target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ alignSelf: 'center', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.teal, borderBottom: `1px solid ${tk.teal}66`, paddingBottom: 1, letterSpacing: '0.04em', textDecoration: 'none', whiteSpace: 'nowrap' }}>Apply →</a>
+            )}
+          </div>
+        ))}
+      </PSection>
+    </ProjectionShell>
+  );
+}
+
 const YOURS_AWS = {
   summary: "Ten programs. Most founders apply for one or two and stop. $220k+ in credits and co-sell opportunities are sitting unclaimed at your stage.",
   programs: [
@@ -498,6 +664,7 @@ export function Projection({ id, company, hiveStage, onBack, t }) {
               : id === 'microsoft' ? <MicrosoftProjection  panel={stagePanel?.microsoft} company={company} t={t} />
               : id === 'posture'   ? <PostureProjection    panel={stagePanel?.posture}   company={company} t={t} />
               : id === 'spv'       ? <SpvProjection        panel={stagePanel?.spv}       company={company} t={t} />
+              : VENDOR_PAGES[id]   ? <VendorDetailProjection id={id} company={company} t={t} />
               : null;
   if (!inner) return null;
   return (

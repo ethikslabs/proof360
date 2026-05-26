@@ -154,23 +154,28 @@ function DomainRow({ id, label, userScore, tk }) {
   );
 }
 
-function DiscoveryView({ tk }) {
+const ALT_TO_SPACE = {
+  'AWS': 'aws', 'Vanta': 'vanta', 'Cisco': 'cisco', 'Ingram Micro': 'ingram',
+  'Stripe': 'stripe', 'Microsoft': 'microsoft', 'NVIDIA': 'nvidia',
+  'Perplexity': 'perplexity', 'Gemini': 'gemini', 'Anthropic': 'anthropic',
+  'Xero': 'xero', 'HubSpot': 'hubspot',
+};
+
+function DiscoveryView({ tk, onVendorSelect }) {
   return (
     <div style={{ flex: 1 }}>
       {DISCOVERY_VENDORS.map((v, i) => {
         const isLast = i === DISCOVERY_VENDORS.length - 1;
         const count = v.programs?.length;
         return (
-          <a
+          <button
             key={v.alt}
-            href="https://meetings.hubspot.com/john3174"
-            target="_blank"
-            rel="noopener noreferrer"
+            onClick={() => onVendorSelect?.(ALT_TO_SPACE[v.alt])}
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
-              padding: '13px 16px',
+              width: '100%', padding: '13px 16px',
               borderBottom: isLast ? 'none' : `1px solid ${tk.hairline}`,
-              textDecoration: 'none', cursor: 'pointer',
+              background: 'none', border: 'none', cursor: 'pointer',
             }}
           >
             <img src={v.logoUrl} alt={v.alt} style={{ height: v.logoH, objectFit: 'contain', objectPosition: 'left', maxWidth: 110, flexShrink: 0 }} />
@@ -181,14 +186,14 @@ function DiscoveryView({ tk }) {
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0, opacity: 0.4 }}>
               <path d="M3 2 L7 5 L3 8" stroke="#8c8499" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-          </a>
+          </button>
         );
       })}
     </div>
   );
 }
 
-export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onAsk, focusedProgram }) {
+export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onAsk, focusedProgram, onVendorSelect }) {
   const [blink, setBlink] = useState(true);
 
   useEffect(() => {
@@ -332,7 +337,7 @@ export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onAsk, fo
           )}
         </div>
       )}
-      <DiscoveryView tk={tk} onAsk={onAsk} focusedProgram={focusedProgram} />
+      <DiscoveryView tk={tk} onVendorSelect={onVendorSelect} />
     </div>
   );
 }
