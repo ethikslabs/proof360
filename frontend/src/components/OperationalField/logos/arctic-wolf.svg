@@ -1,0 +1,6 @@
+<svg viewBox="0 0 180 38" xmlns="http://www.w3.org/2000/svg">
+  <path d="M4 28 L10 12 L13 20 L16 14 L20 28 Z" fill="#1A3A52"/>
+  <circle cx="12" cy="10" r="2" fill="#00A8E8"/>
+  <text x="28" y="20" font-family="'Arial', Helvetica, sans-serif" font-size="12" font-weight="700" fill="#1A3A52" letter-spacing="0.8">ARCTIC WOLF</text>
+  <text x="28" y="32" font-family="'Arial', Helvetica, sans-serif" font-size="8" font-weight="400" fill="#00A8E8" letter-spacing="1.5">NETWORKS</text>
+</svg>

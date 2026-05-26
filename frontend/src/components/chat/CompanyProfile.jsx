@@ -7,6 +7,10 @@ import ciscoUrl from '../OperationalField/logos/cisco.svg';
 import austbrokersUrl from '../OperationalField/logos/austbrokers-cyberpro.svg';
 import wholesaleInvestorUrl from '../OperationalField/logos/wholesale-investor.svg';
 import eoSydneyUrl from '../OperationalField/logos/eo-sydney.svg';
+import austradeUrl from '../OperationalField/logos/austrade.svg';
+import rimonUrl from '../OperationalField/logos/rimon.svg';
+import prescientSecurityUrl from '../OperationalField/logos/prescient-security.svg';
+import arcticWolfUrl from '../OperationalField/logos/arctic-wolf.svg';
 
 const HIVE_SCORES = {
   identity:   85,
@@ -63,6 +67,10 @@ const DISCOVERY_VENDORS = [
   { logoUrl: austbrokersUrl,       logoH: 16, alt: 'AustBrokers',       value: 'Cyber cover enterprise procurement requires', sub: 'AU specialist — fast-track quote',   chatQ: 'What cyber insurance do I need before enterprise procurement will sign off, and how fast can I get it?' },
   { logoUrl: wholesaleInvestorUrl, logoH: 14, alt: 'Wholesale Investor', value: '10,000+ AU accredited investors',              sub: 'When your posture is ready to raise', chatQ: 'How do I connect with AU accredited investors through Wholesale Investor, and what do I need to have in place first?' },
   { logoUrl: eoSydneyUrl,          logoH: 16, alt: 'EO Sydney',          value: 'Peer network that opens doors — globally',      sub: 'Entrepreneurs\' Organisation Sydney',  chatQ: 'What does EO Sydney offer founders and how do I get involved?' },
+  { logoUrl: austradeUrl,          logoH: 16, alt: 'Austrade',           value: 'Government grants to take your product global',  sub: 'AU Trade & Investment Commission',    chatQ: 'What Austrade programs are available for AU tech founders looking to export?' },
+  { logoUrl: rimonUrl,             logoH: 22, alt: 'Rimon',              value: 'Startup legal without the big-firm overhead',    sub: 'Corporate, IP & investment law',      chatQ: 'How can Rimon Advisory help me with startup legal — term sheets, IP, cap table?' },
+  { logoUrl: prescientSecurityUrl, logoH: 22, alt: 'Prescient Security', value: 'Independent audit that unlocks enterprise trust',  sub: 'SOC 2, ISO 27001, pen testing',       chatQ: 'When do I need an independent security audit and what does Prescient Security do?' },
+  { logoUrl: arcticWolfUrl,        logoH: 22, alt: 'Arctic Wolf',        value: '24/7 security monitoring — without a SOC team',  sub: 'Managed detection & response',        chatQ: 'What does Arctic Wolf provide and when does a scaling startup need managed security?' },
 ];
 
 function DomainRow({ id, label, userScore, tk }) {
@@ -143,6 +151,22 @@ const BOOKING_WHY = {
   'EO Sydney': {
     headline: 'The room where AU founders actually talk to each other.',
     body: 'EO Sydney is peer learning at the founder level — no pitching, no posturing. If you\'re scaling and want access to the network, we can make the introduction.',
+  },
+  'Austrade': {
+    headline: 'The Australian government will fund your expansion — most founders never ask.',
+    body: 'Austrade has grant programs, trade missions, and market entry support for AU tech companies going global. We identify what you qualify for and help you navigate the application.',
+  },
+  'Rimon': {
+    headline: 'Startup legal done by people who\'ve actually sat at the cap table.',
+    body: 'Rimon Advisory handles the legal work that matters at your stage — term sheets, IP protection, employment agreements, shareholder structure. No partner padding, no unnecessary hours.',
+  },
+  'Prescient Security': {
+    headline: 'An independent audit is the evidence layer investors and buyers actually trust.',
+    body: 'Self-reported compliance isn\'t enough anymore. Prescient Security provides the third-party audit — SOC 2, ISO 27001, penetration testing — that converts your claims into verified evidence.',
+  },
+  'Arctic Wolf': {
+    headline: 'Enterprise buyers check whether you have security monitoring before they sign.',
+    body: 'Arctic Wolf gives you a 24/7 security operations centre without the headcount. It\'s the signal that tells enterprise procurement you take security seriously — and it shows up in due diligence.',
   },
 };
 
