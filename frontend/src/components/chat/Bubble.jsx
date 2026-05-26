@@ -1,6 +1,17 @@
 import { useState } from 'react';
 import { tokens, PERSONA, personaColor } from '../../tokens.js';
 
+const MODEL_PROVIDER = {
+  'claude-sonnet-4-6': { label: 'Bedrock', color: '#c07a00' },
+  'claude-opus-4-7':   { label: 'Bedrock', color: '#c07a00' },
+  'claude-haiku-4-5':  { label: 'Bedrock', color: '#c07a00' },
+  'llama-nemotron':               { label: 'NVIDIA',  color: '#527a00' },
+  'nvidia/nemotron-ultra-253b':   { label: 'NVIDIA',  color: '#527a00' },
+  'gemini-flash':      { label: 'Google',  color: '#1a56c2' },
+  'perplexity-sonar':  { label: 'Live',    color: '#7c3aed' },
+  'gpt-4o':            { label: 'Foundry', color: '#0063a8' },
+};
+
 const INLINE_PERSONAS = [
   { pattern: /\bSophia\b/g,   persona: 'sofia'    },
   { pattern: /\bLeonardo\b/g, persona: 'leonardo' },
@@ -175,22 +186,40 @@ export function Bubble({ msg, t, isLatest, onPersonaRef }) {
     </div>
   );
 
+  const provider = MODEL_PROVIDER[msg.model];
+
   const crumbEl = msg.model && (
-    <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-      gap: 8, marginTop: 8, opacity: 0.45,
-      fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
-      fontSize: 9, letterSpacing: '0.1em', color: tk.inkSoft,
-    }}>
-      <span>{msg.model}</span>
-      <span style={{ opacity: 0.5 }}>·</span>
-      <span>{msg.tok?.toLocaleString()} tok</span>
-      {msg.ms && (
-        <>
-          <span style={{ opacity: 0.5 }}>·</span>
-          <span>{(msg.ms / 1000).toFixed(1)}s</span>
-        </>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+      <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: '"IBM Plex Mono", monospace' }}>
+        {msg.model}
+      </span>
+      {provider && (
+        <span style={{
+          fontSize: 8.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
+          fontFamily: '"IBM Plex Mono", monospace',
+          padding: '1px 6px', borderRadius: 4,
+          color: provider.color,
+          background: `${provider.color}18`,
+          border: `1px solid ${provider.color}30`,
+        }}>
+          {provider.label}
+        </span>
       )}
+      {msg.tok && <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: '"IBM Plex Mono", monospace' }}>{msg.tok?.toLocaleString()} tok</span>}
+      {msg.ms && <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: '"IBM Plex Mono", monospace' }}>{(msg.ms / 1000).toFixed(1)}s</span>}
+    </div>
+  );
+
+  const sourcesEl = msg.sources?.length > 0 && (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
+      <span style={{ fontSize: 9.5, color: '#c4b8a8', fontFamily: '"IBM Plex Mono", monospace' }}>from</span>
+      {msg.sources.map(s => (
+        <span key={s} style={{
+          fontSize: 9, fontFamily: '"IBM Plex Mono", monospace',
+          padding: '2px 6px', borderRadius: 4,
+          background: '#f4f0e8', border: '1px solid #ddd6c8', color: '#7c6f5a',
+        }}>{s}</span>
+      ))}
     </div>
   );
 
@@ -219,6 +248,7 @@ export function Bubble({ msg, t, isLatest, onPersonaRef }) {
         </div>
         {sourceEl}
         {crumbEl}
+        {sourcesEl}
       </div>
     );
   }
@@ -238,6 +268,7 @@ export function Bubble({ msg, t, isLatest, onPersonaRef }) {
         {body}
         {sourceEl}
         {crumbEl}
+        {sourcesEl}
       </div>
     );
   }
@@ -248,6 +279,7 @@ export function Bubble({ msg, t, isLatest, onPersonaRef }) {
       {body}
       {sourceEl}
       {crumbEl}
+      {sourcesEl}
     </div>
   );
 }

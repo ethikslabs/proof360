@@ -53,11 +53,14 @@ const LIVE_FEED = [
 function buildOpening(feed) {
   return [
     { id: 'th-0', persona: 'sofia',    model: 'claude-sonnet-4-6',         tok: 188, ms: 920,
+      sources: ['CORPUS', 'proof360 signals'],
       content: `Just saw this — "${feed.headline}." ${feed.angle}`,
       feedUrl: feed.url, feedSource: feed.source },
     { id: 'th-1', persona: 'leonardo', model: 'nvidia/nemotron-ultra-253b', tok: 162, ms: 1340,
+      sources: ['CORPUS', 'proof360 signals'],
       content: "Still reactive, almost universally. Founders know the story they want to tell — but the evidence layer underneath it isn't there. Buyers are forming impressions before the first meeting. The posture is the pitch before the pitch starts." },
     { id: 'th-2', persona: 'edison',   model: 'claude-sonnet-4-6',         tok: 203, ms: 870, isHandoff: true,
+      sources: ['CORPUS', 'proof360 signals'],
       content: "And it shows up in the data room every time. SSL misconfigurations, no access control evidence, breach exposure that's been public for months. All fixable. All avoidable.\n\nYou're here for a reason. What are you trying to solve?" },
   ];
 }
@@ -65,8 +68,10 @@ function buildOpening(feed) {
 // Ambient exchange — already in progress when the user arrives
 const AMBIENT_EXCHANGE = [
   { id: 'amb-0', persona: 'leonardo', model: 'nvidia/nemotron-ultra-253b', tok: 61, ms: 380,
+    sources: ['CORPUS', 'proof360 signals'],
     content: "Shadow DD window is narrowing. Buyers form impressions before page one of any deck." },
   { id: 'amb-1', persona: 'edison',   model: 'claude-sonnet-4-6',          tok: 49, ms: 290,
+    sources: ['CORPUS', 'proof360 signals'],
     content: "Public signals confirm it. Most don't know what's visible until they're already in the room." },
 ];
 
@@ -82,15 +87,19 @@ const DEMO_CO = {
 
 const BROWSE_OPENING = [
   { id: 'br-0', persona: 'sofia',    model: 'claude-sonnet-4-6',           tok: 214, ms: 840,
+    sources: ['CORPUS', 'proof360 signals'],
     content: `Meet ${DEMO_CO.name} — a ${DEMO_CO.type}. ${DEMO_CO.story} The founders know everything about honey. They know nothing about what investors and enterprise buyers need to see before they say yes. Sound like anyone?` },
   { id: 'br-1', persona: 'leonardo', model: 'nvidia/nemotron-ultra-253b',   tok: 178, ms: 1120,
+    sources: ['CORPUS', 'proof360 signals'],
     content: "This is the most common moment we see. Real product, real customers — but the language of investors and procurement is completely foreign. The question isn't whether they're ready. It's whether they can show it." },
   { id: 'br-2', persona: 'edison',   model: 'claude-sonnet-4-6',           tok: 92,  ms: 610, isHandoff: true,
+    sources: ['CORPUS', 'proof360 signals'],
     content: `I'd start with what's publicly visible. Want to run ${DEMO_CO.name} through, or try your own company?` },
 ];
 
 const QUESTION_OPENING = [
   { id: 'q-0', persona: 'sofia', model: 'claude-sonnet-4-6', tok: 44, ms: 390, isHandoff: true,
+    sources: ['CORPUS', 'proof360 signals'],
     content: "Good — just ask. We'll work from there." },
 ];
 
@@ -1067,7 +1076,7 @@ export default function Chat() {
       // ── Real API path: session-keyed chat with intent classification ──
       const msgId = `ai-${Date.now()}`;
       setMessages(prev => [...prev, {
-        id: msgId, role: 'assistant', persona: 'sofia', model: '', content: '',
+        id: msgId, role: 'assistant', persona: 'sofia', model: '', content: '', sources: [],
       }]);
 
       try {
@@ -1159,6 +1168,7 @@ export default function Chat() {
       // Sophia explains the journey first — consent before demo starts
       const setupMsg = {
         id: 'br-setup', persona: 'sofia', model: 'claude-sonnet-4-6', tok: 194, ms: 890,
+        sources: ['CORPUS', 'proof360 signals'],
         content: "Here's what we'll do. We're going to follow a real company — Hive & Co — from two founders selling Manuka honey at King's Cross market on a Saturday morning, through their first Sainsbury's supply contract, into a blockchain provenance play, and finally a serious capital raise. At each moment we'll show you exactly what investors and enterprise buyers see — the gaps, the signals, the language. Four stages. Real gaps. You can jump between them. Want to see how the story unfolds?",
       };
       setMessages(prev => [...prev, { ...setupMsg, content: '' }]);
@@ -1300,6 +1310,7 @@ export default function Chat() {
               role: 'assistant',
               model: 'claude-sonnet-4-6',
               tok: 0, ms: 0,
+              sources: ['CORPUS', 'proof360 signals'],
             }]);
           }}
           hiveStage={hiveStage}
@@ -1367,6 +1378,7 @@ export default function Chat() {
                     const ms  = 300 + Math.floor(Math.random() * 200);
                     setMessages(prev => [...prev, {
                       id: `inject-${Date.now()}`, persona: 'edison', model: 'claude-sonnet-4-6', role: 'assistant', tok, ms,
+                      sources: ['CORPUS', 'proof360 signals'],
                       content: `Got it — adding ${label.toLowerCase()} to the analysis context.`,
                     }]);
                   }}
@@ -1587,6 +1599,7 @@ export default function Chat() {
                     model: 'claude-sonnet-4-6',
                     role: 'assistant',
                     tok, ms,
+                    sources: ['CORPUS', 'proof360 signals'],
                     content: `Got it — adding ${label.toLowerCase()} to the analysis context.`,
                   }]);
                 }}
@@ -1627,6 +1640,7 @@ export default function Chat() {
                   model: 'claude-sonnet-4-6',
                   tok: 48 + Math.floor(Math.random() * 20),
                   ms: 310 + Math.floor(Math.random() * 200),
+                  sources: ['CORPUS', 'live-web'],
                   content: msgFn(domain),
                 };
                 setMessages(prev => [...prev, senseMsg]);
