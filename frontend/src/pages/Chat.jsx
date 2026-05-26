@@ -2252,16 +2252,18 @@ export default function Chat() {
 
         {/* Company profile panel — discovery on landing, profile after first message */}
         {!previewOpen && (
-          <CompanyProfile
-            profile={companyProfile}
-            isBuilding={isProcessing}
-            hasMessages={hasMessages}
-            tk={tk}
-            t={t}
-            onAsk={q => setInputValue(q)}
-            focusedProgram={focusedProgram}
-            onVendorSelect={id => setActiveSpace(id)}
-          />
+          <div style={{ position: 'relative', zIndex: 25, flexShrink: 0, display: 'flex' }}>
+            <CompanyProfile
+              profile={companyProfile}
+              isBuilding={isProcessing}
+              hasMessages={hasMessages}
+              tk={tk}
+              t={t}
+              onAsk={q => setInputValue(q)}
+              focusedProgram={focusedProgram}
+              onVendorSelect={id => { setActiveSpace(id); setDrawerCollapsed(false); }}
+            />
+          </div>
         )}
 
         {/* Browser panel */}

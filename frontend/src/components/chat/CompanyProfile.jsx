@@ -174,8 +174,8 @@ function DiscoveryView({ tk, onVendorSelect }) {
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
               width: '100%', padding: '13px 16px',
-              borderBottom: isLast ? 'none' : `1px solid ${tk.hairline}`,
               background: 'none', border: 'none', cursor: 'pointer',
+              borderBottom: isLast ? 'none' : `1px solid ${tk.hairline}`,
             }}
           >
             <img src={v.logoUrl} alt={v.alt} style={{ height: v.logoH, objectFit: 'contain', objectPosition: 'left', maxWidth: 110, flexShrink: 0 }} />
