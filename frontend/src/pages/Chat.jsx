@@ -875,6 +875,9 @@ export default function Chat() {
   // setInferenceError wired for post-MVP: call when inference polling times out or errors
   const [inferenceError,  setInferenceError]  = useState(false);
   const [analysisProfile, setAnalysisProfile] = useState('investor');
+  const [heroPersona,     setHeroPersona]     = useState(null);
+  const [heroPersonaHover,setHeroPersonaHover]= useState(null);
+  const [activeModes,     setActiveModes]     = useState([]);
   const [logoCard,        setLogoCard]        = useState(null);
   const [activeSpace,     setActiveSpace]     = useState('chat');
   const [drawerCollapsed, setDrawerCollapsed] = useState(false);
@@ -1080,13 +1083,20 @@ export default function Chat() {
       }]);
 
       try {
-        const personaOverride = PROFILE_PERSONA[analysisProfile] ?? undefined;
+        const personaOverride = heroPersona ?? PROFILE_PERSONA[analysisProfile] ?? undefined;
+        const modeSnapshot = [...activeModes];
+        const effectiveModel = modeSnapshot.includes('web-search') ? 'perplexity-sonar'
+          : modeSnapshot.includes('deep-research') ? 'claude-opus-4-7'
+          : selectedModel;
+        setHeroPersona(null); setHeroPersonaHover(null); setActiveModes([]);
         const res = await fetch(`/api/v1/session/${sessionId}/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             message: text,
             ...(personaOverride ? { persona_override: personaOverride } : {}),
+            ...(effectiveModel !== selectedModel ? { model_override: effectiveModel } : {}),
+            ...(modeSnapshot.includes('deep-research') ? { deep_research: true } : {}),
           }),
         });
 
@@ -1351,6 +1361,56 @@ export default function Chat() {
                     fontFamily: '"Instrument Serif", Georgia, serif',
                     fontStyle: 'italic', fontSize: 14, color: tk.inkSoft,
                   }}>Before the pitch. Before the meeting. Before you know they&apos;re looking.</div>
+                  <div style={{
+                    fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                    fontSize: 14, color: tk.inkSoft,
+                    marginTop: 10, letterSpacing: '0.01em',
+                  }}>Three advisors. Different lenses. Hive&amp;Co is a reference founder — funded, attested. Map your own against it.</div>
+                  {!hasMessages && (
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 18 }}>
+                      {[
+                        { id: 'sofia',    label: 'Sophia',   color: '#a8651e', note: 'Narrative & trust · the human story behind the numbers' },
+                        { id: 'edison',   label: 'Edison',   color: '#176577', note: 'Technical & execution · what to fix and in what order' },
+                        { id: 'leonardo', label: 'Leonardo', color: '#6b4ea8', note: 'Strategy & market · fundraising and deal consequences' },
+                      ].map(p => {
+                        const active = heroPersona === p.id;
+                        return (
+                          <div key={p.id} style={{ position: 'relative' }}>
+                            <button
+                              type="button"
+                              onClick={() => setHeroPersona(active ? null : p.id)}
+                              onMouseEnter={() => setHeroPersonaHover(p.id)}
+                              onMouseLeave={() => setHeroPersonaHover(null)}
+                              style={{
+                                display: 'flex', alignItems: 'center', gap: 6,
+                                padding: '5px 13px', borderRadius: 20,
+                                border: `1.5px solid ${p.color}`,
+                                background: active ? `${p.color}18` : 'transparent',
+                                cursor: 'pointer',
+                                fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                                fontSize: 12, fontWeight: 600, color: p.color,
+                                transition: 'background 0.15s',
+                              }}
+                            >
+                              <span style={{ width: 7, height: 7, borderRadius: '50%', background: p.color, flexShrink: 0, display: 'inline-block' }} />
+                              {p.label}
+                            </button>
+                            {heroPersonaHover === p.id && (
+                              <div style={{
+                                position: 'absolute', bottom: 'calc(100% + 7px)', left: '50%',
+                                transform: 'translateX(-50%)',
+                                background: '#1c1917', color: '#f5f0eb',
+                                fontSize: 11, padding: '5px 10px', borderRadius: 6,
+                                whiteSpace: 'nowrap', pointerEvents: 'none',
+                                fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                                zIndex: 10,
+                              }}>{p.note}</div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
                 {/* Sophia's intro + any AI messages before user speaks */}
                 {hasMessages && (
@@ -1389,6 +1449,8 @@ export default function Chat() {
                   hideChips
                   model={selectedModel}
                   onModelChange={setSelectedModel}
+                  activeModes={activeModes}
+                  onToggleMode={id => setActiveModes(prev => prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id])}
                 />
                 {/* Mode tiles — replace intent chips */}
                 {(phase === 'triage' || (phase === 'active' && !hasMessages)) && (
@@ -1487,6 +1549,56 @@ export default function Chat() {
                     fontFamily: '"Instrument Serif", Georgia, serif',
                     fontStyle: 'italic', fontSize: 14, color: tk.inkSoft,
                   }}>Before the pitch. Before the meeting. Before you know they&apos;re looking.</div>
+                  <div style={{
+                    fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                    fontSize: 14, color: tk.inkSoft,
+                    marginTop: 10, letterSpacing: '0.01em',
+                  }}>Three advisors. Different lenses. Hive&amp;Co is a reference founder — funded, attested. Map your own against it.</div>
+                  {!hasMessages && (
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 18 }}>
+                      {[
+                        { id: 'sofia',    label: 'Sophia',   color: '#a8651e', note: 'Narrative & trust · the human story behind the numbers' },
+                        { id: 'edison',   label: 'Edison',   color: '#176577', note: 'Technical & execution · what to fix and in what order' },
+                        { id: 'leonardo', label: 'Leonardo', color: '#6b4ea8', note: 'Strategy & market · fundraising and deal consequences' },
+                      ].map(p => {
+                        const active = heroPersona === p.id;
+                        return (
+                          <div key={p.id} style={{ position: 'relative' }}>
+                            <button
+                              type="button"
+                              onClick={() => setHeroPersona(active ? null : p.id)}
+                              onMouseEnter={() => setHeroPersonaHover(p.id)}
+                              onMouseLeave={() => setHeroPersonaHover(null)}
+                              style={{
+                                display: 'flex', alignItems: 'center', gap: 6,
+                                padding: '5px 13px', borderRadius: 20,
+                                border: `1.5px solid ${p.color}`,
+                                background: active ? `${p.color}18` : 'transparent',
+                                cursor: 'pointer',
+                                fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                                fontSize: 12, fontWeight: 600, color: p.color,
+                                transition: 'background 0.15s',
+                              }}
+                            >
+                              <span style={{ width: 7, height: 7, borderRadius: '50%', background: p.color, flexShrink: 0, display: 'inline-block' }} />
+                              {p.label}
+                            </button>
+                            {heroPersonaHover === p.id && (
+                              <div style={{
+                                position: 'absolute', bottom: 'calc(100% + 7px)', left: '50%',
+                                transform: 'translateX(-50%)',
+                                background: '#1c1917', color: '#f5f0eb',
+                                fontSize: 11, padding: '5px 10px', borderRadius: 6,
+                                whiteSpace: 'nowrap', pointerEvents: 'none',
+                                fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                                zIndex: 10,
+                              }}>{p.note}</div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1609,6 +1721,8 @@ export default function Chat() {
                 onModeChange={setAnalysisProfile}
                 model={selectedModel}
                 onModelChange={setSelectedModel}
+                activeModes={activeModes}
+                onToggleMode={id => setActiveModes(prev => prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id])}
               />
             </div>
           </div>
