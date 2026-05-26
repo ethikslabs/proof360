@@ -877,7 +877,7 @@ export default function Chat() {
 
   const hasUserMsg  = messages.some(m => m.role === 'user');
   const hasMessages = messages.length > 0;
-  const isHeroState = !hasMessages && phase === 'active';
+  const isHeroState = !hasUserMsg && phase !== 'journey-setup';
 
   const userMessageCount = messages.filter(m => m.role === 'user').length;
   const trustPhase = useTrustPhase({ phase, inputReady, userMessageCount, companyData });
@@ -1343,21 +1343,38 @@ export default function Chat() {
           flexDirection: 'column',
         }}>
           {isHeroState ? (
-            /* ── Hero / empty state — input centred like Claude.ai ── */
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ width: '100%', maxWidth: 620, padding: '0 36px 48px' }}>
-                <div style={{ textAlign: 'center', marginBottom: 36 }}>
+            /* ── Hero / centered state ── */
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', minHeight: 0 }}>
+              <div style={{ width: '100%', maxWidth: 620, padding: '0 36px 48px', margin: 'auto', boxSizing: 'border-box' }}>
+                <div style={{ textAlign: 'center', marginBottom: hasMessages ? 24 : 36 }}>
                   <div style={{
                     fontFamily: '"Instrument Serif", Georgia, serif',
-                    fontSize: 40, letterSpacing: '-0.02em', color: tk.ink, marginBottom: 10,
+                    fontSize: hasMessages ? 'clamp(20px, 2.6vw, 30px)' : 'clamp(26px, 3.6vw, 42px)',
+                    letterSpacing: '-0.022em', color: tk.ink, lineHeight: 1.18, marginBottom: 10,
                   }}>
-                    proof<span style={{ color: tk.plum, fontStyle: 'italic' }}>360</span>
+                    Investors are evaluating you<em style={{ fontStyle: 'italic' }}> right now.</em>
                   </div>
                   <div style={{
-                    fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-                    fontSize: 15, color: tk.inkSoft, fontWeight: 300,
-                  }}>What do you want to explore?</div>
+                    fontFamily: '"Instrument Serif", Georgia, serif',
+                    fontStyle: 'italic', fontSize: 14, color: tk.inkSoft,
+                  }}>Before the pitch. Before the meeting. Before you know they&apos;re looking.</div>
                 </div>
+                {/* Sophia's intro + any AI messages before user speaks */}
+                {hasMessages && (
+                  <div style={{ marginBottom: 20 }}>
+                    {messages.map((m, i) => (
+                      <Bubble
+                        key={m.id} msg={m} t={t}
+                        isLatest={i === messages.length - 1 && m.role !== 'user'}
+                        onPersonaRef={name => {
+                          setInputValue(v => (v.trim() ? v.trimEnd() + ' ' : '') + '@' + name + ' ');
+                          setTimeout(() => inputRef.current?.focus(), 0);
+                        }}
+                      />
+                    ))}
+                    {thinkingSteps.length > 0 && <ThinkingStream steps={thinkingSteps} visible t={t} />}
+                  </div>
+                )}
                 <ChatInput
                   ref={inputRef}
                   value={inputValue}
@@ -1377,26 +1394,33 @@ export default function Chat() {
                   onModeChange={setAnalysisProfile}
                   hideChips
                 />
-                <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap', justifyContent: 'center' }}>
-                  {[
-                    { id: 'demo',      label: 'Show me how it works', action: () => selectIntent('browse') },
-                    { id: 'microsoft', label: 'Microsoft Programs',   action: () => setActiveSpace('microsoft') },
-                    { id: 'investors', label: 'Investor readiness',   action: () => submit('What does investor readiness look like for a seed-stage founder?') },
-                    { id: 'question',  label: 'I have a question',    action: () => inputRef.current?.focus() },
-                  ].map(chip => (
-                    <button key={chip.id} type="button" onClick={chip.action}
-                      style={{
-                        padding: '8px 16px', borderRadius: 20,
-                        border: `1px solid ${tk.hairline}`, background: '#ffffff',
-                        color: tk.inkSoft, fontSize: 13,
-                        fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-                        cursor: 'pointer', transition: 'border-color 0.15s, color 0.15s',
-                      }}
-                      onMouseEnter={e => { e.currentTarget.style.borderColor = '#9ca3af'; e.currentTarget.style.color = tk.ink; }}
-                      onMouseLeave={e => { e.currentTarget.style.borderColor = tk.hairline; e.currentTarget.style.color = tk.inkSoft; }}
-                    >{chip.label}</button>
-                  ))}
-                </div>
+                {/* Action chips — triage or demo depending on path */}
+                {(phase === 'triage' || (phase === 'active' && !hasMessages)) && (
+                  <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap', justifyContent: 'center' }}>
+                    {(phase === 'triage' ? [
+                      { id: 'browse',   label: 'Show me how it works',    action: () => selectIntent('browse') },
+                      { id: 'raise',    label: 'I need to raise or close', action: () => selectIntent('raise') },
+                      { id: 'question', label: 'I just have a question',   action: () => selectIntent('question') },
+                    ] : [
+                      { id: 'demo',      label: 'Show me how it works', action: () => selectIntent('browse') },
+                      { id: 'microsoft', label: 'Microsoft Programs',   action: () => setActiveSpace('microsoft') },
+                      { id: 'investors', label: 'Investor readiness',   action: () => submit('What does investor readiness look like for a seed-stage founder?') },
+                      { id: 'question',  label: 'I have a question',    action: () => inputRef.current?.focus() },
+                    ]).map(chip => (
+                      <button key={chip.id} type="button" onClick={chip.action}
+                        style={{
+                          padding: '8px 16px', borderRadius: 20,
+                          border: `1px solid ${tk.hairline}`, background: '#ffffff',
+                          color: tk.inkSoft, fontSize: 13,
+                          fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                          cursor: 'pointer', transition: 'border-color 0.15s, color 0.15s',
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.borderColor = '#9ca3af'; e.currentTarget.style.color = tk.ink; }}
+                        onMouseLeave={e => { e.currentTarget.style.borderColor = tk.hairline; e.currentTarget.style.color = tk.inkSoft; }}
+                      >{chip.label}</button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           ) : (
@@ -1550,7 +1574,6 @@ export default function Chat() {
                   />
                 );
               })}
-              {phase === 'triage' && <TriageCards onSelect={selectIntent} tk={tk} />}
               {phase === 'journey-setup' && <JourneyConsentCards onSelect={selectJourney} stages={DEMO_STAGES} tk={tk} />}
               {thinkingSteps.length > 0 && <ThinkingStream steps={thinkingSteps} visible t={t} />}
 
