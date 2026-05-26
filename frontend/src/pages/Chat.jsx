@@ -12,6 +12,7 @@ import { ProvenanceAccordion } from '../components/chat/ProvenanceAccordion.jsx'
 import { DrawerStats }         from '../components/chat/DrawerStats.jsx';
 import { EscalationCTA }       from '../components/chat/EscalationCTA.jsx';
 import { ChatInput }           from '../components/chat/ChatInput.jsx';
+import { ModeTiles }          from '../components/chat/ModeTiles.jsx';
 import { useTrustPhase }       from '../hooks/useTrustPhase.js';
 import { deriveGraphNodes }    from '../utils/deriveGraphNodes.js';
 import { getPersonaResponses, getPersonaResponse } from '../data/mock/personas.js';
@@ -1374,31 +1375,15 @@ export default function Chat() {
                   onModeChange={setAnalysisProfile}
                   hideChips
                 />
-                {/* Action chips — triage or demo depending on path */}
+                {/* Mode tiles — replace intent chips */}
                 {(phase === 'triage' || (phase === 'active' && !hasMessages)) && (
-                  <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap', justifyContent: 'center' }}>
-                    {(phase === 'triage' ? [
-                      { id: 'browse',   label: 'Show me how it works',    action: () => selectIntent('browse') },
-                      { id: 'raise',    label: 'I need to raise or close', action: () => selectIntent('raise') },
-                      { id: 'question', label: 'I just have a question',   action: () => selectIntent('question') },
-                    ] : [
-                      { id: 'demo',      label: 'Show me how it works', action: () => selectIntent('browse') },
-                      { id: 'microsoft', label: 'Microsoft Programs',   action: () => setActiveSpace('microsoft') },
-                      { id: 'investors', label: 'Investor readiness',   action: () => submit('What does investor readiness look like for a seed-stage founder?') },
-                      { id: 'question',  label: 'I have a question',    action: () => inputRef.current?.focus() },
-                    ]).map(chip => (
-                      <button key={chip.id} type="button" onClick={chip.action}
-                        style={{
-                          padding: '8px 16px', borderRadius: 20,
-                          border: `1px solid ${tk.hairline}`, background: '#ffffff',
-                          color: tk.inkSoft, fontSize: 13,
-                          fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-                          cursor: 'pointer', transition: 'border-color 0.15s, color 0.15s',
-                        }}
-                        onMouseEnter={e => { e.currentTarget.style.borderColor = '#9ca3af'; e.currentTarget.style.color = tk.ink; }}
-                        onMouseLeave={e => { e.currentTarget.style.borderColor = tk.hairline; e.currentTarget.style.color = tk.inkSoft; }}
-                      >{chip.label}</button>
-                    ))}
+                  <div style={{ marginTop: 14 }}>
+                    <ModeTiles
+                      t={t}
+                      onSelect={question => {
+                        submit(question);
+                      }}
+                    />
                   </div>
                 )}
               </div>
