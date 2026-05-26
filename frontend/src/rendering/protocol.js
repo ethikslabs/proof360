@@ -15,7 +15,7 @@ export function makeObservedSignal(overrides = {}) {
     confidence: 0.8,
     observed_at: now,
     last_verified: now,
-    freshness_weight: 1.0,
+    freshness_weight: 1.0,  // frozen at 1.0 at creation — always call computeFreshnessWeight(signal) for live value
     conversation_turn: 0,
     disprovable_by: '',
     ...overrides,
@@ -67,7 +67,11 @@ export function signalFreshness(signal) {
 export function freshnessLabel(signal) {
   if (signalFreshness(signal) === 'current') {
     const t = new Date(signal.observed_at);
-    return `Current · observed ${t.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })} AEST`;
+    const SYD = { timeZone: 'Australia/Sydney' };
+    const time = t.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', ...SYD });
+    const tzAbbr = new Intl.DateTimeFormat('en-AU', { timeZoneName: 'short', ...SYD })
+      .formatToParts(t).find(p => p.type === 'timeZoneName')?.value ?? 'AEST';
+    return `Current · observed ${time} ${tzAbbr}`;
   }
   const d = new Date(signal.last_verified);
   return `Stale · last verified ${d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}`;
