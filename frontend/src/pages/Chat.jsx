@@ -1505,7 +1505,7 @@ export default function Chat() {
           </div>
 
           <div ref={scrollRef} style={{ flex: 1, minHeight: 0, overflowY: 'auto', position: 'relative', zIndex: 2 }}>
-            <div style={{ maxWidth: 860, margin: '0 auto', padding: '0 24px 20px' }}>
+            <div style={{ maxWidth: 860, margin: '0 auto', padding: '0 24px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', minHeight: '100%' }}>
 
               {/* Headline — visible above messages until user first speaks */}
               {!briefShown && !hasUserMsg && (
