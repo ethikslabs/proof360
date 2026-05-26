@@ -475,6 +475,7 @@ export default function Report() {
   const directionalHints   = derivedState?.directional_hints || report?.headline;
   const summaryLine        = directionalHints?.summary_line || directionalHints?.items?.[0] || '';
   const companyName        = report?.company_name || 'Your company';
+  const microsoftPrograms  = derivedState?.microsoft_programs || report?.microsoft_programs || [];
 
   // Infer company stage from signals; override wins if set in TransparencyPanel
   const stageSignal   = signals.find(s => s.type === 'stage')?.value || '';
@@ -798,6 +799,59 @@ export default function Report() {
                   Share on LinkedIn
                 </a>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Microsoft programs ── */}
+        {microsoftPrograms.length > 0 && (
+          <div style={{ marginTop: 28, animation: 'rise 0.5s ease 0.18s both' }}>
+            <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '2.5px', color: MUTED, fontFamily: 'monospace', marginBottom: 14 }}>
+              MICROSOFT PROGRAMS — MATCHED TO YOUR STAGE
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {microsoftPrograms.map((p) => {
+                const isHigh = (p.confidence_when_matched || p.confidence) === 'high';
+                return (
+                  <div key={p.program_id} style={{
+                    background: CARD, border: `1px solid ${BORDER}`,
+                    borderRadius: 12, padding: '16px 20px',
+                    display: 'grid', gridTemplateColumns: '1fr auto',
+                    alignItems: 'center', gap: 16,
+                  }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 5 }}>
+                        <span style={{ fontSize: 14.5, fontWeight: 600, color: TEXT }}>{p.name}</span>
+                        <span style={{
+                          fontSize: 8.5, fontWeight: 700, letterSpacing: '0.14em',
+                          fontFamily: 'monospace', textTransform: 'uppercase',
+                          color: isHigh ? TEAL : SUBTLE,
+                          background: isHigh ? 'rgba(94,234,212,0.08)' : 'rgba(148,163,184,0.08)',
+                          border: `1px solid ${isHigh ? 'rgba(94,234,212,0.25)' : BORDER}`,
+                          borderRadius: 4, padding: '2px 7px',
+                        }}>{isHigh ? 'High match' : 'Medium match'}</span>
+                      </div>
+                      <p style={{ fontSize: 12.5, color: SUBTLE, lineHeight: 1.5, margin: 0 }}>{p.benefit}</p>
+                    </div>
+                    {p.application_url && (
+                      <a
+                        href={p.application_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          fontSize: 11, fontWeight: 600, fontFamily: 'monospace',
+                          color: TEAL, textDecoration: 'none',
+                          border: `1px solid rgba(94,234,212,0.3)`,
+                          borderRadius: 6, padding: '6px 12px',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        Apply →
+                      </a>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

@@ -539,6 +539,33 @@ export const demoReport = {
 
   layer2_locked: false,
 
+  microsoft_programs: [
+    {
+      program_id: 'isv_success',
+      name: 'Microsoft ISV Success Program',
+      benefit: 'Co-sell support, Azure Marketplace listing, CPPO, technical enablement',
+      application_url: 'https://www.microsoft.com/en-us/isv/program-benefits',
+      category: 'partner_programs',
+      confidence_when_matched: 'high',
+    },
+    {
+      program_id: 'founders_hub',
+      name: 'Microsoft for Startups Founders Hub',
+      benefit: 'Up to $150k Azure credits + GitHub Enterprise + Microsoft 365 + LinkedIn Premium',
+      application_url: 'https://www.microsoft.com/en-us/startups',
+      category: 'startup_credits',
+      confidence_when_matched: 'high',
+    },
+    {
+      program_id: 'ai_cloud_partner',
+      name: 'Microsoft AI Cloud Partner Program',
+      benefit: 'Azure OpenAI credits, AI co-pilot access, solution designations',
+      application_url: 'https://partner.microsoft.com/en-us/partnership/ai-cloud-partner-program',
+      category: 'partner_programs',
+      confidence_when_matched: 'medium',
+    },
+  ],
+
   signals: [
     { key: 'sector',            label: 'Industry',           value: 'saas',              type: 'select' },
     { key: 'stage',             label: 'Stage',              value: 'Series A',           type: 'select' },
