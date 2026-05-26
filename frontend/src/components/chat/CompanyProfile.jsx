@@ -13,6 +13,8 @@ import prescientSecurityUrl from '../OperationalField/logos/prescient-security.s
 import arcticWolfUrl from '../OperationalField/logos/arctic-wolf.svg';
 import cognitiveViewUrl from '../OperationalField/logos/cognitive-view.svg';
 import auAiExpertGroupUrl from '../OperationalField/logos/au-ai-expert-group.svg';
+import stripeUrl from '../OperationalField/logos/stripe.svg';
+import metronomeUrl from '../OperationalField/logos/metronome.svg';
 
 const HIVE_SCORES = {
   identity:   85,
@@ -75,6 +77,8 @@ const DISCOVERY_VENDORS = [
   { logoUrl: arcticWolfUrl,        logoH: 22, alt: 'Arctic Wolf',        value: '24/7 security monitoring — without a SOC team',  sub: 'Managed detection & response',           chatQ: 'What does Arctic Wolf provide and when does a scaling startup need managed security?' },
   { logoUrl: cognitiveViewUrl,     logoH: 18, alt: 'Cognitive View',     value: 'AI governance that satisfies investor DD',        sub: 'AI risk, compliance & monitoring',       chatQ: 'What does Cognitive View do and when do I need AI governance tooling?' },
   { logoUrl: auAiExpertGroupUrl,   logoH: 22, alt: 'AU AI Expert Group', value: 'Stay ahead of AU AI regulation',                  sub: 'Dept. of Industry advisory body',        chatQ: 'What is Australia\'s AI Expert Group and how does its guidance affect my product or fundraising?' },
+  { logoUrl: stripeUrl,            logoH: 20, alt: 'Stripe',             value: 'The payments layer investors expect to see',      sub: 'Stripe Atlas, Capital & Revenue Rec',    chatQ: 'What Stripe products matter most for a scaling startup — Atlas, Capital, or Revenue Recognition?' },
+  { logoUrl: metronomeUrl,         logoH: 18, alt: 'Metronome',          value: 'Usage-based billing without the eng headcount',   sub: 'Acquired by Stripe',                     chatQ: 'What is Metronome and when does a startup need usage-based billing infrastructure?' },
 ];
 
 function DomainRow({ id, label, userScore, tk }) {
@@ -179,6 +183,14 @@ const BOOKING_WHY = {
   'AU AI Expert Group': {
     headline: 'AU AI regulation is being written right now — get ahead of it.',
     body: 'The Australian Government\'s AI Expert Group is shaping the guardrails that will affect every AI product. We track what\'s coming and help you build compliance posture before it\'s mandatory.',
+  },
+  'Stripe': {
+    headline: 'Stripe is infrastructure — investors check whether you\'re on it.',
+    body: 'Beyond payments: Stripe Atlas for clean incorporation, Stripe Capital for non-dilutive funding, Revenue Recognition for investor-ready reporting. We help you get the right products in place at the right stage.',
+  },
+  'Metronome': {
+    headline: 'Usage-based pricing is where SaaS is going — your billing needs to keep up.',
+    body: 'Metronome (now part of Stripe) handles the billing complexity that usage-based models create. If you\'re moving to consumption pricing, this is the infrastructure play before your next round.',
   },
 };
 
