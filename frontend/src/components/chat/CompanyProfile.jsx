@@ -6,6 +6,7 @@ import vantaUrl from '../OperationalField/logos/vanta.svg';
 import ciscoUrl from '../OperationalField/logos/cisco.svg';
 import austbrokersUrl from '../OperationalField/logos/austbrokers-cyberpro.svg';
 import wholesaleInvestorUrl from '../OperationalField/logos/wholesale-investor.svg';
+import eoSydneyUrl from '../OperationalField/logos/eo-sydney.svg';
 
 const HIVE_SCORES = {
   identity:   85,
@@ -61,6 +62,7 @@ const DISCOVERY_VENDORS = [
   { logoUrl: ciscoUrl,      logoH: 14, alt: 'Cisco',       value: 'Security stack enterprise buyers trust',    sub: 'Startup partner access',                     chatQ: 'How does Cisco help startups build a security stack that enterprise buyers trust?' },
   { logoUrl: austbrokersUrl,       logoH: 16, alt: 'AustBrokers',       value: 'Cyber cover enterprise procurement requires', sub: 'AU specialist — fast-track quote',   chatQ: 'What cyber insurance do I need before enterprise procurement will sign off, and how fast can I get it?' },
   { logoUrl: wholesaleInvestorUrl, logoH: 14, alt: 'Wholesale Investor', value: '10,000+ AU accredited investors',              sub: 'When your posture is ready to raise', chatQ: 'How do I connect with AU accredited investors through Wholesale Investor, and what do I need to have in place first?' },
+  { logoUrl: eoSydneyUrl,          logoH: 16, alt: 'EO Sydney',          value: 'Peer network that opens doors — globally',      sub: 'Entrepreneurs\' Organisation Sydney',  chatQ: 'What does EO Sydney offer founders and how do I get involved?' },
 ];
 
 function DomainRow({ id, label, userScore, tk }) {
@@ -137,6 +139,10 @@ const BOOKING_WHY = {
   'Wholesale Investor': {
     headline: 'You don\'t pitch AU investors cold — you get introduced.',
     body: 'Wholesale Investor connects you to 10,000+ accredited investors, but your trust posture needs to be ready first. We help you get there, then make the introduction.',
+  },
+  'EO Sydney': {
+    headline: 'The room where AU founders actually talk to each other.',
+    body: 'EO Sydney is peer learning at the founder level — no pitching, no posturing. If you\'re scaling and want access to the network, we can make the introduction.',
   },
 };
 
