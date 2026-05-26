@@ -29,18 +29,38 @@ const DISCOVERY_VENDORS = [
   {
     logoUrl: awsUrl, logoH: 18, alt: 'AWS',
     value: '$220k+ to build without burning cash',
-    programs: ['Activate (credits)', 'ISV co-sell', 'Marketplace listing', 'Partner Network', 'Gen AI track', 'EdStart', 'Energy', 'Impact Computing', 'Startup pack', 'Direct credits'],
+    applyUrl: 'https://aws.amazon.com/startups/',
+    programs: [
+      { label: 'Activate (credits)',   url: 'https://aws.amazon.com/startups/' },
+      { label: 'ISV co-sell',          url: 'https://aws.amazon.com/partners/programs/isv-accelerate/' },
+      { label: 'Marketplace listing',  url: 'https://aws.amazon.com/marketplace/management/' },
+      { label: 'Partner Network',      url: 'https://aws.amazon.com/partners/' },
+      { label: 'Gen AI track',         url: 'https://aws.amazon.com/startups/generative-ai/' },
+      { label: 'EdStart',              url: 'https://aws.amazon.com/education/edstart/' },
+      { label: 'Energy',               url: 'https://aws.amazon.com/energy/solutions/' },
+      { label: 'Impact Computing',     url: 'https://aws.amazon.com/government-education/nonprofits/' },
+      { label: 'Startup pack',         url: 'https://aws.amazon.com/startups/' },
+      { label: 'Direct credits',       url: 'https://aws.amazon.com/startups/credits/' },
+    ],
   },
   {
     logoUrl: microsoftUrl, logoH: 14, alt: 'Microsoft',
     value: 'Sell into enterprise through Microsoft',
-    programs: ['Startups (M365 free)', 'Azure credits', 'Partner Network', 'ISV co-sell', 'AI Cloud Partner', 'Marketplace listing'],
+    applyUrl: 'https://foundershub.startups.microsoft.com/',
+    programs: [
+      { label: 'Founders Hub (free)',  url: 'https://foundershub.startups.microsoft.com/' },
+      { label: 'Azure credits',        url: 'https://azure.microsoft.com/en-au/free/' },
+      { label: 'Partner Network',      url: 'https://partner.microsoft.com/' },
+      { label: 'ISV co-sell',          url: 'https://partner.microsoft.com/en-us/solutions/build-and-modernize-apps/isv-success' },
+      { label: 'AI Cloud Partner',     url: 'https://partner.microsoft.com/en-us/solutions/azure/' },
+      { label: 'Marketplace listing',  url: 'https://partner.microsoft.com/en-us/solutions/azure/marketplace' },
+    ],
   },
-  { logoUrl: cloudflareUrl, logoH: 16, alt: 'Cloudflare', value: 'Enterprise security posture, zero cost',    sub: 'What DD teams check — free for startups' },
-  { logoUrl: vantaUrl,      logoH: 16, alt: 'Vanta',      value: 'SOC 2 — the cert that unlocks B2B deals',   sub: '90-day automated path to certified' },
-  { logoUrl: ciscoUrl,      logoH: 14, alt: 'Cisco',       value: 'Security stack enterprise buyers trust',    sub: 'Startup partner access' },
-  { logoUrl: austbrokersUrl,       logoH: 16, alt: 'AustBrokers',       value: 'Cyber cover enterprise procurement requires', sub: 'AU specialist — fast-track quote' },
-  { logoUrl: wholesaleInvestorUrl, logoH: 14, alt: 'Wholesale Investor', value: '10,000+ AU accredited investors',              sub: 'When your posture is ready to raise' },
+  { logoUrl: cloudflareUrl, logoH: 16, alt: 'Cloudflare', value: 'Enterprise security posture, zero cost',    sub: 'What DD teams check — free for startups',    applyUrl: 'https://www.cloudflare.com/forstartups/' },
+  { logoUrl: vantaUrl,      logoH: 16, alt: 'Vanta',      value: 'SOC 2 — the cert that unlocks B2B deals',   sub: '90-day automated path to certified',          applyUrl: 'https://www.vanta.com/' },
+  { logoUrl: ciscoUrl,      logoH: 14, alt: 'Cisco',       value: 'Security stack enterprise buyers trust',    sub: 'Startup partner access',                     applyUrl: 'https://developer.cisco.com/startups/' },
+  { logoUrl: austbrokersUrl,       logoH: 16, alt: 'AustBrokers',       value: 'Cyber cover enterprise procurement requires', sub: 'AU specialist — fast-track quote',   applyUrl: 'https://austbrokerscyberpro.com.au/' },
+  { logoUrl: wholesaleInvestorUrl, logoH: 14, alt: 'Wholesale Investor', value: '10,000+ AU accredited investors',              sub: 'When your posture is ready to raise', applyUrl: 'https://wholesaleinvestor.com.au/' },
 ];
 
 function DomainRow({ id, label, userScore, tk }) {
@@ -98,7 +118,7 @@ function DiscoveryView({ tk }) {
         const isOpen = openId === v.alt;
         const isLast = i === DISCOVERY_VENDORS.length - 1;
         const count = v.programs?.length;
-        const expandHeight = count ? 16 + count * 24 + 16 : 58;
+        const expandHeight = count ? 16 + count * 28 + 48 : 90;
 
         return (
           <div key={v.alt} style={{ borderBottom: isLast ? 'none' : `1px solid ${tk.hairline}` }}>
@@ -119,13 +139,9 @@ function DiscoveryView({ tk }) {
                 <span style={{
                   fontFamily: '"IBM Plex Mono", monospace',
                   fontSize: 9, fontWeight: 700,
-                  color: '#a8651e',
-                  background: '#f5e6cc',
-                  border: '1px solid #e8c98a',
-                  borderRadius: 10,
-                  padding: '1px 7px',
-                  letterSpacing: '0.04em',
-                  flexShrink: 0,
+                  color: '#a8651e', background: '#f5e6cc',
+                  border: '1px solid #e8c98a', borderRadius: 10,
+                  padding: '1px 7px', letterSpacing: '0.04em', flexShrink: 0,
                 }}>{count}</span>
               )}
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
@@ -137,30 +153,54 @@ function DiscoveryView({ tk }) {
             <div style={{
               overflow: 'hidden',
               maxHeight: isOpen ? expandHeight : 0,
-              transition: 'max-height 0.25s cubic-bezier(0.32,0.72,0,1)',
+              transition: 'max-height 0.28s cubic-bezier(0.32,0.72,0,1)',
             }}>
               <div style={{ padding: '0 16px 13px' }}>
                 <div style={{
                   fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-                  fontSize: 12, fontWeight: 600, color: tk.ink, marginBottom: count ? 8 : 2,
+                  fontSize: 12, fontWeight: 600, color: tk.ink, marginBottom: count ? 8 : 4,
                 }}>{v.value}</div>
                 {count ? (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 10 }}>
                     {v.programs.map(p => (
-                      <span key={p} style={{
-                        fontFamily: '"IBM Plex Mono", monospace',
-                        fontSize: 8.5, color: '#7c6f5a', letterSpacing: '0.04em',
-                        background: '#f0ebe3', border: `1px solid ${tk.hairline}`,
-                        borderRadius: 4, padding: '2px 6px',
-                      }}>{p}</span>
+                      <a
+                        key={p.label}
+                        href={p.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={e => e.stopPropagation()}
+                        style={{
+                          fontFamily: '"IBM Plex Mono", monospace',
+                          fontSize: 8.5, color: '#5a4e3a', letterSpacing: '0.04em',
+                          background: '#ede5d8', border: `1px solid #cfc4b0`,
+                          borderRadius: 4, padding: '3px 7px',
+                          textDecoration: 'none', cursor: 'pointer',
+                          display: 'inline-block',
+                        }}
+                      >{p.label} ↗</a>
                     ))}
                   </div>
                 ) : (
                   <div style={{
                     fontFamily: '"IBM Plex Mono", monospace',
-                    fontSize: 9, color: tk.inkSoft, letterSpacing: '0.06em',
+                    fontSize: 9, color: tk.inkSoft, letterSpacing: '0.06em', marginBottom: 10,
                   }}>{v.sub}</div>
                 )}
+                <a
+                  href={v.applyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={e => e.stopPropagation()}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                    fontSize: 11, fontWeight: 600,
+                    color: '#fff', background: '#241f31',
+                    borderRadius: 6, padding: '6px 12px',
+                    textDecoration: 'none', cursor: 'pointer',
+                    letterSpacing: '0.01em',
+                  }}
+                >Apply ↗</a>
               </div>
             </div>
           </div>
