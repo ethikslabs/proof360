@@ -15,6 +15,8 @@ import cognitiveViewUrl from '../OperationalField/logos/cognitive-view.svg';
 import auAiExpertGroupUrl from '../OperationalField/logos/au-ai-expert-group.svg';
 import stripeUrl from '../OperationalField/logos/stripe.svg';
 import metronomeUrl from '../OperationalField/logos/metronome.svg';
+import unitypacUrl from '../OperationalField/logos/unitypac.svg';
+import enterpriseSgUrl from '../OperationalField/logos/enterprise-sg.svg';
 
 const HIVE_SCORES = {
   identity:   85,
@@ -78,7 +80,9 @@ const DISCOVERY_VENDORS = [
   { logoUrl: cognitiveViewUrl,     logoH: 18, alt: 'Cognitive View',     value: 'AI governance that satisfies investor DD',        sub: 'AI risk, compliance & monitoring',       chatQ: 'What does Cognitive View do and when do I need AI governance tooling?' },
   { logoUrl: auAiExpertGroupUrl,   logoH: 22, alt: 'AU AI Expert Group', value: 'Stay ahead of AU AI regulation',                  sub: 'Dept. of Industry advisory body',        chatQ: 'What is Australia\'s AI Expert Group and how does its guidance affect my product or fundraising?' },
   { logoUrl: stripeUrl,            logoH: 20, alt: 'Stripe',             value: 'The payments layer investors expect to see',      sub: 'Stripe Atlas, Capital & Revenue Rec',    chatQ: 'What Stripe products matter most for a scaling startup — Atlas, Capital, or Revenue Recognition?' },
-  { logoUrl: metronomeUrl,         logoH: 18, alt: 'Metronome',          value: 'Usage-based billing without the eng headcount',   sub: 'Acquired by Stripe',                     chatQ: 'What is Metronome and when does a startup need usage-based billing infrastructure?' },
+  { logoUrl: metronomeUrl,  logoH: 18, alt: 'Metronome',   value: 'Usage-based billing without the eng headcount',      sub: 'Acquired by Stripe',                     chatQ: 'What is Metronome and when does a startup need usage-based billing infrastructure?' },
+  { logoUrl: unitypacUrl,     logoH: 22, alt: 'UnityPac',     value: 'Singapore entity, audit and tax — done right',          sub: 'SG launch · audit · corporate services',    chatQ: 'What do I need to set up a legal entity in Singapore and how does Unity Assurance PAC help?' },
+  { logoUrl: enterpriseSgUrl, logoH: 22, alt: 'Enterprise SG', value: 'SG government grants to scale internationally',          sub: 'Market access · grants · global expansion', chatQ: 'What Enterprise Singapore programs are available for a company looking to use Singapore as a launchpad?' },
 ];
 
 function DomainRow({ id, label, userScore, tk }) {
@@ -191,6 +195,14 @@ const BOOKING_WHY = {
   'Metronome': {
     headline: 'Usage-based pricing is where SaaS is going — your billing needs to keep up.',
     body: 'Metronome (now part of Stripe) handles the billing complexity that usage-based models create. If you\'re moving to consumption pricing, this is the infrastructure play before your next round.',
+  },
+  'UnityPac': {
+    headline: 'Singapore is the gateway — but you need a clean entity before you walk in.',
+    body: 'Unity Assurance PAC handles SG incorporation, audit, tax, and corporate secretarial — the compliance layer that makes your Singapore presence credible to enterprise buyers and investors in the region.',
+  },
+  'Enterprise SG': {
+    headline: 'The Singapore government will back your expansion — if you know how to ask.',
+    body: 'Enterprise Singapore funds market entry, capability development, and international growth for companies using Singapore as a launchpad. We map which schemes fit your stage and help you apply.',
   },
 };
 
