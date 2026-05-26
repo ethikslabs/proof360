@@ -488,19 +488,73 @@ function AccountMenu({ onClose, onOpenSettings, pos }) {
 }
 
 // ── Account button — bottom of sidebar ───────────────────────────────────────
-export function AccountButton({ collapsed }) {
+export function AccountButton({ collapsed, onSignIn }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState(null);
   const [settingsSection, setSettingsSection] = useState(null);
   const btnRef = useRef(null);
 
-  function handleToggleMenu() {
+  // Read real auth from localStorage
+  let realUser = null;
+  try {
+    const s = localStorage.getItem('founder_auth');
+    if (s) realUser = JSON.parse(s).user;
+  } catch { /* ignore */ }
+
+  function handleClick() {
+    if (!realUser) {
+      onSignIn?.();
+      return;
+    }
     if (!menuOpen && btnRef.current) {
       const r = btnRef.current.getBoundingClientRect();
       setMenuPos({ bottom: window.innerHeight - r.top + 4, left: r.right + 8 });
     }
     setMenuOpen(o => !o);
   }
+
+  if (!realUser) {
+    return (
+      <button
+        onClick={handleClick}
+        style={{
+          display: 'flex', alignItems: 'center',
+          gap: collapsed ? 0 : 8,
+          width: '100%',
+          padding: collapsed ? '12px 0' : '10px 16px',
+          background: 'transparent',
+          border: 'none', cursor: 'pointer', textAlign: 'left',
+          justifyContent: collapsed ? 'center' : 'flex-start',
+          borderTop: '1px solid #f3f4f6',
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
+        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+      >
+        <div style={{
+          width: 28, height: 28, borderRadius: '50%',
+          background: '#e5e7eb', color: '#6b7280',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 14, flexShrink: 0,
+        }}>
+          {Ic.person}
+        </div>
+        {!collapsed && (
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              fontSize: 12, fontWeight: 600, color: '#374151',
+              fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+            }}>Sign in</div>
+            <div style={{ fontSize: 10, color: '#9ca3af', fontFamily: '"IBM Plex Mono", monospace' }}>
+              Cloudflare + Okta
+            </div>
+          </div>
+        )}
+      </button>
+    );
+  }
+
+  const initials = (realUser.name || realUser.email || '?')[0].toUpperCase();
+  const displayName = realUser.name?.split(' ')[0] || realUser.email?.split('@')[0] || 'You';
 
   return (
     <div>
@@ -509,6 +563,7 @@ export function AccountButton({ collapsed }) {
           onClose={() => setMenuOpen(false)}
           onOpenSettings={section => setSettingsSection(section)}
           pos={menuPos}
+          realUser={realUser}
         />
       )}
       {settingsSection !== null && (
@@ -520,7 +575,7 @@ export function AccountButton({ collapsed }) {
 
       <button
         ref={btnRef}
-        onClick={handleToggleMenu}
+        onClick={handleClick}
         style={{
           display: 'flex', alignItems: 'center',
           gap: collapsed ? 0 : 10,
@@ -535,17 +590,15 @@ export function AccountButton({ collapsed }) {
         onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
         onMouseLeave={e => e.currentTarget.style.background = menuOpen ? '#f3f4f6' : 'transparent'}
       >
-        {/* Avatar */}
         <div style={{
           width: 28, height: 28, borderRadius: '50%',
-          background: '#111827', color: '#ffffff',
+          background: '#a8651e', color: '#ffffff',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 10, fontWeight: 700, letterSpacing: '0.05em',
+          fontSize: 11, fontWeight: 700, letterSpacing: '0.05em',
           fontFamily: '"IBM Plex Mono", monospace', flexShrink: 0,
         }}>
-          {DEMO.initials}
+          {initials}
         </div>
-
         {!collapsed && (
           <>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -553,12 +606,10 @@ export function AccountButton({ collapsed }) {
                 fontSize: 12.5, fontWeight: 600, color: '#111827',
                 fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
                 whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-              }}>{DEMO.name}</div>
-              <div style={{
-                fontSize: 10, color: '#9ca3af',
-                fontFamily: '"IBM Plex Mono", monospace',
-                letterSpacing: '0.05em',
-              }}>Free · Log in to save</div>
+              }}>{displayName}</div>
+              <div style={{ fontSize: 10, color: '#9ca3af', fontFamily: '"IBM Plex Mono", monospace' }}>
+                {realUser.email || 'Signed in'}
+              </div>
             </div>
             <span style={{ color: '#9ca3af', flexShrink: 0 }}>{Ic.chevron}</span>
           </>

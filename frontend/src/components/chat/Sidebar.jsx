@@ -163,7 +163,7 @@ function AccordionSection({ title, accent, count, total, open, onToggle, collaps
   );
 }
 
-export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, litTiles, browserTabs = [], onInject, sessionTok, sessionModels, hiveStage: hiveStageFromParent, onHiveStageChange, noLogo, yourCompanyName, t }) {
+export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, litTiles, browserTabs = [], onInject, sessionTok, sessionModels, hiveStage: hiveStageFromParent, onHiveStageChange, noLogo, yourCompanyName, onSignIn, t }) {
   const tk = tokens(t.theme);
   const [demoOpen, setDemoOpen]           = useState(true);
   const [hiveStageInternal, setHiveStageInternal] = useState(1);
@@ -404,7 +404,7 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
       </div>
 
       {/* Account button — login/save + portal access */}
-      <AccountButton collapsed={collapsed} />
+      <AccountButton collapsed={collapsed} onSignIn={onSignIn} />
 
     </aside>
   );

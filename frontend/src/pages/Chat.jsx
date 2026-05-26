@@ -1752,6 +1752,7 @@ export default function Chat() {
           onHiveStageChange={setHiveStage}
           sessionTok={0}
           sessionModels={[]}
+          onSignIn={() => setLoginOpen(true)}
           t={t}
         />
 
