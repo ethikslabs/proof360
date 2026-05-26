@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { tokens } from '../../tokens.js';
 import { SPACE_GLYPHS } from '../../glyphs.jsx';
 import { HIVE_STAGES } from '../../data/mock/hive.js';
+import { AccountButton } from './AccountPanel.jsx';
 
 const SPACES = [
   { id: 'investor',  label: 'Investor Readiness',   glyphKey: 'investor',  token: 'plum'  },
@@ -335,33 +336,9 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
 
       </div>
 
-      {/* Footer */}
-      {!collapsed && (
-        <div style={{
-          padding: '12px 22px 16px',
-          borderTop: `1px solid ${tk.hairline}`,
-        }}>
-          <div style={{
-            fontFamily: '"Instrument Serif", Georgia, serif',
-            fontStyle: 'italic', fontSize: 12.5, lineHeight: 1.5,
-            color: tk.inkSoft, marginBottom: sessionTok ? 8 : 0,
-          }}>
-            The room fills in as it learns about you.
-          </div>
-          {sessionTok > 0 && (
-            <div style={{
-              fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
-              fontSize: 9, letterSpacing: '0.1em', color: tk.inkGhost,
-              opacity: 0.6, lineHeight: 1.6,
-            }}>
-              <div>{sessionTok.toLocaleString()} tok this session</div>
-              {sessionModels?.length > 0 && (
-                <div style={{ marginTop: 2 }}>{sessionModels.join(' · ')}</div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+      {/* Account button — login/save + portal access */}
+      <AccountButton collapsed={collapsed} />
+
     </aside>
   );
 }
