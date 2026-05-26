@@ -1,5 +1,5 @@
 // frontend/src/components/chat/SignalEvidenceDrawer.jsx
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
 import { freshnessLabel, signalFreshness } from '../../rendering/protocol.js';
 
 const SOURCE_LABELS = {
@@ -67,12 +67,12 @@ export function SignalEvidenceDrawer({ signal, onClose, onCorrect, onIgnore, onA
             ['Domain', signal.domain],
             ['Observed', `Turn ${signal.conversation_turn}`],
           ].map(([label, value]) => (
-            <>
-              <span key={`lbl-${label}`} style={{ fontSize: 9.5, fontFamily: '"IBM Plex Mono", monospace', color: '#8c8499', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', alignSelf: 'start', paddingTop: 2 }}>
+            <Fragment key={label}>
+              <span style={{ fontSize: 9.5, fontFamily: '"IBM Plex Mono", monospace', color: '#8c8499', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', alignSelf: 'start', paddingTop: 2 }}>
                 {label}
               </span>
-              <span key={`val-${label}`} style={{ fontSize: 12, color: '#241f31', lineHeight: 1.5 }}>{value}</span>
-            </>
+              <span style={{ fontSize: 12, color: '#241f31', lineHeight: 1.5 }}>{value}</span>
+            </Fragment>
           ))}
         </div>
 
