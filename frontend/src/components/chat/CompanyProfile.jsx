@@ -3,6 +3,7 @@ import awsUrl from '../OperationalField/logos/aws.svg';
 import microsoftUrl from '../OperationalField/logos/microsoft.svg';
 import cloudflareUrl from '../OperationalField/logos/cloudflare.svg';
 import vantaUrl from '../OperationalField/logos/vanta.svg';
+import ciscoUrl from '../OperationalField/logos/cisco.svg';
 import austbrokersUrl from '../OperationalField/logos/austbrokers-cyberpro.svg';
 import wholesaleInvestorUrl from '../OperationalField/logos/wholesale-investor.svg';
 
@@ -24,13 +25,34 @@ const DOMAIN_META = [
   { id: 'team',       label: 'Team & Ops' },
 ];
 
-const DISCOVERY_VENDORS = [
-  { logoUrl: awsUrl,               logoH: 18, alt: 'AWS',                value: '$220k+ available',  sub: '10 programs' },
-  { logoUrl: microsoftUrl,         logoH: 14, alt: 'Microsoft',          value: '$150k unclaimed',   sub: '6 programs' },
-  { logoUrl: vantaUrl,             logoH: 16, alt: 'Vanta',              value: 'SOC 2 fast track',  sub: '90-day path' },
-  { logoUrl: cloudflareUrl,        logoH: 16, alt: 'Cloudflare',         value: 'Edge + Zero Trust', sub: 'Startup free' },
-  { logoUrl: austbrokersUrl,       logoH: 16, alt: 'Insurance',          value: 'Cyber insurance',   sub: 'Fast-track coverage' },
-  { logoUrl: wholesaleInvestorUrl, logoH: 14, alt: 'Wholesale Investor', value: 'Investor access',   sub: 'Accredited network' },
+const VENDOR_GROUPS = [
+  {
+    id: 'cloud', label: 'Cloud & Infra',
+    vendors: [
+      { logoUrl: awsUrl,        logoH: 18, alt: 'AWS',        value: '$220k+ available',  sub: '10 programs' },
+      { logoUrl: microsoftUrl,  logoH: 14, alt: 'Microsoft',  value: '$150k unclaimed',   sub: '6 programs' },
+      { logoUrl: cloudflareUrl, logoH: 16, alt: 'Cloudflare', value: 'Edge + Zero Trust', sub: 'Startup free' },
+    ],
+  },
+  {
+    id: 'security', label: 'Security',
+    vendors: [
+      { logoUrl: vantaUrl,  logoH: 16, alt: 'Vanta', value: 'SOC 2 fast track', sub: '90-day path' },
+      { logoUrl: ciscoUrl,  logoH: 14, alt: 'Cisco',  value: 'MSP program',      sub: 'Partner track' },
+    ],
+  },
+  {
+    id: 'insurance', label: 'Insurance',
+    vendors: [
+      { logoUrl: austbrokersUrl, logoH: 16, alt: 'AustBrokers', value: 'Cyber insurance', sub: 'Fast-track coverage' },
+    ],
+  },
+  {
+    id: 'investors', label: 'Investors',
+    vendors: [
+      { logoUrl: wholesaleInvestorUrl, logoH: 14, alt: 'Wholesale Investor', value: 'Investor access', sub: 'Accredited network' },
+    ],
+  },
 ];
 
 function DomainRow({ id, label, userScore, tk }) {
@@ -80,51 +102,92 @@ function DomainRow({ id, label, userScore, tk }) {
 }
 
 function DiscoveryView({ tk }) {
-  const [openId, setOpenId] = useState(null);
+  const [collapsedGroups, setCollapsedGroups] = useState(new Set());
+  const [openVendorId, setOpenVendorId] = useState(null);
+
+  function toggleGroup(id) {
+    setCollapsedGroups(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
 
   return (
     <div style={{ flex: 1 }}>
-      {DISCOVERY_VENDORS.map((v, i) => {
-        const isOpen = openId === v.alt;
-        const isLast = i === DISCOVERY_VENDORS.length - 1;
+      {VENDOR_GROUPS.map((group, gi) => {
+        const isGroupOpen = !collapsedGroups.has(group.id);
+        const isLastGroup = gi === VENDOR_GROUPS.length - 1;
         return (
-          <div key={v.alt}>
+          <div key={group.id} style={{ borderBottom: isLastGroup ? 'none' : `1px solid ${tk.hairline}` }}>
+            {/* Group header */}
             <button
-              onClick={() => setOpenId(isOpen ? null : v.alt)}
+              onClick={() => toggleGroup(group.id)}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                width: '100%', padding: '13px 16px',
+                width: '100%', padding: '8px 16px',
                 background: 'none', border: 'none', cursor: 'pointer',
-                borderBottom: isOpen || isLast ? 'none' : `1px solid ${tk.hairline}`,
               }}
             >
-              <img
-                src={v.logoUrl}
-                alt={v.alt}
-                style={{ height: v.logoH, objectFit: 'contain', objectPosition: 'left', maxWidth: 110 }}
-              />
+              <span style={{
+                fontFamily: '"IBM Plex Mono", monospace',
+                fontSize: 8.5, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase',
+                color: tk.inkGhost,
+              }}>{group.label}</span>
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
-                style={{ transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.2s', flexShrink: 0, opacity: 0.4 }}>
+                style={{ transform: isGroupOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.2s', flexShrink: 0, opacity: 0.35 }}>
                 <path d="M2 3.5 L5 6.5 L8 3.5" stroke="#8c8499" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
 
+            {/* Group vendors */}
             <div style={{
               overflow: 'hidden',
-              maxHeight: isOpen ? 80 : 0,
+              maxHeight: isGroupOpen ? group.vendors.length * 120 : 0,
               transition: 'max-height 0.25s cubic-bezier(0.32,0.72,0,1)',
-              borderBottom: isOpen && !isLast ? `1px solid ${tk.hairline}` : 'none',
             }}>
-              <div style={{ padding: '0 16px 13px' }}>
-                <div style={{
-                  fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-                  fontSize: 12, fontWeight: 600, color: tk.ink, marginBottom: 2,
-                }}>{v.value}</div>
-                <div style={{
-                  fontFamily: '"IBM Plex Mono", monospace',
-                  fontSize: 9, color: tk.inkSoft, letterSpacing: '0.06em',
-                }}>{v.sub}</div>
-              </div>
+              {group.vendors.map((v, vi) => {
+                const isOpen = openVendorId === v.alt;
+                const isLastVendor = vi === group.vendors.length - 1;
+                return (
+                  <div key={v.alt} style={{ borderTop: `1px solid ${tk.hairline}` }}>
+                    <button
+                      onClick={() => setOpenVendorId(isOpen ? null : v.alt)}
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        width: '100%', padding: '11px 16px',
+                        background: 'none', border: 'none', cursor: 'pointer',
+                      }}
+                    >
+                      <img
+                        src={v.logoUrl}
+                        alt={v.alt}
+                        style={{ height: v.logoH, objectFit: 'contain', objectPosition: 'left', maxWidth: 110 }}
+                      />
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
+                        style={{ transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.2s', flexShrink: 0, opacity: 0.4 }}>
+                        <path d="M2 3.5 L5 6.5 L8 3.5" stroke="#8c8499" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                    <div style={{
+                      overflow: 'hidden',
+                      maxHeight: isOpen ? 70 : 0,
+                      transition: 'max-height 0.22s cubic-bezier(0.32,0.72,0,1)',
+                    }}>
+                      <div style={{ padding: '0 16px 11px' }}>
+                        <div style={{
+                          fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                          fontSize: 12, fontWeight: 600, color: tk.ink, marginBottom: 2,
+                        }}>{v.value}</div>
+                        <div style={{
+                          fontFamily: '"IBM Plex Mono", monospace',
+                          fontSize: 9, color: tk.inkSoft, letterSpacing: '0.06em',
+                        }}>{v.sub}</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         );
