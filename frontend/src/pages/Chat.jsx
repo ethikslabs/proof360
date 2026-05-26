@@ -13,6 +13,7 @@ import { DrawerStats }         from '../components/chat/DrawerStats.jsx';
 import { EscalationCTA }       from '../components/chat/EscalationCTA.jsx';
 import { ChatInput }           from '../components/chat/ChatInput.jsx';
 import { ModeTiles }          from '../components/chat/ModeTiles.jsx';
+import { CompanyProfile }     from '../components/chat/CompanyProfile.jsx';
 import { useTrustPhase }       from '../hooks/useTrustPhase.js';
 import { deriveGraphNodes }    from '../utils/deriveGraphNodes.js';
 import { getPersonaResponses, getPersonaResponse } from '../data/mock/personas.js';
@@ -850,6 +851,51 @@ function StageSelector({ stages, activeId, onSelect, tk }) {
   );
 }
 
+const FOLLOW_UPS = {
+  sofia: [
+    "What do investors actually check before the first call?",
+    "How did Hive&Co build their investor narrative?",
+    "What does a 90-day diligence window look like in practice?",
+  ],
+  edison: [
+    "What kills a technical due diligence most often?",
+    "How do I get SOC 2 without a full-time security hire?",
+    "What does Hive&Co's security posture actually look like?",
+  ],
+  leonardo: [
+    "What are the red flags in a term sheet I should watch for?",
+    "How should I structure my cap table before Series A?",
+    "What do investors read before they open the deck?",
+  ],
+};
+
+function FollowUpChips({ persona, onSelect, tk }) {
+  const [hovered, setHovered] = useState(null);
+  const questions = FOLLOW_UPS[persona] ?? FOLLOW_UPS.sofia;
+  return (
+    <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', margin: '4px 0 20px' }}>
+      {questions.map((q, i) => (
+        <button
+          key={i}
+          type="button"
+          onClick={() => onSelect(q)}
+          onMouseEnter={() => setHovered(i)}
+          onMouseLeave={() => setHovered(null)}
+          style={{
+            padding: '6px 13px', borderRadius: 20,
+            border: `1px solid ${hovered === i ? '#b0956e' : tk.hairline}`,
+            background: hovered === i ? '#faf5ef' : 'transparent',
+            cursor: 'pointer',
+            fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+            fontSize: 12, color: hovered === i ? '#7c5c3a' : tk.inkSoft,
+            transition: 'all 0.14s', whiteSpace: 'nowrap',
+          }}
+        >{q}</button>
+      ))}
+    </div>
+  );
+}
+
 export default function Chat() {
   const t = TWEAK_DEFAULTS;
   const tk = tokens(t.theme);
@@ -878,6 +924,10 @@ export default function Chat() {
   const [heroPersona,     setHeroPersona]     = useState(null);
   const [heroPersonaHover,setHeroPersonaHover]= useState(null);
   const [activeModes,     setActiveModes]     = useState([]);
+  const [companyProfile,  setCompanyProfile]  = useState({
+    name: null, stage: null, industry: null, signals: [],
+    domains: { identity: null, compliance: null, security: null, financial: null, legal: null, team: null },
+  });
   const [logoCard,        setLogoCard]        = useState(null);
   const [activeSpace,     setActiveSpace]     = useState('chat');
   const [drawerCollapsed, setDrawerCollapsed] = useState(false);
@@ -918,6 +968,12 @@ export default function Chat() {
     const t = setTimeout(() => setLogoCard(null), 6000);
     return () => clearTimeout(t);
   }, [logoCard]);
+
+  useEffect(() => {
+    if (companyData?.company_name) {
+      setCompanyProfile(prev => ({ ...prev, name: companyData.company_name }));
+    }
+  }, [companyData]);
 
   // Fetch live stats from CORPUS — fires immediately, resolves before stats card appears (~6s in)
   useEffect(() => {
@@ -986,6 +1042,55 @@ export default function Chat() {
     setCompanyData(null);
   }, [runId, t.returningUser, seedQuery, seedReturning, seedDemo]); // eslint-disable-line react-hooks/exhaustive-deps — t is a module constant, setters are stable
 
+  // Profile inference — keyword matching on user messages
+  function inferProfile(text) {
+    const signals = [];
+    const domains = {};
+    const bump = (key, base, step) =>
+      (prev) => Math.min(HIVE_SCORES[key] - 2, (prev ?? base) + step);
+
+    if (/soc2?|iso 27001|compliance|certif|vanta|drata|hipaa|gdpr|privacy policy/i.test(text)) {
+      signals.push('Compliance awareness'); domains.compliance = bump('compliance', 12, 22);
+    }
+    if (/security|ssl|breach|pentest|access control|2fa|mfa|encryption|firewall/i.test(text)) {
+      signals.push('Security posture'); domains.security = bump('security', 10, 20);
+    }
+    if (/auth|identity|okta|saml|sso|login|single sign/i.test(text)) {
+      signals.push('Identity & auth'); domains.identity = bump('identity', 14, 18);
+    }
+    if (/investor|raise|capital|runway|valuation|fund|vc|angel|seed|series|round/i.test(text)) {
+      signals.push('Fundraising intent'); domains.financial = bump('financial', 18, 16);
+    }
+    if (/legal|ip|contract|equity|cap table|safe|term sheet|shareholder|founders agreement/i.test(text)) {
+      signals.push('Legal & governance'); domains.legal = bump('legal', 8, 22);
+    }
+    if (/team|hire|employee|founder|staff|cto|engineer|head of/i.test(text)) {
+      signals.push('Team signals'); domains.team = bump('team', 20, 14);
+    }
+
+    const stageMap = [
+      [/pre-seed|pre seed|just started|very early/i, 'Pre-seed'],
+      [/seed|bootstrapped|first round/i, 'Seed'],
+      [/series a|series-a/i, 'Series A'],
+      [/series b|series-b/i, 'Series B+'],
+    ];
+    const industryMap = [
+      [/honey|manuka|food|supply chain|fmcg|provenance/i, 'Food & Supply Chain'],
+      [/saas|software|platform|api\b/i, 'SaaS'],
+      [/fintech|financial|payment|banking/i, 'Fintech'],
+      [/health|hospital|medical|pharma/i, 'Healthcare'],
+      [/security|cyber|infosec/i, 'Cybersecurity'],
+    ];
+
+    let stage = null, industry = null;
+    for (const [re, label] of stageMap) if (re.test(text)) { stage = label; break; }
+    for (const [re, label] of industryMap) if (re.test(text)) { industry = label; break; }
+
+    return { signals, domains, stage, industry };
+  }
+
+  const HIVE_SCORES = { identity: 85, compliance: 90, security: 82, financial: 78, legal: 88, team: 80 };
+
   // Maps analysis profile pill → persona hint for the backend classifier
   const PROFILE_PERSONA = {
     investor:   'leonardo',
@@ -1004,6 +1109,24 @@ export default function Chat() {
     setBriefShown(false);
     setMessages(prev => [...prev, { id: `u-${Date.now()}`, role: 'user', content: text }]);
     setIsProcessing(true);
+
+    // Update company profile from message signals
+    const inf = inferProfile(text);
+    if (inf.signals.length > 0 || inf.stage || inf.industry) {
+      setCompanyProfile(prev => {
+        const newDomains = { ...prev.domains };
+        for (const [key, updater] of Object.entries(inf.domains)) {
+          newDomains[key] = updater(prev.domains[key]);
+        }
+        return {
+          name: prev.name,
+          stage: inf.stage ?? prev.stage,
+          industry: inf.industry ?? prev.industry,
+          signals: [...prev.signals, ...inf.signals],
+          domains: newDomains,
+        };
+      });
+    }
 
     const sessionId = companyData?.session_id;
 
@@ -1686,6 +1809,18 @@ export default function Chat() {
               {phase === 'journey-setup' && <JourneyConsentCards onSelect={selectJourney} stages={DEMO_STAGES} tk={tk} />}
               {thinkingSteps.length > 0 && <ThinkingStream steps={thinkingSteps} visible t={t} />}
 
+              {/* Follow-up suggestions — after last AI response, not while processing */}
+              {!isProcessing && hasMessages && (() => {
+                const lastAi = [...messages].reverse().find(m => m.role === 'assistant' && m.content);
+                return lastAi ? (
+                  <FollowUpChips
+                    persona={lastAi.persona}
+                    onSelect={q => { submit(q); }}
+                    tk={tk}
+                  />
+                ) : null;
+              })()}
+
             </div>
           </div>
 
@@ -1730,6 +1865,16 @@ export default function Chat() {
         </div>
 
         </div>{/* end chat pane */}
+
+        {/* Company profile panel — appears after first message, hidden when preview open */}
+        {hasMessages && !previewOpen && (
+          <CompanyProfile
+            profile={companyProfile}
+            isBuilding={isProcessing}
+            tk={tk}
+            t={t}
+          />
+        )}
 
         {/* Browser panel */}
         {previewUrl && previewOpen && (

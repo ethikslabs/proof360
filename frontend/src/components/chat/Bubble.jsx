@@ -180,9 +180,23 @@ export function Bubble({ msg, t, isLatest, onPersonaRef }) {
     letterSpacing: '0.003em',
   };
 
+  const thinkingBody = !msg.content && (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0' }}>
+      {[0, 1, 2].map(i => (
+        <span key={i} style={{
+          width: 6, height: 6, borderRadius: '50%',
+          background: color, opacity: 0.5,
+          display: 'inline-block',
+          animation: `thinkpulse 1.2s ease-in-out ${i * 0.18}s infinite`,
+        }} />
+      ))}
+      <style>{`@keyframes thinkpulse{0%,80%,100%{transform:scale(0.7);opacity:0.3}40%{transform:scale(1);opacity:0.8}}`}</style>
+    </div>
+  );
+
   const body = (
     <div style={bodyStyle}>
-      <RichContent content={msg.content} theme={t.theme} tk={tk} onPersonaRef={onPersonaRef} />
+      {thinkingBody || <RichContent content={msg.content} theme={t.theme} tk={tk} onPersonaRef={onPersonaRef} />}
     </div>
   );
 
