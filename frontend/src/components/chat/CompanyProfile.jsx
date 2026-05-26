@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import awsUrl from '../OperationalField/logos/aws.svg';
 import vantaUrl from '../OperationalField/logos/vanta.svg';
 import ciscoUrl from '../OperationalField/logos/cisco.svg';
@@ -154,121 +154,36 @@ function DomainRow({ id, label, userScore, tk }) {
   );
 }
 
-function DiscoveryView({ tk, onAsk, focusedProgram }) {
-  const [openId, setOpenId] = useState(null);
-  const itemRefs = useRef({});
-
-  useEffect(() => {
-    if (!focusedProgram) return;
-    setOpenId(focusedProgram);
-    const el = itemRefs.current[focusedProgram];
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }, [focusedProgram]);
-
+function DiscoveryView({ tk }) {
   return (
     <div style={{ flex: 1 }}>
       {DISCOVERY_VENDORS.map((v, i) => {
-        const isOpen = openId === v.alt;
         const isLast = i === DISCOVERY_VENDORS.length - 1;
         const count = v.programs?.length;
-        const expandHeight = count ? 16 + count * 28 + 48 : 90;
-
         return (
-          <div
+          <a
             key={v.alt}
-            ref={el => { itemRefs.current[v.alt] = el; }}
-            style={{ borderBottom: isLast ? 'none' : `1px solid ${tk.hairline}` }}
+            href="https://meetings.hubspot.com/john3174"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '13px 16px',
+              borderBottom: isLast ? 'none' : `1px solid ${tk.hairline}`,
+              textDecoration: 'none', cursor: 'pointer',
+            }}
           >
-            <button
-              onClick={() => setOpenId(isOpen ? null : v.alt)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                width: '100%', padding: '13px 16px',
-                background: 'none', border: 'none', cursor: 'pointer',
-              }}
-            >
-              <img
-                src={v.logoUrl} alt={v.alt}
-                style={{ height: v.logoH, objectFit: 'contain', objectPosition: 'left', maxWidth: 110, flexShrink: 0 }}
-              />
-              <div style={{ flex: 1 }} />
-              {count && !isOpen && (
-                <span style={{
-                  fontFamily: '"IBM Plex Mono", monospace',
-                  fontSize: 9, fontWeight: 700,
-                  color: '#a8651e', background: '#f5e6cc',
-                  border: '1px solid #e8c98a', borderRadius: 10,
-                  padding: '1px 7px', letterSpacing: '0.04em', flexShrink: 0,
-                }}>{count}</span>
-              )}
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
-                style={{ transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.2s', flexShrink: 0, opacity: 0.4 }}>
-                <path d="M2 3.5 L5 6.5 L8 3.5" stroke="#8c8499" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-
-            <div style={{
-              overflow: 'hidden',
-              maxHeight: isOpen ? expandHeight : 0,
-              transition: 'max-height 0.28s cubic-bezier(0.32,0.72,0,1)',
-            }}>
-              <div style={{ padding: '0 16px 13px' }}>
-                <div style={{
-                  fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-                  fontSize: 12, fontWeight: 600, color: tk.ink, marginBottom: count ? 8 : 4,
-                }}>{v.value}</div>
-                {count ? (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 10 }}>
-                    {v.programs.map(p => (
-                      <button
-                        key={p.label}
-                        onClick={e => { e.stopPropagation(); onAsk?.(p.ask); }}
-                        style={{
-                          fontFamily: '"IBM Plex Mono", monospace',
-                          fontSize: 8.5, color: '#5a4e3a', letterSpacing: '0.04em',
-                          background: '#ede5d8', border: `1px solid #cfc4b0`,
-                          borderRadius: 4, padding: '3px 7px',
-                          cursor: 'pointer',
-                        }}
-                      >{p.label}</button>
-                    ))}
-                  </div>
-                ) : (
-                  <div style={{
-                    fontFamily: '"IBM Plex Mono", monospace',
-                    fontSize: 9, color: tk.inkSoft, letterSpacing: '0.06em', marginBottom: 10,
-                  }}>{v.sub}</div>
-                )}
-                <button
-                  onClick={e => { e.stopPropagation(); onAsk?.(v.chatQ); }}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 5,
-                    fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-                    fontSize: 11, fontWeight: 600,
-                    color: '#fff', background: '#241f31',
-                    borderRadius: 6, padding: '6px 12px',
-                    border: 'none', cursor: 'pointer',
-                    letterSpacing: '0.01em',
-                  }}
-                >Ask about this →</button>
-              </div>
-            </div>
-          </div>
+            <img src={v.logoUrl} alt={v.alt} style={{ height: v.logoH, objectFit: 'contain', objectPosition: 'left', maxWidth: 110, flexShrink: 0 }} />
+            <div style={{ flex: 1 }} />
+            {count && (
+              <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9, fontWeight: 700, color: '#a8651e', background: '#f5e6cc', border: '1px solid #e8c98a', borderRadius: 10, padding: '1px 7px', letterSpacing: '0.04em', flexShrink: 0 }}>{count}</span>
+            )}
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0, opacity: 0.4 }}>
+              <path d="M3 2 L7 5 L3 8" stroke="#8c8499" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </a>
         );
       })}
-
-      <div style={{
-        padding: '16px 16px 20px',
-        borderTop: `1px solid ${tk.hairline}`,
-      }}>
-        <div style={{
-          fontFamily: '"Instrument Serif", Georgia, serif',
-          fontStyle: 'italic',
-          fontSize: 11.5, color: tk.inkSoft, lineHeight: 1.55,
-        }}>
-          Tell us about your company — we'll map what's relevant to where you are.
-        </div>
-      </div>
     </div>
   );
 }
