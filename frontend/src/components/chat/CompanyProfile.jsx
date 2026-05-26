@@ -76,44 +76,62 @@ function DomainRow({ id, label, userScore, tk }) {
 }
 
 function DiscoveryView({ tk }) {
+  const [openId, setOpenId] = useState(null);
+
   return (
-    <div style={{ padding: '14px 16px', flex: 1 }}>
-      <div style={{
-        fontFamily: '"IBM Plex Mono", monospace',
-        fontSize: 8.5, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase',
-        color: tk.inkSoft, marginBottom: 14,
-      }}>Available to you</div>
+    <div style={{ flex: 1 }}>
+      {DISCOVERY_VENDORS.map((v, i) => {
+        const isOpen = openId === v.alt;
+        const isLast = i === DISCOVERY_VENDORS.length - 1;
+        return (
+          <div key={v.alt}>
+            <button
+              onClick={() => setOpenId(isOpen ? null : v.alt)}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                width: '100%', padding: '13px 16px',
+                background: 'none', border: 'none', cursor: 'pointer',
+                borderBottom: isOpen || isLast ? 'none' : `1px solid ${tk.hairline}`,
+              }}
+            >
+              <img
+                src={v.logoUrl}
+                alt={v.alt}
+                style={{ height: v.logoH, objectFit: 'contain', objectPosition: 'left', maxWidth: 110 }}
+              />
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
+                style={{ transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.2s', flexShrink: 0, opacity: 0.4 }}>
+                <path d="M2 3.5 L5 6.5 L8 3.5" stroke="#8c8499" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
 
-      {DISCOVERY_VENDORS.map(v => (
-        <div key={v.alt} style={{
-          display: 'flex', alignItems: 'center',
-          padding: '10px 0',
-          borderBottom: `1px solid ${tk.hairline}`,
-        }}>
-          <img
-            src={v.logoUrl}
-            alt={v.alt}
-            style={{ height: v.logoH, objectFit: 'contain', objectPosition: 'left', width: 80, flexShrink: 0 }}
-          />
-          <div style={{ marginLeft: 10, flex: 1, minWidth: 0 }}>
             <div style={{
-              fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-              fontSize: 11, fontWeight: 600, color: tk.ink,
-              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-            }}>{v.value}</div>
-            <div style={{
-              fontFamily: '"IBM Plex Mono", monospace',
-              fontSize: 9, color: tk.inkSoft, letterSpacing: '0.06em', marginTop: 1,
-            }}>{v.sub}</div>
+              overflow: 'hidden',
+              maxHeight: isOpen ? 80 : 0,
+              transition: 'max-height 0.25s cubic-bezier(0.32,0.72,0,1)',
+              borderBottom: isOpen && !isLast ? `1px solid ${tk.hairline}` : 'none',
+            }}>
+              <div style={{ padding: '0 16px 13px' }}>
+                <div style={{
+                  fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                  fontSize: 12, fontWeight: 600, color: tk.ink, marginBottom: 2,
+                }}>{v.value}</div>
+                <div style={{
+                  fontFamily: '"IBM Plex Mono", monospace',
+                  fontSize: 9, color: tk.inkSoft, letterSpacing: '0.06em',
+                }}>{v.sub}</div>
+              </div>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       <div style={{
-        marginTop: 16,
+        padding: '16px 16px 14px',
         fontFamily: '"Instrument Serif", Georgia, serif',
         fontStyle: 'italic',
         fontSize: 11.5, color: tk.inkSoft, lineHeight: 1.55,
+        borderTop: `1px solid ${tk.hairline}`,
       }}>
         Tell us about your company — we'll map what's relevant to where you are.
       </div>
