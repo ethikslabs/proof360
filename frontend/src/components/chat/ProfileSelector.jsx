@@ -100,7 +100,7 @@ export function ProfileSelector({ value = 'investor', onChange }) {
   const expandedProfile = PROFILES.find(p => p.id === expanded);
 
   return (
-    <div style={{ marginBottom: 8 }}>
+    <div>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         {PROFILES.map(p => (
           <button
@@ -108,18 +108,27 @@ export function ProfileSelector({ value = 'investor', onChange }) {
             type="button"
             onClick={() => handlePillClick(p.id)}
             style={{
-              display: 'flex', alignItems: 'center', gap: 5,
-              padding: '4px 10px 4px 8px', borderRadius: 20, fontSize: 11, fontWeight: 600,
-              border: '1.5px solid',
-              borderColor: value === p.id ? '#4f46e5' : '#e5e7eb',
-              background:  value === p.id ? '#ede9fe' : '#ffffff',
-              color:       value === p.id ? '#4f46e5' : '#6b7280',
-              cursor: 'pointer', transition: 'all 0.15s',
-              outline: expanded === p.id ? '2px solid #c4b5fd' : 'none',
-              outlineOffset: 2,
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '5px 12px 5px 9px', borderRadius: 20,
+              fontSize: 12, fontWeight: 500, letterSpacing: '0.005em',
+              fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+              border: '1px solid',
+              borderColor: value === p.id ? '#d1d5db' : '#e5e7eb',
+              background:  value === p.id ? '#f9fafb' : '#ffffff',
+              color: '#374151',
+              cursor: 'pointer', transition: 'all 0.12s',
+              boxShadow: value === p.id ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.borderColor = '#d1d5db';
+              e.currentTarget.style.background = '#f9fafb';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.borderColor = value === p.id ? '#d1d5db' : '#e5e7eb';
+              e.currentTarget.style.background = value === p.id ? '#f9fafb' : '#ffffff';
             }}
           >
-            <VendorLogo id={p.icon} height={12} />
+            <VendorLogo id={p.icon} height={14} />
             {p.label}
           </button>
         ))}

@@ -1557,13 +1557,6 @@ export default function Chat() {
             zIndex: 3,
           }}>
             <div style={{ maxWidth: 660, margin: '0 auto', padding: '0 36px 16px' }}>
-              <ProfileSelector
-                value={analysisProfile}
-                onChange={(profileId, subItem) => {
-                  setAnalysisProfile(profileId);
-                  if (subItem) setInputValue(subItem);
-                }}
-              />
               <ChatInput
                 ref={inputRef}
                 value={inputValue}
@@ -1584,6 +1577,15 @@ export default function Chat() {
                 disabled={!inputReady || isProcessing}
                 messages={messages}
               />
+              <div style={{ marginTop: 10 }}>
+                <ProfileSelector
+                  value={analysisProfile}
+                  onChange={(profileId, subItem) => {
+                    setAnalysisProfile(profileId);
+                    if (subItem) setInputValue(subItem);
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>
