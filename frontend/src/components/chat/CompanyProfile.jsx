@@ -109,7 +109,44 @@ function DomainRow({ id, label, userScore, tk }) {
   );
 }
 
-function BookingModal({ onClose }) {
+const BOOKING_WHY = {
+  AWS: {
+    headline: 'You\'re sitting on unclaimed AWS credits.',
+    body: 'Most founders apply for one program and miss the other nine. We check your stage against every AWS track, handle the applications, and make sure what you\'re owed actually lands.',
+  },
+  Microsoft: {
+    headline: 'The Microsoft partner track is the enterprise sales shortcut most founders miss.',
+    body: 'Co-sell puts you in front of Microsoft\'s enterprise customers — deals you can\'t reach cold. We map which programs fit your product and get you into the motion.',
+  },
+  Cloudflare: {
+    headline: 'Enterprise security posture, set up correctly from the start.',
+    body: 'Cloudflare is free for startups, but the configuration is what shows up in due diligence. We get you set up so it actually signals credibility when investors and buyers look.',
+  },
+  Vanta: {
+    headline: 'SOC 2 is blocking deals you don\'t know you\'re losing.',
+    body: 'Enterprise buyers check before the first meeting. We scope your 90-day Vanta path, handle the setup, and get you to your first audit — without the consultant fees.',
+  },
+  Cisco: {
+    headline: 'Enterprise buyers see your infrastructure before they see your deck.',
+    body: 'Cisco-aligned security signals you play at enterprise level. We identify the right partner program for your stage and get you positioned correctly.',
+  },
+  AustBrokers: {
+    headline: 'Cyber insurance is now a procurement checkbox, not an afterthought.',
+    body: 'Enterprise contracts and investor DD both check for it. We connect you to the AU specialist who can get you quoted and covered fast — before it costs you a deal.',
+  },
+  'Wholesale Investor': {
+    headline: 'You don\'t pitch AU investors cold — you get introduced.',
+    body: 'Wholesale Investor connects you to 10,000+ accredited investors, but your trust posture needs to be ready first. We help you get there, then make the introduction.',
+  },
+};
+
+const BOOKING_WHY_GENERIC = {
+  headline: 'Most founders leave serious value on the table.',
+  body: 'Cloud credits, compliance shortcuts, co-sell programs, investor connections — we map what you actually qualify for, handle the applications, and track what you\'re owed. This call is a working session, not a sales pitch.',
+};
+
+function BookingModal({ onClose, context }) {
+  const why = context ? (BOOKING_WHY[context] ?? BOOKING_WHY_GENERIC) : BOOKING_WHY_GENERIC;
   return (
     <div
       onClick={onClose}
@@ -124,13 +161,14 @@ function BookingModal({ onClose }) {
         style={{
           background: '#fbf8f1',
           borderRadius: 14,
-          width: 'min(680px, 95vw)',
-          height: 'min(680px, 88vh)',
+          width: 'min(700px, 95vw)',
+          height: 'min(760px, 92vh)',
           display: 'flex', flexDirection: 'column',
           overflow: 'hidden',
           boxShadow: '0 24px 80px rgba(0,0,0,0.28)',
         }}
       >
+        {/* Header */}
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '13px 18px', borderBottom: '1px solid #e0d8c9', flexShrink: 0,
@@ -145,6 +183,25 @@ function BookingModal({ onClose }) {
             fontSize: 20, color: '#8c8499', lineHeight: 1, padding: 0,
           }}>×</button>
         </div>
+
+        {/* Why */}
+        <div style={{
+          padding: '18px 22px 16px',
+          borderBottom: '1px solid #e0d8c9',
+          flexShrink: 0, background: '#f4efe6',
+        }}>
+          <div style={{
+            fontFamily: '"Instrument Serif", Georgia, serif',
+            fontStyle: 'italic',
+            fontSize: 15.5, color: '#241f31', lineHeight: 1.45, marginBottom: 7,
+          }}>{why.headline}</div>
+          <div style={{
+            fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+            fontSize: 12, color: '#6b5f4e', lineHeight: 1.6,
+          }}>{why.body}</div>
+        </div>
+
+        {/* Calendar */}
         <iframe
           src="https://meetings.hubspot.com/john3174?embed=true"
           title="Book a meeting with John"
@@ -272,7 +329,7 @@ function DiscoveryView({ tk, onAsk }) {
         >Book time with John →</button>
       </div>
 
-      {bookingOpen && <BookingModal onClose={() => setBookingOpen(false)} />}
+      {bookingOpen && <BookingModal onClose={() => setBookingOpen(false)} context={openId} />}
     </div>
   );
 }
