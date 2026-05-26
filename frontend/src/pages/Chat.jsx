@@ -20,6 +20,9 @@ import { getPersonaResponses, getPersonaResponse } from '../data/mock/personas.j
 import { getThinkingSteps } from '../data/mock/thinking.js';
 import { DEMO_STAGES, DEFAULT_STAGE_ID } from '../data/demoCompany.js';
 import { OperationalField } from '../components/OperationalField';
+import { useSignals }       from '../hooks/useSignals.js';
+import { ObservationStrip } from '../components/chat/ObservationStrip.jsx';
+import { rankVendorsBySignals } from '../data/mock/vendors.js';
 
 /* ─── Auth constants ─────────────────────────────────────────────────────── */
 const AUTH0_DOMAIN    = import.meta.env.VITE_AUTH0_DOMAIN    || 'dev-ethikslabs.au.auth0.com';
@@ -1243,6 +1246,20 @@ export default function Chat() {
   const [cinStats,        setCinStats]        = useState(STATS_FALLBACK);
   const [selectedModel,   setSelectedModel]   = useState('claude-sonnet-4-6');
 
+  const {
+    activeSignals,
+    // gapSignals and capabilitySignals reserved for Task 7+
+    regeneratingDomains,
+    // domainTurns and recordDomainTurn reserved for Task 7+
+    ctaEarned,
+    correctSignal,
+    ignoreSignal,
+    addContextSignal,
+  } = useSignals();
+
+  const isDemoMode = activeStageId === DEFAULT_STAGE_ID;
+  const rankedVendors = rankVendorsBySignals(activeSignals);
+
   const hasUserMsg  = messages.some(m => m.role === 'user');
   const hasMessages = messages.length > 0;
   const isHeroState = !hasMessages;
@@ -2177,6 +2194,15 @@ export default function Chat() {
                 </>
               )}
 
+              <ObservationStrip
+                signals={activeSignals}
+                isDemoMode={isDemoMode}
+                onCorrect={correctSignal}
+                onIgnore={ignoreSignal}
+                onAddContext={addContextSignal}
+                regeneratingDomains={regeneratingDomains}
+              />
+
               {messages.map((m, i) => {
                 const isLatest = i === messages.length - 1 && m.role !== 'user';
                 return (
@@ -2262,6 +2288,10 @@ export default function Chat() {
               onAsk={q => setInputValue(q)}
               focusedProgram={focusedProgram}
               onVendorSelect={id => { setActiveSpace(id); setDrawerCollapsed(false); }}
+              isDemoMode={isDemoMode}
+              activeSignals={activeSignals}
+              rankedVendors={rankedVendors}
+              ctaEarned={ctaEarned}
             />
           </div>
         )}
