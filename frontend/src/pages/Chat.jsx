@@ -854,7 +854,7 @@ export default function Chat() {
   const [pulsingQ, setPulsingQ]           = useState(null);
   const [thinkingSteps, setThinkingSteps] = useState([]);
   const [briefShown, setBriefShown]       = useState(false);
-  const [phase, setPhase]                 = useState('intro');   // 'intro' | 'triage' | 'active'
+  const [phase, setPhase]                 = useState('triage');  // 'triage' | 'active'
   const [intent, setIntent]               = useState(null);      // 'browse' | 'raise' | 'question'
   const [previewUrl, setPreviewUrl]       = useState(null);
   const [previewOpen, setPreviewOpen]     = useState(false);
@@ -957,41 +957,20 @@ export default function Chat() {
       setTimeout(() => inputRef.current?.focus(), 100);
       return;
     }
-    let cancelled = false;
-    const speedMs = t.typeSpeed === 'fast' ? 8 : t.typeSpeed === 'instant' ? 0 : 18;
-
-    async function run() {
-      setMessages([]);
-      setInputReady(false);
-      setBriefShown(false);
-      setPulsingQ(null);
-      setPhase('intro');
-      setIntent(null);
-      setPreviewUrl(null);
-      setPreviewOpen(false);
-      setBrowserTabs([]);
-      setThinkingSteps([]);
-      setActiveStageId(DEFAULT_STAGE_ID);
-      setCompanyData(null);
-      // Sophia opens — brief pause then she speaks
-      await sleep(400);
-      const introMsg = { id: 'sophia-intro', persona: 'sofia', model: 'claude-sonnet-4-6', tok: 148, ms: 740, content: SOPHIA_INTRO };
-      setMessages(prev => [...prev, { ...introMsg, content: '' }]);
-      if (speedMs === 0) {
-        setMessages(prev => prev.map(m => m.id === 'sophia-intro' ? { ...m, content: SOPHIA_INTRO } : m));
-      } else {
-        for (let i = 1; i <= SOPHIA_INTRO.length; i++) {
-          if (cancelled) return;
-          await sleep(speedMs);
-          setMessages(prev => prev.map(m => m.id === 'sophia-intro' ? { ...m, content: SOPHIA_INTRO.slice(0, i) } : m));
-        }
-      }
-      await sleep(400);
-      if (!cancelled) setPhase('triage');
-    }
-    run();
-    return () => { cancelled = true; };
-  }, [runId, t.returningUser, seedQuery, seedReturning, seedDemo]); // eslint-disable-line react-hooks/exhaustive-deps
+    // Default: clean landing — input ready immediately, no auto-type
+    setMessages([]);
+    setInputReady(true);
+    setBriefShown(false);
+    setPulsingQ(null);
+    setPhase('triage');
+    setIntent(null);
+    setPreviewUrl(null);
+    setPreviewOpen(false);
+    setBrowserTabs([]);
+    setThinkingSteps([]);
+    setActiveStageId(DEFAULT_STAGE_ID);
+    setCompanyData(null);
+  }, [runId, t.returningUser, seedQuery, seedReturning, seedDemo]); // eslint-disable-line react-hooks/exhaustive-deps — t is a module constant, setters are stable
 
   // Maps analysis profile pill → persona hint for the backend classifier
   const PROFILE_PERSONA = {
