@@ -56,7 +56,7 @@ Five tiles displayed below the input on landing:
 **Behaviour:**
 - Landing: all 5 tiles visible, none active
 - Click a tile → tile highlights, question panel appears below with 5 starters (replaces current 3 text chips)
-- Click a starter question → text auto-fills input and auto-submits
+- Click a starter question → replaces any existing input draft, then auto-submits
 - Question panel has × to dismiss without submitting
 - Only one tile active at a time; clicking another swaps the question panel
 - After first submit: tiles and question panel disappear, input locks to bottom
@@ -115,6 +115,7 @@ Default model on landing: Claude Sonnet 4.6 (Bedrock).
 ### STT (Speech-to-Text)
 - 🎤 microphone icon in input toolbar — already built in backend
 - Tap → pulsing indicator, "Listening…" label replaces model selector temporarily
+- If model picker dropdown is open, close it before entering STT mode
 - Live transcript appears in input textarea in real-time
 - Tap again or 2s pause → transcript locked in input, ready to submit
 - User can edit transcript before sending
@@ -128,7 +129,7 @@ Streaming indicator (≋≋) to the right of 🎤 — animates bars when a respo
 
 ### Input locks at bottom
 On first submit:
-- Input box moves to `position: absolute; bottom: 0` (or `position: fixed` if needed for scroll behaviour)
+- Input box moves to `position: fixed; bottom: 0`
 - Mode tiles and question panel removed from DOM
 - Input never disappears, never moves again for the session
 
