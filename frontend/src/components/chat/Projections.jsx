@@ -358,9 +358,7 @@ function AwsProjection({ panel, company, t }) {
                 <div style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic', fontSize: 14, color: tk.inkMid }}>{p.value} · {p.detail}</div>
               </div>
               {(p.status === 'available' || p.status === 'eligible') && (
-                p.url
-                  ? <a href={p.url} target="_blank" rel="noopener noreferrer" style={{ alignSelf: 'center', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.teal, borderBottom: `1px solid ${tk.teal}66`, paddingBottom: 1, letterSpacing: '0.04em', textDecoration: 'none' }}>Apply →</a>
-                  : <a href="https://meetings.hubspot.com/john3174" target="_blank" rel="noopener noreferrer" style={{ alignSelf: 'center', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.umber, borderBottom: `1px solid ${tk.umber}66`, paddingBottom: 1, letterSpacing: '0.04em', textDecoration: 'none' }}>Book help →</a>
+                <a href="https://meetings.hubspot.com/john3174" target="_blank" rel="noopener noreferrer" style={{ alignSelf: 'center', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.teal, borderBottom: `1px solid ${tk.teal}66`, paddingBottom: 1, letterSpacing: '0.04em', textDecoration: 'none' }}>Apply →</a>
               )}
             </div>
           ))}
@@ -401,15 +399,8 @@ function MicrosoftProjection({ panel, company, t }) {
                 </div>
                 <div style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic', fontSize: 14, color: tk.inkMid }}>{p.value} · {p.detail}</div>
               </div>
-              {(p.status === 'available' || p.status === 'eligible') && p.url && (
-                <a
-                  href={p.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ alignSelf: 'center', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.teal, borderBottom: `1px solid ${tk.teal}66`, paddingBottom: 1, letterSpacing: '0.04em', textDecoration: 'none' }}
-                >
-                  Apply →
-                </a>
+              {(p.status === 'available' || p.status === 'eligible') && (
+                <a href="https://meetings.hubspot.com/john3174" target="_blank" rel="noopener noreferrer" style={{ alignSelf: 'center', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.teal, borderBottom: `1px solid ${tk.teal}66`, paddingBottom: 1, letterSpacing: '0.04em', textDecoration: 'none' }}>Apply →</a>
               )}
             </div>
           ))}

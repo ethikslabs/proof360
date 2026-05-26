@@ -1228,6 +1228,11 @@ export default function Chat() {
   const [loginOpen,       setLoginOpen]       = useState(false);
   const [telegramOpen,    setTelegramOpen]    = useState(false);
   const [focusedProgram,  setFocusedProgram]  = useState(null);
+  useEffect(() => {
+    const handler = () => setTelegramOpen(true);
+    window.addEventListener('proof360:telegram', handler);
+    return () => window.removeEventListener('proof360:telegram', handler);
+  }, []);
   const [drawerCollapsed, setDrawerCollapsed] = useState(false);
   const [sidebarCollapsed,setSidebarCollapsed]= useState(true);
   const [hiveStage,       setHiveStage]       = useState(1);
