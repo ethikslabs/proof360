@@ -929,6 +929,11 @@ export default function Chat() {
     return new URLSearchParams(window.location.search).has('returning');
   }, []);
 
+  const seedDemo = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return new URLSearchParams(window.location.search).has('demo');
+  }, []);
+
   useEffect(() => {
     if (seedQuery) {
       setMessages([]);
@@ -942,6 +947,14 @@ export default function Chat() {
       setMessages([]);
       setInputReady(true);
       setBriefShown(true);
+      return;
+    }
+    if (seedDemo) {
+      setMessages([]);
+      setInputReady(true);
+      setPhase('active');
+      setBriefShown(false);
+      setTimeout(() => inputRef.current?.focus(), 100);
       return;
     }
     let cancelled = false;
@@ -996,7 +1009,7 @@ export default function Chat() {
     }
     run();
     return () => { cancelled = true; };
-  }, [runId, t.returningUser, seedQuery, seedReturning]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [runId, t.returningUser, seedQuery, seedReturning, seedDemo]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Maps analysis profile pill → persona hint for the backend classifier
   const PROFILE_PERSONA = {
