@@ -54,14 +54,14 @@ const LIVE_FEED = [
 function buildOpening(feed) {
   return [
     { id: 'th-0', persona: 'sofia',    model: 'claude-sonnet-4-6',         tok: 188, ms: 920,
-      sources: ['CORPUS', 'proof360 signals'],
+      sources: ['Market intelligence', 'proof360 signals'],
       content: `Just saw this — "${feed.headline}." ${feed.angle}`,
       feedUrl: feed.url, feedSource: feed.source },
     { id: 'th-1', persona: 'leonardo', model: 'nvidia/nemotron-ultra-253b', tok: 162, ms: 1340,
-      sources: ['CORPUS', 'proof360 signals'],
+      sources: ['Market intelligence', 'proof360 signals'],
       content: "Still reactive, almost universally. Founders know the story they want to tell — but the evidence layer underneath it isn't there. Buyers are forming impressions before the first meeting. The posture is the pitch before the pitch starts." },
     { id: 'th-2', persona: 'edison',   model: 'claude-sonnet-4-6',         tok: 203, ms: 870, isHandoff: true,
-      sources: ['CORPUS', 'proof360 signals'],
+      sources: ['Market intelligence', 'proof360 signals'],
       content: "And it shows up in the data room every time. SSL misconfigurations, no access control evidence, breach exposure that's been public for months. All fixable. All avoidable.\n\nYou're here for a reason. What are you trying to solve?" },
   ];
 }
@@ -69,15 +69,15 @@ function buildOpening(feed) {
 // Ambient exchange — already in progress when the user arrives
 const AMBIENT_EXCHANGE = [
   { id: 'amb-0', persona: 'leonardo', model: 'nvidia/nemotron-ultra-253b', tok: 61, ms: 380,
-    sources: ['CORPUS', 'proof360 signals'],
-    content: "Shadow DD window is narrowing. Buyers form impressions before page one of any deck." },
+    sources: ['Market intelligence', 'proof360 signals'],
+    content: "The AWS co-sell window is real — ISV partners who get into the marketplace before diligence starts close faster. Buyers trust what AWS has already vetted." },
   { id: 'amb-1', persona: 'edison',   model: 'claude-sonnet-4-6',          tok: 49, ms: 290,
-    sources: ['CORPUS', 'proof360 signals'],
-    content: "Public signals confirm it. Most don't know what's visible until they're already in the room." },
+    sources: ['Market intelligence', 'proof360 signals'],
+    content: "Same pattern in security. A Cloudflare footprint or SOC 2 in progress surfaces in a 30-second Google before any deck is opened." },
 ];
 
 // Sophia notices the arrival and turns — she was already mid-discussion
-const SOPHIA_INTRO = "Oh — you're here. Good. I'm Sophia. Leonardo and Edison are right here with me. We exist because founders and the people who fund or buy from them don't always speak the same language — and that gap costs real deals. Quick question —";
+const SOPHIA_INTRO = "We were just looking at the shadow DD window — buyers are forming impressions before the first meeting, and most founders don't know what's already visible. What's your situation — raising, trying to close an enterprise deal, or somewhere in between?";
 
 const DEMO_CO = {
   name: 'Hive & Co',
@@ -88,19 +88,19 @@ const DEMO_CO = {
 
 const BROWSE_OPENING = [
   { id: 'br-0', persona: 'sofia',    model: 'claude-sonnet-4-6',           tok: 214, ms: 840,
-    sources: ['CORPUS', 'proof360 signals'],
+    sources: ['Company signals', 'Partner pathways'],
     content: `Meet ${DEMO_CO.name} — a ${DEMO_CO.type}. ${DEMO_CO.story} The founders know everything about honey. They know nothing about what investors and enterprise buyers need to see before they say yes. Sound like anyone?` },
   { id: 'br-1', persona: 'leonardo', model: 'nvidia/nemotron-ultra-253b',   tok: 178, ms: 1120,
-    sources: ['CORPUS', 'proof360 signals'],
+    sources: ['Company signals', 'Partner pathways'],
     content: "This is the most common moment we see. Real product, real customers — but the language of investors and procurement is completely foreign. The question isn't whether they're ready. It's whether they can show it." },
   { id: 'br-2', persona: 'edison',   model: 'claude-sonnet-4-6',           tok: 92,  ms: 610, isHandoff: true,
-    sources: ['CORPUS', 'proof360 signals'],
+    sources: ['Company signals', 'Partner pathways'],
     content: `I'd start with what's publicly visible. Want to run ${DEMO_CO.name} through, or try your own company?` },
 ];
 
 const QUESTION_OPENING = [
   { id: 'q-0', persona: 'sofia', model: 'claude-sonnet-4-6', tok: 44, ms: 390, isHandoff: true,
-    sources: ['CORPUS', 'proof360 signals'],
+    sources: ['proof360 signals'],
     content: "Good — just ask. We'll work from there." },
 ];
 
@@ -921,7 +921,7 @@ export default function Chat() {
   // setInferenceError wired for post-MVP: call when inference polling times out or errors
   const [inferenceError,  setInferenceError]  = useState(false);
   const [analysisProfile, setAnalysisProfile] = useState('investor');
-  const [heroPersona,     setHeroPersona]     = useState(null);
+  const [heroPersonas,    setHeroPersonas]    = useState(() => new Set());
   const [heroPersonaHover,setHeroPersonaHover]= useState(null);
   const [activeModes,     setActiveModes]     = useState([]);
   const [companyProfile,  setCompanyProfile]  = useState({
@@ -1206,12 +1206,12 @@ export default function Chat() {
       }]);
 
       try {
-        const personaOverride = heroPersona ?? PROFILE_PERSONA[analysisProfile] ?? undefined;
+        const personaOverride = (heroPersonas.size > 0 ? [...heroPersonas][0] : null) ?? PROFILE_PERSONA[analysisProfile] ?? undefined;
         const modeSnapshot = [...activeModes];
         const effectiveModel = modeSnapshot.includes('web-search') ? 'perplexity-sonar'
           : modeSnapshot.includes('deep-research') ? 'claude-opus-4-7'
           : selectedModel;
-        setHeroPersona(null); setHeroPersonaHover(null); setActiveModes([]);
+        setHeroPersonas(new Set()); setHeroPersonaHover(null); setActiveModes([]);
         const res = await fetch(`/api/v1/session/${sessionId}/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1267,9 +1267,13 @@ export default function Chat() {
         setThinkingSteps(prev => prev.map((s, idx) => idx <= i ? { ...s, status: 'complete' } : s));
       }
       const personaMatch = text.match(/^(Sophia|Leonardo|Edison|John)[,\s]/i);
+      const selectedLenses = heroPersonas.size > 0 ? [...heroPersonas] : null;
       const responses = personaMatch
         ? getPersonaResponse(personaMatch[1], text)
-        : getPersonaResponses(text);
+        : selectedLenses
+          ? selectedLenses.flatMap(p => getPersonaResponse(p === 'sofia' ? 'Sophia' : p.charAt(0).toUpperCase() + p.slice(1), text))
+          : getPersonaResponses(text);
+      setHeroPersonas(new Set());
 
       const isFirstMsg = !messages.some(m => m.role === 'user');
       const intakeMsg = isFirstMsg && !personaMatch && !t.returningUser ? {
@@ -1301,7 +1305,7 @@ export default function Chat() {
       // Sophia explains the journey first — consent before demo starts
       const setupMsg = {
         id: 'br-setup', persona: 'sofia', model: 'claude-sonnet-4-6', tok: 194, ms: 890,
-        sources: ['CORPUS', 'proof360 signals'],
+        sources: ['Company signals', 'Partner pathways'],
         content: "Here's what we'll do. We're going to follow a real company — Hive & Co — from two founders selling Manuka honey at King's Cross market on a Saturday morning, through their first Sainsbury's supply contract, into a blockchain provenance play, and finally a serious capital raise. At each moment we'll show you exactly what investors and enterprise buyers see — the gaps, the signals, the language. Four stages. Real gaps. You can jump between them. Want to see how the story unfolds?",
       };
       setMessages(prev => [...prev, { ...setupMsg, content: '' }]);
@@ -1443,7 +1447,7 @@ export default function Chat() {
               role: 'assistant',
               model: 'claude-sonnet-4-6',
               tok: 0, ms: 0,
-              sources: ['CORPUS', 'proof360 signals'],
+              sources: ['Workspace signals', 'proof360 signals'],
             }]);
           }}
           hiveStage={hiveStage}
@@ -1496,12 +1500,16 @@ export default function Chat() {
                         { id: 'edison',   label: 'Edison',   color: '#176577', note: 'Technical & execution · what to fix and in what order' },
                         { id: 'leonardo', label: 'Leonardo', color: '#6b4ea8', note: 'Strategy & market · fundraising and deal consequences' },
                       ].map(p => {
-                        const active = heroPersona === p.id;
+                        const active = heroPersonas.has(p.id);
                         return (
                           <div key={p.id} style={{ position: 'relative' }}>
                             <button
                               type="button"
-                              onClick={() => setHeroPersona(active ? null : p.id)}
+                              onClick={() => setHeroPersonas(prev => {
+                                const next = new Set(prev);
+                                if (next.has(p.id)) next.delete(p.id); else next.add(p.id);
+                                return next;
+                              })}
                               onMouseEnter={() => setHeroPersonaHover(p.id)}
                               onMouseLeave={() => setHeroPersonaHover(null)}
                               style={{
@@ -1561,7 +1569,7 @@ export default function Chat() {
                     const ms  = 300 + Math.floor(Math.random() * 200);
                     setMessages(prev => [...prev, {
                       id: `inject-${Date.now()}`, persona: 'edison', model: 'claude-sonnet-4-6', role: 'assistant', tok, ms,
-                      sources: ['CORPUS', 'proof360 signals'],
+                      sources: ['Analysis context', 'proof360 signals'],
                       content: `Got it — adding ${label.toLowerCase()} to the analysis context.`,
                     }]);
                   }}
@@ -1684,12 +1692,16 @@ export default function Chat() {
                         { id: 'edison',   label: 'Edison',   color: '#176577', note: 'Technical & execution · what to fix and in what order' },
                         { id: 'leonardo', label: 'Leonardo', color: '#6b4ea8', note: 'Strategy & market · fundraising and deal consequences' },
                       ].map(p => {
-                        const active = heroPersona === p.id;
+                        const active = heroPersonas.has(p.id);
                         return (
                           <div key={p.id} style={{ position: 'relative' }}>
                             <button
                               type="button"
-                              onClick={() => setHeroPersona(active ? null : p.id)}
+                              onClick={() => setHeroPersonas(prev => {
+                                const next = new Set(prev);
+                                if (next.has(p.id)) next.delete(p.id); else next.add(p.id);
+                                return next;
+                              })}
                               onMouseEnter={() => setHeroPersonaHover(p.id)}
                               onMouseLeave={() => setHeroPersonaHover(null)}
                               style={{
@@ -1846,7 +1858,7 @@ export default function Chat() {
                     model: 'claude-sonnet-4-6',
                     role: 'assistant',
                     tok, ms,
-                    sources: ['CORPUS', 'proof360 signals'],
+                    sources: ['Analysis context', 'proof360 signals'],
                     content: `Got it — adding ${label.toLowerCase()} to the analysis context.`,
                   }]);
                 }}
@@ -1901,7 +1913,7 @@ export default function Chat() {
                   model: 'claude-sonnet-4-6',
                   tok: 48 + Math.floor(Math.random() * 20),
                   ms: 310 + Math.floor(Math.random() * 200),
-                  sources: ['CORPUS', 'live-web'],
+                  sources: ['Live web', 'Domain signals'],
                   content: msgFn(domain),
                 };
                 setMessages(prev => [...prev, senseMsg]);
