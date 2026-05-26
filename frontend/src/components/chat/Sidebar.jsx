@@ -358,15 +358,16 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
           >
             {litCount === 0 && !collapsed && (
               <div style={{
-                padding: '2px 22px 12px',
+                padding: '2px 16px 12px',
                 fontFamily: '"Instrument Serif", Georgia, serif',
-                fontStyle: 'italic', fontSize: 11.5, color: tk.inkSoft,
+                fontStyle: 'italic', fontSize: 11.5, color: '#8e7caa',
                 lineHeight: 1.5,
               }}>
-                Tell us about your company in the chat — this fills in as we learn.
+                Chat to fill this in — it builds as we learn about you.
               </div>
             )}
-            {litCount > 0 && SPACES.map(s => (
+            {/* Ghost icons in collapsed mode even when empty — signals parallel structure */}
+            {(litCount > 0 || collapsed) && SPACES.map(s => (
               <ProjectionItem
                 key={s.id}
                 glyphKey={s.glyphKey} label={s.label} sublabel={YOURS_SUBS[s.id]}
