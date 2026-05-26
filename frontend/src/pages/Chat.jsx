@@ -1619,22 +1619,30 @@ export default function Chat() {
           />
         )}
 
-        {/* Projection panel — slides in when a space is selected */}
+        {/* Projection drawer — fixed overlay, chat stays visible behind */}
         {activeSpace !== 'chat' && (
-          <div style={{
-            width: 380, flexShrink: 0,
-            borderLeft: `1px solid ${tk.hairline}`,
-            overflowY: 'auto',
-            background: tk.bg,
-          }}>
-            <Projection
-              id={activeSpace}
-              company="hive"
-              hiveStage={hiveStage}
-              onBack={() => setActiveSpace('chat')}
-              t={t}
+          <>
+            <div
+              style={{ position: 'fixed', inset: 0, zIndex: 19, background: 'rgba(0,0,0,0.06)' }}
+              onClick={() => setActiveSpace('chat')}
             />
-          </div>
+            <div style={{
+              position: 'fixed', right: 0, top: 0, bottom: 0,
+              width: 420, zIndex: 20,
+              background: tk.bg,
+              borderLeft: `1px solid ${tk.hairline}`,
+              boxShadow: '-12px 0 40px rgba(0,0,0,0.09)',
+              overflowY: 'auto',
+            }}>
+              <Projection
+                id={activeSpace}
+                company="hive"
+                hiveStage={hiveStage}
+                onBack={() => setActiveSpace('chat')}
+                t={t}
+              />
+            </div>
+          </>
         )}
 
 

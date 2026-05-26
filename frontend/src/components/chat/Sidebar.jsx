@@ -107,7 +107,7 @@ function StageRail({ stages, activeIdx, onSelect, accent }) {
   );
 }
 
-function AccordionSection({ title, accent, count, total, open, onToggle, collapsed, stageRail, children }) {
+function AccordionSection({ title, accent, count, total, open, onToggle, collapsed, stageRail, tag, children }) {
   return (
     <div style={{ padding: '10px 0 4px' }}>
       {!collapsed && (
@@ -125,8 +125,17 @@ function AccordionSection({ title, accent, count, total, open, onToggle, collaps
               fontSize: 9.5, fontWeight: 600, color: accent ?? '#8c8499',
               letterSpacing: '0.22em', textTransform: 'uppercase',
               whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-              maxWidth: stageRail ? 76 : 130,
+              maxWidth: stageRail ? 76 : 110,
             }}>{title}</span>
+            {tag && (
+              <span style={{
+                fontSize: 8, fontWeight: 700, letterSpacing: '0.12em',
+                textTransform: 'uppercase', color: accent,
+                background: `${accent}18`, borderRadius: 4,
+                padding: '1px 5px', flexShrink: 0,
+                fontFamily: '"IBM Plex Mono", monospace',
+              }}>{tag}</span>
+            )}
             {stageRail}
           </div>
           <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
@@ -153,7 +162,7 @@ function AccordionSection({ title, accent, count, total, open, onToggle, collaps
   );
 }
 
-export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, litTiles, browserTabs = [], onInject, sessionTok, sessionModels, hiveStage: hiveStageFromParent, onHiveStageChange, noLogo, t }) {
+export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, litTiles, browserTabs = [], onInject, sessionTok, sessionModels, hiveStage: hiveStageFromParent, onHiveStageChange, noLogo, yourCompanyName, t }) {
   const tk = tokens(t.theme);
   const [demoOpen, setDemoOpen]           = useState(true);
   const [hiveStageInternal, setHiveStageInternal] = useState(1);
@@ -242,9 +251,10 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
 
       <div style={{ overflowY: 'auto', flex: 1 }}>
 
-        {/* ── Hive & Co — reference with stage rail ── */}
+        {/* ── Hive & Co — demo company with stage rail ── */}
         <AccordionSection
           title="Hive & Co"
+          tag="demo"
           accent={tk.umber}
           count={hiveCount} total={6}
           open={demoOpen} onToggle={() => setDemoOpen(o => !o)}
@@ -292,15 +302,25 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
           ))}
         </AccordionSection>
 
-        {/* ── Per-tab sections ── */}
+        {/* ── Your company section ── */}
         {userTabs.length === 0 ? (
           <AccordionSection
-            title="Yours"
-            accent={tk.plum}
+            title={yourCompanyName ?? 'Your company'}
+            accent={litCount > 0 ? tk.plum : '#b8b1c0'}
             count={litCount} total={6}
             open={isSectionOpen('__yours')} onToggle={() => toggleSection('__yours')}
             collapsed={collapsed}
           >
+            {litCount === 0 && !collapsed && (
+              <div style={{
+                padding: '2px 22px 10px',
+                fontFamily: '"Instrument Serif", Georgia, serif',
+                fontStyle: 'italic', fontSize: 11.5, color: tk.inkSoft,
+                lineHeight: 1.5,
+              }}>
+                Tell us about your company in the chat — this fills in as we learn.
+              </div>
+            )}
             {SPACES.map(s => (
               <ProjectionItem
                 key={s.id}
