@@ -28,19 +28,19 @@ const DOMAIN_META = [
 const DISCOVERY_VENDORS = [
   {
     logoUrl: awsUrl, logoH: 18, alt: 'AWS',
-    value: '$220k+ available',
-    programs: ['AWS Activate', 'ISV Accelerate', 'Marketplace', 'Partner Network', 'Generative AI', 'EdStart', 'Energy', 'Impact Computing', 'Startups', 'Credits'],
+    value: '$220k+ to build without burning cash',
+    programs: ['Activate (credits)', 'ISV co-sell', 'Marketplace listing', 'Partner Network', 'Gen AI track', 'EdStart', 'Energy', 'Impact Computing', 'Startup pack', 'Direct credits'],
   },
   {
     logoUrl: microsoftUrl, logoH: 14, alt: 'Microsoft',
-    value: '$150k unclaimed',
-    programs: ['M365 for Startups', 'Azure Credits', 'Partner Network', 'ISV Success', 'AI Cloud Partner', 'Marketplace'],
+    value: 'Sell into enterprise through Microsoft',
+    programs: ['Startups (M365 free)', 'Azure credits', 'Partner Network', 'ISV co-sell', 'AI Cloud Partner', 'Marketplace listing'],
   },
-  { logoUrl: cloudflareUrl, logoH: 16, alt: 'Cloudflare', value: 'Edge + Zero Trust', sub: 'Startup free' },
-  { logoUrl: vantaUrl,      logoH: 16, alt: 'Vanta',      value: 'SOC 2 fast track',  sub: '90-day path' },
-  { logoUrl: ciscoUrl,      logoH: 14, alt: 'Cisco',       value: 'MSP program',        sub: 'Partner track' },
-  { logoUrl: austbrokersUrl,       logoH: 16, alt: 'AustBrokers',       value: 'Cyber insurance',  sub: 'Fast-track coverage' },
-  { logoUrl: wholesaleInvestorUrl, logoH: 14, alt: 'Wholesale Investor', value: 'Investor access',  sub: 'Accredited network' },
+  { logoUrl: cloudflareUrl, logoH: 16, alt: 'Cloudflare', value: 'Enterprise security posture, zero cost',    sub: 'What DD teams check — free for startups' },
+  { logoUrl: vantaUrl,      logoH: 16, alt: 'Vanta',      value: 'SOC 2 — the cert that unlocks B2B deals',   sub: '90-day automated path to certified' },
+  { logoUrl: ciscoUrl,      logoH: 14, alt: 'Cisco',       value: 'Security stack enterprise buyers trust',    sub: 'Startup partner access' },
+  { logoUrl: austbrokersUrl,       logoH: 16, alt: 'AustBrokers',       value: 'Cyber cover enterprise procurement requires', sub: 'AU specialist — fast-track quote' },
+  { logoUrl: wholesaleInvestorUrl, logoH: 14, alt: 'Wholesale Investor', value: '10,000+ AU accredited investors',              sub: 'When your posture is ready to raise' },
 ];
 
 function DomainRow({ id, label, userScore, tk }) {
