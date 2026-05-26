@@ -3,23 +3,17 @@ import { tokens, PERSONA, personaColor } from '../../tokens.js';
 
 const VENDOR_KEYWORDS = [
   { pattern: /\b(AWS|Amazon Web Services|AWS Activate|AWS Marketplace)\b/i, alt: 'AWS' },
-  { pattern: /\b(Microsoft|Azure|Microsoft 365|Founders Hub)\b/i,           alt: 'Microsoft' },
-  { pattern: /\bCloudflare\b/i,                                              alt: 'Cloudflare' },
   { pattern: /\bVanta\b/i,                                                   alt: 'Vanta' },
   { pattern: /\bCisco\b/i,                                                   alt: 'Cisco' },
-  { pattern: /\b(Austbrokers|AustBrokers|Cyberpro)\b/i,                      alt: 'AustBrokers' },
-  { pattern: /\bWholesale Investor\b/i,                                      alt: 'Wholesale Investor' },
-  { pattern: /\b(EO Sydney|Entrepreneurs' Organisation)\b/i,                 alt: 'EO Sydney' },
-  { pattern: /\bAustrade\b/i,                                                alt: 'Austrade' },
-  { pattern: /\bRimon\b/i,                                                   alt: 'Rimon' },
-  { pattern: /\bPrescient Security\b/i,                                      alt: 'Prescient Security' },
-  { pattern: /\bArctic Wolf\b/i,                                             alt: 'Arctic Wolf' },
-  { pattern: /\bCognitive View\b/i,                                          alt: 'Cognitive View' },
-  { pattern: /\bAI Expert Group\b/i,                                         alt: 'AU AI Expert Group' },
+  { pattern: /\b(Ingram Micro|Ingram)\b/i,                                   alt: 'Ingram Micro' },
   { pattern: /\bStripe\b/i,                                                  alt: 'Stripe' },
-  { pattern: /\bMetronome\b/i,                                               alt: 'Metronome' },
-  { pattern: /\b(UnityPac|Unity Assurance)\b/i,                             alt: 'UnityPac' },
-  { pattern: /\bEnterprise S[Gg]\b/i,                                        alt: 'Enterprise SG' },
+  { pattern: /\b(Microsoft|Azure|Microsoft 365|Founders Hub)\b/i,           alt: 'Microsoft' },
+  { pattern: /\bNVIDIA\b/i,                                                  alt: 'NVIDIA' },
+  { pattern: /\bPerplexity\b/i,                                              alt: 'Perplexity' },
+  { pattern: /\bGemini\b/i,                                                  alt: 'Gemini' },
+  { pattern: /\b(Anthropic|Claude)\b/i,                                      alt: 'Anthropic' },
+  { pattern: /\bXero\b/i,                                                    alt: 'Xero' },
+  { pattern: /\bHubSpot\b/i,                                                 alt: 'HubSpot' },
 ];
 
 function detectVendors(content) {

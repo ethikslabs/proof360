@@ -1,22 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import awsUrl from '../OperationalField/logos/aws.svg';
-import microsoftUrl from '../OperationalField/logos/microsoft.svg';
-import cloudflareUrl from '../OperationalField/logos/cloudflare.svg';
 import vantaUrl from '../OperationalField/logos/vanta.svg';
 import ciscoUrl from '../OperationalField/logos/cisco.svg';
-import austbrokersUrl from '../OperationalField/logos/austbrokers-cyberpro.svg';
-import wholesaleInvestorUrl from '../OperationalField/logos/wholesale-investor.svg';
-import eoSydneyUrl from '../OperationalField/logos/eo-sydney.svg';
-import austradeUrl from '../OperationalField/logos/austrade.svg';
-import rimonUrl from '../OperationalField/logos/rimon.svg';
-import prescientSecurityUrl from '../OperationalField/logos/prescient-security.svg';
-import arcticWolfUrl from '../OperationalField/logos/arctic-wolf.svg';
-import cognitiveViewUrl from '../OperationalField/logos/cognitive-view.svg';
-import auAiExpertGroupUrl from '../OperationalField/logos/au-ai-expert-group.svg';
+import ingramUrl from '../OperationalField/logos/ingram.svg';
 import stripeUrl from '../OperationalField/logos/stripe.svg';
-import metronomeUrl from '../OperationalField/logos/metronome.svg';
-import unitypacUrl from '../OperationalField/logos/unitypac.svg';
-import enterpriseSgUrl from '../OperationalField/logos/enterprise-sg.svg';
+import microsoftUrl from '../OperationalField/logos/microsoft.svg';
+import nvidiaUrl from '../OperationalField/logos/nvidia.svg';
+import perplexityUrl from '../OperationalField/logos/perplexity.svg';
+import geminiUrl from '../OperationalField/logos/gemini.svg';
+import anthropicUrl from '../OperationalField/logos/anthropic.svg';
+import xeroUrl from '../OperationalField/logos/xero.svg';
+import hubspotUrl from '../OperationalField/logos/hubspot.svg';
 
 const HIVE_SCORES = {
   identity:   85,
@@ -38,51 +32,80 @@ const DOMAIN_META = [
 
 const DISCOVERY_VENDORS = [
   {
-    logoUrl: awsUrl, logoH: 18, alt: 'AWS',
-    value: '$220k+ to build without burning cash',
-    chatQ: 'Help me figure out which AWS programs I qualify for and how to apply.',
+    logoUrl: awsUrl, logoH: 22, alt: 'AWS',
+    value: '$220k+ in credits — most founders claim a fraction',
+    chatQ: 'Which AWS programs do I qualify for right now and how do I apply?',
     programs: [
-      { label: 'Activate (credits)',  ask: 'What is AWS Activate and how much credit could I get for my stage?' },
-      { label: 'ISV co-sell',         ask: 'How does the AWS ISV co-sell program work and is it right for me?' },
-      { label: 'Marketplace listing', ask: 'What does it take to get listed on the AWS Marketplace?' },
-      { label: 'Partner Network',     ask: 'What does the AWS Partner Network give me as a startup?' },
-      { label: 'Gen AI track',        ask: 'Tell me about the AWS Generative AI startup track.' },
-      { label: 'EdStart',             ask: 'What is AWS EdStart and do I qualify?' },
-      { label: 'Energy',              ask: 'What does the AWS Energy program offer?' },
-      { label: 'Impact Computing',    ask: 'What is the AWS Impact Computing program?' },
-      { label: 'Startup pack',        ask: 'What is included in the AWS Startup pack?' },
-      { label: 'Direct credits',      ask: 'How do I apply for direct AWS credits?' },
+      { label: 'Activate',          ask: 'What is AWS Activate and how much credit could I get for my stage?' },
+      { label: 'ISV co-sell',       ask: 'How does the AWS ISV co-sell program work and is it right for me?' },
+      { label: 'Marketplace',       ask: 'What does it take to get listed on the AWS Marketplace?' },
+      { label: 'Partner Network',   ask: 'What does the AWS Partner Network give me as a startup?' },
+      { label: 'Gen AI track',      ask: 'Tell me about the AWS Generative AI startup track.' },
+      { label: 'Startup pack',      ask: 'What is included in the AWS Startup pack?' },
+      { label: 'Direct credits',    ask: 'How do I apply for direct AWS credits outside of Activate?' },
     ],
   },
+  { logoUrl: vantaUrl,      logoH: 22, alt: 'Vanta',
+    value: 'SOC 2 — the cert that unlocks B2B deals',
+    sub: '90-day automated path to certified',
+    chatQ: 'Walk me through the 90-day SOC 2 path with Vanta — what it costs and what it unblocks.' },
+  { logoUrl: ciscoUrl,      logoH: 20, alt: 'Cisco',
+    value: 'Security stack enterprise buyers recognise on sight',
+    sub: 'Startup partner access via Ingram',
+    chatQ: 'How does Cisco help startups build a security posture that enterprise procurement trusts?' },
   {
-    logoUrl: microsoftUrl, logoH: 14, alt: 'Microsoft',
-    value: 'Sell into enterprise through Microsoft',
+    logoUrl: ingramUrl, logoH: 18, alt: 'Ingram Micro',
+    value: 'The distribution layer behind every major vendor',
+    sub: '23,000+ products · AU reseller channel',
+    chatQ: 'How does Ingram Micro work and what can I access through the reseller channel?',
+    programs: [
+      { label: 'Cisco via Ingram',      ask: 'How do I access Cisco products and partner pricing through Ingram Micro?' },
+      { label: 'Microsoft licensing',   ask: 'How does Ingram handle Microsoft licensing and what does that mean for my business?' },
+      { label: 'Cloud marketplace',     ask: 'What is the Ingram Micro Cloud marketplace and which SaaS products are available?' },
+      { label: 'Reseller onboarding',   ask: 'How do I become an Ingram Micro reseller and what does that unlock?' },
+    ],
+  },
+  { logoUrl: stripeUrl,     logoH: 26, alt: 'Stripe',
+    value: 'Payments infrastructure investors expect to see',
+    sub: 'Stripe Atlas · Capital · Revenue Recognition',
+    chatQ: 'What Stripe products matter most for a scaling startup — Atlas, Capital, or Revenue Recognition?' },
+  {
+    logoUrl: microsoftUrl, logoH: 20, alt: 'Microsoft',
+    value: 'Sell into enterprise through the Microsoft channel',
     chatQ: 'Which Microsoft programs should I be in to access enterprise customers and get credits?',
     programs: [
-      { label: 'Founders Hub',    ask: 'What does Microsoft Founders Hub give me and how do I join?' },
-      { label: 'Azure credits',   ask: 'How much Azure credit can I get as a startup and how do I claim it?' },
-      { label: 'Partner Network', ask: 'What does joining the Microsoft Partner Network unlock?' },
-      { label: 'ISV co-sell',     ask: 'How does Microsoft ISV co-sell work — can it help me close enterprise deals?' },
+      { label: 'Founders Hub',     ask: 'What does Microsoft Founders Hub give me and how do I join?' },
+      { label: 'Azure credits',    ask: 'How much Azure credit can I get as a startup and how do I claim it?' },
+      { label: 'Partner Network',  ask: 'What does joining the Microsoft Partner Network unlock?' },
+      { label: 'ISV co-sell',      ask: 'How does Microsoft ISV co-sell work — can it help me close enterprise deals?' },
       { label: 'AI Cloud Partner', ask: 'What is the Microsoft AI Cloud Partner program?' },
-      { label: 'Marketplace',     ask: 'What does getting listed on the Microsoft Marketplace do for my sales?' },
+      { label: 'Marketplace',      ask: 'What does getting listed on the Microsoft Marketplace do for my sales?' },
     ],
   },
-  { logoUrl: cloudflareUrl, logoH: 22, alt: 'Cloudflare', value: 'Enterprise security posture, zero cost',    sub: 'What DD teams check — free for startups',    chatQ: 'How do I get Cloudflare free as a startup and what does it do for my security posture?' },
-  { logoUrl: vantaUrl,      logoH: 22, alt: 'Vanta',      value: 'SOC 2 — the cert that unlocks B2B deals',   sub: '90-day automated path to certified',          chatQ: 'Walk me through the 90-day SOC 2 path with Vanta and what it costs.' },
-  { logoUrl: ciscoUrl,      logoH: 20, alt: 'Cisco',       value: 'Security stack enterprise buyers trust',    sub: 'Startup partner access',                     chatQ: 'How does Cisco help startups build a security stack that enterprise buyers trust?' },
-  { logoUrl: austbrokersUrl,       logoH: 22, alt: 'AustBrokers',       value: 'Cyber cover enterprise procurement requires', sub: 'AU specialist — fast-track quote',   chatQ: 'What cyber insurance do I need before enterprise procurement will sign off, and how fast can I get it?' },
-  { logoUrl: wholesaleInvestorUrl, logoH: 20, alt: 'Wholesale Investor', value: '10,000+ AU accredited investors',              sub: 'When your posture is ready to raise', chatQ: 'How do I connect with AU accredited investors through Wholesale Investor, and what do I need to have in place first?' },
-  { logoUrl: eoSydneyUrl,          logoH: 22, alt: 'EO Sydney',          value: 'Peer network that opens doors — globally',      sub: 'Entrepreneurs\' Organisation Sydney',  chatQ: 'What does EO Sydney offer founders and how do I get involved?' },
-  { logoUrl: austradeUrl,          logoH: 22, alt: 'Austrade',           value: 'Government grants to take your product global',  sub: 'AU Trade & Investment Commission',    chatQ: 'What Austrade programs are available for AU tech founders looking to export?' },
-  { logoUrl: rimonUrl,             logoH: 26, alt: 'Rimon',              value: 'Startup legal without the big-firm overhead',    sub: 'Corporate, IP & investment law',      chatQ: 'How can Rimon Advisory help me with startup legal — term sheets, IP, cap table?' },
-  { logoUrl: prescientSecurityUrl, logoH: 26, alt: 'Prescient Security', value: 'Independent audit that unlocks enterprise trust',  sub: 'SOC 2, ISO 27001, pen testing',       chatQ: 'When do I need an independent security audit and what does Prescient Security do?' },
-  { logoUrl: arcticWolfUrl,        logoH: 28, alt: 'Arctic Wolf',        value: '24/7 security monitoring — without a SOC team',  sub: 'Managed detection & response',           chatQ: 'What does Arctic Wolf provide and when does a scaling startup need managed security?' },
-  { logoUrl: cognitiveViewUrl,     logoH: 24, alt: 'Cognitive View',     value: 'AI governance that satisfies investor DD',        sub: 'AI risk, compliance & monitoring',       chatQ: 'What does Cognitive View do and when do I need AI governance tooling?' },
-  { logoUrl: auAiExpertGroupUrl,   logoH: 26, alt: 'AU AI Expert Group', value: 'Stay ahead of AU AI regulation',                  sub: 'Dept. of Industry advisory body',        chatQ: 'What is Australia\'s AI Expert Group and how does its guidance affect my product or fundraising?' },
-  { logoUrl: stripeUrl,            logoH: 26, alt: 'Stripe',             value: 'The payments layer investors expect to see',      sub: 'Stripe Atlas, Capital & Revenue Rec',    chatQ: 'What Stripe products matter most for a scaling startup — Atlas, Capital, or Revenue Recognition?' },
-  { logoUrl: metronomeUrl,         logoH: 24, alt: 'Metronome',          value: 'Usage-based billing without the eng headcount',  sub: 'Acquired by Stripe',                     chatQ: 'What is Metronome and when does a startup need usage-based billing infrastructure?' },
-  { logoUrl: unitypacUrl,          logoH: 26, alt: 'UnityPac',           value: 'Singapore entity, audit and tax — done right',   sub: 'SG launch · audit · corporate services',    chatQ: 'What do I need to set up a legal entity in Singapore and how does Unity Assurance PAC help?' },
-  { logoUrl: enterpriseSgUrl,      logoH: 26, alt: 'Enterprise SG',      value: 'SG government grants to scale internationally',  sub: 'Market access · grants · global expansion', chatQ: 'What Enterprise Singapore programs are available for a company looking to use Singapore as a launchpad?' },
+  { logoUrl: nvidiaUrl,     logoH: 20, alt: 'NVIDIA',
+    value: 'GPU compute and AI inference at scale',
+    sub: 'NIM · DGX Cloud · Inception program',
+    chatQ: 'What NVIDIA programs exist for AI startups — NIM API, Inception, or DGX Cloud?' },
+  { logoUrl: perplexityUrl, logoH: 22, alt: 'Perplexity',
+    value: 'Live web intelligence — not cached knowledge',
+    sub: 'Real-time retrieval for research and diligence',
+    chatQ: 'How does Perplexity compare to standard LLMs for due diligence research and live market signals?' },
+  { logoUrl: geminiUrl,     logoH: 20, alt: 'Gemini',
+    value: 'Google\'s frontier model — long context, multimodal',
+    sub: 'Document synthesis · 1M token context',
+    chatQ: 'Where does Gemini fit in an AI stack — what does it do that other models don\'t?' },
+  { logoUrl: anthropicUrl,  logoH: 22, alt: 'Anthropic',
+    value: 'Claude — enterprise reasoning and trust',
+    sub: 'Constitutional AI · safety-first deployment',
+    chatQ: 'What makes Anthropic Claude different for enterprise deployments compared to other frontier models?' },
+  { logoUrl: xeroUrl,       logoH: 22, alt: 'Xero',
+    value: 'Financial truth that investor DD actually trusts',
+    sub: 'Clean accounts signal fundraise-readiness',
+    chatQ: 'What does a founder need to have clean in Xero before investor due diligence starts?' },
+  { logoUrl: hubspotUrl,    logoH: 22, alt: 'HubSpot',
+    value: 'CRM that tells the revenue story to investors',
+    sub: 'Pipeline · MRR evidence · growth metrics',
+    chatQ: 'What HubSpot data do investors ask for in due diligence and how do I get it ready?' },
 ];
 
 function DomainRow({ id, label, userScore, tk }) {
