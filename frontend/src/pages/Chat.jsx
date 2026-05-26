@@ -4,8 +4,9 @@ import { FloatQ }        from '../components/chat/FloatQ.jsx';
 import { Bubble }        from '../components/chat/Bubble.jsx';
 import { ThinkingStream } from '../components/chat/ThinkingStream.jsx';
 import { MorningBrief }  from '../components/chat/MorningBrief.jsx';
-import { TrustRail }           from '../components/chat/TrustRail.jsx';
 import { MachineDrawer }       from '../components/chat/MachineDrawer.jsx';
+import { Sidebar }             from '../components/chat/Sidebar.jsx';
+import { Projection }          from '../components/chat/Projections.jsx';
 import { GraphView }           from '../components/chat/GraphView.jsx';
 import { ProvenanceAccordion } from '../components/chat/ProvenanceAccordion.jsx';
 import { DrawerStats }         from '../components/chat/DrawerStats.jsx';
@@ -866,6 +867,10 @@ export default function Chat() {
   const [inferenceError,  setInferenceError]  = useState(false);
   const [analysisProfile, setAnalysisProfile] = useState('investor');
   const [logoCard,        setLogoCard]        = useState(null);
+  const [activeSpace,     setActiveSpace]     = useState('chat');
+  const [sidebarCollapsed,setSidebarCollapsed]= useState(true);
+  const [hiveStage,       setHiveStage]       = useState(1);
+  const litTiles = useMemo(() => ({ investor: false, vendors: false, aws: false, microsoft: false, posture: false, spv: false }), []);
   const [showIntro,       setShowIntro]       = useState(
     () => !new URLSearchParams(window.location.search).has('demo')
   );
@@ -1312,12 +1317,6 @@ export default function Chat() {
 
       <OperationalField onLogoClick={setLogoCard} active={!showIntro} />
 
-      <TrustRail
-        trustPhase={trustPhase}
-        companyData={companyData}
-        inferenceError={inferenceError}
-      />
-
       <main style={{ flex: 1, display: 'flex', minWidth: 0, overflow: 'hidden' }}>
 
         {/* Chat pane — shrinks to make room for preview */}
@@ -1598,6 +1597,52 @@ export default function Chat() {
             tk={tk}
           />
         )}
+
+        {/* Projection panel — slides in when a space is selected */}
+        {activeSpace !== 'chat' && (
+          <div style={{
+            width: 380, flexShrink: 0,
+            borderLeft: `1px solid ${tk.hairline}`,
+            overflowY: 'auto',
+            background: tk.bg,
+          }}>
+            <Projection
+              id={activeSpace}
+              company="hive"
+              hiveStage={hiveStage}
+              onBack={() => setActiveSpace('chat')}
+              t={t}
+            />
+          </div>
+        )}
+
+        {/* Right icon rail — sections live here */}
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(c => !c)}
+          activeSpace={activeSpace}
+          onSwitch={(id, ctx) => {
+            setActiveSpace(prev => prev === id ? 'chat' : id);
+            if (ctx?.stage !== undefined) setHiveStage(ctx.stage);
+          }}
+          litTiles={litTiles}
+          browserTabs={browserTabs}
+          onInject={({ persona, content }) => {
+            setMessages(prev => [...prev, {
+              id: `stage-${Date.now()}`,
+              persona, content,
+              role: 'assistant',
+              model: 'claude-sonnet-4-6',
+              tok: 0, ms: 0,
+            }]);
+          }}
+          hiveStage={hiveStage}
+          onHiveStageChange={setHiveStage}
+          sessionTok={0}
+          sessionModels={[]}
+          noLogo
+          t={t}
+        />
 
       </main>
 

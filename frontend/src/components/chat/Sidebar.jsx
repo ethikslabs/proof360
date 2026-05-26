@@ -152,11 +152,13 @@ function AccordionSection({ title, accent, count, total, open, onToggle, collaps
   );
 }
 
-export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, litTiles, browserTabs = [], onInject, sessionTok, sessionModels, t }) {
+export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, litTiles, browserTabs = [], onInject, sessionTok, sessionModels, hiveStage: hiveStageFromParent, onHiveStageChange, noLogo, t }) {
   const tk = tokens(t.theme);
-  const [demoOpen, setDemoOpen]         = useState(true);
-  const [hiveStage, setHiveStage]       = useState(1);
-  const [openSections, setOpenSections] = useState({});
+  const [demoOpen, setDemoOpen]           = useState(true);
+  const [hiveStageInternal, setHiveStageInternal] = useState(1);
+  const [openSections, setOpenSections]   = useState({});
+
+  const hiveStage = hiveStageFromParent ?? hiveStageInternal;
 
   const userTabs = browserTabs.filter(tab => !tab.pinned);
 
@@ -165,7 +167,8 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
 
   function handleStageSelect(idx) {
     if (idx === hiveStage) return;
-    setHiveStage(idx);
+    setHiveStageInternal(idx);
+    onHiveStageChange?.(idx);
     const stage = HIVE_STAGES[idx];
     onInject?.({
       persona: stage.stageMsg.persona,
@@ -181,20 +184,20 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
     <aside style={{
       width: collapsed ? 56 : 240,
       flexShrink: 0,
-      borderRight: `1px solid ${tk.hairline}`,
+      borderLeft: `1px solid ${tk.hairline}`,
       background: `${tk.surfaceLo}90`,
       display: 'flex', flexDirection: 'column',
       transition: 'width 0.28s cubic-bezier(0.32, 0.72, 0, 1)',
       overflow: 'hidden',
     }}>
 
-      {/* Logo + collapse */}
+      {/* Collapse toggle (logo hidden when noLogo) */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: collapsed ? '20px 0' : '20px 18px 18px',
         borderBottom: `1px solid ${tk.hairline}`,
       }}>
-        {!collapsed && (
+        {!collapsed && !noLogo && (
           <span style={{
             fontFamily: '"Instrument Serif", Georgia, serif',
             fontSize: 21, color: tk.ink, letterSpacing: '-0.015em',
@@ -209,10 +212,10 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
             background: 'none', border: 'none', cursor: 'pointer',
             color: tk.inkSoft, padding: 4, lineHeight: 1,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            width: collapsed ? '100%' : 'auto',
+            width: (collapsed || noLogo) ? '100%' : 'auto',
           }}>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d={collapsed ? 'M5 3 L10 7 L5 11' : 'M9 3 L4 7 L9 11'}
+            <path d={collapsed ? 'M9 3 L4 7 L9 11' : 'M5 3 L10 7 L5 11'}
                   stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
