@@ -3,6 +3,8 @@ import awsUrl from '../OperationalField/logos/aws.svg';
 import microsoftUrl from '../OperationalField/logos/microsoft.svg';
 import cloudflareUrl from '../OperationalField/logos/cloudflare.svg';
 import vantaUrl from '../OperationalField/logos/vanta.svg';
+import austbrokersUrl from '../OperationalField/logos/austbrokers-cyberpro.svg';
+import wholesaleInvestorUrl from '../OperationalField/logos/wholesale-investor.svg';
 
 const HIVE_SCORES = {
   identity:   85,
@@ -23,10 +25,12 @@ const DOMAIN_META = [
 ];
 
 const DISCOVERY_VENDORS = [
-  { logoUrl: awsUrl,        logoH: 18, alt: 'AWS',        value: '$220k+ available',    sub: '10 programs' },
-  { logoUrl: microsoftUrl,  logoH: 14, alt: 'Microsoft',  value: '$150k unclaimed',     sub: '6 programs' },
-  { logoUrl: vantaUrl,      logoH: 16, alt: 'Vanta',      value: 'SOC 2 fast track',    sub: '90-day path' },
-  { logoUrl: cloudflareUrl, logoH: 16, alt: 'Cloudflare', value: 'Edge + Zero Trust',   sub: 'Startup free' },
+  { logoUrl: awsUrl,               logoH: 18, alt: 'AWS',                value: '$220k+ available',  sub: '10 programs' },
+  { logoUrl: microsoftUrl,         logoH: 14, alt: 'Microsoft',          value: '$150k unclaimed',   sub: '6 programs' },
+  { logoUrl: vantaUrl,             logoH: 16, alt: 'Vanta',              value: 'SOC 2 fast track',  sub: '90-day path' },
+  { logoUrl: cloudflareUrl,        logoH: 16, alt: 'Cloudflare',         value: 'Edge + Zero Trust', sub: 'Startup free' },
+  { logoUrl: austbrokersUrl,       logoH: 16, alt: 'Insurance',          value: 'Cyber insurance',   sub: 'Fast-track coverage' },
+  { logoUrl: wholesaleInvestorUrl, logoH: 14, alt: 'Wholesale Investor', value: 'Investor access',   sub: 'Accredited network' },
 ];
 
 function DomainRow({ id, label, userScore, tk }) {

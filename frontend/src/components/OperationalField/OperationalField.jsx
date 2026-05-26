@@ -28,7 +28,7 @@ const logoMap = {
 const DURATIONS = { entering: 1200, holding: 3500, exiting: 800 };
 const SCALE = 1.4;
 
-export function OperationalField({ onLogoClick, active = true }) {
+export function OperationalField({ onLogoClick, active = true, rightOffset = 0 }) {
   const [activeIdx, setActiveIdx] = useState(0);
   const [spotPhase, setSpotPhase] = useState('entering');
 
@@ -55,7 +55,7 @@ export function OperationalField({ onLogoClick, active = true }) {
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 4,
+      position: 'fixed', top: 0, right: rightOffset, bottom: 0, left: 0, zIndex: 4,
       overflow: 'hidden', pointerEvents: 'none',
     }}>
       {fieldConfig.map((entry, idx) => {

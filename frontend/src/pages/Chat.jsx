@@ -1420,7 +1420,7 @@ export default function Chat() {
         requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' }));
       }} />}
 
-      <OperationalField onLogoClick={setLogoCard} active />
+      <OperationalField onLogoClick={setLogoCard} active rightOffset={previewOpen ? 0 : 252} />
 
       <main style={{ flex: 1, display: 'flex', minWidth: 0, overflow: 'hidden' }}>
 
