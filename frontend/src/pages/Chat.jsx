@@ -11,7 +11,6 @@ import { GraphView }           from '../components/chat/GraphView.jsx';
 import { ProvenanceAccordion } from '../components/chat/ProvenanceAccordion.jsx';
 import { DrawerStats }         from '../components/chat/DrawerStats.jsx';
 import { EscalationCTA }       from '../components/chat/EscalationCTA.jsx';
-import { ProfileSelector }     from '../components/chat/ProfileSelector.jsx';
 import { ChatInput }           from '../components/chat/ChatInput.jsx';
 import { useTrustPhase }       from '../hooks/useTrustPhase.js';
 import { deriveGraphNodes }    from '../utils/deriveGraphNodes.js';
@@ -1576,16 +1575,9 @@ export default function Chat() {
                 }}
                 disabled={!inputReady || isProcessing}
                 messages={messages}
+                mode={analysisProfile}
+                onModeChange={setAnalysisProfile}
               />
-              <div style={{ marginTop: 10 }}>
-                <ProfileSelector
-                  value={analysisProfile}
-                  onChange={(profileId, subItem) => {
-                    setAnalysisProfile(profileId);
-                    if (subItem) setInputValue(subItem);
-                  }}
-                />
-              </div>
             </div>
           </div>
         </div>
