@@ -978,26 +978,8 @@ export default function Chat() {
       setThinkingSteps([]);
       setActiveStageId(DEFAULT_STAGE_ID);
       setCompanyData(null);
-      // Ambient exchange — room already in motion before user arrives
-      await sleep(500);
-      const ambientSpeed = 5; // fast — this was already happening
-      for (const msg of AMBIENT_EXCHANGE) {
-        if (cancelled) return;
-        setMessages(prev => [...prev, { ...msg, content: '' }]);
-        if (speedMs === 0) {
-          setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, content: msg.content } : m));
-        } else {
-          for (let i = 1; i <= msg.content.length; i++) {
-            if (cancelled) return;
-            await sleep(ambientSpeed);
-            setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, content: msg.content.slice(0, i) } : m));
-          }
-        }
-        await sleep(320);
-      }
-
-      // Sophia notices the arrival — brief pause, then turns
-      await sleep(600);
+      // Sophia opens — brief pause then she speaks
+      await sleep(400);
       const introMsg = { id: 'sophia-intro', persona: 'sofia', model: 'claude-sonnet-4-6', tok: 148, ms: 740, content: SOPHIA_INTRO };
       setMessages(prev => [...prev, { ...introMsg, content: '' }]);
       if (speedMs === 0) {
@@ -1491,39 +1473,6 @@ export default function Chat() {
                 <MorningBrief onPullSignal={pullSignal} t={t} />
               ) : (
                 <>
-                  {/* Hero — collapses once a conversation starts */}
-                  <div style={{
-                    maxHeight: (phase === 'active' || phase === 'journey-setup') ? 0 : 400,
-                    opacity: (phase === 'active' || phase === 'journey-setup') ? 0 : 1, overflow: 'hidden',
-                    transition: 'opacity 0.7s ease, max-height 0.9s ease',
-                    marginBottom: (phase === 'active' || phase === 'journey-setup') ? 0 : 36, paddingTop: 36,
-                  }}>
-                    <p style={{
-                      fontFamily: '"IBM Plex Mono", monospace',
-                      fontSize: 10, color: tk.inkSoft,
-                      letterSpacing: '0.2em', textTransform: 'uppercase',
-                      margin: '0 0 18px',
-                      animation: 'fadeSlideUp 0.5s ease both',
-                    }}>You&apos;re in the right room.</p>
-                    <h1 style={{
-                      fontFamily: headingFamily, fontWeight: headingWeight,
-                      fontSize: 'clamp(26px, 3.4vw, 42px)',
-                      color: tk.ink, letterSpacing: '-0.018em', lineHeight: 1.18,
-                      margin: '0 0 16px',
-                      animation: 'fadeSlideUp 0.6s ease 0.1s both',
-                    }}>
-                      Founders, <em>investors</em> and <em>enterprise buyers</em> don&apos;t always speak the same language.
-                    </h1>
-                    <p style={{
-                      fontFamily: '"Instrument Serif", Georgia, serif',
-                      fontStyle: 'italic', fontSize: 17, color: tk.inkMid, lineHeight: 1.6,
-                      margin: '0 0 10px', maxWidth: 480,
-                      animation: 'fadeSlideUp 0.6s ease 0.2s both',
-                    }}>
-                      That gap costs deals. Sophia, Leonardo, and Edison are here to close it.
-                    </p>
-                  </div>
-
                   {/* Hive & Co stage selector — shown only once journey is running */}
                   {intent === 'browse' && phase === 'active' && (
                     <div style={{ marginBottom: 24 }}>
