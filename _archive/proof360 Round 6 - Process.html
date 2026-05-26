@@ -1,0 +1,1173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1440,initial-scale=1" />
+<title>proof360 — Process · acmecorp.io</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Spectral:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#e8e1d0; --paper-2:#efe9da; --paper-3:#ddd4be;
+    --ink:#1a1a17; --ink-2:#4a463e; --ink-3:#7a7468;
+    --rule:#c8bfa8; --rule-2:#b7ac90;
+    --teal:#2d7f6e; --teal-deep:#1f5d50; --teal-soft:#d9e9e3;
+    --crit:#a0392a; --high:#b06d24; --med:#7a6b2a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:13px;line-height:1.5}
+  .serif{font-family:'Spectral',Georgia,serif}
+  .frame{max-width:1440px;margin:0 auto}
+
+  /* ───────── chrome ───────── */
+  .chrome{display:flex;align-items:center;justify-content:space-between;padding:16px 36px;border-bottom:1px solid var(--rule)}
+  .chrome .wm{font-family:'Spectral',serif;font-size:22px;font-weight:600;letter-spacing:-.01em}
+  .chrome .wm em{color:var(--teal);font-style:normal;font-weight:400}
+  .chrome .brand{display:flex;align-items:baseline;gap:14px}
+  .chrome .sep{color:var(--rule-2)}
+  .chrome .subj{color:var(--ink-2);font-size:11px;letter-spacing:.04em;text-transform:uppercase}
+  .chrome .right{display:flex;align-items:center;gap:14px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--teal);margin-right:6px;animation:pulse 1.6s ease-in-out infinite}
+  .dot.done{animation:none}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+  /* persona pill */
+  .persona{display:inline-flex;align-items:center;gap:8px;padding:5px 10px 5px 12px;border:1px solid var(--rule);background:var(--paper-2);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);cursor:pointer;font-family:inherit}
+  .persona b{color:var(--ink);font-weight:500}
+  .persona:hover{border-color:var(--ink)}
+  .persona-menu{position:absolute;right:36px;top:60px;background:var(--paper);border:1px solid var(--ink);padding:6px;display:none;z-index:30;box-shadow:4px 6px 0 rgba(26,26,23,.06)}
+  .persona-menu.show{display:block}
+  .persona-menu button{display:block;width:220px;text-align:left;padding:9px 12px;border:none;background:transparent;font-family:inherit;font-size:11px;letter-spacing:.04em;cursor:pointer;color:var(--ink-2)}
+  .persona-menu button:hover{background:var(--paper-2);color:var(--ink)}
+  .persona-menu button.on{background:var(--ink);color:var(--paper)}
+  .persona-menu button .hint{display:block;font-size:9px;letter-spacing:.02em;color:var(--ink-3);text-transform:none;margin-top:2px;font-family:'Spectral',serif;font-style:italic}
+  .persona-menu button.on .hint{color:rgba(232,225,208,.6)}
+
+  /* ───────── phase rail ───────── */
+  .rail{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--rule);background:var(--paper-2)}
+  .ph{padding:18px 22px;border-right:1px solid var(--rule);display:flex;align-items:center;gap:14px;position:relative;cursor:pointer;transition:background .25s}
+  .ph:last-child{border-right:none}
+  .ph .num{font-size:10px;letter-spacing:.16em;color:var(--ink-3);min-width:22px}
+  .ph .name{font-family:'Spectral',serif;font-size:17px;font-weight:500;color:var(--ink-3);letter-spacing:-.005em}
+  .ph .desc{font-size:10px;color:var(--ink-3);letter-spacing:.02em;margin-top:2px;display:block}
+  .ph.active{background:var(--paper)}
+  .ph.active .name{color:var(--ink)}
+  .ph.active .num{color:var(--teal)}
+  .ph.done .num::before{content:'✓ ';color:var(--teal)}
+  .ph.done .name{color:var(--ink-2)}
+  .ph .progress{position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--teal);transition:width .5s linear}
+
+  /* ───────── main grid ───────── */
+  .main{display:grid;grid-template-columns:1fr 420px;min-height:540px;border-bottom:1px solid var(--rule)}
+
+  /* stage — calm canvas, paper grid */
+  .stage{position:relative;background:
+    linear-gradient(var(--paper-2),var(--paper-2)),
+    repeating-linear-gradient(0deg,transparent 0,transparent 47px,rgba(122,116,104,.10) 47px,rgba(122,116,104,.10) 48px),
+    repeating-linear-gradient(90deg,transparent 0,transparent 47px,rgba(122,116,104,.10) 47px,rgba(122,116,104,.10) 48px);
+    background-blend-mode:multiply;overflow:hidden}
+  .stage-tag{position:absolute;top:18px;left:24px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+  .stage-tag b{color:var(--ink-2);font-weight:500}
+
+  /* central subject */
+  .subj-card{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;z-index:5}
+  .subj-card .disc{width:96px;height:96px;border:1.5px solid var(--ink);border-radius:50%;background:var(--paper);display:flex;align-items:center;justify-content:center;font-family:'Spectral',serif;font-size:24px;font-weight:600;margin:0 auto 10px;position:relative}
+  .subj-card .disc::after{content:'';position:absolute;inset:-9px;border:1px dashed var(--teal);border-radius:50%;opacity:.45;animation:spin 22s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .subj-card .nm{font-size:12px;letter-spacing:.08em;color:var(--ink)}
+  .subj-card .mt{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-top:3px}
+
+  /* lines — only the current path animates */
+  .links{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .links line{stroke:var(--ink-3);stroke-width:.6;stroke-dasharray:3 5;opacity:0;transition:opacity .4s}
+  .links line.on{opacity:.55}
+  .links line.live{stroke:var(--teal);stroke-width:1.4;stroke-dasharray:5 7;opacity:0}
+  .links line.live.on{opacity:1;animation:flow 1.4s linear infinite}
+  @keyframes flow{to{stroke-dashoffset:-24}}
+
+  /* nodes — at most 4-6 visible per phase, big labels */
+  .node{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;transition:opacity .35s, transform .35s}
+  .node.in{opacity:.45}
+  .node.in.live{opacity:1}
+  .node.in.done{opacity:.85}
+  .node .chip{padding:8px 14px;background:var(--paper);border:1px solid var(--rule-2);font-size:11px;letter-spacing:.04em;color:var(--ink-2);font-family:inherit;display:flex;align-items:center;gap:8px;min-width:96px;justify-content:center;transition:all .25s}
+  .node.live .chip{border-color:var(--ink);color:var(--ink);box-shadow:0 0 0 4px rgba(45,127,110,.14);background:var(--paper)}
+  .node.done .chip{border-color:var(--ink-2);background:var(--paper-2)}
+  .node .chip .glyph{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700}
+  .node .chip .glyph.dns{background:var(--teal-soft);color:var(--teal-deep)}
+  .node .chip .glyph.ssl{background:var(--teal-soft);color:var(--teal-deep)}
+  .node .chip .glyph.gh{background:var(--ink);color:var(--paper)}
+  .node .chip .glyph.fc{background:#f48120;color:#fff}
+  .node .chip .glyph.hi{background:#fde2e0;color:var(--crit)}
+  .node .chip .glyph.so{background:#efe1c8;color:#8a5a16}
+  .node .chip .glyph.cy{background:var(--teal-soft);color:var(--teal-deep)}
+  .node .chip .glyph.mf{background:var(--teal-soft);color:var(--teal-deep)}
+  .node .chip .glyph.vc{background:#f3e6d9;color:#8a5a16}
+  .node .chip .glyph.co{background:#e5dbf0;color:#5a3d8a}
+  .node .chip .glyph.fw{background:var(--paper-3);color:var(--ink)}
+  .node .chip .glyph.gp{background:#fde2e0;color:var(--crit)}
+  .node .chip .glyph.rc{background:var(--teal);color:var(--paper)}
+  .node .src{font-size:9px;letter-spacing:.06em;color:var(--ink-3);text-transform:uppercase}
+
+  /* phase context badges around subject (frameworks / gaps) */
+  .ring-item{position:absolute;left:50%;top:50%;padding:4px 10px;background:var(--paper);border:1px solid var(--ink);font-size:10px;letter-spacing:.06em;text-transform:uppercase;font-weight:500;transform:translate(-50%,-50%) scale(.7);opacity:0;transition:opacity .35s, transform .35s;white-space:nowrap}
+  .ring-item.in{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  .ring-item.gap{border-color:var(--crit);color:var(--crit)}
+  .ring-item.gap.high{border-color:var(--high);color:var(--high)}
+  .ring-item.gap.med{border-color:var(--med);color:var(--med)}
+  .ring-item.fw{border-color:var(--ink-2);color:var(--ink-2)}
+
+  /* phase-empty hint when phase not started */
+  .phase-empty{position:absolute;left:50%;top:80%;transform:translate(-50%,-50%);text-align:center;max-width:72%;display:flex;flex-direction:column;gap:8px}
+  .phase-empty .promise-lead{font-family:'Spectral',serif;font-size:15px;line-height:1.4;color:var(--ink);letter-spacing:-.005em}
+  .phase-empty .promise-sub{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+
+  /* stack + read-type lines under the subject name */
+  .subj-card .stack{font-size:10px;color:var(--ink-3);margin-top:3px;letter-spacing:.04em}
+  .subj-card .readtype{display:inline-block;margin-top:8px;padding:3px 9px;background:var(--ink);color:var(--paper);font-size:9px;letter-spacing:.14em;text-transform:uppercase;font-weight:500}
+
+  /* proof counters styling */
+  .stub .counter{display:inline-flex;align-items:baseline;gap:6px}
+  .stub .counter b{font-family:'Spectral',serif;font-size:18px;font-weight:600;color:var(--ink);min-width:18px}
+  .stub .counter .lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+
+  /* ───────── right pane: explanation card ───────── */
+  .pane{background:var(--paper-2);border-left:1px solid var(--rule);display:flex;flex-direction:column}
+  .pane-head{padding:20px 26px 14px;border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;align-items:baseline}
+  .pane-head .ttl{font-family:'Spectral',serif;font-size:15px;letter-spacing:-.005em;font-weight:500}
+  .pane-head .step{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+  .pane-body{padding:22px 26px;flex:1;display:flex;flex-direction:column;gap:22px}
+
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field-lbl{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3)}
+  .field-checking .v{font-family:'Spectral',serif;font-size:20px;font-weight:500;line-height:1.25;color:var(--ink);letter-spacing:-.005em}
+  .field-why .v{font-family:'Spectral',serif;font-size:14px;line-height:1.55;color:var(--ink-2);font-style:italic}
+  .field-found .v{display:flex;flex-direction:column;gap:6px}
+  .field-found .row{display:flex;align-items:baseline;gap:8px;font-size:12px;color:var(--ink)}
+  .field-found .row .tag{font-size:9px;padding:2px 6px;border:1px solid var(--rule-2);color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;font-weight:500;flex-shrink:0}
+  .field-found .row .tag.ok{color:var(--teal-deep);border-color:var(--teal)}
+  .field-found .row .tag.warn{color:var(--high);border-color:var(--high)}
+  .field-found .row .tag.crit{color:var(--crit);border-color:var(--crit)}
+  .field-found .row .tag.found{color:var(--ink-2);border-color:var(--ink-2)}
+  .field-found .row .src{margin-left:auto;font-size:9px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em}
+  .field-next{padding-top:18px;border-top:1px dotted var(--rule);display:flex;align-items:baseline;justify-content:space-between;gap:14px}
+  .field-next .v{font-size:11px;color:var(--ink-2);letter-spacing:.04em}
+  .field-next .v::before{content:'→ ';color:var(--teal);font-weight:600}
+  .field-next .skip{font-size:10px;color:var(--ink-3);letter-spacing:.06em;cursor:pointer;background:transparent;border:none;font-family:inherit;text-decoration:underline}
+  .field-next .skip:hover{color:var(--ink)}
+
+  /* user override pill threaded into found row */
+  .you-pill{display:inline-flex;align-items:center;gap:6px;padding:2px 7px;background:var(--ink);color:var(--paper);font-size:9px;letter-spacing:.08em;text-transform:uppercase;border-radius:2px}
+
+  /* receipts strip at bottom of pane */
+  .pane-foot{border-top:1px solid var(--rule);padding:14px 26px;font-size:10px;color:var(--ink-3);letter-spacing:.06em;display:flex;justify-content:space-between;align-items:center}
+  .pane-foot b{color:var(--ink-2);font-weight:500}
+
+  /* ───────── controls ───────── */
+  .ctrl{display:grid;grid-template-columns:auto 1fr auto;gap:24px;padding:14px 36px;background:var(--paper-2);border-bottom:1px solid var(--rule);align-items:center}
+  .ctrl .left{display:flex;gap:8px;align-items:center}
+  .btn{height:32px;min-width:32px;padding:0 10px;border:1px solid var(--ink);background:var(--paper);cursor:pointer;font-family:inherit;font-size:11px;letter-spacing:.06em;display:inline-flex;align-items:center;justify-content:center;gap:6px;color:var(--ink)}
+  .btn:hover{background:var(--ink);color:var(--paper)}
+  .btn:disabled{opacity:.35;cursor:not-allowed}
+  .btn.ghost{border-color:var(--rule-2);color:var(--ink-2)}
+  .btn.ghost:hover{background:var(--paper);color:var(--ink);border-color:var(--ink)}
+  .speed{display:inline-flex;gap:4px;margin-left:8px}
+  .speed button{padding:6px 8px;border:1px solid var(--rule-2);background:var(--paper);font-family:inherit;font-size:10px;letter-spacing:.04em;cursor:pointer;color:var(--ink-2)}
+  .speed button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .scrub{display:flex;align-items:center;gap:14px}
+  .scrub input[type=range]{flex:1;-webkit-appearance:none;height:3px;background:var(--rule);border-radius:2px;outline:none;cursor:pointer}
+  .scrub input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--ink);border-radius:7px;cursor:pointer}
+  .scrub input[type=range]::-moz-range-thumb{width:14px;height:14px;background:var(--ink);border-radius:7px;cursor:pointer;border:none}
+  .clock{font-size:10px;color:var(--ink-2);letter-spacing:.06em;min-width:90px;text-align:right;font-variant-numeric:tabular-nums}
+  .counts{display:flex;gap:18px;font-size:10px;letter-spacing:.04em;color:var(--ink-2)}
+  .counts b{color:var(--ink);font-weight:600}
+
+  /* ───────── founder beat overlay ───────── */
+  .beat{position:fixed;inset:0;background:rgba(26,26,23,.74);display:none;align-items:center;justify-content:center;z-index:50;padding:40px}
+  .beat.show{display:flex;animation:fadein .35s ease}
+  @keyframes fadein{from{opacity:0}to{opacity:1}}
+  .beat-card{background:var(--paper);width:760px;max-width:100%;border:1px solid var(--ink);box-shadow:8px 10px 0 rgba(26,26,23,.08)}
+  .beat-head{padding:22px 28px 14px;border-bottom:1px solid var(--rule);display:flex;align-items:baseline;justify-content:space-between}
+  .beat-head .lbl{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal)}
+  .beat-head .who{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+  .beat-body{padding:22px 28px 8px}
+  .beat-body h3{font-family:'Spectral',serif;font-size:22px;font-weight:500;line-height:1.3;margin:0 0 4px;letter-spacing:-.01em}
+  .beat-body .why{font-family:'Spectral',serif;font-style:italic;color:var(--ink-3);font-size:12px;margin-bottom:14px}
+  .beat-q{padding:16px 0;border-top:1px dotted var(--rule)}
+  .beat-q:first-of-type{border-top:1px solid var(--rule)}
+  .beat-q .qhead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;gap:14px}
+  .beat-q .qtxt{font-size:13px;color:var(--ink);font-family:'Spectral',serif;font-size:15px}
+  .beat-q .conf{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);flex-shrink:0}
+  .beat-q .opts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+  .beat-q .opts button{padding:9px 10px;border:1px solid var(--ink);background:var(--paper);font-family:inherit;font-size:11px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:all .15s}
+  .beat-q .opts button:hover{background:var(--paper-2)}
+  .beat-q .opts button.confirm.picked{background:var(--teal);color:var(--paper);border-color:var(--teal)}
+  .beat-q .opts button.correct.picked{background:var(--high);color:var(--paper);border-color:var(--high)}
+  .beat-q .opts button.notsure.picked{background:var(--ink-3);color:var(--paper);border-color:var(--ink-3)}
+  .beat-foot{padding:18px 28px 22px;border-top:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .beat-foot .note{font-size:11px;color:var(--ink-2);font-style:italic;font-family:'Spectral',serif;max-width:380px}
+  .beat-foot .cta{padding:12px 22px;background:var(--ink);color:var(--paper);border:none;font-family:inherit;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;gap:10px}
+  .beat-foot .cta:hover{background:var(--teal-deep)}
+  .beat-foot .cta:disabled{background:var(--rule-2);cursor:not-allowed}
+  .beat-foot .secondary{font-size:10px;letter-spacing:.06em;color:var(--ink-3);background:none;border:none;cursor:pointer;font-family:inherit;text-decoration:underline}
+  .beat-foot .secondary:hover{color:var(--ink)}
+
+  /* ───────── completion CTA ───────── */
+  .complete{padding:40px 36px;background:var(--ink);color:var(--paper);display:none;grid-template-columns:1.3fr 1fr;gap:36px;align-items:center}
+  .complete.show{display:grid;animation:fadein .5s ease}
+  .complete .lead{font-family:'Spectral',serif;font-size:28px;line-height:1.3;font-weight:500;letter-spacing:-.01em}
+  .complete .lead em{color:#9bd2c5;font-style:normal}
+  .complete .sub{font-size:11px;letter-spacing:.06em;opacity:.6;margin-top:14px}
+  .complete .ctas{display:flex;flex-direction:column;gap:10px;align-items:flex-end}
+  .complete .pri{background:var(--paper);color:var(--ink);padding:16px 28px;border:none;font-family:inherit;font-size:13px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:12px}
+  .complete .pri:hover{background:var(--teal);color:var(--paper)}
+  .complete .sec{background:transparent;color:var(--paper);border:1px solid var(--paper);padding:12px 20px;font-family:inherit;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+  .complete .sec:hover{background:var(--paper);color:var(--ink)}
+
+  /* proof counter strip */
+  .stub{padding:14px 36px;background:var(--paper-2);border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:18px;font-size:11px;color:var(--ink-2);letter-spacing:.04em}
+  .stub .sep{color:var(--rule-2)}
+</style>
+</head>
+<body>
+<div class="frame" data-screen-label="01 Process">
+
+  <!-- chrome -->
+  <div class="chrome">
+    <div class="brand">
+      <span class="wm">proof<em>360</em></span>
+      <span class="sep">·</span>
+      <span class="subj">Process · acmecorp.io · live read</span>
+    </div>
+    <div class="right" style="position:relative">
+      <span><span class="dot" id="dot"></span><span id="run-state">Ready</span></span>
+      <span class="sep">|</span>
+      <span>01 of 03 · Process</span>
+      <span class="sep">|</span>
+      <button class="persona" id="persona-btn">explain for <b id="persona-name">Founder</b> ▾</button>
+      <div class="persona-menu" id="persona-menu">
+        <button data-persona="lay" class="on">Founder<span class="hint">plain-English why &mdash; default</span></button>
+        <button data-persona="tech">Technical<span class="hint">controls, sources, methodology</span></button>
+        <button data-persona="invest">Investor<span class="hint">commercial impact, deal risk</span></button>
+        <button data-persona="dd">Enterprise DD<span class="hint">framework citation, procurement</span></button>
+        <button data-persona="vendor">Vendor<span class="hint">remediation routing, channel fit</span></button>
+        <button data-persona="kid">12 year old<span class="hint">simplest analogy</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- phase rail -->
+  <div class="rail" id="rail">
+    <div class="ph" data-ph="0"><span class="num">01</span><div><span class="name serif">Quick</span><span class="desc">Public surface — no inference</span></div><span class="progress"></span></div>
+    <div class="ph" data-ph="1"><span class="num">02</span><div><span class="name serif">Standard</span><span class="desc">Signal extraction · framework match</span></div><span class="progress"></span></div>
+    <div class="ph" data-ph="2"><span class="num">03</span><div><span class="name serif">Interactive</span><span class="desc">Founder confirms · overrides</span></div><span class="progress"></span></div>
+    <div class="ph" data-ph="3"><span class="num">04</span><div><span class="name serif">Deep</span><span class="desc">CORPUS · gaps · receipt sealed</span></div><span class="progress"></span></div>
+  </div>
+
+  <!-- proof counters — quietly accrue. Same numbers no matter the persona. -->
+  <div class="stub">
+    <span class="counter"><b id="src-count">0</b><span class="lbl">sources cited</span></span>
+    <span class="sep">·</span>
+    <span class="counter"><b id="model-count">0</b><span class="lbl">models routed</span></span>
+    <span class="sep">·</span>
+    <span class="counter"><b id="frame-count">0</b><span class="lbl">frameworks matched</span></span>
+    <span class="sep">·</span>
+    <span class="counter"><b id="gap-count">0</b><span class="lbl">gaps surfaced</span></span>
+    <span style="margin-left:auto;font-style:italic;font-family:'Spectral',serif;color:var(--ink-2)">Explanation changes. Evidence does not.</span>
+  </div>
+
+  <!-- main: stage + explanation pane -->
+  <div class="main">
+    <div class="stage" id="stage">
+      <div class="stage-tag"><b id="stage-tag-phase">Phase 01</b> · <span id="stage-tag-step">awaiting start</span></div>
+
+      <!-- subject -->
+      <div class="subj-card">
+        <div class="disc">A</div>
+        <div class="nm serif">acmecorp.io</div>
+        <div class="mt">B2B SaaS &middot; Series B &middot; AU + US</div>
+        <div class="stack">AWS us-east-1 &middot; Okta SSO &middot; Stripe &middot; HubSpot</div>
+        <div class="readtype">Cold-read · full process</div>
+      </div>
+
+      <!-- lines -->
+      <svg class="links" id="links" viewBox="0 0 1000 600" preserveAspectRatio="none"></svg>
+
+      <!-- nodes container (populated by JS per phase) -->
+      <div id="nodes"></div>
+
+      <!-- ring items (frameworks / gaps positioned around subject) -->
+      <div id="ring"></div>
+
+      <div class="phase-empty" id="phase-empty"><span class="promise-lead serif">proof360 will inspect the company surface, explain each signal, pause for founder confirmation where needed, then seal a read you can act on.</span><span class="promise-sub">Four phases &middot; one step at a time &middot; every claim sourced.</span></div>
+    </div>
+
+    <!-- explanation pane -->
+    <aside class="pane">
+      <div class="pane-head">
+        <span class="ttl serif" id="pane-phase-title">Quick recon</span>
+        <span class="step"><span id="step-num">0</span> / <span id="step-total">0</span></span>
+      </div>
+      <div class="pane-body">
+        <div class="field field-checking">
+          <span class="field-lbl">What we're checking</span>
+          <span class="v" id="f-checking">—</span>
+        </div>
+        <div class="field field-why">
+          <span class="field-lbl">Why it matters</span>
+          <span class="v" id="f-why">—</span>
+        </div>
+        <div class="field field-found">
+          <span class="field-lbl">What we found</span>
+          <div class="v" id="f-found"><div class="row" style="color:var(--ink-3)">waiting…</div></div>
+        </div>
+        <div class="field-next">
+          <span class="v" id="f-next">Next step will appear here</span>
+          <button class="skip" id="step-fwd">skip ahead ↦</button>
+        </div>
+      </div>
+      <div class="pane-foot">
+        <span><b id="phase-name-foot">Quick</b> phase</span>
+        <span id="elapsed-foot">elapsed 0.0s</span>
+      </div>
+    </aside>
+  </div>
+
+  <!-- controls -->
+  <div class="ctrl">
+    <div class="left">
+      <button class="btn" id="play-btn">▶ Play</button>
+      <button class="btn ghost" id="reset-btn">↺ Restart</button>
+      <span class="speed">
+        <button data-speed="0.5">0.5×</button>
+        <button data-speed="1" class="on">1×</button>
+        <button data-speed="2">2×</button>
+        <button data-speed="4">4×</button>
+      </span>
+    </div>
+    <div class="scrub">
+      <input type="range" id="scrub" min="0" max="100" value="0" step="0.1" />
+      <span class="clock"><span id="cur-time">0.0s</span> / <span id="tot-time">0.0s</span></span>
+    </div>
+    <div class="counts">
+      <span>step <b id="cc-step">0</b>/<span id="cc-total">0</span></span>
+      <span>phase <b id="cc-phase">—</b></span>
+    </div>
+  </div>
+
+  <!-- completion CTA -->
+  <div class="complete" id="complete">
+    <div>
+      <div class="lead serif">Read assembled. <em>9 gaps, 6 partner paths, ready for action.</em></div>
+      <div class="sub">47 sources cited · 26 models routed · 5 frameworks matched · founder confirmed 2/3 questions · 1 override threaded.<br/>Receipt hash <span style="font-family:inherit;color:#9bd2c5">a3:c2:f1:88</span> · sealed at <span id="seal-time">—</span>.</div>
+    </div>
+    <div class="ctas">
+      <a class="pri" href="proof360 Round 5 - The Read.html">View read &nbsp;→</a>
+      <a class="sec" href="#" id="ping-john">Ping @john for HX review &nbsp;↗</a>
+    </div>
+  </div>
+
+  <!-- founder beat overlay -->
+  <div class="beat" id="beat">
+    <div class="beat-card">
+      <div class="beat-head">
+        <span class="lbl">Phase 03 · Interactive · Founder pause</span>
+        <span class="who">3 questions · ≈ 40 seconds</span>
+      </div>
+      <div class="beat-body">
+        <h3 class="serif">Before we go deep — confirm, correct, or qualify.</h3>
+        <div class="why">You don't have to be technical. Pick the option that's closest. The machine will thread your answer through the read, with a tag showing it came from you.</div>
+
+        <div class="beat-q" data-q="0">
+          <div class="qhead">
+            <span class="qtxt"><b>SOC 2 status.</b> &nbsp; We see "SOC 2 Type I in progress" on a 2025 careers post — but no badge on /security and no auditor named.</span>
+            <span class="conf">machine read: <b>partial · 41%</b></span>
+          </div>
+          <div class="opts">
+            <button class="confirm" data-pick="confirm">Confirm — Type I in progress</button>
+            <button class="correct" data-pick="correct">Correct — different status</button>
+            <button class="notsure" data-pick="notsure">Not sure</button>
+          </div>
+        </div>
+
+        <div class="beat-q" data-q="1">
+          <div class="qhead">
+            <span class="qtxt"><b>Cyber insurance.</b> &nbsp; No public signal of an active policy. Your investors usually require ≥ $5M.</span>
+            <span class="conf">machine read: <b>not found · 0%</b></span>
+          </div>
+          <div class="opts">
+            <button class="confirm" data-pick="confirm">Confirm — we hold a policy</button>
+            <button class="correct" data-pick="correct">Correct — we do not</button>
+            <button class="notsure" data-pick="notsure">Not sure</button>
+          </div>
+        </div>
+
+        <div class="beat-q" data-q="2">
+          <div class="qhead">
+            <span class="qtxt"><b>Primary customer.</b> &nbsp; Site copy reads "banks &amp; insurers, AU+US" — we'll match SOC 2, ISO 27001, APRA CPS 234, Essential Eight.</span>
+            <span class="conf">machine read: <b>likely · 78%</b></span>
+          </div>
+          <div class="opts">
+            <button class="confirm" data-pick="confirm">Confirm</button>
+            <button class="correct" data-pick="correct">Correct — different ICP</button>
+            <button class="notsure" data-pick="notsure">Not sure</button>
+          </div>
+        </div>
+      </div>
+      <div class="beat-foot">
+        <span class="note">Your answers are threaded into the read with a <span class="you-pill">you</span> tag, so anyone reviewing this can see what came from the machine and what came from you.</span>
+        <div style="display:flex;gap:14px;align-items:center">
+          <button class="secondary" id="beat-skip">skip — auto-read remaining</button>
+          <button class="cta" id="beat-resume" disabled>Resume process &nbsp; →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ─────────────────────────────────────────────
+   proof360 Process — Round 6
+   one phase at a time · phase → signal → why → found → next
+   ───────────────────────────────────────────── */
+
+/* Persona-aware "why it matters" — same proof, different framing */
+const WHY = {
+  /* phase 1 — Quick */
+  q1: {
+    lay: "Confirms the site is really theirs and how it's hosted. Like checking a passport before you start a meeting.",
+    tech: "Establish DNS authority, hosting region, mail authentication posture. Baseline before any inference.",
+    invest: "First test of operational hygiene. Sloppy DNS = sloppy ops, often a leading indicator of bigger gaps.",
+    dd: "Required evidence for ISO 27001 A.13 / SOC 2 CC6.6 — network and infrastructure controls.",
+    vendor: "Tells you which cloud/CDN the customer runs on, so you know if your product fits their stack.",
+    kid: "We're checking the company's address card. Is it really their house? Who lives next door?",
+  },
+  q2: {
+    lay: "Is their website properly encrypted? It's the padlock in your browser bar.",
+    tech: "TLS chain, cert age, renewal cadence. Detects shadow certificates and expiry risk.",
+    invest: "Cheap signal — expired certs in production = no one is watching. Often the first crack.",
+    dd: "Maps to SOC 2 CC6.7 (encryption in transit). Renewal cadence indicates ops maturity.",
+    vendor: "Confirms TLS terminator (CDN/load-balancer choice) — affects integration design.",
+    kid: "Is the lock on their front door working? When does it run out of batteries?",
+  },
+  q3: {
+    lay: "Looking at their public code. Did anyone accidentally leave a key under the doormat?",
+    tech: "Public repo enumeration. Scan recent commits for secrets, .env, hardcoded keys.",
+    invest: "Secret leaks = breach within 12 months ~32% of the time. Material risk signal.",
+    dd: "Evidence for SOC 2 CC8.1 (change management) and ISO 27001 A.8.28 (secure coding).",
+    vendor: "Tells you their tech stack and engineering velocity from commit history.",
+    kid: "Looking at their school art on the wall. Did they accidentally leave their diary on it?",
+  },
+  q4: {
+    lay: "Do they publicly say how they handle your data? A /security page is the bare minimum.",
+    tech: "Probe /security /trust /privacy /careers. Extract claimed posture and contradictions.",
+    invest: "Missing /security page = signal that procurement has not pushed them yet. Earlier-stage customer base.",
+    dd: "Maps to procurement checklist questions 1–8. Absence is itself a finding.",
+    vendor: "Tells you which trust narratives they've adopted — informs your sales positioning.",
+    kid: "Did they put a sign on the door saying 'we take care of your stuff'?",
+  },
+  /* phase 2 — Standard */
+  q5: {
+    lay: "Do staff have to use two-factor login? It's the difference between a key and a key + your fingerprint.",
+    tech: "MFA enforcement scope: SSO, admin paths, third-party SaaS. Required vs available.",
+    invest: "MFA gaps = 80% of breach root cause. If not enforced at admin tier, deal risk is real.",
+    dd: "SOC 2 CC6.1, ISO 27001 A.9.4.2, Essential Eight ML2. Mandatory for AU regulated buyers.",
+    vendor: "If MFA missing, your IAM/PAM product has a fit.",
+    kid: "When mum logs into the bank, does it ask her password AND ping her phone?",
+  },
+  q6: {
+    lay: "Are they actually certified for security, or just saying they are?",
+    tech: "SOC 2 status check — auditor name, Type I/II, report date, scope boundary.",
+    invest: "Claimed but unverified SOC 2 = enterprise sales blocker. Closes 60% slower than verified.",
+    dd: "Procurement requires Type II within last 12 months for FI / health buyers.",
+    vendor: "If 'in progress' — fast-track audit partners and pen-test packages have a path.",
+    kid: "They said they got a gold star. Did the teacher really give it to them?",
+  },
+  q7: {
+    lay: "Do they have insurance in case something goes wrong? Like home insurance — but for hackers.",
+    tech: "Cyber liability policy. Limits, retention, breach notification requirement.",
+    invest: "Most VCs now require ≥ $5M cyber. Absence at Series B = surprise unhedged liability.",
+    dd: "MSA negotiation lever. Buyer-side procurement will require named insured.",
+    vendor: "If absent, broker partners have a clean intro.",
+    kid: "If a robber gets in, who pays to fix everything?",
+  },
+  q8: {
+    lay: "Which security rule-books apply to them, based on who they sell to?",
+    tech: "Framework match: SOC 2 / ISO 27001 / APRA CPS 234 / Essential Eight from ICP signal.",
+    invest: "Tells you which buyer doors are open / closed. SOC 2 = US enterprise. CPS 234 = AU FSI.",
+    dd: "Determines the procurement gauntlet they have to pass for FY26.",
+    vendor: "Maps your product to the exact control they're trying to fill.",
+    kid: "Different jobs have different uniforms. Which uniform do they need?",
+  },
+  q9: {
+    lay: "First sign of trouble — areas where their security claims and reality don't line up.",
+    tech: "Surface candidate gaps with confidence < 0.7 for human confirm in phase 03.",
+    invest: "Early gap surfacing = pricing your deal risk before founder sandbagging.",
+    dd: "These are the items you'll attach to MSA addenda and remediation milestones.",
+    vendor: "These are your inbound buying signals. Each gap is a budgeted line item.",
+    kid: "We found some homework that looks wrong. Time to ask them about it.",
+  },
+  /* phase 3 — Interactive */
+  q10: {
+    lay: "Now we pause and ask the founder. The machine guessed — they confirm, correct, or shrug.",
+    tech: "Human-in-loop confirmation step. Founder answers thread into evidence chain as first-party.",
+    invest: "Differentiates proof360 from passive scanners. Founder lies show up in the receipt.",
+    dd: "First-party attestation captured with timestamp and answer signature.",
+    vendor: "Founder is asked which gaps they'd take help on. Pre-qualified pipeline.",
+    kid: "We ask the company a few questions and write down what they say.",
+  },
+  /* phase 4 — Deep */
+  q11: {
+    lay: "Loading the rule-books in full. Now we know exactly what 'good' looks like for them.",
+    tech: "CORPUS dossiers — 8 frameworks × 612 controls loaded, indexed for relevance.",
+    invest: "Switches from heuristic to control-level. From 'looks sketchy' to 'failing CC6.1'.",
+    dd: "Citation-grade evidence. Every gap traceable to a specific control ID.",
+    vendor: "Each control maps to ≥ 1 product category — your inbound demand by SKU.",
+    kid: "Got the big book of rules. Now we check every page.",
+  },
+  q12: {
+    lay: "Picking the right expert for each question. We don't ask the chef about plumbing.",
+    tech: "VECTOR routes: Claude 4.5 (legal interp.), Nova (vendor match), Sonar (live signal), Haiku (citation).",
+    invest: "Specialised models = lower hallucination on legal/regulatory claims. Trust premium.",
+    dd: "Model provenance per claim, auditable in receipt.",
+    vendor: "Vendor-fit scoring is Nova-driven. Your match score is reproducible.",
+    kid: "Different robots are good at different jobs. We pick the right robot for each.",
+  },
+  q13: {
+    lay: "We weigh each problem — how sure are we, and how much does it hurt?",
+    tech: "Bayesian confidence × framework relevance × severity weight. Calibrated against 1.2k prior reads.",
+    invest: "Gap-weighted exposure score, normalised. Use this to price the deal.",
+    dd: "Each gap stamped with control, evidence, confidence, severity, and remediation cost band.",
+    vendor: "Severity × frequency tells you which gap to lead with in outreach.",
+    kid: "Some problems are small. Some are huge. We give each one a score.",
+  },
+  q14: {
+    lay: "For each problem, who could help fix it — and how do you actually buy it?",
+    tech: "Vendor scatter: fit × coverage. Channel routing: Direct / Ingram / Dicker / AWS Marketplace.",
+    invest: "Remediation path with price band = your post-close 90-day plan.",
+    dd: "Procurement-ready vendor shortlist with PO routing.",
+    vendor: "Where you sit in the matrix. Direct? Or via distribution?",
+    kid: "Who do you call to fix each problem? And who do you pay?",
+  },
+  q15: {
+    lay: "We seal the read. Every claim has a source — like a recipe with the page numbers.",
+    tech: "SHA-256 over (claims ⨯ sources ⨯ founder answers ⨯ model routes). Publishable receipt.",
+    invest: "Reproducibility. Run again next quarter, diff the receipt.",
+    dd: "Audit-ready artifact. Attach to data room.",
+    vendor: "Your engagement is logged. When founder accepts, you get paged.",
+    kid: "We staple all our notes together so we can show our work later.",
+  },
+};
+
+/* steps — the structured proof trail. Each step is one card in the right pane. */
+const STEPS = [
+  /* ── PHASE 0 · QUICK ── */
+  { ph:0, dur:2.4, checking:"DNS · domain &amp; hosting",
+    whyKey:"q1",
+    nodes:[{id:'dns',pos:[18,22],chip:'DNS',src:'dns.google',glyph:'dns'}],
+    found:[
+      {tag:'OK',  txt:'Resolves cleanly — apex + www', src:'dns.google'},
+      {tag:'OK',  txt:'Hosted AWS us-east-1 · CloudFront edge', src:'ipinfo.io'},
+      {tag:'WARN',txt:'SPF present but DMARC policy = none', src:'dnsutil'},
+    ],
+    next:"TLS certificate &amp; renewal hygiene", srcAdd:3,
+  },
+  { ph:0, dur:2.4, checking:"TLS · cert chain",
+    whyKey:"q2",
+    nodes:[{id:'ssl',pos:[34,17],chip:'TLS',src:'crt.sh',glyph:'ssl'}],
+    found:[
+      {tag:'OK',  txt:"Let's Encrypt R3 · expires in 47 days", src:'crt.sh'},
+      {tag:'OK',  txt:'Auto-renew active · last renewed 43d ago', src:'ct logs'},
+      {tag:'FOUND',txt:'2 wildcard certs, none expired', src:'crt.sh'},
+    ],
+    next:"Public code surface — secrets &amp; leakage", srcAdd:2,
+  },
+  { ph:0, dur:2.6, checking:"GitHub · public repos",
+    whyKey:"q3",
+    nodes:[{id:'gh',pos:[52,16],chip:'GitHub',src:'api.github.com',glyph:'gh'}],
+    found:[
+      {tag:'FOUND',txt:'3 public repos · acmecorp-sdk, demo-app, blog', src:'gh api'},
+      {tag:'OK',  txt:'No secrets in recent commits (Gitleaks)', src:'gitleaks'},
+      {tag:'WARN',txt:'2 contributors w/ no 2FA badge on profile', src:'gh api'},
+    ],
+    next:"Public pages — what they claim about security", srcAdd:2,
+  },
+  { ph:0, dur:2.6, checking:"Public pages · /security /trust /pricing",
+    whyKey:"q4",
+    nodes:[{id:'fc',pos:[70,20],chip:'Firecrawl',src:'firecrawl',glyph:'fc'}],
+    found:[
+      {tag:'CRIT',txt:'/security page absent (404)', src:'firecrawl'},
+      {tag:'CRIT',txt:'/trust page absent (404)', src:'firecrawl'},
+      {tag:'OK',  txt:'/pricing public · enterprise tier listed', src:'firecrawl'},
+      {tag:'FOUND',txt:'/careers mentions "SOC 2 Type I in progress"', src:'firecrawl /careers'},
+    ],
+    next:"→ Phase 02 · extract signals from these pages", srcAdd:4,
+  },
+
+  /* ── PHASE 1 · STANDARD ── */
+  { ph:1, dur:2.6, checking:"MFA · access posture",
+    whyKey:"q5",
+    nodes:[{id:'mf',pos:[20,30],chip:'MFA signal',src:'pages + linkedin',glyph:'mf'}],
+    found:[
+      {tag:'FOUND',txt:'SSO + MFA referenced on /careers (eng role)', src:'firecrawl'},
+      {tag:'WARN',txt:'No MFA enforcement statement on customer-facing surface', src:'firecrawl'},
+      {tag:'FOUND',txt:'Okta tenant detected at sso.acmecorp.io', src:'dns'},
+    ],
+    next:"SOC 2 — claim vs verification", srcAdd:2,
+  },
+  { ph:1, dur:2.6, checking:"SOC 2 · claim verification",
+    whyKey:"q6",
+    nodes:[{id:'so',pos:[42,32],chip:'SOC 2',src:'firecrawl + aicpa',glyph:'so'}],
+    found:[
+      {tag:'FOUND',txt:'"Type I in progress" mentioned 2x in 2025 posts', src:'firecrawl'},
+      {tag:'CRIT',txt:'No badge, no auditor named, no report date', src:'firecrawl /security'},
+      {tag:'WARN',txt:'AICPA registry: no record under acmecorp', src:'aicpa.org'},
+    ],
+    next:"Cyber insurance presence", srcAdd:3,
+  },
+  { ph:1, dur:2.4, checking:"Cyber insurance · public signal",
+    whyKey:"q7",
+    nodes:[{id:'cy',pos:[60,30],chip:'Cyber ins.',src:'public',glyph:'cy'}],
+    found:[
+      {tag:'CRIT',txt:'No public signal of active cyber policy', src:'firecrawl + linkedin'},
+      {tag:'FOUND',txt:'Series B funding announce mentions "industry-standard controls" only', src:'press'},
+    ],
+    next:"Framework matching for their ICP", srcAdd:2,
+  },
+  { ph:1, dur:2.8, checking:"Framework match · their buyer doors",
+    whyKey:"q8",
+    nodes:[{id:'fw',pos:[78,32],chip:'Framework map',src:'corpus index',glyph:'fw'}],
+    ring:[
+      {kind:'fw',label:'SOC 2',     angle:330, r:165},
+      {kind:'fw',label:'ISO 27001', angle:30,  r:165},
+      {kind:'fw',label:'CPS 234',   angle:90,  r:175},
+      {kind:'fw',label:'Ess. 8',    angle:150, r:165},
+      {kind:'fw',label:'PCI DSS',   angle:210, r:165},
+    ],
+    found:[
+      {tag:'FOUND',txt:'ICP signal: "banks &amp; insurers, AU+US"', src:'/about + /pricing'},
+      {tag:'OK',  txt:'5 frameworks matched · 612 applicable controls', src:'corpus'},
+    ],
+    next:"Surface candidate gaps from signals so far", srcAdd:1,
+  },
+  { ph:1, dur:2.6, checking:"Candidate gaps · first pass",
+    whyKey:"q9",
+    nodes:[],
+    ring:[
+      {kind:'gap',sev:'crit',label:'No /security',angle:0,r:140},
+      {kind:'gap',sev:'crit',label:'SOC 2 unverified',angle:72,r:140},
+      {kind:'gap',sev:'high',label:'No cyber ins.',angle:144,r:140},
+      {kind:'gap',sev:'high',label:'DMARC = none',angle:216,r:140},
+    ],
+    found:[
+      {tag:'CRIT',txt:'4 candidates · 2 critical, 2 high', src:'derived'},
+      {tag:'FOUND',txt:'3 require human confirm (confidence &lt; 0.7)', src:'derived'},
+    ],
+    next:"→ Phase 03 · pause for founder confirmation", srcAdd:0,
+  },
+
+  /* ── PHASE 2 · INTERACTIVE ── */
+  { ph:2, dur:0.8, checking:"Founder pause · 3 questions",
+    whyKey:"q10",
+    nodes:[],
+    found:[
+      {tag:'FOUND',txt:'Opening confirmation overlay…', src:'system'},
+    ],
+    triggerBeat:true,
+    next:"Resume read with founder answers threaded in", srcAdd:0,
+  },
+  { ph:2, dur:1.6, checking:"Threading your answers into the read",
+    whyKey:"q10",
+    nodes:[],
+    found:'__beat_answers__',
+    next:"→ Phase 04 · go deep with confirmed context", srcAdd:0,
+  },
+
+  /* ── PHASE 3 · DEEP ── */
+  { ph:3, dur:2.6, checking:"CORPUS · framework dossiers loaded",
+    whyKey:"q11",
+    nodes:[{id:'co',pos:[78,72],chip:'CORPUS',src:'8 dossiers · 612 controls',glyph:'co'}],
+    found:[
+      {tag:'OK',  txt:'8 framework dossiers loaded', src:'corpus'},
+      {tag:'OK',  txt:'612 controls indexed for this read', src:'corpus'},
+      {tag:'FOUND',txt:'74 controls flagged as high-priority for ICP', src:'corpus'},
+    ],
+    next:"VECTOR — route each gap to its specialist model", srcAdd:0, frameAdd:5,
+  },
+  { ph:3, dur:2.6, checking:"VECTOR · model routing",
+    whyKey:"q12",
+    nodes:[{id:'vc',pos:[82,18],chip:'VECTOR',src:'26 models',glyph:'vc'}],
+    found:[
+      {tag:'FOUND',txt:'Claude 4.5 → legal &amp; framework interpretation', src:'vector'},
+      {tag:'FOUND',txt:'Nova → vendor matching &amp; channel fit', src:'vector'},
+      {tag:'FOUND',txt:'Sonar → fresh public signal verification', src:'vector'},
+      {tag:'FOUND',txt:'Haiku → citation &amp; receipt stitching', src:'vector'},
+    ],
+    next:"Score gaps · confidence × severity × framework weight", srcAdd:0, modelAdd:26,
+  },
+  { ph:3, dur:2.8, checking:"Gap confidence · 9 final gaps",
+    whyKey:"q13",
+    nodes:[{id:'gp',pos:[18,72],chip:'Gap engine',src:'derived',glyph:'gp'}],
+    ring:[
+      {kind:'gap',sev:'crit',label:'/security absent',angle:340,r:150},
+      {kind:'gap',sev:'crit',label:'SOC 2 unverified',angle:20, r:150},
+      {kind:'gap',sev:'high',label:'No cyber ins.',  angle:60, r:155},
+      {kind:'gap',sev:'high',label:'DMARC = none',   angle:100,r:150},
+      {kind:'gap',sev:'high',label:'MFA scope',      angle:140,r:150},
+      {kind:'gap',sev:'high',label:'Pen-test gap',   angle:180,r:150},
+      {kind:'gap',sev:'med', label:'BCP missing',    angle:220,r:150},
+      {kind:'gap',sev:'med', label:'Vendor reg.',    angle:260,r:155},
+      {kind:'gap',sev:'med', label:'DPO not named',  angle:300,r:150},
+    ],
+    found:[
+      {tag:'CRIT',txt:'2 critical · /security, SOC 2', src:'derived'},
+      {tag:'WARN',txt:'4 high · cyber ins, DMARC, MFA, pen-test', src:'derived'},
+      {tag:'FOUND',txt:'3 medium · BCP, vendor reg, DPO', src:'derived'},
+    ],
+    next:"Map each gap to a remediation path", srcAdd:9,
+  },
+  { ph:3, dur:2.6, checking:"Remediation · vendor &amp; channel paths",
+    whyKey:"q14",
+    nodes:[{id:'vc2',pos:[50,76],chip:'Vendor matrix',src:'partner registry',glyph:'fw'}],
+    found:[
+      {tag:'OK',  txt:'6 partner paths identified', src:'partner registry'},
+      {tag:'FOUND',txt:'4 routed via channel: Ingram, Dicker (461654), AWS Marketplace', src:'channel'},
+      {tag:'FOUND',txt:'2 direct: pen-test &amp; SOC 2 auditor', src:'partner'},
+    ],
+    next:"Seal the receipt", srcAdd:6,
+  },
+  { ph:3, dur:2.2, checking:"Receipt · seal &amp; sign",
+    whyKey:"q15",
+    nodes:[{id:'rc',pos:[50,52],chip:'Receipt',src:'sha-256',glyph:'rc'}],
+    found:[
+      {tag:'OK',  txt:'47 sources · 26 models · 5 frameworks · 9 gaps · 6 paths', src:'receipt'},
+      {tag:'OK',  txt:'2 confirmed + 1 override threaded from founder', src:'receipt'},
+      {tag:'OK',  txt:'Receipt hash a3:c2:f1:88 · sealed', src:'receipt'},
+    ],
+    next:"→ View read · 02 of 03", srcAdd:0,
+  },
+];
+
+/* ───── runtime state ───── */
+const PHASE_NAMES = ['Quick recon','Standard signal','Interactive · founder','Deep · gaps + receipt'];
+const PHASE_LBL   = ['Quick','Standard','Interactive','Deep'];
+
+/* read persona from storage (carries across Process → Read → Remediation) */
+let persona = (function(){
+  try{ return localStorage.getItem('proof360.persona') || 'lay'; }catch(e){ return 'lay'; }
+})();
+function savePersona(){ try{ localStorage.setItem('proof360.persona', persona); }catch(e){} }
+let stepIdx = -1;
+let phaseIdx = -1;
+let playing = false;
+let speed = 1;
+let stepStart = 0;        /* wall ms when current step began */
+let stepConsumed = 0;     /* ms consumed in current step (saved when pausing) */
+let pauseToken = 0;       /* increments on every pause/scrub to invalidate old timers */
+let beatAnswers = [null,null,null];
+let totalDur = STEPS.reduce((a,s)=>a+s.dur,0);
+
+/* ───── DOM ───── */
+const $ = (id)=>document.getElementById(id);
+const stage = $('stage');
+const nodesEl = $('nodes');
+const ringEl = $('ring');
+const linksEl = $('links');
+const beat = $('beat');
+
+/* persona dropdown */
+$('persona-btn').addEventListener('click',(e)=>{e.stopPropagation();$('persona-menu').classList.toggle('show')});
+document.addEventListener('click',()=>$('persona-menu').classList.remove('show'));
+document.querySelectorAll('.persona-menu button').forEach(b=>{
+  b.addEventListener('click',(e)=>{
+    e.stopPropagation();
+    persona = b.dataset.persona;
+    savePersona();
+    document.querySelectorAll('.persona-menu button').forEach(x=>x.classList.toggle('on', x===b));
+    $('persona-name').textContent = b.childNodes[0].nodeValue.trim();
+    $('persona-menu').classList.remove('show');
+    if(stepIdx>=0) renderWhy();
+  });
+});
+/* hydrate persona state on load */
+(function(){
+  const btn = document.querySelector(`.persona-menu button[data-persona="${persona}"]`);
+  if(btn){
+    document.querySelectorAll('.persona-menu button').forEach(x=>x.classList.toggle('on', x===btn));
+    $('persona-name').textContent = btn.childNodes[0].nodeValue.trim();
+  }
+})();
+
+/* speed buttons */
+document.querySelectorAll('.speed button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.speed button').forEach(x=>x.classList.toggle('on',x===b));
+    speed = parseFloat(b.dataset.speed);
+    if(playing){ /* restart timer with new speed */ stepConsumed += (performance.now()-stepStart)*speedAtPause; stepStart = performance.now(); speedAtPause = speed; scheduleStep(); }
+  });
+});
+let speedAtPause = 1;
+
+/* play / pause / restart */
+$('play-btn').addEventListener('click', togglePlay);
+$('reset-btn').addEventListener('click', reset);
+$('step-fwd').addEventListener('click', ()=>{ if(stepIdx<STEPS.length-1) advance(); });
+
+/* scrub */
+$('scrub').addEventListener('input',(e)=>{
+  const pct = e.target.value/100;
+  jumpTo(pct*totalDur);
+});
+
+/* phase rail click — jump to phase start */
+document.querySelectorAll('.ph').forEach(p=>{
+  p.addEventListener('click',()=>{
+    const target = parseInt(p.dataset.ph);
+    let acc=0;
+    for(let i=0;i<STEPS.length;i++){
+      if(STEPS[i].ph===target){ jumpToStep(i); return; }
+      acc += STEPS[i].dur;
+    }
+  });
+});
+
+/* founder beat */
+document.querySelectorAll('.beat-q').forEach(q=>{
+  q.querySelectorAll('.opts button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const qi = parseInt(q.dataset.q);
+      beatAnswers[qi] = b.dataset.pick;
+      q.querySelectorAll('.opts button').forEach(x=>x.classList.remove('picked'));
+      b.classList.add('picked');
+      checkBeatComplete();
+    });
+  });
+});
+function checkBeatComplete(){
+  const done = beatAnswers.every(a=>a!==null);
+  $('beat-resume').disabled = !done;
+}
+$('beat-resume').addEventListener('click', resumeFromBeat);
+$('beat-skip').addEventListener('click', ()=>{
+  if(beatAnswers[0]===null) beatAnswers[0]='confirm';
+  if(beatAnswers[1]===null) beatAnswers[1]='correct';
+  if(beatAnswers[2]===null) beatAnswers[2]='confirm';
+  resumeFromBeat();
+});
+
+function resumeFromBeat(){
+  beat.classList.remove('show');
+  /* advance past the beat step */
+  advance();
+  if(!playing) togglePlay();
+}
+
+/* ───── core: render a step ───── */
+function renderStep(i){
+  const s = STEPS[i];
+  if(!s) return;
+
+  /* phase transition? */
+  if(s.ph !== phaseIdx){
+    phaseIdx = s.ph;
+    document.querySelectorAll('.ph').forEach(p=>{
+      const pi = parseInt(p.dataset.ph);
+      p.classList.toggle('active', pi===phaseIdx);
+      p.classList.toggle('done', pi<phaseIdx);
+    });
+    $('pane-phase-title').textContent = PHASE_NAMES[phaseIdx];
+    $('phase-name-foot').textContent = PHASE_LBL[phaseIdx];
+    $('cc-phase').textContent = PHASE_LBL[phaseIdx];
+    $('stage-tag-phase').textContent = 'Phase 0'+(phaseIdx+1);
+    /* clear nodes & ring on phase change */
+    nodesEl.innerHTML='';
+    ringEl.innerHTML='';
+    linksEl.innerHTML='';
+  }
+
+  $('phase-empty').style.display='none';
+  $('stage-tag-step').innerHTML = s.checking;
+  $('step-num').textContent = i+1 - phaseStartIndex(phaseIdx) + 1 - 1;
+  /* simpler: step within phase */
+  const psteps = STEPS.filter(x=>x.ph===phaseIdx);
+  const pIdx = psteps.indexOf(s)+1;
+  $('step-num').textContent = pIdx;
+  $('step-total').textContent = psteps.length;
+  $('cc-step').textContent = i+1;
+  $('cc-total').textContent = STEPS.length;
+
+  /* checking + why + next */
+  $('f-checking').innerHTML = s.checking;
+  $('f-why').textContent = WHY[s.whyKey][persona];
+  $('f-next').innerHTML = s.next;
+
+  /* found rows */
+  renderFound(s);
+
+  /* stage: nodes for this step */
+  if(s.nodes){
+    s.nodes.forEach(n=>{
+      if(!document.querySelector(`[data-node="${n.id}"]`)){
+        const el = document.createElement('div');
+        el.className='node';
+        el.dataset.node = n.id;
+        el.style.left = n.pos[0]+'%';
+        el.style.top  = n.pos[1]+'%';
+        el.innerHTML = `<div class="chip"><span class="glyph ${n.glyph}">${glyphTxt(n.glyph)}</span>${n.chip}</div><span class="src">${n.src}</span>`;
+        nodesEl.appendChild(el);
+        /* draw line to subject */
+        drawLineToSubject(n.pos[0], n.pos[1], n.id);
+      }
+      /* mark all prior nodes done, this one live */
+      document.querySelectorAll('.node').forEach(x=>{
+        x.classList.add('in');
+        if(x.dataset.node===n.id){ x.classList.add('live'); x.classList.remove('done'); }
+        else { x.classList.remove('live'); x.classList.add('done'); }
+      });
+      document.querySelectorAll('#links line').forEach(l=>{
+        l.classList.add('on');
+        if(l.dataset.target===n.id) l.classList.add('live');
+        else l.classList.remove('live');
+      });
+    });
+  } else {
+    document.querySelectorAll('.node').forEach(x=>{ x.classList.remove('live'); x.classList.add('done'); });
+    document.querySelectorAll('#links line').forEach(l=>l.classList.remove('live'));
+  }
+
+  /* ring items (frameworks / gaps around subject) */
+  if(s.ring){
+    s.ring.forEach((r,idx)=>{
+      const el = document.createElement('div');
+      el.className = `ring-item ${r.kind}${r.sev?' '+r.sev:''}`;
+      const rad = r.angle * Math.PI/180;
+      const x = Math.cos(rad)*r.r;
+      const y = Math.sin(rad)*r.r;
+      el.style.marginLeft = x+'px';
+      el.style.marginTop = y+'px';
+      el.textContent = r.label;
+      ringEl.appendChild(el);
+      setTimeout(()=>el.classList.add('in'), 80 + idx*120);
+    });
+  }
+
+  /* trigger founder beat if marked */
+  if(s.triggerBeat){
+    setTimeout(()=>{ beat.classList.add('show'); pause(); }, 300);
+  }
+
+  /* count animations on stub */
+  if(s.srcAdd) bumpCount('src-count', s.srcAdd);
+  if(s.modelAdd) bumpCount('model-count', s.modelAdd);
+  if(s.frameAdd) bumpCount('frame-count', s.frameAdd);
+  /* gap-count derived from ring gaps shown this step */
+  if(s.ring){
+    const gapsNow = s.ring.filter(r=>r.kind==='gap').length;
+    if(gapsNow > parseInt($('gap-count').textContent)) $('gap-count').textContent = gapsNow;
+  }
+}
+
+function renderFound(s){
+  const wrap = $('f-found');
+  wrap.innerHTML = '';
+  if(s.found === '__beat_answers__'){
+    /* render the user's confirmed answers as threaded rows */
+    const labels = ['SOC 2 status', 'Cyber insurance', 'Primary customer'];
+    const tags   = {confirm:['OK','confirmed'], correct:['WARN','corrected'], notsure:['FOUND','noted']};
+    beatAnswers.forEach((a,i)=>{
+      const [tagCls, tagTxt] = tags[a]||['FOUND','—'];
+      const row = document.createElement('div');
+      row.className='row';
+      row.innerHTML = `<span class="tag ${tagCls.toLowerCase()}">${tagTxt}</span>${labels[i]} <span class="you-pill">you</span><span class="src">first-party</span>`;
+      wrap.appendChild(row);
+    });
+    return;
+  }
+  (s.found||[]).forEach(f=>{
+    const row = document.createElement('div');
+    row.className='row';
+    const tagCls = f.tag.toLowerCase();
+    row.innerHTML = `<span class="tag ${tagCls}">${f.tag}</span>${f.txt}<span class="src">${f.src}</span>`;
+    wrap.appendChild(row);
+  });
+}
+
+function renderWhy(){
+  const s = STEPS[stepIdx];
+  if(s) $('f-why').textContent = WHY[s.whyKey][persona];
+}
+
+function glyphTxt(g){
+  return {dns:'D',ssl:'T',gh:'G',fc:'F',hi:'!',mf:'M',so:'S',cy:'C',vc:'V',co:'C',fw:'F',gp:'!',rc:'✓'}[g]||'•';
+}
+
+function drawLineToSubject(xPct,yPct,id){
+  const x1 = xPct*10;
+  const y1 = yPct*6;
+  const x2 = 500;
+  const y2 = 300;
+  const l = document.createElementNS('http://www.w3.org/2000/svg','line');
+  l.setAttribute('x1',x1); l.setAttribute('y1',y1);
+  l.setAttribute('x2',x2); l.setAttribute('y2',y2);
+  l.dataset.target = id;
+  linksEl.appendChild(l);
+}
+
+function phaseStartIndex(p){
+  for(let i=0;i<STEPS.length;i++) if(STEPS[i].ph===p) return i;
+  return 0;
+}
+
+function bumpCount(id, by){
+  const el = $(id);
+  const cur = parseInt(el.textContent)||0;
+  el.textContent = cur + by;
+}
+
+/* ───── timing loop ───── */
+function togglePlay(){
+  playing = !playing;
+  $('play-btn').textContent = playing ? '❚❚ Pause' : '▶ Play';
+  $('run-state').textContent = playing ? 'Running' : 'Paused';
+  if(playing){
+    if(stepIdx === -1){
+      /* fresh start */
+      stepIdx = 0;
+      stepConsumed = 0;
+      renderStep(0);
+    }
+    stepStart = performance.now();
+    speedAtPause = speed;
+    scheduleStep();
+  } else {
+    pause();
+  }
+}
+function pause(){
+  playing = false;
+  $('play-btn').textContent = '▶ Play';
+  $('run-state').textContent = 'Paused';
+  stepConsumed += (performance.now()-stepStart)*speedAtPause;
+  pauseToken++;
+}
+
+function scheduleStep(){
+  const s = STEPS[stepIdx]; if(!s) return;
+  const remainMs = (s.dur*1000) - stepConsumed;
+  const myToken = ++pauseToken;
+  const wait = Math.max(60, remainMs / speedAtPause);
+  setTimeout(()=>{
+    if(myToken!==pauseToken) return;
+    advance();
+  }, wait);
+  startTicker();
+}
+
+function advance(){
+  if(stepIdx >= STEPS.length-1){
+    finish();
+    return;
+  }
+  stepIdx++;
+  stepConsumed = 0;
+  renderStep(stepIdx);
+  if(playing){
+    stepStart = performance.now();
+    speedAtPause = speed;
+    scheduleStep();
+  }
+}
+
+function jumpToStep(i){
+  pause();
+  stepIdx = i;
+  stepConsumed = 0;
+  /* rebuild canvas state from scratch up to i */
+  nodesEl.innerHTML=''; ringEl.innerHTML=''; linksEl.innerHTML='';
+  document.getElementById('src-count').textContent='0';
+  document.getElementById('model-count').textContent='0';
+  document.getElementById('frame-count').textContent='0';
+  document.getElementById('gap-count').textContent='0';
+  phaseIdx = -1;
+  for(let k=0;k<=i;k++){
+    /* lightweight replay — just re-run renderStep cumulatively */
+    renderStep(k);
+  }
+  updateClock(0);
+}
+
+function jumpTo(seconds){
+  let acc=0;
+  for(let i=0;i<STEPS.length;i++){
+    if(acc + STEPS[i].dur >= seconds){
+      jumpToStep(i);
+      return;
+    }
+    acc += STEPS[i].dur;
+  }
+  jumpToStep(STEPS.length-1);
+}
+
+function reset(){
+  pause();
+  stepIdx = -1;
+  phaseIdx = -1;
+  stepConsumed = 0;
+  beatAnswers = [null,null,null];
+  document.querySelectorAll('.ph').forEach(p=>{p.classList.remove('active','done')});
+  document.querySelectorAll('.beat-q .opts button').forEach(b=>b.classList.remove('picked'));
+  $('beat-resume').disabled = true;
+  nodesEl.innerHTML=''; ringEl.innerHTML=''; linksEl.innerHTML='';
+  $('src-count').textContent='0'; $('model-count').textContent='0'; $('frame-count').textContent='0'; $('gap-count').textContent='0';
+  $('pane-phase-title').textContent = 'Quick recon';
+  $('f-checking').textContent='—'; $('f-why').textContent='—'; $('f-next').textContent='Next step will appear here';
+  $('f-found').innerHTML = '<div class="row" style="color:var(--ink-3)">waiting…</div>';
+  $('stage-tag-phase').textContent='Phase 01'; $('stage-tag-step').textContent='awaiting start';
+  $('phase-empty').style.display='block';
+  $('complete').classList.remove('show');
+  $('scrub').value = 0;
+  updateClock(0);
+}
+
+function finish(){
+  playing = false;
+  $('play-btn').textContent = '▶ Replay';
+  $('run-state').textContent = 'Complete';
+  $('dot').classList.add('done');
+  document.querySelectorAll('.ph').forEach(p=>p.classList.add('done'));
+  $('complete').classList.add('show');
+  $('seal-time').textContent = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+/* clock ticker — updates current time / scrub */
+let tickerRaf = 0;
+function startTicker(){
+  cancelAnimationFrame(tickerRaf);
+  function tick(){
+    if(!playing) return;
+    const now = performance.now();
+    const consumed = stepConsumed + (now-stepStart)*speedAtPause;
+    let acc = 0;
+    for(let i=0;i<stepIdx;i++) acc += STEPS[i].dur*1000;
+    acc += consumed;
+    updateClock(acc/1000);
+    tickerRaf = requestAnimationFrame(tick);
+  }
+  tick();
+}
+function updateClock(sec){
+  $('cur-time').textContent = sec.toFixed(1)+'s';
+  $('tot-time').textContent = totalDur.toFixed(1)+'s';
+  $('elapsed-foot').textContent = `elapsed ${sec.toFixed(1)}s`;
+  $('scrub').value = Math.min(100,(sec/totalDur)*100);
+}
+
+/* init */
+$('tot-time').textContent = totalDur.toFixed(1)+'s';
+$('cc-total').textContent = STEPS.length;
+
+</script>
+</body>
+</html>

@@ -1,0 +1,878 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1440,initial-scale=1" />
+<title>proof360 — Process for acmecorp.io</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Spectral:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #e8e1d0;
+    --paper-2: #efe9da;
+    --paper-3: #ddd4be;
+    --ink: #1a1a17;
+    --ink-2: #4a463e;
+    --ink-3: #7a7468;
+    --rule: #c8bfa8;
+    --rule-2: #b7ac90;
+    --teal: #2d7f6e;
+    --teal-deep: #1f5d50;
+    --teal-soft: #d9e9e3;
+    --crit: #a0392a;
+    --high: #b06d24;
+    --med: #7a6b2a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--paper); color: var(--ink); font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 13px; line-height: 1.5; }
+  .serif { font-family: 'Spectral', Georgia, serif; }
+
+  .frame { max-width: 1440px; margin: 0 auto; }
+
+  /* CHROME */
+  .chrome { display: flex; align-items: center; justify-content: space-between; padding: 16px 36px; border-bottom: 1px solid var(--rule); background: var(--paper); }
+  .chrome .brand { display: flex; align-items: baseline; gap: 14px; }
+  .chrome .brand .wm { font-family: 'Spectral', serif; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+  .chrome .brand .wm em { color: var(--teal); font-style: normal; font-weight: 400; }
+  .chrome .brand .sep { color: var(--rule-2); }
+  .chrome .brand .subj { color: var(--ink-2); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .chrome .right { display: flex; align-items: center; gap: 14px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+  .chrome .status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--teal); margin-right: 6px; vertical-align: middle; animation: pulse 1.6s ease-in-out infinite; }
+  .chrome .status-dot.done { background: var(--teal); animation: none; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+  /* PHASE RIBBON */
+  .ribbon { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--rule); background: var(--paper-2); }
+  .ph { padding: 14px 20px; border-right: 1px solid var(--rule); display: flex; align-items: center; gap: 12px; }
+  .ph:last-child { border-right: none; }
+  .ph .num { font-size: 10px; letter-spacing: 0.16em; color: var(--ink-3); width: 22px; flex-shrink: 0; }
+  .ph .body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .ph .name { font-family: 'Spectral', serif; font-size: 16px; font-weight: 500; letter-spacing: -0.005em; color: var(--ink-2); }
+  .ph .desc { font-size: 10px; color: var(--ink-3); letter-spacing: 0.02em; }
+  .ph .bar { position: absolute; bottom: 0; left: 0; height: 2px; background: var(--teal); width: 0; transition: width 0.4s; }
+  .ph { position: relative; transition: background 0.3s; }
+  .ph.active { background: var(--paper); }
+  .ph.active .name { color: var(--ink); }
+  .ph.active .num { color: var(--teal); }
+  .ph.done .name { color: var(--ink); }
+  .ph.done .num::before { content: '✓ '; color: var(--teal); }
+
+  /* MAIN GRID */
+  .main { display: grid; grid-template-columns: 1fr 360px; min-height: 640px; border-bottom: 1px solid var(--rule); }
+
+  /* CANVAS */
+  .canvas { position: relative; background:
+    linear-gradient(var(--paper-2), var(--paper-2)),
+    repeating-linear-gradient(0deg, transparent 0, transparent 39px, rgba(122,116,104,0.12) 39px, rgba(122,116,104,0.12) 40px),
+    repeating-linear-gradient(90deg, transparent 0, transparent 39px, rgba(122,116,104,0.12) 39px, rgba(122,116,104,0.12) 40px);
+    background-blend-mode: multiply;
+    overflow: hidden;
+  }
+  .canvas-region-label { position: absolute; font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); }
+  .rl-sources { top: 14px; left: 24px; }
+  .rl-vector  { top: 14px; right: 24px; }
+  .rl-firecrawl { bottom: 14px; left: 24px; }
+  .rl-corpus  { bottom: 14px; right: 24px; }
+
+  /* SVG line layer */
+  .lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .lines line { stroke: var(--ink-3); stroke-width: 0.6; opacity: 0; transition: opacity 0.5s; }
+  .lines line.on { opacity: 0.5; }
+  .lines line.pulse { stroke: var(--teal); stroke-width: 1.2; opacity: 0; }
+  .lines line.pulse.on { animation: linePulse 1.2s ease-out; }
+  @keyframes linePulse { 0% { opacity: 0; stroke-dasharray: 4 8; stroke-dashoffset: 12; } 60% { opacity: 1; } 100% { opacity: 0; stroke-dashoffset: 0; } }
+
+  /* TARGET */
+  .target { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 5; }
+  .target .ring { width: 110px; height: 110px; border: 1.5px solid var(--ink); border-radius: 55px; display: flex; align-items: center; justify-content: center; background: var(--paper); position: relative; }
+  .target .ring::before { content: ''; position: absolute; inset: -8px; border: 1px dashed var(--teal); border-radius: 64px; opacity: 0.5; animation: spin 18s linear infinite; }
+  @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+  .target .ring .glyph { font-family: 'Spectral', serif; font-size: 20px; font-weight: 600; }
+  .target .name { font-size: 11px; letter-spacing: 0.08em; color: var(--ink-2); font-weight: 500; }
+  .target .meta { font-size: 9px; letter-spacing: 0.12em; color: var(--ink-3); text-transform: uppercase; }
+
+  /* NODES */
+  .node { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 4px; opacity: 0; transition: opacity 0.35s, transform 0.35s; }
+  .node.in { opacity: 1; }
+  .node .dot { width: 30px; height: 30px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; border: 1px solid var(--rule-2); background: var(--paper); transition: box-shadow 0.25s, transform 0.25s, border-color 0.25s; }
+  .node.active .dot { box-shadow: 0 0 0 3px rgba(45,127,110,0.18); border-color: var(--teal); }
+  .node.done .dot { border-color: var(--ink); }
+  .node .lbl { font-size: 9px; letter-spacing: 0.06em; color: var(--ink-2); white-space: nowrap; }
+  .node .sublbl { font-size: 8px; color: var(--ink-3); letter-spacing: 0.02em; }
+  .node.tiny .dot { width: 20px; height: 20px; font-size: 8px; }
+
+  /* VECTOR specifically */
+  .vector-hub { position: absolute; top: 110px; right: 70px; width: 280px; padding: 14px 16px; border: 1px solid var(--rule); background: var(--paper); opacity: 0; transition: opacity 0.4s; }
+  .vector-hub.in { opacity: 1; }
+  .vector-hub h4 { margin: 0 0 6px; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); display: flex; justify-content: space-between; }
+  .vector-hub h4 b { color: var(--teal); font-weight: 500; }
+  .vector-hub .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 10px; }
+  .vector-hub .m { aspect-ratio: 1; background: var(--paper-2); border: 1px solid var(--rule); font-size: 8px; display: flex; align-items: center; justify-content: center; color: var(--ink-3); letter-spacing: 0.02em; transition: all 0.3s; }
+  .vector-hub .m.active { background: var(--teal); color: var(--paper); border-color: var(--teal); box-shadow: 0 0 0 2px rgba(45,127,110,0.2); }
+  .vector-hub .m.dim { opacity: 0.45; }
+  .vector-hub .picked { margin-top: 8px; font-size: 10px; color: var(--ink-2); }
+  .vector-hub .picked b { color: var(--ink); }
+
+  /* CORPUS */
+  .corpus-cluster { position: absolute; bottom: 90px; right: 70px; }
+  .firecrawl-cluster { position: absolute; bottom: 90px; left: 70px; }
+
+  /* Framework pills around target */
+  .frameworks { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+  .fw { position: absolute; padding: 3px 8px; background: var(--paper); border: 1px solid var(--ink); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; transform: translate(-50%, -50%); opacity: 0; transition: opacity 0.35s; }
+  .fw.in { opacity: 1; }
+
+  /* Gap badges around target */
+  .gaps { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+  .gp { position: absolute; padding: 4px 9px; background: var(--paper); border: 1px solid var(--crit); color: var(--crit); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; transform: translate(-50%, -50%) scale(0.7); opacity: 0; transition: opacity 0.35s, transform 0.35s; white-space: nowrap; }
+  .gp.high { border-color: var(--high); color: var(--high); }
+  .gp.med { border-color: var(--med); color: var(--med); }
+  .gp.in { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+  /* TAPE */
+  .tape { background: var(--ink); color: var(--paper); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+  .tape-head { padding: 14px 18px; border-bottom: 1px solid rgba(232,225,208,0.15); display: flex; justify-content: space-between; align-items: baseline; }
+  .tape-head .ttl { font-family: 'Spectral', serif; font-size: 14px; letter-spacing: -0.005em; }
+  .tape-head .meta { font-size: 10px; letter-spacing: 0.1em; color: rgba(232,225,208,0.55); text-transform: uppercase; }
+  .tape-body { flex: 1; overflow-y: auto; padding: 12px 18px; font-size: 11px; line-height: 1.55; display: flex; flex-direction: column-reverse; }
+  .tape-body::-webkit-scrollbar { width: 6px; }
+  .tape-body::-webkit-scrollbar-track { background: rgba(232,225,208,0.05); }
+  .tape-body::-webkit-scrollbar-thumb { background: rgba(232,225,208,0.2); }
+  .tape-line { padding: 5px 0; border-bottom: 1px dotted rgba(232,225,208,0.1); display: grid; grid-template-columns: 44px 56px 1fr; gap: 8px; align-items: baseline; }
+  .tape-line .ts { color: rgba(232,225,208,0.4); font-size: 10px; }
+  .tape-line .ac { font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
+  .tape-line .ac.firecrawl { color: #f48120; }
+  .tape-line .ac.dns { color: #6eb5a4; }
+  .tape-line .ac.ssl { color: #6eb5a4; }
+  .tape-line .ac.hibp { color: #ff7777; }
+  .tape-line .ac.ipinfo { color: #6eb5a4; }
+  .tape-line .ac.github { color: #cccccc; }
+  .tape-line .ac.ct { color: #6eb5a4; }
+  .tape-line .ac.abuse { color: #ff7777; }
+  .tape-line .ac.vector { color: #f0a850; }
+  .tape-line .ac.corpus { color: #c4a2e5; }
+  .tape-line .ac.founder { color: #6eb5a4; }
+  .tape-line .ac.system { color: rgba(232,225,208,0.5); }
+  .tape-line .ac.frameworks { color: #c4a2e5; }
+  .tape-line .ac.gaps { color: #ff7777; }
+  .tape-line .ac.receipt { color: var(--teal); }
+  .tape-line .msg { color: var(--paper); }
+  .tape-line .msg .why { display: block; color: rgba(232,225,208,0.5); font-style: italic; margin-top: 2px; font-family: 'Spectral', serif; font-size: 11px; }
+
+  /* CONTROLS */
+  .controls { display: grid; grid-template-columns: auto 1fr auto; gap: 18px; padding: 14px 36px; background: var(--paper-2); border-bottom: 1px solid var(--rule); align-items: center; }
+  .controls .left { display: flex; gap: 8px; align-items: center; }
+  .controls .btn { width: 32px; height: 32px; border: 1px solid var(--ink); background: var(--paper); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-family: inherit; padding: 0; }
+  .controls .btn:hover { background: var(--ink); color: var(--paper); }
+  .controls .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .controls .speed { display: inline-flex; gap: 4px; }
+  .controls .speed button { padding: 6px 10px; border: 1px solid var(--rule-2); background: var(--paper); cursor: pointer; font-family: inherit; font-size: 10px; letter-spacing: 0.06em; }
+  .controls .speed button.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .controls .scrub { display: flex; align-items: center; gap: 12px; }
+  .controls .scrub input[type=range] { flex: 1; -webkit-appearance: none; height: 4px; background: var(--rule); border-radius: 2px; outline: none; cursor: pointer; }
+  .controls .scrub input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--ink); border-radius: 7px; cursor: pointer; }
+  .controls .scrub input[type=range]::-moz-range-thumb { width: 14px; height: 14px; background: var(--ink); border-radius: 7px; cursor: pointer; border: none; }
+  .controls .time { font-size: 10px; color: var(--ink-2); letter-spacing: 0.06em; min-width: 80px; text-align: right; }
+  .controls .counts { display: flex; gap: 14px; font-size: 10px; letter-spacing: 0.04em; color: var(--ink-2); }
+  .controls .counts b { color: var(--ink); font-weight: 600; }
+
+  /* STATUS SENTENCE */
+  .status-bar { padding: 14px 36px; background: var(--paper); border-bottom: 1px solid var(--rule); display: flex; align-items: baseline; gap: 14px; }
+  .status-bar .pfx { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
+  .status-bar .txt { font-family: 'Spectral', serif; font-size: 18px; font-weight: 500; line-height: 1.3; letter-spacing: -0.005em; color: var(--ink); flex: 1; }
+  .status-bar .txt em { color: var(--teal); font-style: normal; }
+
+  /* FOUNDER BEAT OVERLAY */
+  .founder-beat { position: fixed; inset: 0; background: rgba(26,26,23,0.72); display: none; align-items: center; justify-content: center; z-index: 50; padding: 40px; }
+  .founder-beat.show { display: flex; animation: fadein 0.3s ease; }
+  @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+  .fb-card { background: var(--paper); max-width: 760px; width: 100%; padding: 28px 32px; border: 1px solid var(--ink); }
+  .fb-card .lbl { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal); margin-bottom: 10px; }
+  .fb-card h3 { font-family: 'Spectral', serif; font-size: 24px; font-weight: 500; line-height: 1.25; letter-spacing: -0.015em; margin: 0 0 6px; }
+  .fb-card .why { color: var(--ink-3); font-size: 12px; margin-bottom: 22px; font-style: italic; font-family: 'Spectral', serif; }
+  .fb-q { padding: 14px 0; border-top: 1px dotted var(--rule); }
+  .fb-q:first-of-type { border-top: 1px solid var(--rule); margin-top: 6px; }
+  .fb-q .q-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .fb-q .q-head .qtxt { font-size: 13px; color: var(--ink); }
+  .fb-q .q-head .qtxt b { font-family: 'Spectral', serif; font-weight: 600; font-size: 14px; }
+  .fb-q .q-head .conf { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+  .fb-q .opts { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  .fb-q .opts button { padding: 8px 10px; border: 1px solid var(--ink); background: var(--paper); font-family: inherit; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: all 0.15s; }
+  .fb-q .opts button:hover { background: var(--paper-2); }
+  .fb-q .opts button.confirm.picked { background: var(--teal); color: var(--paper); border-color: var(--teal); }
+  .fb-q .opts button.correct.picked { background: var(--high); color: var(--paper); border-color: var(--high); }
+  .fb-q .opts button.notsure.picked { background: var(--ink-3); color: var(--paper); border-color: var(--ink-3); }
+  .fb-foot { margin-top: 22px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+  .fb-foot .note { font-size: 11px; color: var(--ink-2); font-style: italic; font-family: 'Spectral', serif; max-width: 380px; }
+  .fb-foot .cta-resume { padding: 12px 22px; background: var(--ink); color: var(--paper); border: none; font-family: inherit; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; }
+  .fb-foot .cta-resume:hover { background: var(--teal-deep); }
+  .fb-foot .cta-resume:disabled { background: var(--rule-2); cursor: not-allowed; }
+
+  /* COMPLETION CTA */
+  .complete-cta { padding: 36px 36px 44px; background: var(--ink); color: var(--paper); display: none; grid-template-columns: 1.4fr 1fr; gap: 32px; align-items: center; }
+  .complete-cta.show { display: grid; animation: fadein 0.5s ease; }
+  .complete-cta .lead { font-family: 'Spectral', serif; font-size: 26px; font-weight: 500; line-height: 1.3; letter-spacing: -0.015em; }
+  .complete-cta .lead em { color: #6eb5a4; font-style: normal; }
+  .complete-cta .small { font-size: 11px; opacity: 0.55; margin-top: 12px; letter-spacing: 0.04em; }
+  .complete-cta .ctas { display: flex; flex-direction: column; gap: 12px; align-items: flex-end; }
+  .complete-cta .cta-primary { background: var(--paper); color: var(--ink); padding: 16px 26px; border: none; font-family: inherit; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; }
+  .complete-cta .cta-primary:hover { background: var(--teal); color: var(--paper); }
+  .complete-cta .cta-second { background: transparent; color: var(--paper); border: 1px solid var(--paper); padding: 12px 18px; font-family: inherit; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+  .complete-cta .cta-second:hover { background: var(--paper); color: var(--ink); }
+  .complete-cta .receipt-mini { background: var(--paper); color: var(--ink); padding: 16px 20px; font-size: 11px; line-height: 1.55; max-width: 100%; }
+  .complete-cta .receipt-mini .rh { font-family: 'Spectral', serif; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .complete-cta .receipt-mini .rl { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dotted var(--rule); }
+  .complete-cta .receipt-mini .rl:last-child { border-bottom: none; }
+  .complete-cta .receipt-mini .rl b { font-weight: 500; }
+</style>
+</head>
+<body>
+
+<div class="frame" data-screen-label="proof360 Process">
+
+  <!-- CHROME -->
+  <div class="chrome">
+    <div class="brand">
+      <span class="wm">proof<em>360</em></span>
+      <span class="sep">·</span>
+      <span class="subj">Process · acmecorp.io · live read</span>
+    </div>
+    <div class="right">
+      <span><span class="status-dot" id="dot"></span><span id="run-state">Running</span></span>
+      <span style="color:var(--rule-2)">|</span>
+      <span>01 of 03 · Process</span>
+    </div>
+  </div>
+
+  <!-- PHASE RIBBON -->
+  <div class="ribbon" id="ribbon">
+    <div class="ph" data-ph="0"><span class="num">01</span><div class="body"><span class="name serif">Quick</span><span class="desc">Recon · public signal · no inference</span></div></div>
+    <div class="ph" data-ph="1"><span class="num">02</span><div class="body"><span class="name serif">Standard</span><span class="desc">Nova + Sonar · signal extraction</span></div></div>
+    <div class="ph" data-ph="2"><span class="num">03</span><div class="body"><span class="name serif">Interactive</span><span class="desc">Founder confirms · overrides · qualifies</span></div></div>
+    <div class="ph" data-ph="3"><span class="num">04</span><div class="body"><span class="name serif">Deep</span><span class="desc">CORPUS · gaps · vendor matrix · AWS</span></div></div>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status-bar">
+    <span class="pfx">Now</span>
+    <span class="txt serif" id="status-text">Press play to begin the read.</span>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- CANVAS -->
+    <div class="canvas" id="canvas">
+      <span class="canvas-region-label rl-sources">Sources</span>
+      <span class="canvas-region-label rl-vector">VECTOR · model routing</span>
+      <span class="canvas-region-label rl-firecrawl">Public capture · Firecrawl</span>
+      <span class="canvas-region-label rl-corpus">CORPUS · framework knowledge</span>
+
+      <svg class="lines" id="lines" viewBox="0 0 1000 600" preserveAspectRatio="none"></svg>
+
+      <!-- TARGET -->
+      <div class="target">
+        <div class="ring"><span class="glyph">A</span></div>
+        <span class="name">acmecorp.io</span>
+        <span class="meta">B2B SaaS · Series B · AU/US · AWS</span>
+      </div>
+
+      <!-- SOURCE NODES (top-left quadrant) -->
+      <div class="node" data-id="dns" style="left:7%;top:14%"><div class="dot" style="background:#6eb5a4;color:#1a1a17">DNS</div><span class="lbl">dns.google</span></div>
+      <div class="node" data-id="ssl" style="left:16%;top:9%"><div class="dot" style="background:#6eb5a4;color:#1a1a17">SSL</div><span class="lbl">crt.sh</span></div>
+      <div class="node" data-id="ct" style="left:26%;top:14%"><div class="dot" style="background:#6eb5a4;color:#1a1a17">CT</div><span class="lbl">cert transparency</span></div>
+      <div class="node" data-id="ipinfo" style="left:36%;top:9%"><div class="dot" style="background:#6eb5a4;color:#1a1a17">IP</div><span class="lbl">ipinfo.io</span></div>
+      <div class="node" data-id="hibp" style="left:46%;top:14%"><div class="dot" style="background:#ff7777;color:#1a1a17">HIBP</div><span class="lbl">haveibeenpwned</span></div>
+      <div class="node" data-id="abuse" style="left:9%;top:30%"><div class="dot" style="background:#ff7777;color:#1a1a17">AB</div><span class="lbl">abuseipdb</span></div>
+      <div class="node" data-id="github" style="left:18%;top:35%"><div class="dot" style="background:#1a1a17;color:#fff">GH</div><span class="lbl">github</span></div>
+      <div class="node" data-id="firecrawl" style="left:9%;top:78%"><div class="dot" style="background:#f48120;color:#fff">FC</div><span class="lbl">firecrawl</span><span class="sublbl">/about · /security · /trust · /pricing · /careers</span></div>
+
+      <!-- FIRECRAWL PAGE LEAVES (bottom-left) -->
+      <div class="node tiny" data-id="fc-1" style="left:20%;top:72%"><div class="dot" style="background:#f48120;color:#fff">/a</div></div>
+      <div class="node tiny" data-id="fc-2" style="left:24%;top:78%"><div class="dot" style="background:#f48120;color:#fff">/s</div></div>
+      <div class="node tiny" data-id="fc-3" style="left:20%;top:85%"><div class="dot" style="background:#f48120;color:#fff">/t</div></div>
+      <div class="node tiny" data-id="fc-4" style="left:14%;top:88%"><div class="dot" style="background:#f48120;color:#fff">/p</div></div>
+      <div class="node tiny" data-id="fc-5" style="left:6%;top:88%"><div class="dot" style="background:#f48120;color:#fff">/c</div></div>
+
+      <!-- VECTOR HUB -->
+      <div class="vector-hub" id="vector-hub">
+        <h4><span>VECTOR · routing layer</span><b id="v-picked-count">0 / 26</b></h4>
+        <div class="grid" id="model-grid">
+          <!-- 26 models populated by JS -->
+        </div>
+        <div class="picked" id="v-picked-text">No model routed yet</div>
+      </div>
+
+      <!-- CORPUS DOC NODES (bottom-right) -->
+      <div class="node" data-id="corpus-doc1" style="left:80%;top:76%"><div class="dot" style="background:#c4a2e5;color:#1a1a17">SOC</div><span class="lbl">SOC 2 TSC</span></div>
+      <div class="node" data-id="corpus-doc2" style="left:88%;top:72%"><div class="dot" style="background:#c4a2e5;color:#1a1a17">ISO</div><span class="lbl">ISO 27001</span></div>
+      <div class="node" data-id="corpus-doc3" style="left:94%;top:80%"><div class="dot" style="background:#c4a2e5;color:#1a1a17">E8</div><span class="lbl">ASD Essential 8</span></div>
+      <div class="node" data-id="corpus-doc4" style="left:90%;top:88%"><div class="dot" style="background:#c4a2e5;color:#1a1a17">AP</div><span class="lbl">APRA CPS 234</span></div>
+      <div class="node" data-id="corpus-doc5" style="left:80%;top:90%"><div class="dot" style="background:#c4a2e5;color:#1a1a17">GD</div><span class="lbl">GDPR</span></div>
+      <div class="node" data-id="corpus-doc6" style="left:72%;top:86%"><div class="dot" style="background:#c4a2e5;color:#1a1a17">AI</div><span class="lbl">EU AI Act</span></div>
+      <div class="node" data-id="corpus-doc7" style="left:96%;top:62%"><div class="dot" style="background:#c4a2e5;color:#1a1a17">VD</div><span class="lbl">Vendor matrix</span></div>
+      <div class="node" data-id="corpus-doc8" style="left:88%;top:56%"><div class="dot" style="background:#c4a2e5;color:#1a1a17">AW</div><span class="lbl">AWS programs</span></div>
+
+      <!-- FRAMEWORK PILLS (appear during Deep) -->
+      <div class="frameworks">
+        <span class="fw" data-fw="soc2"   style="left:-160px;top:-80px">SOC 2 · Type II</span>
+        <span class="fw" data-fw="iso"    style="left:170px;top:-80px">ISO 27001</span>
+        <span class="fw" data-fw="e8"     style="left:-180px;top:0">Essential 8</span>
+        <span class="fw" data-fw="apra"   style="left:180px;top:0">APRA CPS 234</span>
+        <span class="fw" data-fw="gdpr"   style="left:-140px;top:80px">GDPR</span>
+        <span class="fw" data-fw="ai"     style="left:150px;top:80px">EU AI Act</span>
+      </div>
+
+      <!-- GAP BADGES (appear at end of Deep) -->
+      <div class="gaps">
+        <span class="gp"      data-gap="soc2"  style="left:-220px;top:-130px">SOC 2 · CRIT</span>
+        <span class="gp"      data-gap="mfa"   style="left:0;top:-150px">MFA · CRIT</span>
+        <span class="gp"      data-gap="ins"   style="left:220px;top:-130px">CYBER INS · CRIT</span>
+        <span class="gp high" data-gap="dmarc" style="left:-240px;top:-30px">DMARC · HIGH</span>
+        <span class="gp high" data-gap="ir"    style="left:240px;top:-30px">IR PLAN · HIGH</span>
+        <span class="gp high" data-gap="ai"    style="left:-200px;top:90px">AI GOV · HIGH</span>
+        <span class="gp high" data-gap="dr"    style="left:200px;top:90px">BACKUP · HIGH</span>
+        <span class="gp high" data-gap="fnd"   style="left:-60px;top:160px">FOUNDER · HIGH</span>
+        <span class="gp med"  data-gap="sec"   style="left:80px;top:160px">HEADERS · MED</span>
+      </div>
+
+    </div>
+
+    <!-- TAPE -->
+    <div class="tape">
+      <div class="tape-head">
+        <span class="ttl">Reading tape</span>
+        <span class="meta">live · with annotations</span>
+      </div>
+      <div class="tape-body" id="tape-body">
+        <!-- lines prepended by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <div class="left">
+      <button class="btn" id="btn-play" title="Play / pause">▶</button>
+      <button class="btn" id="btn-restart" title="Restart">↺</button>
+      <span class="speed">
+        <button data-spd="0.5">0.5×</button>
+        <button data-spd="1" class="on">1×</button>
+        <button data-spd="2">2×</button>
+        <button data-spd="4">4×</button>
+      </span>
+    </div>
+    <div class="scrub">
+      <input type="range" id="scrub" min="0" max="1000" value="0" step="1" />
+      <span class="time" id="time">00.0s / 28.0s</span>
+    </div>
+    <div class="counts">
+      <span><b id="c-src">0</b> sources</span>
+      <span><b id="c-mdl">0</b> models</span>
+      <span><b id="c-doc">0</b> docs</span>
+      <span><b id="c-fw">0</b> frameworks</span>
+      <span><b id="c-gap">0</b> gaps</span>
+    </div>
+  </div>
+
+  <!-- COMPLETION CTA — hidden until end -->
+  <div class="complete-cta" id="complete-cta">
+    <div>
+      <div class="lead serif">
+        Process complete.<br/>
+        <em>The receipt is yours to inspect</em> — every source, every model, every doc, every gap, every founder confirmation, recorded.
+        <div class="small">02 of 03 · Read — what the operating surface means commercially.</div>
+      </div>
+    </div>
+    <div class="ctas">
+      <a class="cta-primary" href="proof360 Round 5 - The Read.html">View read <span>→</span></a>
+      <button class="cta-second" id="btn-replay">↻ Replay process</button>
+      <a class="cta-second" href="#" onclick="event.preventDefault();alert('Receipt SVG export — Surface 04 (out of scope for this round).');">Export receipt SVG ↘</a>
+    </div>
+  </div>
+
+  <!-- FOUNDER BEAT OVERLAY -->
+  <div class="founder-beat" id="founder-beat">
+    <div class="fb-card">
+      <div class="lbl">Interactive · Phase 03 · Founder loop</div>
+      <h3 class="serif">VECTOR found three signals it can't confirm without you.</h3>
+      <div class="why">Not sure stays unverified — never counted as negative evidence. Override sets the record straight. Confirm is on-record acknowledgement.</div>
+
+      <div class="fb-q" data-q="0">
+        <div class="q-head">
+          <span class="qtxt"><b>SOC 2 status</b> — we couldn't find a public report. Is one in progress?</span>
+          <span class="conf">Confidence · 62%</span>
+        </div>
+        <div class="opts">
+          <button class="confirm" data-pick="confirm">Confirm — not yet</button>
+          <button class="correct" data-pick="correct">Correct — in audit</button>
+          <button class="notsure" data-pick="notsure">Not sure</button>
+        </div>
+      </div>
+
+      <div class="fb-q" data-q="1">
+        <div class="q-head">
+          <span class="qtxt"><b>MFA enforcement</b> — DNS suggests Google Workspace. Is MFA enforced for all employees?</span>
+          <span class="conf">Confidence · 48%</span>
+        </div>
+        <div class="opts">
+          <button class="confirm" data-pick="confirm">Confirm — enforced</button>
+          <button class="correct" data-pick="correct">Correct — partial</button>
+          <button class="notsure" data-pick="notsure">Not sure</button>
+        </div>
+      </div>
+
+      <div class="fb-q" data-q="2">
+        <div class="q-head">
+          <span class="qtxt"><b>Cyber insurance</b> — no public mention. Do you carry an active policy?</span>
+          <span class="conf">Confidence · 35%</span>
+        </div>
+        <div class="opts">
+          <button class="confirm" data-pick="confirm">Confirm — yes</button>
+          <button class="correct" data-pick="correct">Correct — none</button>
+          <button class="notsure" data-pick="notsure">Not sure</button>
+        </div>
+      </div>
+
+      <div class="fb-foot">
+        <span class="note">Three is the typical ambiguity rate at the Quick→Standard handoff for AWS-native SaaS. You can re-open this beat from the receipt at any time.</span>
+        <button class="cta-resume" id="fb-resume" disabled>Resume read <span>→</span></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(() => {
+  // ─────────────────────────────────────────────
+  // MODELS — 26 total, 2 actually routed
+  // ─────────────────────────────────────────────
+  const MODELS = [
+    'opus-4','sonnet-4','haiku-4','sonnet-3.7','haiku-3.5',
+    'gpt-5','gpt-4o','o3','o3-mini','gpt-4.1',
+    'gemini-2.5','flash','gemini-1.5','grok-3','grok-2',
+    'nova-pro','nova-lite','nova-micro','titan-text','llama-3.3',
+    'mistral-large','mixtral','sonar','sonar-pro','sonar-reasoning',
+    'cohere-r+'
+  ];
+  const ACTIVE_MODELS = new Set(['nova-lite','sonar']);
+
+  // ─────────────────────────────────────────────
+  // TIMELINE — array of {t, fn, status?}
+  // Times in seconds at 1x speed.
+  // ─────────────────────────────────────────────
+  const TL = [];
+  const TOTAL = 28; // approx duration
+
+  // helpers
+  const $ = s => document.querySelector(s);
+  const $$ = s => [...document.querySelectorAll(s)];
+  const node = id => document.querySelector(`[data-id="${id}"]`);
+  const setStatus = t => $('#status-text').innerHTML = t;
+  const setPhase = i => {
+    $$('#ribbon .ph').forEach((p, idx) => {
+      p.classList.toggle('active', idx === i);
+      p.classList.toggle('done', idx < i);
+    });
+  };
+  const counts = { src: 0, mdl: 0, doc: 0, fw: 0, gap: 0 };
+  const bumpCount = (k, v) => {
+    counts[k] = v ?? counts[k] + 1;
+    $('#c-'+k).textContent = counts[k];
+  };
+
+  const tape = (actor, msg, why) => {
+    const ts = (state.time).toFixed(1).padStart(4,'0')+'s';
+    const line = document.createElement('div');
+    line.className = 'tape-line';
+    line.innerHTML = `<span class="ts">${ts}</span><span class="ac ${actor}">${actor}</span><span class="msg">${msg}${why?`<span class="why">${why}</span>`:''}</span>`;
+    $('#tape-body').prepend(line);
+  };
+
+  const lineSvg = $('#lines');
+  const drawLine = (fromSel, toSel, opts = {}) => {
+    const a = document.querySelector(fromSel)?.getBoundingClientRect();
+    const b = document.querySelector(toSel)?.getBoundingClientRect();
+    const c = $('#canvas').getBoundingClientRect();
+    if (!a || !b) return;
+    const x1 = (a.left + a.width/2 - c.left) / c.width * 1000;
+    const y1 = (a.top + a.height/2 - c.top) / c.height * 600;
+    const x2 = (b.left + b.width/2 - c.left) / c.width * 1000;
+    const y2 = (b.top + b.height/2 - c.top) / c.height * 600;
+    const ln = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    ln.setAttribute('x1', x1); ln.setAttribute('y1', y1);
+    ln.setAttribute('x2', x2); ln.setAttribute('y2', y2);
+    ln.setAttribute('class', 'on' + (opts.pulse?' pulse':''));
+    lineSvg.appendChild(ln);
+    requestAnimationFrame(()=> ln.classList.add('on'));
+  };
+
+  const activateNode = id => {
+    const n = node(id);
+    if (n) { n.classList.add('in', 'active'); }
+  };
+  const settleNode = id => {
+    const n = node(id);
+    if (n) { n.classList.remove('active'); n.classList.add('done'); }
+  };
+  const showNode = id => {
+    const n = node(id);
+    if (n) n.classList.add('in');
+  };
+
+  // ─────────────────────────────────────────────
+  // POPULATE VECTOR MODEL GRID
+  // ─────────────────────────────────────────────
+  const grid = $('#model-grid');
+  MODELS.forEach(m => {
+    const el = document.createElement('div');
+    el.className = 'm dim';
+    el.dataset.m = m;
+    el.textContent = m.length > 8 ? m.slice(0,7) : m;
+    el.title = m;
+    grid.appendChild(el);
+  });
+
+  // ─────────────────────────────────────────────
+  // STATE
+  // ─────────────────────────────────────────────
+  const state = {
+    time: 0,        // current sim time, seconds
+    playing: false,
+    speed: 1,
+    paused_for_founder: false,
+    completed: false,
+    last_real_time: 0,
+    completed_steps: new Set(),
+  };
+
+  // ─────────────────────────────────────────────
+  // TIMELINE STEPS
+  // ─────────────────────────────────────────────
+  const step = (t, fn) => TL.push({t, fn});
+
+  step(0.0, () => {
+    setPhase(0);
+    setStatus('Inspecting the operating surface for <em>acmecorp.io</em>.');
+    tape('system','Read started · subject acmecorp.io','why: founder-initiated quick read');
+  });
+
+  // Quick phase — sources spin up
+  step(0.6, () => { activateNode('dns'); tape('dns','Resolving A · MX · TXT · CAA records', 'why: identity surface + email path'); });
+  step(1.0, () => { activateNode('ssl'); tape('ssl','crt.sh fetch · 47 certificates indexed', 'why: subdomain coverage + cert hygiene'); });
+  step(1.4, () => { settleNode('dns'); bumpCount('src'); drawLine('[data-id="dns"]', '.target .ring'); });
+  step(1.7, () => { activateNode('ct'); tape('ct','Certificate transparency log · last 90 days', 'why: shadow infrastructure detection'); });
+  step(2.0, () => { settleNode('ssl'); bumpCount('src'); drawLine('[data-id="ssl"]', '.target .ring'); });
+  step(2.3, () => { activateNode('ipinfo'); tape('ipinfo','ipinfo.io · AWS us-east-1 · CloudFront edge', 'why: cloud footprint = remediation route'); });
+  step(2.6, () => { settleNode('ct'); bumpCount('src'); drawLine('[data-id="ct"]', '.target .ring'); });
+  step(2.9, () => { activateNode('hibp'); tape('hibp','HIBP · checking 3 corporate domains', 'why: breach exposure → cyber insurance lens'); });
+  step(3.2, () => { settleNode('ipinfo'); bumpCount('src'); drawLine('[data-id="ipinfo"]', '.target .ring'); });
+  step(3.5, () => { activateNode('abuse'); tape('abuse','abuseipdb · IP reputation clean', 'why: outbound trust signal'); });
+  step(3.8, () => { settleNode('hibp'); bumpCount('src'); drawLine('[data-id="hibp"]', '.target .ring'); });
+  step(4.1, () => { activateNode('github'); tape('github','GitHub · 14 public repos · no secrets exposed', 'why: code hygiene as founder trust proxy'); });
+  step(4.4, () => { settleNode('abuse'); bumpCount('src'); drawLine('[data-id="abuse"]', '.target .ring'); });
+  step(4.7, () => { activateNode('firecrawl'); tape('firecrawl','Crawling 5 pages: /about /security /trust /pricing /careers', 'why: claims surface — what they say about themselves'); });
+  step(5.0, () => { settleNode('github'); bumpCount('src'); drawLine('[data-id="github"]', '.target .ring'); });
+  step(5.3, () => { showNode('fc-1'); });
+  step(5.5, () => { showNode('fc-2'); });
+  step(5.7, () => { showNode('fc-3'); });
+  step(5.9, () => { showNode('fc-4'); });
+  step(6.1, () => { showNode('fc-5'); settleNode('firecrawl'); bumpCount('src'); drawLine('[data-id="firecrawl"]', '.target .ring'); });
+
+  // Standard phase — VECTOR + models
+  step(6.5, () => {
+    setPhase(1);
+    setStatus('Standard phase — <em>VECTOR routes the read</em> across candidate models.');
+    $('#vector-hub').classList.add('in');
+    tape('vector','Initialising routing · 26 candidate models', 'why: cost-aware model selection per signal type');
+  });
+
+  // Light up all model cells dim → considered (one by one)
+  for (let i = 0; i < MODELS.length; i++) {
+    step(6.7 + i * 0.04, () => {
+      const m = grid.children[i];
+      if (m) m.classList.remove('dim');
+      bumpCount('mdl');
+    });
+  }
+
+  step(8.2, () => {
+    // Activate nova-lite
+    [...grid.children].forEach(el => { if (el.dataset.m === 'nova-lite') el.classList.add('active'); });
+    $('#v-picked-text').innerHTML = 'Routed · <b>nova-lite</b> · signal extraction';
+    $('#v-picked-count').textContent = '1 / 26';
+    tape('vector','Routing claims-text extraction → nova-lite', 'why: cheap, fast, structured-output strength');
+  });
+  step(8.8, () => {
+    [...grid.children].forEach(el => { if (el.dataset.m === 'sonar') el.classList.add('active'); });
+    $('#v-picked-text').innerHTML = 'Routed · <b>nova-lite</b> + <b>sonar</b> · grounded web';
+    $('#v-picked-count').textContent = '2 / 26';
+    tape('vector','Routing web-grounded queries → perplexity/sonar', 'why: live citations beat training-data recall');
+  });
+
+  // Interactive phase — pause for founder
+  step(9.3, () => {
+    setPhase(2);
+    setStatus('Three signals VECTOR cannot confirm. <em>The read is paused for you</em>.');
+    tape('vector','3 fields below confidence threshold (≥70%)', 'why: confirm · correct · or mark unverified');
+    pauseForFounder();
+  });
+
+  // Resume (placeholder time; actual resume happens when user clicks)
+  step(10.0, () => {
+    // Filled in dynamically after founder beat resolves.
+  });
+
+  // Deep phase — corpus
+  step(10.3, () => {
+    setPhase(3);
+    setStatus('Deep phase — <em>CORPUS</em> loads framework knowledge for gap detection.');
+    tape('corpus','Loading 8 framework dossiers', 'why: gap = control required − evidence found');
+  });
+  for (let i = 1; i <= 8; i++) {
+    step(10.5 + i * 0.18, () => {
+      activateNode('corpus-doc' + i);
+      bumpCount('doc');
+    });
+  }
+  for (let i = 1; i <= 8; i++) {
+    step(12.0 + i * 0.1, () => {
+      settleNode('corpus-doc' + i);
+      drawLine(`[data-id="corpus-doc${i}"]`, '.target .ring');
+    });
+  }
+
+  // Frameworks matched
+  step(13.5, () => {
+    setStatus('Matching evidence to <em>5 frameworks</em>.');
+    tape('frameworks','Matched: SOC 2 · ISO 27001 · Essential 8 · APRA CPS 234 · GDPR · EU AI Act','why: 6 framework lenses for one company');
+  });
+  const fwList = ['soc2','iso','e8','apra','gdpr','ai'];
+  fwList.forEach((fw, i) => {
+    step(13.7 + i * 0.18, () => {
+      document.querySelector(`[data-fw="${fw}"]`)?.classList.add('in');
+      bumpCount('fw');
+    });
+  });
+
+  // Gap detection
+  step(15.4, () => {
+    setStatus('Comparing evidence vs framework controls — <em>9 trust gaps</em> emerge.');
+    tape('gaps','Gap detection · severity classifier engaged','why: severity = deal-impact × time-to-close');
+  });
+  const gpList = ['soc2','mfa','ins','dmarc','ir','ai','dr','fnd','sec'];
+  gpList.forEach((gp, i) => {
+    step(15.6 + i * 0.22, () => {
+      document.querySelector(`[data-gap="${gp}"]`)?.classList.add('in');
+      bumpCount('gap');
+    });
+  });
+
+  // Commercial impact mapping
+  step(18.0, () => {
+    setStatus('Mapping gaps to <em>6 remediation paths</em> and your partner network.');
+    tape('vector','Vendor matrix · 11 partners mapped','why: every gap needs a route — direct, Ingram, Dicker (461654), or AWS');
+  });
+  step(19.0, () => {
+    tape('vector','Routes: 5 direct · 4 Ingram · 3 Dicker · AWS programs','why: routes disclosed on every vendor card');
+  });
+
+  // Receipt sealing
+  step(20.5, () => {
+    setStatus('Sealing the receipt — <em>every step recorded, every source citable</em>.');
+    tape('receipt','Bundling: 8 sources · 26 models considered · 2 routed · 8 docs · 3 founder responses · 9 gaps','why: receipt is exportable as SVG, share-linkable, never silent');
+  });
+  step(22.0, () => {
+    tape('receipt','Receipt sealed · ready for inspection','');
+  });
+  step(23.0, () => {
+    setStatus('Process complete. <em>View the read to see what it means.</em>');
+    completeRun();
+  });
+
+  // ─────────────────────────────────────────────
+  // FOUNDER BEAT LOGIC
+  // ─────────────────────────────────────────────
+  const founderPicks = { 0: null, 1: null, 2: null };
+  const pauseForFounder = () => {
+    state.paused_for_founder = true;
+    state.playing = false;
+    $('#btn-play').textContent = '▶';
+    $('#founder-beat').classList.add('show');
+  };
+
+  $$('#founder-beat .fb-q').forEach(q => {
+    const qi = +q.dataset.q;
+    q.querySelectorAll('.opts button').forEach(b => {
+      b.addEventListener('click', () => {
+        q.querySelectorAll('.opts button').forEach(x => x.classList.remove('picked'));
+        b.classList.add('picked');
+        founderPicks[qi] = b.dataset.pick;
+        if (founderPicks[0] && founderPicks[1] && founderPicks[2]) {
+          $('#fb-resume').disabled = false;
+        }
+      });
+    });
+  });
+
+  $('#fb-resume').addEventListener('click', () => {
+    // log founder responses into tape with their picks
+    const labels = {
+      0: { confirm: 'SOC 2 · not yet started', correct: 'SOC 2 · in audit', notsure: 'SOC 2 · unverified (no negative inference)' },
+      1: { confirm: 'MFA · enforced for all', correct: 'MFA · partial coverage', notsure: 'MFA · unverified (no negative inference)' },
+      2: { confirm: 'Cyber insurance · active policy', correct: 'Cyber insurance · none', notsure: 'Cyber insurance · unverified (no negative inference)' },
+    };
+    Object.keys(founderPicks).forEach(k => {
+      const pick = founderPicks[k];
+      const text = labels[k][pick];
+      const actor = 'founder';
+      const why = pick === 'notsure' ? 'why: not-sure stays unverified — never negative evidence' :
+                  pick === 'correct' ? 'why: override threaded into the read' :
+                                       'why: on-record confirmation';
+      tape(actor, text, why);
+    });
+    bumpCount('doc'); bumpCount('doc'); bumpCount('doc'); // 3 founder responses count as evidence
+    $('#founder-beat').classList.remove('show');
+    state.paused_for_founder = false;
+    state.playing = true;
+    $('#btn-play').textContent = '⏸';
+    state.last_real_time = performance.now();
+  });
+
+  // ─────────────────────────────────────────────
+  // COMPLETION
+  // ─────────────────────────────────────────────
+  const completeRun = () => {
+    state.completed = true;
+    state.playing = false;
+    $('#btn-play').textContent = '▶';
+    $('#run-state').textContent = 'Complete';
+    $('#dot').classList.add('done');
+    $('#complete-cta').classList.add('show');
+    $('#complete-cta').scrollIntoView({behavior:'smooth', block:'end'});
+  };
+
+  // ─────────────────────────────────────────────
+  // TICK LOOP
+  // ─────────────────────────────────────────────
+  const tick = (now) => {
+    if (state.playing && !state.paused_for_founder) {
+      const dt = (now - state.last_real_time) / 1000;
+      state.last_real_time = now;
+      state.time = Math.min(state.time + dt * state.speed, TOTAL);
+
+      // run any steps whose t ≤ current time and not yet completed
+      TL.forEach((s, idx) => {
+        if (s.t <= state.time && !state.completed_steps.has(idx)) {
+          state.completed_steps.add(idx);
+          try { s.fn(); } catch(e) { console.error(e); }
+        }
+      });
+
+      $('#scrub').value = Math.round(state.time / TOTAL * 1000);
+      $('#time').textContent = state.time.toFixed(1).padStart(4,'0')+'s / '+TOTAL.toFixed(1)+'s';
+
+      if (state.time >= TOTAL && !state.completed) {
+        completeRun();
+      }
+    }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+
+  // ─────────────────────────────────────────────
+  // CONTROLS
+  // ─────────────────────────────────────────────
+  $('#btn-play').addEventListener('click', () => {
+    if (state.paused_for_founder) return;
+    if (state.completed) return;
+    state.playing = !state.playing;
+    $('#btn-play').textContent = state.playing ? '⏸' : '▶';
+    state.last_real_time = performance.now();
+  });
+
+  $('#btn-restart').addEventListener('click', () => resetRun());
+  $('#btn-replay').addEventListener('click', () => resetRun());
+
+  function resetRun() {
+    // wipe
+    state.time = 0;
+    state.playing = false;
+    state.paused_for_founder = false;
+    state.completed = false;
+    state.completed_steps.clear();
+    $('#run-state').textContent = 'Running';
+    $('#dot').classList.remove('done');
+    $('#complete-cta').classList.remove('show');
+    $('#founder-beat').classList.remove('show');
+    $('#tape-body').innerHTML = '';
+    lineSvg.innerHTML = '';
+    Object.keys(counts).forEach(k => bumpCount(k, 0));
+    $$('#canvas .node').forEach(n => n.classList.remove('in','active','done'));
+    $$('#canvas .fw').forEach(n => n.classList.remove('in'));
+    $$('#canvas .gp').forEach(n => n.classList.remove('in'));
+    [...grid.children].forEach(el => { el.classList.add('dim'); el.classList.remove('active'); });
+    $('#v-picked-count').textContent = '0 / 26';
+    $('#v-picked-text').textContent = 'No model routed yet';
+    $('#vector-hub').classList.remove('in');
+    setPhase(0);
+    setStatus('Press play to begin the read.');
+    $('#btn-play').textContent = '▶';
+    Object.keys(founderPicks).forEach(k => founderPicks[k] = null);
+    $$('#founder-beat .opts button').forEach(b => b.classList.remove('picked'));
+    $('#fb-resume').disabled = true;
+    state.last_real_time = performance.now();
+  }
+
+  $$('.speed button').forEach(b => {
+    b.addEventListener('click', () => {
+      $$('.speed button').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      state.speed = parseFloat(b.dataset.spd);
+      state.last_real_time = performance.now();
+    });
+  });
+
+  $('#scrub').addEventListener('input', e => {
+    const target = (e.target.value / 1000) * TOTAL;
+    // jump forward only — re-running prior steps would re-fire animations.
+    if (target > state.time) {
+      // fire steps up to target instantly
+      TL.forEach((s, idx) => {
+        if (s.t <= target && !state.completed_steps.has(idx)) {
+          state.completed_steps.add(idx);
+          try { s.fn(); } catch(e) { console.error(e); }
+        }
+      });
+      state.time = target;
+      $('#time').textContent = state.time.toFixed(1).padStart(4,'0')+'s / '+TOTAL.toFixed(1)+'s';
+    } else if (target < state.time) {
+      // backwards scrub = restart and replay to target
+      resetRun();
+      // fire steps up to target instantly
+      TL.forEach((s, idx) => {
+        if (s.t <= target && !state.completed_steps.has(idx)) {
+          state.completed_steps.add(idx);
+          try { s.fn(); } catch(e) { console.error(e); }
+        }
+      });
+      state.time = target;
+      $('#scrub').value = Math.round(state.time / TOTAL * 1000);
+      $('#time').textContent = state.time.toFixed(1).padStart(4,'0')+'s / '+TOTAL.toFixed(1)+'s';
+    }
+  });
+
+  // Auto-start after 600ms
+  setTimeout(() => {
+    state.playing = true;
+    $('#btn-play').textContent = '⏸';
+    state.last_real_time = performance.now();
+  }, 800);
+
+})();
+</script>
+
+</body>
+</html>

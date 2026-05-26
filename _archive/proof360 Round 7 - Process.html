@@ -1,0 +1,1178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1440,initial-scale=1" />
+<title>proof360 — Process · acmecorp.io</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Spectral:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#e8e1d0; --paper-2:#efe9da; --paper-3:#ddd4be;
+    --ink:#1a1a17; --ink-2:#4a463e; --ink-3:#7a7468;
+    --rule:#c8bfa8; --rule-2:#b7ac90;
+    --teal:#2d7f6e; --teal-deep:#1f5d50; --teal-soft:#d9e9e3;
+    --crit:#a0392a; --high:#b06d24; --med:#7a6b2a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:13px;line-height:1.5}
+  .serif{font-family:'Spectral',Georgia,serif}
+  .frame{max-width:1440px;margin:0 auto}
+
+  /* ───────── chrome ───────── */
+  .chrome{display:flex;align-items:center;justify-content:space-between;padding:16px 36px;border-bottom:1px solid var(--rule)}
+  .chrome .wm{font-family:'Spectral',serif;font-size:22px;font-weight:600;letter-spacing:-.01em}
+  .chrome .wm em{color:var(--teal);font-style:normal;font-weight:400}
+  .chrome .brand{display:flex;align-items:baseline;gap:14px}
+  .chrome .sep{color:var(--rule-2)}
+  .chrome .subj{color:var(--ink-2);font-size:11px;letter-spacing:.04em;text-transform:uppercase}
+  .chrome .right{display:flex;align-items:center;gap:14px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--teal);margin-right:6px;animation:pulse 1.6s ease-in-out infinite}
+  .dot.done{animation:none}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+  /* persona pill */
+  .persona{display:inline-flex;align-items:center;gap:8px;padding:5px 10px 5px 12px;border:1px solid var(--rule);background:var(--paper-2);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);cursor:pointer;font-family:inherit}
+  .persona b{color:var(--ink);font-weight:500}
+  .persona:hover{border-color:var(--ink)}
+  .persona-menu{position:absolute;right:36px;top:60px;background:var(--paper);border:1px solid var(--ink);padding:6px;display:none;z-index:30;box-shadow:4px 6px 0 rgba(26,26,23,.06)}
+  .persona-menu.show{display:block}
+  .persona-menu button{display:block;width:220px;text-align:left;padding:9px 12px;border:none;background:transparent;font-family:inherit;font-size:11px;letter-spacing:.04em;cursor:pointer;color:var(--ink-2)}
+  .persona-menu button:hover{background:var(--paper-2);color:var(--ink)}
+  .persona-menu button.on{background:var(--ink);color:var(--paper)}
+  .persona-menu button .hint{display:block;font-size:9px;letter-spacing:.02em;color:var(--ink-3);text-transform:none;margin-top:2px;font-family:'Spectral',serif;font-style:italic}
+  .persona-menu button.on .hint{color:rgba(232,225,208,.6)}
+
+  /* ───────── phase rail ───────── */
+  .rail{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--rule);background:var(--paper-2)}
+  .ph{padding:18px 22px;border-right:1px solid var(--rule);display:flex;align-items:center;gap:14px;position:relative;cursor:pointer;transition:background .25s}
+  .ph:last-child{border-right:none}
+  .ph .num{font-size:10px;letter-spacing:.16em;color:var(--ink-3);min-width:22px}
+  .ph .name{font-family:'Spectral',serif;font-size:17px;font-weight:500;color:var(--ink-3);letter-spacing:-.005em}
+  .ph .desc{font-size:10px;color:var(--ink-3);letter-spacing:.02em;margin-top:2px;display:block}
+  .ph.active{background:var(--paper)}
+  .ph.active .name{color:var(--ink)}
+  .ph.active .num{color:var(--teal)}
+  .ph.done .num::before{content:'✓ ';color:var(--teal)}
+  .ph.done .name{color:var(--ink-2)}
+  .ph .progress{position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--teal);transition:width .5s linear}
+
+  /* ───────── main grid ───────── */
+  .main{display:grid;grid-template-columns:1fr 420px;min-height:540px;border-bottom:1px solid var(--rule)}
+
+  /* stage — calm canvas, paper grid */
+  .stage{position:relative;background:
+    linear-gradient(var(--paper-2),var(--paper-2)),
+    repeating-linear-gradient(0deg,transparent 0,transparent 47px,rgba(122,116,104,.10) 47px,rgba(122,116,104,.10) 48px),
+    repeating-linear-gradient(90deg,transparent 0,transparent 47px,rgba(122,116,104,.10) 47px,rgba(122,116,104,.10) 48px);
+    background-blend-mode:multiply;overflow:hidden}
+  .stage-tag{position:absolute;top:18px;left:24px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+  .stage-tag b{color:var(--ink-2);font-weight:500}
+
+  /* central subject */
+  .subj-card{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;z-index:5}
+  .subj-card .disc{width:96px;height:96px;border:1.5px solid var(--ink);border-radius:50%;background:var(--paper);display:flex;align-items:center;justify-content:center;font-family:'Spectral',serif;font-size:24px;font-weight:600;margin:0 auto 10px;position:relative}
+  .subj-card .disc::after{content:'';position:absolute;inset:-9px;border:1px dashed var(--teal);border-radius:50%;opacity:.45;animation:spin 22s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .subj-card .nm{font-size:12px;letter-spacing:.08em;color:var(--ink)}
+  .subj-card .mt{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-top:3px}
+
+  /* lines — only the current path animates */
+  .links{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .links line{stroke:var(--ink-3);stroke-width:.6;stroke-dasharray:3 5;opacity:0;transition:opacity .4s}
+  .links line.on{opacity:.55}
+  .links line.live{stroke:var(--teal);stroke-width:1.4;stroke-dasharray:5 7;opacity:0}
+  .links line.live.on{opacity:1;animation:flow 1.4s linear infinite}
+  @keyframes flow{to{stroke-dashoffset:-24}}
+
+  /* nodes — at most 4-6 visible per phase, big labels */
+  .node{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;transition:opacity .35s, transform .35s}
+  .node.in{opacity:.45}
+  .node.in.live{opacity:1}
+  .node.in.done{opacity:.85}
+  .node .chip{padding:8px 14px;background:var(--paper);border:1px solid var(--rule-2);font-size:11px;letter-spacing:.04em;color:var(--ink-2);font-family:inherit;display:flex;align-items:center;gap:8px;min-width:96px;justify-content:center;transition:all .25s}
+  .node.live .chip{border-color:var(--ink);color:var(--ink);box-shadow:0 0 0 4px rgba(45,127,110,.14);background:var(--paper)}
+  .node.done .chip{border-color:var(--ink-2);background:var(--paper-2)}
+  .node .chip .glyph{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700}
+  .node .chip .glyph.dns{background:var(--teal-soft);color:var(--teal-deep)}
+  .node .chip .glyph.ssl{background:var(--teal-soft);color:var(--teal-deep)}
+  .node .chip .glyph.gh{background:var(--ink);color:var(--paper)}
+  .node .chip .glyph.fc{background:#f48120;color:#fff}
+  .node .chip .glyph.hi{background:#fde2e0;color:var(--crit)}
+  .node .chip .glyph.so{background:#efe1c8;color:#8a5a16}
+  .node .chip .glyph.cy{background:var(--teal-soft);color:var(--teal-deep)}
+  .node .chip .glyph.mf{background:var(--teal-soft);color:var(--teal-deep)}
+  .node .chip .glyph.vc{background:#f3e6d9;color:#8a5a16}
+  .node .chip .glyph.co{background:#e5dbf0;color:#5a3d8a}
+  .node .chip .glyph.fw{background:var(--paper-3);color:var(--ink)}
+  .node .chip .glyph.gp{background:#fde2e0;color:var(--crit)}
+  .node .chip .glyph.rc{background:var(--teal);color:var(--paper)}
+  .node .src{font-size:9px;letter-spacing:.06em;color:var(--ink-3);text-transform:uppercase}
+
+  /* phase context badges around subject (frameworks / gaps) */
+  .ring-item{position:absolute;left:50%;top:50%;padding:4px 10px;background:var(--paper);border:1px solid var(--ink);font-size:10px;letter-spacing:.06em;text-transform:uppercase;font-weight:500;transform:translate(-50%,-50%) scale(.7);opacity:0;transition:opacity .35s, transform .35s;white-space:nowrap}
+  .ring-item.in{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  .ring-item.gap{border-color:var(--crit);color:var(--crit)}
+  .ring-item.gap.high{border-color:var(--high);color:var(--high)}
+  .ring-item.gap.med{border-color:var(--med);color:var(--med)}
+  .ring-item.fw{border-color:var(--ink-2);color:var(--ink-2)}
+
+  /* phase-empty hint when phase not started */
+  .phase-empty{position:absolute;left:50%;top:80%;transform:translate(-50%,-50%);text-align:center;max-width:72%;display:flex;flex-direction:column;gap:8px}
+  .phase-empty .promise-lead{font-family:'Spectral',serif;font-size:15px;line-height:1.4;color:var(--ink);letter-spacing:-.005em}
+  .phase-empty .promise-sub{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+
+  /* stack + read-type lines under the subject name */
+  .subj-card .stack{font-size:10px;color:var(--ink-3);margin-top:3px;letter-spacing:.04em}
+  .subj-card .readtype{display:inline-block;margin-top:8px;padding:3px 9px;background:var(--ink);color:var(--paper);font-size:9px;letter-spacing:.14em;text-transform:uppercase;font-weight:500}
+
+  /* proof counters styling */
+  .stub .counter{display:inline-flex;align-items:baseline;gap:6px}
+  .stub .counter b{font-family:'Spectral',serif;font-size:18px;font-weight:600;color:var(--ink);min-width:18px}
+  .stub .counter .lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+
+  /* ───────── right pane: explanation card ───────── */
+  .pane{background:var(--paper-2);border-left:1px solid var(--rule);display:flex;flex-direction:column}
+  .pane-head{padding:20px 26px 14px;border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;align-items:baseline}
+  .pane-head .ttl{font-family:'Spectral',serif;font-size:15px;letter-spacing:-.005em;font-weight:500}
+  .pane-head .step{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+  .pane-body{padding:22px 26px;flex:1;display:flex;flex-direction:column;gap:22px}
+
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field-lbl{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3)}
+  .field-checking .v{font-family:'Spectral',serif;font-size:20px;font-weight:500;line-height:1.25;color:var(--ink);letter-spacing:-.005em}
+  .field-why .v{font-family:'Spectral',serif;font-size:14px;line-height:1.55;color:var(--ink-2);font-style:italic}
+  .field-found .v{display:flex;flex-direction:column;gap:6px}
+  .field-found .row{display:flex;align-items:baseline;gap:8px;font-size:12px;color:var(--ink)}
+  .field-found .row .tag{font-size:9px;padding:2px 6px;border:1px solid var(--rule-2);color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;font-weight:500;flex-shrink:0}
+  .field-found .row .tag.ok{color:var(--teal-deep);border-color:var(--teal)}
+  .field-found .row .tag.warn{color:var(--high);border-color:var(--high)}
+  .field-found .row .tag.crit{color:var(--crit);border-color:var(--crit)}
+  .field-found .row .tag.found{color:var(--ink-2);border-color:var(--ink-2)}
+  .field-found .row .src{margin-left:auto;font-size:9px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em}
+  .field-next{padding-top:18px;border-top:1px dotted var(--rule);display:flex;align-items:baseline;justify-content:space-between;gap:14px}
+  .field-next .v{font-size:11px;color:var(--ink-2);letter-spacing:.04em}
+  .field-next .v::before{content:'→ ';color:var(--teal);font-weight:600}
+  .field-next .skip{font-size:10px;color:var(--ink-3);letter-spacing:.06em;cursor:pointer;background:transparent;border:none;font-family:inherit;text-decoration:underline}
+  .field-next .skip:hover{color:var(--ink)}
+
+  /* user override pill threaded into found row */
+  .you-pill{display:inline-flex;align-items:center;gap:6px;padding:2px 7px;background:var(--ink);color:var(--paper);font-size:9px;letter-spacing:.08em;text-transform:uppercase;border-radius:2px}
+
+  /* receipts strip at bottom of pane */
+  .pane-foot{border-top:1px solid var(--rule);padding:14px 26px;font-size:10px;color:var(--ink-3);letter-spacing:.06em;display:flex;justify-content:space-between;align-items:center}
+  .pane-foot b{color:var(--ink-2);font-weight:500}
+
+  /* ───────── controls ───────── */
+  .ctrl{display:grid;grid-template-columns:auto 1fr auto;gap:24px;padding:14px 36px;background:var(--paper-2);border-bottom:1px solid var(--rule);align-items:center}
+  .ctrl .left{display:flex;gap:8px;align-items:center}
+  .btn{height:32px;min-width:32px;padding:0 10px;border:1px solid var(--ink);background:var(--paper);cursor:pointer;font-family:inherit;font-size:11px;letter-spacing:.06em;display:inline-flex;align-items:center;justify-content:center;gap:6px;color:var(--ink)}
+  .btn:hover{background:var(--ink);color:var(--paper)}
+  .btn:disabled{opacity:.35;cursor:not-allowed}
+  .btn.ghost{border-color:var(--rule-2);color:var(--ink-2)}
+  .btn.ghost:hover{background:var(--paper);color:var(--ink);border-color:var(--ink)}
+  .speed{display:inline-flex;gap:4px;margin-left:8px}
+  .speed button{padding:6px 8px;border:1px solid var(--rule-2);background:var(--paper);font-family:inherit;font-size:10px;letter-spacing:.04em;cursor:pointer;color:var(--ink-2)}
+  .speed button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .scrub{display:flex;align-items:center;gap:14px}
+  .scrub input[type=range]{flex:1;-webkit-appearance:none;height:3px;background:var(--rule);border-radius:2px;outline:none;cursor:pointer}
+  .scrub input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--ink);border-radius:7px;cursor:pointer}
+  .scrub input[type=range]::-moz-range-thumb{width:14px;height:14px;background:var(--ink);border-radius:7px;cursor:pointer;border:none}
+  .clock{font-size:10px;color:var(--ink-2);letter-spacing:.06em;min-width:90px;text-align:right;font-variant-numeric:tabular-nums}
+  .counts{display:flex;gap:18px;font-size:10px;letter-spacing:.04em;color:var(--ink-2)}
+  .counts b{color:var(--ink);font-weight:600}
+
+  /* ───────── founder beat overlay ───────── */
+  .beat{position:fixed;inset:0;background:rgba(26,26,23,.74);display:none;align-items:center;justify-content:center;z-index:50;padding:40px}
+  .beat.show{display:flex;animation:fadein .35s ease}
+  @keyframes fadein{from{opacity:0}to{opacity:1}}
+  .beat-card{background:var(--paper);width:760px;max-width:100%;border:1px solid var(--ink);box-shadow:8px 10px 0 rgba(26,26,23,.08)}
+  .beat-head{padding:22px 28px 14px;border-bottom:1px solid var(--rule);display:flex;align-items:baseline;justify-content:space-between}
+  .beat-head .lbl{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal)}
+  .beat-head .who{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+  .beat-body{padding:22px 28px 8px}
+  .beat-body h3{font-family:'Spectral',serif;font-size:22px;font-weight:500;line-height:1.3;margin:0 0 4px;letter-spacing:-.01em}
+  .beat-body .why{font-family:'Spectral',serif;font-style:italic;color:var(--ink-3);font-size:12px;margin-bottom:14px}
+  .beat-q{padding:16px 0;border-top:1px dotted var(--rule)}
+  .beat-q:first-of-type{border-top:1px solid var(--rule)}
+  .beat-q .qhead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;gap:14px}
+  .beat-q .qtxt{font-size:13px;color:var(--ink);font-family:'Spectral',serif;font-size:15px}
+  .beat-q .conf{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);flex-shrink:0}
+  .beat-q .opts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+  .beat-q .opts button{padding:9px 10px;border:1px solid var(--ink);background:var(--paper);font-family:inherit;font-size:11px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:all .15s}
+  .beat-q .opts button:hover{background:var(--paper-2)}
+  .beat-q .opts button.confirm.picked{background:var(--teal);color:var(--paper);border-color:var(--teal)}
+  .beat-q .opts button.correct.picked{background:var(--high);color:var(--paper);border-color:var(--high)}
+  .beat-q .opts button.notsure.picked{background:var(--ink-3);color:var(--paper);border-color:var(--ink-3)}
+  .beat-foot{padding:18px 28px 22px;border-top:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .beat-foot .note{font-size:11px;color:var(--ink-2);font-style:italic;font-family:'Spectral',serif;max-width:380px}
+  .beat-foot .cta{padding:12px 22px;background:var(--ink);color:var(--paper);border:none;font-family:inherit;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;gap:10px}
+  .beat-foot .cta:hover{background:var(--teal-deep)}
+  .beat-foot .cta:disabled{background:var(--rule-2);cursor:not-allowed}
+  .beat-foot .secondary{font-size:10px;letter-spacing:.06em;color:var(--ink-3);background:none;border:none;cursor:pointer;font-family:inherit;text-decoration:underline}
+  .beat-foot .secondary:hover{color:var(--ink)}
+
+  /* completion CTA */
+  .complete{padding:40px 36px;background:var(--ink);color:var(--paper);display:none;grid-template-columns:1.3fr 1fr;gap:36px;align-items:start}
+  .complete.show{display:grid;animation:fadein .5s ease}
+  .complete .lead{font-family:'Spectral',serif;font-size:28px;line-height:1.3;font-weight:500;letter-spacing:-.01em}
+  .complete .lead em{color:#9bd2c5;font-style:normal}
+  .complete .sub{font-size:13px;line-height:1.55;opacity:.7;margin-top:14px;font-family:'Spectral',serif;font-style:italic;max-width:540px}
+  .complete .show-trail{background:transparent;color:var(--paper);border:1px solid rgba(232,225,208,.4);padding:8px 14px;font-family:inherit;font-size:10px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;margin-top:18px;display:inline-flex;align-items:center;gap:6px}
+  .complete .show-trail:hover{border-color:var(--paper)}
+  .complete .show-trail.open::after{content:'';position:relative}
+  .complete .trail-detail{display:none;margin-top:14px;border:1px solid rgba(232,225,208,.18);padding:14px 18px;max-width:540px;font-size:11px;letter-spacing:.04em}
+  .complete .trail-detail.show{display:block}
+  .complete .trail-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dotted rgba(232,225,208,.15)}
+  .complete .trail-row:last-of-type{border-bottom:none}
+  .complete .trail-row b{font-weight:500;color:var(--paper);font-family:inherit}
+  .complete .trail-row span{color:rgba(232,225,208,.6)}
+  .complete .trail-note{margin-top:10px;font-family:'Spectral',serif;font-style:italic;font-size:11px;color:rgba(232,225,208,.55);line-height:1.5}
+  .complete .ctas{display:flex;flex-direction:column;gap:10px;align-items:flex-end}
+  .complete .pri{background:var(--paper);color:var(--ink);padding:16px 28px;border:none;font-family:inherit;font-size:13px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:12px}
+  .complete .pri:hover{background:var(--teal);color:var(--paper)}
+  .complete .sec{background:transparent;color:var(--paper);border:1px solid var(--paper);padding:12px 20px;font-family:inherit;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+  .complete .sec:hover{background:var(--paper);color:var(--ink)}
+
+  /* proof counter strip */
+  .stub{padding:14px 36px;background:var(--paper-2);border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:18px;font-size:11px;color:var(--ink-2);letter-spacing:.04em}
+  .stub .sep{color:var(--rule-2)}
+</style>
+</head>
+<body>
+<div class="frame" data-screen-label="01 Process">
+
+  <!-- chrome -->
+  <div class="chrome">
+    <div class="brand">
+      <span class="wm">proof<em>360</em></span>
+      <span class="sep">·</span>
+      <span class="subj">Process · acmecorp.io · live read</span>
+    </div>
+    <div class="right" style="position:relative">
+      <span><span class="dot" id="dot"></span><span id="run-state">Ready</span></span>
+      <span class="sep">|</span>
+      <span>01 of 03 · Process</span>
+      <span class="sep">|</span>
+      <button class="persona" id="persona-btn">explain for <b id="persona-name">Founder</b> ▾</button>
+      <div class="persona-menu" id="persona-menu">
+        <button data-persona="lay" class="on">Founder<span class="hint">plain-English why &mdash; default</span></button>
+        <button data-persona="tech">Technical<span class="hint">controls, sources, methodology</span></button>
+        <button data-persona="invest">Investor<span class="hint">commercial impact, deal risk</span></button>
+        <button data-persona="dd">Enterprise DD<span class="hint">framework citation, procurement</span></button>
+        <button data-persona="vendor">Vendor<span class="hint">remediation routing, channel fit</span></button>
+        <button data-persona="kid">12 year old<span class="hint">simplest analogy</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- phase rail -->
+  <div class="rail" id="rail">
+    <div class="ph" data-ph="0"><span class="num">01</span><div><span class="name serif">Find the company</span><span class="desc">Public surface &middot; confirm identity</span></div><span class="progress"></span></div>
+    <div class="ph" data-ph="1"><span class="num">02</span><div><span class="name serif">Read the signals</span><span class="desc">Strong, missing, unclear, risky</span></div><span class="progress"></span></div>
+    <div class="ph" data-ph="2"><span class="num">03</span><div><span class="name serif">Ask the founder</span><span class="desc">What the machine can&rsquo;t know on its own</span></div><span class="progress"></span></div>
+    <div class="ph" data-ph="3"><span class="num">04</span><div><span class="name serif">Build the read</span><span class="desc">Signals → gaps, impact, paths</span></div><span class="progress"></span></div>
+  </div>
+
+  <!-- in-progress counters — what we&rsquo;ve looked at so far. Stays modest. -->
+  <div class="stub">
+    <span class="counter"><b id="src-count">0</b><span class="lbl">public sources checked</span></span>
+    <span class="sep">·</span>
+    <span class="counter"><b id="frame-count">0</b><span class="lbl">standards considered</span></span>
+    <span class="sep">·</span>
+    <span class="counter"><b id="gap-count">0</b><span class="lbl">questions raised</span></span>
+    <span style="margin-left:auto;font-style:italic;font-family:'Spectral',serif;color:var(--ink-2)">Explanation changes. Evidence does not.</span>
+  </div>
+
+  <!-- main: stage + explanation pane -->
+  <div class="main">
+    <div class="stage" id="stage">
+      <div class="stage-tag"><b id="stage-tag-phase">Find the company</b> &middot; <span id="stage-tag-step">press play to begin</span></div>
+
+      <!-- subject -->
+      <div class="subj-card">
+        <div class="disc">A</div>
+        <div class="nm serif">acmecorp.io</div>
+        <div class="mt">B2B SaaS &middot; Series B &middot; AU + US</div>
+        <div class="stack">running on AWS &middot; Okta SSO &middot; Stripe &middot; HubSpot</div>
+      </div>
+
+      <!-- lines -->
+      <svg class="links" id="links" viewBox="0 0 1000 600" preserveAspectRatio="none"></svg>
+
+      <!-- nodes container (populated by JS per phase) -->
+      <div id="nodes"></div>
+
+      <!-- ring items (frameworks / gaps positioned around subject) -->
+      <div id="ring"></div>
+
+      <div class="phase-empty" id="phase-empty"><span class="promise-lead serif">proof360 will look at the company, read the signals, ask the founder where it can&rsquo;t be sure, and assemble a read you can act on.</span><span class="promise-sub">Four steps &middot; one signal at a time &middot; press play to begin.</span></div>
+    </div>
+
+    <!-- explanation pane -->
+    <aside class="pane">
+      <div class="pane-head">
+        <span class="ttl serif" id="pane-phase-title">Find the company</span>
+        <span class="step"><span id="step-num">0</span> / <span id="step-total">0</span></span>
+      </div>
+      <div class="pane-body">
+        <div class="field field-checking">
+          <span class="field-lbl">What we're checking</span>
+          <span class="v" id="f-checking">—</span>
+        </div>
+        <div class="field field-why">
+          <span class="field-lbl">Why it matters</span>
+          <span class="v" id="f-why">—</span>
+        </div>
+        <div class="field field-found">
+          <span class="field-lbl">What we found</span>
+          <div class="v" id="f-found"><div class="row" style="color:var(--ink-3)">waiting…</div></div>
+        </div>
+        <div class="field-next">
+          <span class="v" id="f-next">Next step will appear here</span>
+          <button class="skip" id="step-fwd">skip ahead ↦</button>
+        </div>
+      </div>
+      <div class="pane-foot">
+        <span><b id="phase-name-foot">Quick</b> phase</span>
+        <span id="elapsed-foot">elapsed 0.0s</span>
+      </div>
+    </aside>
+  </div>
+
+  <!-- controls -->
+  <div class="ctrl">
+    <div class="left">
+      <button class="btn" id="play-btn">▶ Play</button>
+      <button class="btn ghost" id="reset-btn">↺ Restart</button>
+      <span class="speed">
+        <button data-speed="0.5">0.5×</button>
+        <button data-speed="1" class="on">1×</button>
+        <button data-speed="2">2×</button>
+        <button data-speed="4">4×</button>
+      </span>
+    </div>
+    <div class="scrub">
+      <input type="range" id="scrub" min="0" max="100" value="0" step="0.1" />
+      <span class="clock"><span id="cur-time">0.0s</span> / <span id="tot-time">0.0s</span></span>
+    </div>
+    <div class="counts">
+      <span>step <b id="cc-step">0</b>/<span id="cc-total">0</span></span>
+      <span>phase <b id="cc-phase">—</b></span>
+    </div>
+  </div>
+
+  <!-- completion CTA -->
+  <div class="complete" id="complete">
+    <div>
+      <div class="lead serif">Read assembled. <em>9 questions raised, 6 paths to act on.</em></div>
+      <div class="sub">A first cold read of acmecorp.io is ready. Open it to see what blocks deals today and what to do about it.</div>
+      <button class="show-trail" id="show-trail">Show proof trail ▾</button>
+      <div class="trail-detail" id="trail-detail">
+        <div class="trail-row"><span>Public sources checked</span><b id="trail-sources">—</b></div>
+        <div class="trail-row"><span>Standards considered</span><b id="trail-frames">—</b></div>
+        <div class="trail-row"><span>Founder confirmations</span><b id="trail-confirm">—</b></div>
+        <div class="trail-row"><span>Read sealed at</span><b id="seal-time">—</b></div>
+        <div class="trail-row"><span>Receipt reference</span><b>a3:c2:f1:88</b></div>
+        <div class="trail-note">Every line in the read links back to the public source or founder answer it came from. Open the receipt drawer inside the read to inspect any claim.</div>
+      </div>
+    </div>
+    <div class="ctas">
+      <a class="pri" href="proof360 Round 5 - The Read.html">View read &nbsp;→</a>
+      <a class="sec" href="#" id="ping-john">Ping @john for HX review &nbsp;↗</a>
+    </div>
+  </div>
+
+  <!-- founder beat overlay -->
+  <div class="beat" id="beat">
+    <div class="beat-card">
+      <div class="beat-head">
+        <span class="lbl">Asking the founder &middot; we&rsquo;ll thread your answers in</span>
+        <span class="who">3 questions &middot; ≈ 40 seconds</span>
+      </div>
+      <div class="beat-body">
+        <h3 class="serif">Before we go deep — confirm, correct, or qualify.</h3>
+        <div class="why">You don't have to be technical. Pick the option that's closest. The machine will thread your answer through the read, with a tag showing it came from you.</div>
+
+        <div class="beat-q" data-q="0">
+          <div class="qhead">
+            <span class="qtxt"><b>SOC 2 status.</b> &nbsp; We see "SOC 2 Type I in progress" on a 2025 careers post — but no badge on /security and no auditor named.</span>
+            <span class="conf">machine read: <b>partial · 41%</b></span>
+          </div>
+          <div class="opts">
+            <button class="confirm" data-pick="confirm">Confirm — Type I in progress</button>
+            <button class="correct" data-pick="correct">Correct — different status</button>
+            <button class="notsure" data-pick="notsure">Not sure</button>
+          </div>
+        </div>
+
+        <div class="beat-q" data-q="1">
+          <div class="qhead">
+            <span class="qtxt"><b>Cyber insurance.</b> &nbsp; No public signal of an active policy. Your investors usually require ≥ $5M.</span>
+            <span class="conf">machine read: <b>not found · 0%</b></span>
+          </div>
+          <div class="opts">
+            <button class="confirm" data-pick="confirm">Confirm — we hold a policy</button>
+            <button class="correct" data-pick="correct">Correct — we do not</button>
+            <button class="notsure" data-pick="notsure">Not sure</button>
+          </div>
+        </div>
+
+        <div class="beat-q" data-q="2">
+          <div class="qhead">
+            <span class="qtxt"><b>Primary customer.</b> &nbsp; Site copy reads "banks &amp; insurers, AU+US" — we'll match SOC 2, ISO 27001, APRA CPS 234, Essential Eight.</span>
+            <span class="conf">machine read: <b>likely · 78%</b></span>
+          </div>
+          <div class="opts">
+            <button class="confirm" data-pick="confirm">Confirm</button>
+            <button class="correct" data-pick="correct">Correct — different ICP</button>
+            <button class="notsure" data-pick="notsure">Not sure</button>
+          </div>
+        </div>
+      </div>
+      <div class="beat-foot">
+        <span class="note">Your answers are threaded into the read with a <span class="you-pill">you</span> tag, so anyone reviewing this can see what came from the machine and what came from you.</span>
+        <div style="display:flex;gap:14px;align-items:center">
+          <button class="secondary" id="beat-skip">skip — auto-read remaining</button>
+          <button class="cta" id="beat-resume" disabled>Resume process &nbsp; →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ─────────────────────────────────────────────
+   proof360 Process — Round 6
+   one phase at a time · phase → signal → why → found → next
+   ───────────────────────────────────────────── */
+
+/* Persona-aware "why it matters" — same evidence, different lens. */
+const WHY = {
+  /* ── 01 · find the company ── */
+  q1: {
+    lay: "First we confirm the company is really who it says it is — same as checking a passport before a meeting.",
+    tech: "Establish that DNS, hosting, and mail are wired up coherently. Sets the baseline for everything after.",
+    invest: "First read of operational hygiene. Sloppy basics here often predict bigger gaps later.",
+    dd: "Confirms infrastructure ownership — the first row of the procurement checklist.",
+    vendor: "Tells you what cloud and email stack the company actually runs on.",
+    kid: "We check the company's address. Is it really their house?",
+  },
+  q2: {
+    lay: "Is their website properly locked? The padlock icon — that one.",
+    tech: "TLS chain and renewal cadence. Quick check for expired or mis-issued certificates.",
+    invest: "Cheap signal — expired certificates in production usually means no one is watching.",
+    dd: "Encryption-in-transit hygiene. Renewal cadence indicates ops maturity.",
+    vendor: "Confirms how they terminate TLS — affects how you'd integrate.",
+    kid: "Is the lock on their front door actually working?",
+  },
+  q3: {
+    lay: "Looking at code they've shared in public. Did anyone leave a key under the doormat?",
+    tech: "Scan public repos for accidentally committed secrets or keys.",
+    invest: "Public secret leaks correlate strongly with breach risk inside a year. Worth a look.",
+    dd: "Evidence the engineering team understands secret handling.",
+    vendor: "Reveals tech stack and engineering pace from commit history.",
+    kid: "Looking at the schoolwork they've put on the wall. Anything they shouldn't have shared?",
+  },
+  q4: {
+    lay: "What do they say about themselves publicly? A /security page is the bare minimum buyers expect.",
+    tech: "Check the public pages buyers look at first — security, trust, privacy.",
+    invest: "A missing /security page tells you procurement hasn't pressed them yet. Early-stage customer base.",
+    dd: "These are the pages your procurement team will pull on first contact.",
+    vendor: "Tells you which trust narrative they've adopted — informs how you'd position to them.",
+    kid: "Did they put a sign on the door saying 'we take care of your stuff'?",
+  },
+  /* ── 02 · read the signals ── */
+  q5: {
+    lay: "Do staff have to use two-factor login? It's the difference between a key and a key plus a fingerprint.",
+    tech: "Looking for evidence that two-factor login is enforced, not just available.",
+    invest: "Two-factor gaps are the leading cause of breaches. Real deal-risk if not enforced for admins.",
+    dd: "Required for any regulated buyer in AU or FSI procurement.",
+    vendor: "If two-factor is loose, your identity product has a fit.",
+    kid: "When mum logs in, does it ask her password AND ping her phone?",
+  },
+  q6: {
+    lay: "Are they actually certified, or just saying they will be?",
+    tech: "Is the SOC 2 claim backed by an auditor name and a report date, or is it aspirational?",
+    invest: "An unverified SOC 2 claim is an enterprise sales blocker. Deals close noticeably slower.",
+    dd: "Procurement won't accept 'in progress' from regulated buyers. Need the report.",
+    vendor: "If it's still in flight, audit and pen-test partners have a clean path in.",
+    kid: "They said they got a gold star. Did the teacher really give it to them?",
+  },
+  q7: {
+    lay: "Do they have insurance in case something goes wrong? Like home insurance — but for hackers.",
+    tech: "Looking for a cyber-liability policy signal — limits, retention, breach-notification cover.",
+    invest: "Most VCs now expect $5M+ cover at this stage. Absence is an unhedged liability.",
+    dd: "A negotiation lever — procurement will require named insured on the MSA.",
+    vendor: "If absent, broker partners have a quick intro.",
+    kid: "If a robber gets in, who pays to fix everything?",
+  },
+  q8: {
+    lay: "Which security rule-books apply to them, based on who they sell to?",
+    tech: "Match the company's buyer profile to the standards that gate procurement.",
+    invest: "Tells you which doors are open or closed — US enterprise, AU FSI, etc.",
+    dd: "Determines the procurement gauntlet they'll face this year.",
+    vendor: "Maps your product to the exact rule they're helping a buyer satisfy.",
+    kid: "Different jobs have different uniforms. Which uniform does this company need?",
+  },
+  q9: {
+    lay: "First sign of trouble — places where what they say and what we can see don't quite line up.",
+    tech: "Surface the candidate gaps. The ones we can't verify alone go to the founder next.",
+    invest: "Early visibility on where deal-risk lives, before founder framing.",
+    dd: "Candidates for MSA addenda and remediation milestones.",
+    vendor: "Early read of where inbound demand is going to land.",
+    kid: "We found some homework that looks wrong. Time to ask them about it.",
+  },
+  /* ── 03 · ask the founder ── */
+  q10: {
+    lay: "Now we pause. There are things the machine can't know on its own. We ask the founder.",
+    tech: "Human-in-loop. The founder's answers are kept as first-party evidence in the read.",
+    invest: "This is where proof360 separates from passive scanners — founder context, on the record.",
+    dd: "First-party attestation, captured with timestamp and answer signature.",
+    vendor: "The founder also tells us which gaps they'd take help on. That's a real buying signal.",
+    kid: "We ask the company a few questions and write down what they say.",
+  },
+  /* ── 04 · build the read ── */
+  q11: {
+    lay: "Match what we found against the rule-books that apply to them. Now we know what 'good' should look like for this company.",
+    tech: "Map findings to applicable controls across the standards already shortlisted.",
+    invest: "Moves from heuristic to control-level. From 'looks sketchy' to 'misses a specific requirement'.",
+    dd: "Each gap traceable to a named control inside an applicable framework.",
+    vendor: "Each gap maps to a product category your team likely covers.",
+    kid: "Got the big book of rules. Now we check every page that matters.",
+  },
+  q13: {
+    lay: "Sort the problems by what actually hurts the business. Some are small. Two will block deals tomorrow.",
+    tech: "Score gaps by how confident we are and how much they cost to leave open.",
+    invest: "Gap-weighted exposure, sequenced by commercial impact.",
+    dd: "Each gap with severity, confidence and rough cost band — ready to attach to the MSA.",
+    vendor: "Tells you which gap to lead with in outreach.",
+    kid: "Some problems are small. Some are huge. We give each one a score.",
+  },
+  q14: {
+    lay: "For each problem, who could help fix it — and how would you actually buy that help?",
+    tech: "Suggest remediation paths and the buying route attached to each.",
+    invest: "The post-close 90-day plan, with rough budget shape.",
+    dd: "Vendor shortlist with procurement route attached.",
+    vendor: "Where you sit in the picture — direct, channel, or marketplace.",
+    kid: "Who do you call to fix each problem? And who do you pay?",
+  },
+  q15: {
+    lay: "Pull the read together. Nine things to know, six paths to act on, every line linked back to where it came from.",
+    tech: "Assemble the final read. Evidence chain is intact and inspectable per claim.",
+    invest: "Read ready. Re-run next quarter to diff progress.",
+    dd: "Audit-ready output. Attach to the data room.",
+    vendor: "Read ready. Engagements you save get drafted into outreach.",
+    kid: "We put all our notes together so we can show our work.",
+  },
+};
+
+/* steps — one signal at a time. Each one fills the right pane with: what / why / found / next. */
+const STEPS = [
+  /* ── 01 · find the company ── */
+  { ph:0, dur:2.4, checking:"Confirm it&rsquo;s really them",
+    whyKey:"q1",
+    nodes:[{id:'dns',pos:[18,22],chip:'public records',src:'who owns the domain',glyph:'dns'}],
+    found:[
+      {tag:'OK',  txt:'Domain resolves cleanly &mdash; apex &amp; www', src:'public records'},
+      {tag:'OK',  txt:'Running on AWS, served via CloudFront', src:'public records'},
+      {tag:'WARN',txt:'Email anti-spoofing not enforced (DMARC = none)', src:'mail records'},
+    ],
+    next:"Check that the website is properly locked", srcAdd:3,
+  },
+  { ph:0, dur:2.4, checking:"Check the front door is locked",
+    whyKey:"q2",
+    nodes:[{id:'ssl',pos:[34,17],chip:'website lock',src:'public certificates',glyph:'ssl'}],
+    found:[
+      {tag:'OK',  txt:'Valid certificate, expires in 47 days', src:'public certificates'},
+      {tag:'OK',  txt:'Auto-renews, last renewed 43 days ago', src:'public certificates'},
+      {tag:'FOUND',txt:'Two wildcard certificates, none expired', src:'public certificates'},
+    ],
+    next:"Look at the code they&rsquo;ve shared in public", srcAdd:2,
+  },
+  { ph:0, dur:2.6, checking:"Look at what they&rsquo;ve shared publicly",
+    whyKey:"q3",
+    nodes:[{id:'gh',pos:[52,16],chip:'public code',src:'their GitHub',glyph:'gh'}],
+    found:[
+      {tag:'FOUND',txt:'3 public projects &mdash; SDK, demo app, blog', src:'their GitHub'},
+      {tag:'OK',  txt:'No secrets accidentally committed', src:'their GitHub'},
+      {tag:'WARN',txt:'Two contributors with weak account protection', src:'their GitHub'},
+    ],
+    next:"Read what they say about themselves", srcAdd:2,
+  },
+  { ph:0, dur:2.6, checking:"Read what they say about themselves",
+    whyKey:"q4",
+    nodes:[{id:'fc',pos:[70,20],chip:'their website',src:'/about /pricing /careers',glyph:'fc'}],
+    found:[
+      {tag:'CRIT',txt:'No /security page', src:'their website'},
+      {tag:'CRIT',txt:'No /trust page', src:'their website'},
+      {tag:'OK',  txt:'/pricing public, enterprise tier listed', src:'their website'},
+      {tag:'FOUND',txt:'A 2025 careers post mentions SOC 2 in progress', src:'their /careers page'},
+    ],
+    next:"Now read the signals these pages give us", srcAdd:4,
+  },
+
+  /* ── 02 · read the signals ── */
+  { ph:1, dur:2.6, checking:"How they protect logins",
+    whyKey:"q5",
+    nodes:[{id:'mf',pos:[20,30],chip:'two-factor',src:'pages + role posts',glyph:'mf'}],
+    found:[
+      {tag:'FOUND',txt:'Two-factor mentioned in an engineering role post', src:'their /careers page'},
+      {tag:'WARN',txt:'No public statement it&rsquo;s required for staff', src:'their website'},
+      {tag:'FOUND',txt:'They use Okta for single sign-on', src:'public records'},
+    ],
+    next:"Their security certification &mdash; claimed vs verified", srcAdd:2,
+  },
+  { ph:1, dur:2.6, checking:"Security certification: claim vs proof",
+    whyKey:"q6",
+    nodes:[{id:'so',pos:[42,32],chip:'SOC 2',src:'their site + auditor registry',glyph:'so'}],
+    found:[
+      {tag:'FOUND',txt:'&ldquo;Type I in progress&rdquo; mentioned twice in 2025 posts', src:'their website'},
+      {tag:'CRIT',txt:'No badge, no auditor named, no report date', src:'their /security page'},
+      {tag:'WARN',txt:'No matching record in the auditor registry', src:'auditor registry'},
+    ],
+    next:"Insurance against a breach", srcAdd:3,
+  },
+  { ph:1, dur:2.4, checking:"Insurance against a breach",
+    whyKey:"q7",
+    nodes:[{id:'cy',pos:[60,30],chip:'cyber cover',src:'press + public posts',glyph:'cy'}],
+    found:[
+      {tag:'CRIT',txt:'No public sign of an active cyber policy', src:'press + public posts'},
+      {tag:'FOUND',txt:'Their Series B announce mentions &ldquo;industry-standard controls&rdquo; only', src:'press'},
+    ],
+    next:"Which rule-books apply to them", srcAdd:2,
+  },
+  { ph:1, dur:2.8, checking:"Which rule-books apply to them",
+    whyKey:"q8",
+    nodes:[{id:'fw',pos:[78,32],chip:'standards',src:'their stated buyers',glyph:'fw'}],
+    ring:[
+      {kind:'fw',label:'SOC 2',     angle:330, r:165},
+      {kind:'fw',label:'ISO 27001', angle:30,  r:165},
+      {kind:'fw',label:'CPS 234',   angle:90,  r:175},
+      {kind:'fw',label:'Ess. 8',    angle:150, r:165},
+      {kind:'fw',label:'PCI DSS',   angle:210, r:165},
+    ],
+    found:[
+      {tag:'FOUND',txt:'They sell to &ldquo;banks &amp; insurers, AU+US&rdquo;', src:'their /about page'},
+      {tag:'OK',  txt:'5 standards apply to that kind of buyer', src:'derived'},
+    ],
+    next:"First questions about what we&rsquo;ve seen", srcAdd:1, frameAdd:5,
+  },
+  { ph:1, dur:2.6, checking:"First questions raised",
+    whyKey:"q9",
+    nodes:[],
+    ring:[
+      {kind:'gap',sev:'crit',label:'No /security',angle:0,r:140},
+      {kind:'gap',sev:'crit',label:'SOC 2 unverified',angle:72,r:140},
+      {kind:'gap',sev:'high',label:'No cyber cover',angle:144,r:140},
+      {kind:'gap',sev:'high',label:'Email spoofable',angle:216,r:140},
+    ],
+    found:[
+      {tag:'CRIT',txt:'4 questions so far &mdash; 2 serious, 2 worth raising', src:'derived'},
+      {tag:'FOUND',txt:'3 need the founder to confirm', src:'derived'},
+    ],
+    next:"Pause &mdash; ask the founder what we can&rsquo;t know", srcAdd:0,
+  },
+
+  /* ── 03 · ask the founder ── */
+  { ph:2, dur:0.8, checking:"Ask the founder &mdash; 3 questions",
+    whyKey:"q10",
+    nodes:[],
+    found:[
+      {tag:'FOUND',txt:'Opening the questions panel\u2026', src:'in-app'},
+    ],
+    triggerBeat:true,
+    next:"Thread their answers back into the read", srcAdd:0,
+  },
+  { ph:2, dur:1.6, checking:"Thread their answers into the read",
+    whyKey:"q10",
+    nodes:[],
+    found:'__beat_answers__',
+    next:"Now build the read with what we know", srcAdd:0,
+  },
+
+  /* ── 04 · build the read ── */
+  { ph:3, dur:2.6, checking:"Match findings against the rule-books",
+    whyKey:"q11",
+    nodes:[{id:'co',pos:[78,72],chip:'standards check',src:'the applicable rule-books',glyph:'co'}],
+    found:[
+      {tag:'OK',  txt:'5 standards applicable to this company', src:'derived'},
+      {tag:'OK',  txt:'74 specific requirements matter most for their buyers', src:'derived'},
+      {tag:'FOUND',txt:'Findings checked against each one', src:'derived'},
+    ],
+    next:"Sort the problems by what hurts most", srcAdd:0,
+  },
+  { ph:3, dur:2.8, checking:"Sort by what hurts the business most",
+    whyKey:"q13",
+    nodes:[{id:'gp',pos:[18,72],chip:'priority sort',src:'severity &times; deal-risk',glyph:'gp'}],
+    ring:[
+      {kind:'gap',sev:'crit',label:'/security absent',angle:340,r:150},
+      {kind:'gap',sev:'crit',label:'SOC 2 unverified',angle:20, r:150},
+      {kind:'gap',sev:'high',label:'No cyber cover', angle:60, r:155},
+      {kind:'gap',sev:'high',label:'Email spoofable',angle:100,r:150},
+      {kind:'gap',sev:'high',label:'2FA loose',      angle:140,r:150},
+      {kind:'gap',sev:'high',label:'No pen-test',    angle:180,r:150},
+      {kind:'gap',sev:'med', label:'No BCP',         angle:220,r:150},
+      {kind:'gap',sev:'med', label:'Vendor list',    angle:260,r:155},
+      {kind:'gap',sev:'med', label:'No DPO named',   angle:300,r:150},
+    ],
+    found:[
+      {tag:'CRIT',txt:'2 will block enterprise deals tomorrow', src:'derived'},
+      {tag:'WARN',txt:'4 will come up in any serious procurement review', src:'derived'},
+      {tag:'FOUND',txt:'3 worth fixing this year', src:'derived'},
+    ],
+    next:"Suggest who could help fix each one", srcAdd:0,
+  },
+  { ph:3, dur:2.6, checking:"Suggest paths to fix each problem",
+    whyKey:"q14",
+    nodes:[{id:'vc2',pos:[50,76],chip:'paths',src:'partner suggestions',glyph:'fw'}],
+    found:[
+      {tag:'OK',  txt:'6 paths suggested across the 9 problems', src:'derived'},
+      {tag:'FOUND',txt:'Most can be sourced through your existing distributors', src:'derived'},
+      {tag:'FOUND',txt:'A couple are direct partner relationships', src:'derived'},
+    ],
+    next:"Assemble the read", srcAdd:0,
+  },
+  { ph:3, dur:2.2, checking:"Assemble the read",
+    whyKey:"q15",
+    nodes:[{id:'rc',pos:[50,52],chip:'your read',src:'',glyph:'rc'}],
+    found:[
+      {tag:'OK',  txt:'9 things to know about acmecorp.io', src:'derived'},
+      {tag:'OK',  txt:'6 ways to act on them', src:'derived'},
+      {tag:'OK',  txt:'Every line linked back to where it came from', src:'derived'},
+    ],
+    next:"Open the read &rarr;", srcAdd:0,
+  },
+];
+
+/* ───── runtime state ───── */
+const PHASE_NAMES = ['Find the company','Read the signals','Ask the founder','Build the read'];
+const PHASE_LBL   = ['Find','Signals','Ask','Build'];
+
+/* read persona from storage (carries across Process → Read → Remediation) */
+let persona = (function(){
+  try{ return localStorage.getItem('proof360.persona') || 'lay'; }catch(e){ return 'lay'; }
+})();
+function savePersona(){ try{ localStorage.setItem('proof360.persona', persona); }catch(e){} }
+let stepIdx = -1;
+let phaseIdx = -1;
+let playing = false;
+let speed = 1;
+let stepStart = 0;        /* wall ms when current step began */
+let stepConsumed = 0;     /* ms consumed in current step (saved when pausing) */
+let pauseToken = 0;       /* increments on every pause/scrub to invalidate old timers */
+let beatAnswers = [null,null,null];
+let totalDur = STEPS.reduce((a,s)=>a+s.dur,0);
+
+/* ───── DOM ───── */
+const $ = (id)=>document.getElementById(id);
+const stage = $('stage');
+const nodesEl = $('nodes');
+const ringEl = $('ring');
+const linksEl = $('links');
+const beat = $('beat');
+
+/* persona dropdown */
+$('persona-btn').addEventListener('click',(e)=>{e.stopPropagation();$('persona-menu').classList.toggle('show')});
+document.addEventListener('click',()=>$('persona-menu').classList.remove('show'));
+document.querySelectorAll('.persona-menu button').forEach(b=>{
+  b.addEventListener('click',(e)=>{
+    e.stopPropagation();
+    persona = b.dataset.persona;
+    savePersona();
+    document.querySelectorAll('.persona-menu button').forEach(x=>x.classList.toggle('on', x===b));
+    $('persona-name').textContent = b.childNodes[0].nodeValue.trim();
+    $('persona-menu').classList.remove('show');
+    if(stepIdx>=0) renderWhy();
+  });
+});
+/* hydrate persona state on load */
+(function(){
+  const btn = document.querySelector(`.persona-menu button[data-persona="${persona}"]`);
+  if(btn){
+    document.querySelectorAll('.persona-menu button').forEach(x=>x.classList.toggle('on', x===btn));
+    $('persona-name').textContent = btn.childNodes[0].nodeValue.trim();
+  }
+})();
+
+/* speed buttons */
+document.querySelectorAll('.speed button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.speed button').forEach(x=>x.classList.toggle('on',x===b));
+    speed = parseFloat(b.dataset.speed);
+    if(playing){ /* restart timer with new speed */ stepConsumed += (performance.now()-stepStart)*speedAtPause; stepStart = performance.now(); speedAtPause = speed; scheduleStep(); }
+  });
+});
+let speedAtPause = 1;
+
+/* play / pause / restart */
+$('play-btn').addEventListener('click', togglePlay);
+$('reset-btn').addEventListener('click', reset);
+$('step-fwd').addEventListener('click', ()=>{ if(stepIdx<STEPS.length-1) advance(); });
+
+/* scrub */
+$('scrub').addEventListener('input',(e)=>{
+  const pct = e.target.value/100;
+  jumpTo(pct*totalDur);
+});
+
+/* phase rail click — jump to phase start */
+document.querySelectorAll('.ph').forEach(p=>{
+  p.addEventListener('click',()=>{
+    const target = parseInt(p.dataset.ph);
+    let acc=0;
+    for(let i=0;i<STEPS.length;i++){
+      if(STEPS[i].ph===target){ jumpToStep(i); return; }
+      acc += STEPS[i].dur;
+    }
+  });
+});
+
+/* founder beat */
+document.querySelectorAll('.beat-q').forEach(q=>{
+  q.querySelectorAll('.opts button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const qi = parseInt(q.dataset.q);
+      beatAnswers[qi] = b.dataset.pick;
+      q.querySelectorAll('.opts button').forEach(x=>x.classList.remove('picked'));
+      b.classList.add('picked');
+      checkBeatComplete();
+    });
+  });
+});
+function checkBeatComplete(){
+  const done = beatAnswers.every(a=>a!==null);
+  $('beat-resume').disabled = !done;
+}
+$('beat-resume').addEventListener('click', ()=>{ window.__beatAnswered = true; resumeFromBeat(); });
+$('beat-skip').addEventListener('click', ()=>{
+  if(beatAnswers[0]===null) beatAnswers[0]='confirm';
+  if(beatAnswers[1]===null) beatAnswers[1]='correct';
+  if(beatAnswers[2]===null) beatAnswers[2]='confirm';
+  resumeFromBeat();
+});
+
+function resumeFromBeat(){
+  beat.classList.remove('show');
+  /* advance past the beat step */
+  advance();
+  if(!playing) togglePlay();
+}
+
+/* ───── core: render a step ───── */
+function renderStep(i){
+  const s = STEPS[i];
+  if(!s) return;
+
+  /* phase transition? */
+  if(s.ph !== phaseIdx){
+    phaseIdx = s.ph;
+    document.querySelectorAll('.ph').forEach(p=>{
+      const pi = parseInt(p.dataset.ph);
+      p.classList.toggle('active', pi===phaseIdx);
+      p.classList.toggle('done', pi<phaseIdx);
+    });
+    $('pane-phase-title').textContent = PHASE_NAMES[phaseIdx];
+    $('phase-name-foot').textContent = PHASE_LBL[phaseIdx];
+    $('cc-phase').textContent = PHASE_LBL[phaseIdx];
+    $('stage-tag-phase').textContent = 'Phase 0'+(phaseIdx+1);
+    /* clear nodes & ring on phase change */
+    nodesEl.innerHTML='';
+    ringEl.innerHTML='';
+    linksEl.innerHTML='';
+  }
+
+  $('phase-empty').style.display='none';
+  $('stage-tag-step').innerHTML = s.checking;
+  $('step-num').textContent = i+1 - phaseStartIndex(phaseIdx) + 1 - 1;
+  /* simpler: step within phase */
+  const psteps = STEPS.filter(x=>x.ph===phaseIdx);
+  const pIdx = psteps.indexOf(s)+1;
+  $('step-num').textContent = pIdx;
+  $('step-total').textContent = psteps.length;
+  $('cc-step').textContent = i+1;
+  $('cc-total').textContent = STEPS.length;
+
+  /* checking + why + next */
+  $('f-checking').innerHTML = s.checking;
+  $('f-why').textContent = WHY[s.whyKey][persona];
+  $('f-next').innerHTML = s.next;
+
+  /* found rows */
+  renderFound(s);
+
+  /* stage: nodes for this step */
+  if(s.nodes){
+    s.nodes.forEach(n=>{
+      if(!document.querySelector(`[data-node="${n.id}"]`)){
+        const el = document.createElement('div');
+        el.className='node';
+        el.dataset.node = n.id;
+        el.style.left = n.pos[0]+'%';
+        el.style.top  = n.pos[1]+'%';
+        el.innerHTML = `<div class="chip"><span class="glyph ${n.glyph}">${glyphTxt(n.glyph)}</span>${n.chip}</div><span class="src">${n.src}</span>`;
+        nodesEl.appendChild(el);
+        /* draw line to subject */
+        drawLineToSubject(n.pos[0], n.pos[1], n.id);
+      }
+      /* mark all prior nodes done, this one live */
+      document.querySelectorAll('.node').forEach(x=>{
+        x.classList.add('in');
+        if(x.dataset.node===n.id){ x.classList.add('live'); x.classList.remove('done'); }
+        else { x.classList.remove('live'); x.classList.add('done'); }
+      });
+      document.querySelectorAll('#links line').forEach(l=>{
+        l.classList.add('on');
+        if(l.dataset.target===n.id) l.classList.add('live');
+        else l.classList.remove('live');
+      });
+    });
+  } else {
+    document.querySelectorAll('.node').forEach(x=>{ x.classList.remove('live'); x.classList.add('done'); });
+    document.querySelectorAll('#links line').forEach(l=>l.classList.remove('live'));
+  }
+
+  /* ring items (frameworks / gaps around subject) */
+  if(s.ring){
+    s.ring.forEach((r,idx)=>{
+      const el = document.createElement('div');
+      el.className = `ring-item ${r.kind}${r.sev?' '+r.sev:''}`;
+      const rad = r.angle * Math.PI/180;
+      const x = Math.cos(rad)*r.r;
+      const y = Math.sin(rad)*r.r;
+      el.style.marginLeft = x+'px';
+      el.style.marginTop = y+'px';
+      el.textContent = r.label;
+      ringEl.appendChild(el);
+      setTimeout(()=>el.classList.add('in'), 80 + idx*120);
+    });
+  }
+
+  /* trigger founder beat if marked */
+  if(s.triggerBeat){
+    setTimeout(()=>{ beat.classList.add('show'); pause(); }, 300);
+  }
+
+  /* count animations on stub */
+  if(s.srcAdd) bumpCount('src-count', s.srcAdd);
+  if(s.frameAdd) bumpCount('frame-count', s.frameAdd);
+  /* gap-count derived from ring gaps shown this step */
+  if(s.ring){
+    const gapsNow = s.ring.filter(r=>r.kind==='gap').length;
+    if(gapsNow > parseInt($('gap-count').textContent)) $('gap-count').textContent = gapsNow;
+  }
+}
+
+function renderFound(s){
+  const wrap = $('f-found');
+  wrap.innerHTML = '';
+  if(s.found === '__beat_answers__'){
+    /* render the user's confirmed answers as threaded rows */
+    const labels = ['SOC 2 status', 'Cyber insurance', 'Primary customer'];
+    const tags   = {confirm:['OK','confirmed'], correct:['WARN','corrected'], notsure:['FOUND','noted']};
+    beatAnswers.forEach((a,i)=>{
+      const [tagCls, tagTxt] = tags[a]||['FOUND','—'];
+      const row = document.createElement('div');
+      row.className='row';
+      row.innerHTML = `<span class="tag ${tagCls.toLowerCase()}">${tagTxt}</span>${labels[i]} <span class="you-pill">you</span><span class="src">first-party</span>`;
+      wrap.appendChild(row);
+    });
+    return;
+  }
+  (s.found||[]).forEach(f=>{
+    const row = document.createElement('div');
+    row.className='row';
+    const tagCls = f.tag.toLowerCase();
+    row.innerHTML = `<span class="tag ${tagCls}">${f.tag}</span>${f.txt}<span class="src">${f.src}</span>`;
+    wrap.appendChild(row);
+  });
+}
+
+function renderWhy(){
+  const s = STEPS[stepIdx];
+  if(s) $('f-why').textContent = WHY[s.whyKey][persona];
+}
+
+function glyphTxt(g){
+  return {dns:'D',ssl:'T',gh:'G',fc:'F',hi:'!',mf:'M',so:'S',cy:'C',vc:'V',co:'C',fw:'F',gp:'!',rc:'✓'}[g]||'•';
+}
+
+function drawLineToSubject(xPct,yPct,id){
+  const x1 = xPct*10;
+  const y1 = yPct*6;
+  const x2 = 500;
+  const y2 = 300;
+  const l = document.createElementNS('http://www.w3.org/2000/svg','line');
+  l.setAttribute('x1',x1); l.setAttribute('y1',y1);
+  l.setAttribute('x2',x2); l.setAttribute('y2',y2);
+  l.dataset.target = id;
+  linksEl.appendChild(l);
+}
+
+function phaseStartIndex(p){
+  for(let i=0;i<STEPS.length;i++) if(STEPS[i].ph===p) return i;
+  return 0;
+}
+
+function bumpCount(id, by){
+  const el = $(id);
+  const cur = parseInt(el.textContent)||0;
+  el.textContent = cur + by;
+}
+
+/* ───── timing loop ───── */
+function togglePlay(){
+  playing = !playing;
+  $('play-btn').textContent = playing ? '❚❚ Pause' : '▶ Play';
+  $('run-state').textContent = playing ? 'Running' : 'Paused';
+  if(playing){
+    if(stepIdx === -1){
+      /* fresh start */
+      stepIdx = 0;
+      stepConsumed = 0;
+      renderStep(0);
+    }
+    stepStart = performance.now();
+    speedAtPause = speed;
+    scheduleStep();
+  } else {
+    pause();
+  }
+}
+function pause(){
+  playing = false;
+  $('play-btn').textContent = '▶ Play';
+  $('run-state').textContent = 'Paused';
+  stepConsumed += (performance.now()-stepStart)*speedAtPause;
+  pauseToken++;
+}
+
+function scheduleStep(){
+  const s = STEPS[stepIdx]; if(!s) return;
+  const remainMs = (s.dur*1000) - stepConsumed;
+  const myToken = ++pauseToken;
+  const wait = Math.max(60, remainMs / speedAtPause);
+  setTimeout(()=>{
+    if(myToken!==pauseToken) return;
+    advance();
+  }, wait);
+  startTicker();
+}
+
+function advance(){
+  if(stepIdx >= STEPS.length-1){
+    finish();
+    return;
+  }
+  stepIdx++;
+  stepConsumed = 0;
+  renderStep(stepIdx);
+  if(playing){
+    stepStart = performance.now();
+    speedAtPause = speed;
+    scheduleStep();
+  }
+}
+
+function jumpToStep(i){
+  pause();
+  stepIdx = i;
+  stepConsumed = 0;
+  /* rebuild canvas state from scratch up to i */
+  nodesEl.innerHTML=''; ringEl.innerHTML=''; linksEl.innerHTML='';
+  document.getElementById('src-count').textContent='0';
+  document.getElementById('frame-count').textContent='0';
+  document.getElementById('gap-count').textContent='0';
+  phaseIdx = -1;
+  for(let k=0;k<=i;k++){
+    /* lightweight replay — just re-run renderStep cumulatively */
+    renderStep(k);
+  }
+  updateClock(0);
+}
+
+function jumpTo(seconds){
+  let acc=0;
+  for(let i=0;i<STEPS.length;i++){
+    if(acc + STEPS[i].dur >= seconds){
+      jumpToStep(i);
+      return;
+    }
+    acc += STEPS[i].dur;
+  }
+  jumpToStep(STEPS.length-1);
+}
+
+function reset(){
+  pause();
+  stepIdx = -1;
+  phaseIdx = -1;
+  stepConsumed = 0;
+  beatAnswers = [null,null,null];
+  document.querySelectorAll('.ph').forEach(p=>{p.classList.remove('active','done')});
+  document.querySelectorAll('.beat-q .opts button').forEach(b=>b.classList.remove('picked'));
+  $('beat-resume').disabled = true;
+  nodesEl.innerHTML=''; ringEl.innerHTML=''; linksEl.innerHTML='';
+  $('src-count').textContent='0'; $('frame-count').textContent='0'; $('gap-count').textContent='0';
+  $('pane-phase-title').textContent = 'Find the company';
+  $('f-checking').textContent='—'; $('f-why').textContent='—'; $('f-next').textContent='Next step will appear here';
+  $('f-found').innerHTML = '<div class="row" style="color:var(--ink-3)">waiting…</div>';
+  $('stage-tag-phase').textContent='Find the company'; $('stage-tag-step').textContent='press play to begin';
+  $('phase-empty').style.display='block';
+  $('complete').classList.remove('show');
+  $('scrub').value = 0;
+  updateClock(0);
+}
+
+function finish(){
+  playing = false;
+  $('play-btn').textContent = '▶ Replay';
+  $('run-state').textContent = 'Complete';
+  $('dot').classList.add('done');
+  document.querySelectorAll('.ph').forEach(p=>p.classList.add('done'));
+  $('complete').classList.add('show');
+  /* fill trail-detail values from current run */
+  $('trail-sources').textContent = ($('src-count').textContent || '0');
+  $('trail-frames').textContent  = ($('frame-count').textContent || '0');
+  $('trail-confirm').textContent = (window.__beatAnswered ? '2 confirmed, 1 corrected' : '—');
+  $('seal-time').textContent = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+/* show-trail disclosure toggle */
+document.getElementById('show-trail').addEventListener('click', (e)=>{
+  const btn = e.currentTarget, det = document.getElementById('trail-detail');
+  const open = det.classList.toggle('show');
+  btn.textContent = open ? 'Hide proof trail ▴' : 'Show proof trail ▾';
+});
+
+/* clock ticker — updates current time / scrub */
+let tickerRaf = 0;
+function startTicker(){
+  cancelAnimationFrame(tickerRaf);
+  function tick(){
+    if(!playing) return;
+    const now = performance.now();
+    const consumed = stepConsumed + (now-stepStart)*speedAtPause;
+    let acc = 0;
+    for(let i=0;i<stepIdx;i++) acc += STEPS[i].dur*1000;
+    acc += consumed;
+    updateClock(acc/1000);
+    tickerRaf = requestAnimationFrame(tick);
+  }
+  tick();
+}
+function updateClock(sec){
+  $('cur-time').textContent = sec.toFixed(1)+'s';
+  $('tot-time').textContent = totalDur.toFixed(1)+'s';
+  $('elapsed-foot').textContent = `elapsed ${sec.toFixed(1)}s`;
+  $('scrub').value = Math.min(100,(sec/totalDur)*100);
+}
+
+/* init */
+$('tot-time').textContent = totalDur.toFixed(1)+'s';
+$('cc-total').textContent = STEPS.length;
+
+</script>
+</body>
+</html>
