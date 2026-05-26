@@ -107,7 +107,7 @@ function StageRail({ stages, activeIdx, onSelect, accent }) {
   );
 }
 
-function AccordionSection({ title, accent, count, total, open, onToggle, collapsed, stageRail, tag, children }) {
+function AccordionSection({ title, accent, count, total, open, onToggle, collapsed, stageRail, tag, avatar, children }) {
   return (
     <div style={{ padding: '10px 0 4px' }}>
       {!collapsed && (
@@ -116,16 +116,17 @@ function AccordionSection({ title, accent, count, total, open, onToggle, collaps
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             width: '100%', background: 'none', border: 'none', cursor: 'pointer',
-            padding: '0 22px', marginBottom: open ? 6 : 2,
+            padding: '0 14px 0 12px', marginBottom: open ? 6 : 2,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+            {avatar}
             <span style={{
               fontFamily: '"IBM Plex Mono", monospace',
               fontSize: 9.5, fontWeight: 600, color: accent ?? '#8c8499',
               letterSpacing: '0.22em', textTransform: 'uppercase',
               whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-              maxWidth: stageRail ? 76 : 110,
+              maxWidth: stageRail ? 76 : 130,
             }}>{title}</span>
             {tag && (
               <span style={{
@@ -251,12 +252,12 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
 
       <div style={{ overflowY: 'auto', flex: 1 }}>
 
-        {/* ── Hive & Co — reference founder, visually distinct from user's section ── */}
+        {/* ── Hive & Co — amber card, clearly the reference company ── */}
         <div style={{
           margin: '8px 8px 4px',
-          border: `1px solid ${tk.umber}30`,
+          border: `1.5px solid #c8965a`,
           borderRadius: 10,
-          background: `${tk.umber}05`,
+          background: '#f5e6cc',
           overflow: 'hidden',
         }}>
         <AccordionSection
@@ -265,6 +266,15 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
           count={hiveCount} total={6}
           open={demoOpen} onToggle={() => setDemoOpen(o => !o)}
           collapsed={collapsed}
+          avatar={!collapsed && (
+            <div style={{
+              width: 24, height: 24, borderRadius: 6, flexShrink: 0,
+              background: tk.umber,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: '"IBM Plex Sans", sans-serif',
+              fontSize: 9, fontWeight: 700, color: '#fff', letterSpacing: '0.04em',
+            }}>HC</div>
+          )}
         >
           {!collapsed && (
             <div style={{ padding: '0 14px 10px 22px' }}>
@@ -323,12 +333,28 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
 
         {/* ── Your company section ── */}
         {userTabs.length === 0 ? (
+          <div style={{
+            margin: '4px 8px 8px',
+            border: `1.5px dashed ${litCount > 0 ? tk.plum + '60' : '#c4b8d0'}`,
+            borderRadius: 10,
+            background: litCount > 0 ? `${tk.plum}06` : '#f5f3f9',
+            overflow: 'hidden',
+          }}>
           <AccordionSection
             title={yourCompanyName ?? 'Your company'}
-            accent={litCount > 0 ? tk.plum : '#b8b1c0'}
+            accent={litCount > 0 ? tk.plum : '#8e7caa'}
             count={litCount} total={6}
             open={isSectionOpen('__yours')} onToggle={() => toggleSection('__yours')}
             collapsed={collapsed}
+            avatar={!collapsed && (
+              <div style={{
+                width: 24, height: 24, borderRadius: 6, flexShrink: 0,
+                background: litCount > 0 ? tk.plum : '#c4b8d0',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: '"IBM Plex Sans", sans-serif',
+                fontSize: 9, fontWeight: 700, color: '#fff', letterSpacing: '0.04em',
+              }}>YC</div>
+            )}
           >
             {litCount === 0 && !collapsed && (
               <div style={{
@@ -350,6 +376,7 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
               />
             ))}
           </AccordionSection>
+          </div>
         ) : (
           userTabs.map(tab => (
             <AccordionSection
