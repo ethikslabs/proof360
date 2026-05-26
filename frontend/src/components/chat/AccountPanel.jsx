@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 const Ic = {
@@ -387,7 +387,7 @@ function AccountSettings({ initialSection = 'programs', onClose }) {
 }
 
 // ── Account menu popup ─────────────────────────────────────────────────────────
-function AccountMenu({ onClose, onOpenSettings }) {
+function AccountMenu({ onClose, onOpenSettings, pos }) {
   const activeCount = DEMO.programs.filter(p => p.status === 'active').length;
   const purchaseCount = DEMO.purchases.filter(p => p.status === 'active').length;
   const linkedCount = DEMO.integrations.filter(i => i.status === 'connected').length;
@@ -396,7 +396,9 @@ function AccountMenu({ onClose, onOpenSettings }) {
     background: '#ffffff', border: '1px solid #e5e7eb',
     borderRadius: 14, boxShadow: '0 8px 40px rgba(0,0,0,0.14)',
     padding: '8px 0', minWidth: 240, zIndex: 200,
-    position: 'absolute', bottom: 52, left: 0,
+    position: 'fixed',
+    bottom: pos ? pos.bottom : 52,
+    left: pos ? pos.left : 0,
   };
 
   function Row({ icon, label, value, onClick }) {
@@ -488,14 +490,25 @@ function AccountMenu({ onClose, onOpenSettings }) {
 // ── Account button — bottom of sidebar ───────────────────────────────────────
 export function AccountButton({ collapsed }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState(null);
   const [settingsSection, setSettingsSection] = useState(null);
+  const btnRef = useRef(null);
+
+  function handleToggleMenu() {
+    if (!menuOpen && btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect();
+      setMenuPos({ bottom: window.innerHeight - r.top + 4, left: r.right + 8 });
+    }
+    setMenuOpen(o => !o);
+  }
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div>
       {menuOpen && (
         <AccountMenu
           onClose={() => setMenuOpen(false)}
           onOpenSettings={section => setSettingsSection(section)}
+          pos={menuPos}
         />
       )}
       {settingsSection !== null && (
@@ -506,7 +519,8 @@ export function AccountButton({ collapsed }) {
       )}
 
       <button
-        onClick={() => setMenuOpen(o => !o)}
+        ref={btnRef}
+        onClick={handleToggleMenu}
         style={{
           display: 'flex', alignItems: 'center',
           gap: collapsed ? 0 : 10,

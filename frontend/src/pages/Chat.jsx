@@ -867,6 +867,7 @@ export default function Chat() {
   const [analysisProfile, setAnalysisProfile] = useState('investor');
   const [logoCard,        setLogoCard]        = useState(null);
   const [activeSpace,     setActiveSpace]     = useState('chat');
+  const [drawerCollapsed, setDrawerCollapsed] = useState(false);
   const [sidebarCollapsed,setSidebarCollapsed]= useState(true);
   const [hiveStage,       setHiveStage]       = useState(1);
   const litTiles = useMemo(() => ({ investor: false, vendors: false, aws: false, microsoft: false, posture: false, spv: false }), []);
@@ -877,7 +878,7 @@ export default function Chat() {
 
   const hasUserMsg  = messages.some(m => m.role === 'user');
   const hasMessages = messages.length > 0;
-  const isHeroState = !hasUserMsg && phase !== 'journey-setup';
+  const isHeroState = !hasMessages;
 
   const userMessageCount = messages.filter(m => m.role === 'user').length;
   const trustPhase = useTrustPhase({ phase, inputReady, userMessageCount, companyData });
@@ -901,7 +902,14 @@ export default function Chat() {
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+    // Double-rAF: first frame triggers layout, second frame reads the settled scrollHeight
+    let outer, inner;
+    outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => {
+        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+      });
+    });
+    return () => { cancelAnimationFrame(outer); cancelAnimationFrame(inner); };
   }, [messages, thinkingSteps]);
 
   useEffect(() => {
@@ -1141,33 +1149,37 @@ export default function Chat() {
     }
 
     // ── Mock path: used until a real session exists ──
-    const steps = getThinkingSteps();
-    setThinkingSteps(steps.map(s => ({ ...s, status: 'running' })));
-    for (let i = 0; i < steps.length; i++) {
-      await sleep(360 + Math.random() * 380);
-      setThinkingSteps(prev => prev.map((s, idx) => idx <= i ? { ...s, status: 'complete' } : s));
+    try {
+      const steps = getThinkingSteps();
+      setThinkingSteps(steps.map(s => ({ ...s, status: 'running' })));
+      for (let i = 0; i < steps.length; i++) {
+        await sleep(360 + Math.random() * 380);
+        setThinkingSteps(prev => prev.map((s, idx) => idx <= i ? { ...s, status: 'complete' } : s));
+      }
+      const personaMatch = text.match(/^(Sophia|Leonardo|Edison|John)[,\s]/i);
+      const responses = personaMatch
+        ? getPersonaResponse(personaMatch[1], text)
+        : getPersonaResponses(text);
+
+      const isFirstMsg = !messages.some(m => m.role === 'user');
+      const intakeMsg = isFirstMsg && !personaMatch && !t.returningUser ? {
+        id: `intake-${Date.now()}`,
+        role: 'assistant', persona: 'sofia',
+        content: "One thing that would help us go deeper — do you have a website we can look at? A pitch deck, investor update, anything at all. Even rough notes or a one-pager. The more context we have, the more specific we can be.",
+      } : null;
+
+      setMessages(prev => [
+        ...prev,
+        ...responses.map((r, i) => ({
+          id: `p-${Date.now()}-${i}`, role: 'assistant',
+          persona: r.persona, content: r.response,
+        })),
+        ...(intakeMsg ? [intakeMsg] : []),
+      ]);
+    } finally {
+      setThinkingSteps([]);
+      setIsProcessing(false);
     }
-    const personaMatch = text.match(/^(Sophia|Leonardo|Edison|John)[,\s]/i);
-    const responses = personaMatch
-      ? getPersonaResponse(personaMatch[1], text)
-      : getPersonaResponses(text);
-
-    const isFirstMsg = !messages.some(m => m.role === 'user');
-    const intakeMsg = isFirstMsg && !personaMatch && !t.returningUser ? {
-      id: `intake-${Date.now()}`,
-      role: 'assistant', persona: 'sofia',
-      content: "One thing that would help us go deeper — do you have a website we can look at? A pitch deck, investor update, anything at all. Even rough notes or a one-pager. The more context we have, the more specific we can be.",
-    } : null;
-
-    setMessages(prev => [
-      ...prev,
-      ...responses.map((r, i) => ({
-        id: `p-${Date.now()}-${i}`, role: 'assistant',
-        persona: r.persona, content: r.response,
-      })),
-      ...(intakeMsg ? [intakeMsg] : []),
-    ]);
-    setIsProcessing(false);
   }, [inputReady, isProcessing, messages, t.returningUser, companyData, analysisProfile]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectIntent = useCallback(async (chosen) => {
@@ -1297,7 +1309,7 @@ export default function Chat() {
         requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' }));
       }} />}
 
-      <OperationalField onLogoClick={setLogoCard} active={!showIntro} />
+      <OperationalField onLogoClick={setLogoCard} active />
 
       <main style={{ flex: 1, display: 'flex', minWidth: 0, overflow: 'hidden' }}>
 
@@ -1308,6 +1320,7 @@ export default function Chat() {
           activeSpace={activeSpace}
           onSwitch={(id, ctx) => {
             setActiveSpace(prev => prev === id ? 'chat' : id);
+            setDrawerCollapsed(false);
             if (ctx?.stage !== undefined) setHiveStage(ctx.stage);
           }}
           litTiles={litTiles}
@@ -1341,11 +1354,12 @@ export default function Chat() {
           bottom: trustPhase !== 't0' ? 40 : 0,
           display: 'flex',
           flexDirection: 'column',
+          overflow: 'hidden',
         }}>
           {isHeroState ? (
             /* ── Hero / centered state ── */
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', minHeight: 0 }}>
-              <div style={{ width: '100%', maxWidth: 620, padding: '0 36px 48px', margin: 'auto', boxSizing: 'border-box' }}>
+              <div style={{ width: '100%', maxWidth: 860, padding: '0 24px 48px', margin: 'auto', boxSizing: 'border-box' }}>
                 <div style={{ textAlign: 'center', marginBottom: hasMessages ? 24 : 36 }}>
                   <div style={{
                     fontFamily: '"Instrument Serif", Georgia, serif',
@@ -1439,7 +1453,7 @@ export default function Chat() {
 
           {/* Chat header */}
           <div style={{
-            padding: '20px 36px',
+            padding: '12px 36px',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             position: 'relative', zIndex: 2,
             borderBottom: hasUserMsg ? `1px solid ${tk.hairline}` : 'none',
@@ -1490,8 +1504,25 @@ export default function Chat() {
             </div>
           </div>
 
-          <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', position: 'relative', zIndex: 2 }}>
-            <div style={{ maxWidth: 660, margin: '0 auto', padding: '0 36px 20px' }}>
+          <div ref={scrollRef} style={{ flex: 1, minHeight: 0, overflowY: 'auto', position: 'relative', zIndex: 2 }}>
+            <div style={{ maxWidth: 860, margin: '0 auto', padding: '0 24px 20px' }}>
+
+              {/* Headline — visible above messages until user first speaks */}
+              {!briefShown && !hasUserMsg && (
+                <div style={{ textAlign: 'center', padding: '24px 0 20px' }}>
+                  <div style={{
+                    fontFamily: '"Instrument Serif", Georgia, serif',
+                    fontSize: 'clamp(24px, 3vw, 38px)',
+                    letterSpacing: '-0.022em', color: tk.ink, lineHeight: 1.18, marginBottom: 10,
+                  }}>
+                    Investors are evaluating you<em style={{ fontStyle: 'italic' }}> right now.</em>
+                  </div>
+                  <div style={{
+                    fontFamily: '"Instrument Serif", Georgia, serif',
+                    fontStyle: 'italic', fontSize: 14, color: tk.inkSoft,
+                  }}>Before the pitch. Before the meeting. Before you know they&apos;re looking.</div>
+                </div>
+              )}
 
               {briefShown ? (
                 <MorningBrief onPullSignal={pullSignal} t={t} />
@@ -1587,7 +1618,7 @@ export default function Chat() {
             flexShrink: 0,
             zIndex: 3,
           }}>
-            <div style={{ maxWidth: 660, margin: '0 auto', padding: '0 36px 16px' }}>
+            <div style={{ maxWidth: 860, margin: '0 auto', padding: '0 24px 16px' }}>
               <ChatInput
                 ref={inputRef}
                 value={inputValue}
@@ -1652,28 +1683,61 @@ export default function Chat() {
           />
         )}
 
-        {/* Projection drawer — fixed overlay, chat stays visible behind */}
+        {/* Projection drawer — wide overlay with collapse handle */}
         {activeSpace !== 'chat' && (
           <>
-            <div
-              style={{ position: 'fixed', inset: 0, zIndex: 19, background: 'rgba(0,0,0,0.06)' }}
-              onClick={() => setActiveSpace('chat')}
-            />
+            {/* Dim backdrop — only when drawer is expanded */}
+            {!drawerCollapsed && (
+              <div
+                style={{ position: 'fixed', inset: 0, zIndex: 19, background: 'rgba(0,0,0,0.06)' }}
+                onClick={() => setDrawerCollapsed(true)}
+              />
+            )}
             <div style={{
               position: 'fixed', right: 0, top: 0, bottom: 0,
-              width: 420, zIndex: 20,
+              width: drawerCollapsed ? 28 : 'clamp(580px, 64vw, 860px)',
+              zIndex: 20,
               background: tk.bg,
               borderLeft: `1px solid ${tk.hairline}`,
               boxShadow: '-12px 0 40px rgba(0,0,0,0.09)',
-              overflowY: 'auto',
+              display: 'flex', flexDirection: 'row',
+              transition: 'width 0.3s cubic-bezier(0.32,0.72,0,1)',
+              overflow: 'hidden',
             }}>
-              <Projection
-                id={activeSpace}
-                company="hive"
-                hiveStage={hiveStage}
-                onBack={() => setActiveSpace('chat')}
-                t={t}
-              />
+              {/* Collapse / expand handle — always visible on left edge */}
+              <button
+                onClick={() => setDrawerCollapsed(c => !c)}
+                title={drawerCollapsed ? 'Expand panel' : 'Collapse panel'}
+                style={{
+                  flexShrink: 0, width: 28,
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  borderRight: `1px solid ${tk.hairline}`,
+                  color: tk.inkSoft,
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = tk.surfaceLo}
+                onMouseLeave={e => e.currentTarget.style.background = 'none'}
+              >
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path
+                    d={drawerCollapsed ? 'M3 2 L7 5 L3 8' : 'M7 2 L3 5 L7 8'}
+                    stroke="currentColor" strokeWidth="1.4"
+                    strokeLinecap="round" strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+
+              {/* Panel content — hidden while collapsed (overflow:hidden handles it) */}
+              <div style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
+                <Projection
+                  id={activeSpace}
+                  company="hive"
+                  hiveStage={hiveStage}
+                  onBack={() => setActiveSpace('chat')}
+                  t={t}
+                />
+              </div>
             </div>
           </>
         )}
