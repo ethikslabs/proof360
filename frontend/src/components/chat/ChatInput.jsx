@@ -46,6 +46,9 @@ const IconGlobe = () => (
 const IconCheck = () => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
 );
+function IconConnector() {
+  return <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="3" cy="7" r="2" stroke="currentColor" strokeWidth="1.5"/><circle cx="11" cy="7" r="2" stroke="currentColor" strokeWidth="1.5"/><line x1="5" y1="7" x2="9" y2="7" stroke="currentColor" strokeWidth="1.5"/></svg>;
+}
 
 // ── Fixed-position dropdown helper ────────────────────────────────────────────
 // Measures the trigger button and positions the menu in viewport space,
@@ -78,6 +81,8 @@ const PLUS_GROUPS = [
 function PlusMenu({ onSelect }) {
   const [open, setOpen] = useState(false);
   const [webOn, setWebOn] = useState(false);
+  const [integrationsOpen, setIntegrationsOpen] = useState(false);
+  const [integrationEnabled, setIntegrationEnabled] = useState({ xero: true, aws: true, github: true });
   const { btnRef, pos, openMenu } = useDropdownPos(open);
 
   function toggle() {
@@ -108,7 +113,7 @@ function PlusMenu({ onSelect }) {
 
       {open && pos && (
         <>
-          <div style={{ position: 'fixed', inset: 0, zIndex: 199 }} onClick={() => setOpen(false)} />
+          <div style={{ position: 'fixed', inset: 0, zIndex: 199 }} onClick={() => { setOpen(false); setIntegrationsOpen(false); }} />
           <div style={{
             position: 'fixed',
             bottom: pos.bottom, left: pos.left,
@@ -146,12 +151,47 @@ function PlusMenu({ onSelect }) {
                 ))}
               </div>
             ))}
+            <div style={{ height: 1, background: '#f3f4f6', margin: '4px 0' }} />
+            <button
+              type="button"
+              onClick={() => setIntegrationsOpen(o => !o)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                width: '100%', padding: '8px 14px',
+                background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left',
+                fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
+              onMouseLeave={e => e.currentTarget.style.background = 'none'}
+            >
+              <span style={{ color: '#9ca3af', display: 'flex', alignItems: 'center' }}><IconConnector /></span>
+              <span style={{ flex: 1, fontSize: 12.5, color: '#111827' }}>Integrations</span>
+              <span style={{ color: '#9ca3af', fontSize: 11 }}>›</span>
+            </button>
           </div>
         </>
+      )}
+      {integrationsOpen && pos && (
+        <IntegrationsFlyout
+          pos={pos}
+          onClose={() => { setIntegrationsOpen(false); setOpen(false); }}
+          enabled={integrationEnabled}
+          onToggle={(id) => setIntegrationEnabled(p => ({ ...p, [id]: !p[id] }))}
+        />
       )}
     </>
   );
 }
+
+const INTEGRATIONS_CONNECTED = [
+  { id: 'xero',   label: 'Xero',    icon: '📊', desc: 'Financial signals' },
+  { id: 'aws',    label: 'AWS',     icon: '☁️', desc: 'Infrastructure · billing' },
+  { id: 'github', label: 'GitHub',  icon: '🐙', desc: 'Codebase signals' },
+];
+const INTEGRATIONS_AVAILABLE = [
+  { id: 'm365',    label: 'Microsoft 365', icon: '📧' },
+  { id: 'hubspot', label: 'HubSpot',       icon: '🟠' },
+];
 
 const VECTOR_MODELS = [
   { id: 'claude-sonnet-4-6',  label: 'Claude Sonnet 4.6', desc: 'Balanced · everyday work',    provider: 'Bedrock',  providerColor: '#c07a00' },
@@ -266,6 +306,60 @@ function ModelPicker({ model, onModelChange }) {
           </div>
         </>
       )}
+    </>
+  );
+}
+
+function IntegrationsFlyout({ pos, onClose, enabled, onToggle }) {
+  return (
+    <>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 200 }} onClick={onClose} />
+      <div style={{
+        position: 'fixed',
+        bottom: pos.bottom, left: (pos.left ?? 0) + 230,
+        background: '#ffffff', border: '1px solid #e5e7eb',
+        borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.14)',
+        padding: '6px 0', minWidth: 240, zIndex: 201,
+      }}>
+        <div style={{ padding: '4px 14px 6px', fontSize: 9, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#9ca3af', fontFamily: '"IBM Plex Mono", monospace' }}>Connected</div>
+        {INTEGRATIONS_CONNECTED.map(item => (
+          <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 14px' }}>
+            <span style={{ fontSize: 14, width: 20, textAlign: 'center' }}>{item.icon}</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: '#111827' }}>{item.label}</div>
+              <div style={{ fontSize: 10.5, color: '#9ca3af' }}>{item.desc}</div>
+            </div>
+            <div
+              onClick={() => onToggle(item.id)}
+              style={{
+                width: 34, height: 18, borderRadius: 9,
+                background: enabled[item.id] ? '#b0956e' : '#e5e7eb',
+                position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0,
+              }}
+            >
+              <div style={{
+                position: 'absolute', top: 2,
+                left: enabled[item.id] ? 18 : 2,
+                width: 14, height: 14, borderRadius: 7, background: '#fff',
+                transition: 'left 0.2s',
+              }} />
+            </div>
+          </div>
+        ))}
+        <div style={{ height: 1, background: '#f3f4f6', margin: '4px 0' }} />
+        <div style={{ padding: '4px 14px 6px', fontSize: 9, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#c4b8a8', fontFamily: '"IBM Plex Mono", monospace' }}>Not connected</div>
+        {INTEGRATIONS_AVAILABLE.map(item => (
+          <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 14px', opacity: 0.7 }}>
+            <span style={{ fontSize: 14, width: 20, textAlign: 'center' }}>{item.icon}</span>
+            <div style={{ flex: 1, fontSize: 12.5, fontWeight: 600, color: '#111827' }}>{item.label}</div>
+            <span style={{ fontSize: 11, fontWeight: 600, color: '#b0956e', cursor: 'pointer' }}>Connect →</span>
+          </div>
+        ))}
+        <div style={{ height: 1, background: '#f3f4f6', margin: '4px 0' }} />
+        <button type="button" style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 14px', background: 'none', border: 'none', fontSize: 12.5, color: '#b0956e', cursor: 'pointer', fontFamily: '"IBM Plex Sans", system-ui, sans-serif' }}>
+          <span>+</span> Add connector
+        </button>
+      </div>
     </>
   );
 }
