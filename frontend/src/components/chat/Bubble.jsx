@@ -1,6 +1,58 @@
 import { useState } from 'react';
 import { tokens, PERSONA, personaColor } from '../../tokens.js';
 
+const VENDOR_KEYWORDS = [
+  { pattern: /\b(AWS|Amazon Web Services|AWS Activate|AWS Marketplace)\b/i, alt: 'AWS' },
+  { pattern: /\b(Microsoft|Azure|Microsoft 365|Founders Hub)\b/i,           alt: 'Microsoft' },
+  { pattern: /\bCloudflare\b/i,                                              alt: 'Cloudflare' },
+  { pattern: /\bVanta\b/i,                                                   alt: 'Vanta' },
+  { pattern: /\bCisco\b/i,                                                   alt: 'Cisco' },
+  { pattern: /\b(Austbrokers|AustBrokers|Cyberpro)\b/i,                      alt: 'AustBrokers' },
+  { pattern: /\bWholesale Investor\b/i,                                      alt: 'Wholesale Investor' },
+  { pattern: /\b(EO Sydney|Entrepreneurs' Organisation)\b/i,                 alt: 'EO Sydney' },
+  { pattern: /\bAustrade\b/i,                                                alt: 'Austrade' },
+  { pattern: /\bRimon\b/i,                                                   alt: 'Rimon' },
+  { pattern: /\bPrescient Security\b/i,                                      alt: 'Prescient Security' },
+  { pattern: /\bArctic Wolf\b/i,                                             alt: 'Arctic Wolf' },
+  { pattern: /\bCognitive View\b/i,                                          alt: 'Cognitive View' },
+  { pattern: /\bAI Expert Group\b/i,                                         alt: 'AU AI Expert Group' },
+  { pattern: /\bStripe\b/i,                                                  alt: 'Stripe' },
+  { pattern: /\bMetronome\b/i,                                               alt: 'Metronome' },
+  { pattern: /\b(UnityPac|Unity Assurance)\b/i,                             alt: 'UnityPac' },
+  { pattern: /\bEnterprise S[Gg]\b/i,                                        alt: 'Enterprise SG' },
+];
+
+function detectVendors(content) {
+  if (!content) return [];
+  const found = new Set();
+  for (const { pattern, alt } of VENDOR_KEYWORDS) {
+    if (pattern.test(content)) found.add(alt);
+  }
+  return [...found];
+}
+
+function VendorChips({ content, onProgramFocus }) {
+  const vendors = detectVendors(content);
+  if (!vendors.length || !onProgramFocus) return null;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 10, flexWrap: 'wrap' }}>
+      {vendors.map(alt => (
+        <button
+          key={alt}
+          onClick={() => onProgramFocus(alt)}
+          style={{
+            fontFamily: '"IBM Plex Mono", monospace',
+            fontSize: 9, fontWeight: 600, letterSpacing: '0.06em',
+            color: '#a8651e', background: '#fdf3e3',
+            border: '1px solid #e8c98a', borderRadius: 10,
+            padding: '2px 8px', cursor: 'pointer',
+          }}
+        >↗ {alt}</button>
+      ))}
+    </div>
+  );
+}
+
 const MODEL_PROVIDER = {
   'claude-sonnet-4-6': { label: 'Bedrock', color: '#c07a00' },
   'claude-opus-4-7':   { label: 'Bedrock', color: '#c07a00' },
@@ -136,7 +188,7 @@ function RichContent({ content, theme, tk, onPersonaRef }) {
   );
 }
 
-export function Bubble({ msg, t, isLatest, onPersonaRef }) {
+export function Bubble({ msg, t, isLatest, onPersonaRef, onProgramFocus }) {
   const tk = tokens(t.theme);
 
   if (msg.role === 'user') {
@@ -250,6 +302,8 @@ export function Bubble({ msg, t, isLatest, onPersonaRef }) {
     </a>
   );
 
+  const vendorChips = <VendorChips content={msg.content} onProgramFocus={onProgramFocus} />;
+
   if (t.bubble === 'card') {
     return (
       <div style={{ marginBottom: 22 }}>
@@ -261,6 +315,7 @@ export function Bubble({ msg, t, isLatest, onPersonaRef }) {
           <RichContent content={msg.content} theme={t.theme} tk={tk} onPersonaRef={onPersonaRef} />
         </div>
         {sourceEl}
+        {vendorChips}
         {crumbEl}
         {sourcesEl}
       </div>
@@ -281,6 +336,7 @@ export function Bubble({ msg, t, isLatest, onPersonaRef }) {
         {labelEl}
         {body}
         {sourceEl}
+        {vendorChips}
         {crumbEl}
         {sourcesEl}
       </div>
@@ -292,6 +348,7 @@ export function Bubble({ msg, t, isLatest, onPersonaRef }) {
       {labelEl}
       {body}
       {sourceEl}
+      {vendorChips}
       {crumbEl}
       {sourcesEl}
     </div>

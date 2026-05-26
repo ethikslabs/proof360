@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import awsUrl from '../OperationalField/logos/aws.svg';
 import microsoftUrl from '../OperationalField/logos/microsoft.svg';
 import cloudflareUrl from '../OperationalField/logos/cloudflare.svg';
@@ -67,22 +67,22 @@ const DISCOVERY_VENDORS = [
       { label: 'Marketplace',     ask: 'What does getting listed on the Microsoft Marketplace do for my sales?' },
     ],
   },
-  { logoUrl: cloudflareUrl, logoH: 16, alt: 'Cloudflare', value: 'Enterprise security posture, zero cost',    sub: 'What DD teams check — free for startups',    chatQ: 'How do I get Cloudflare free as a startup and what does it do for my security posture?' },
-  { logoUrl: vantaUrl,      logoH: 16, alt: 'Vanta',      value: 'SOC 2 — the cert that unlocks B2B deals',   sub: '90-day automated path to certified',          chatQ: 'Walk me through the 90-day SOC 2 path with Vanta and what it costs.' },
-  { logoUrl: ciscoUrl,      logoH: 14, alt: 'Cisco',       value: 'Security stack enterprise buyers trust',    sub: 'Startup partner access',                     chatQ: 'How does Cisco help startups build a security stack that enterprise buyers trust?' },
-  { logoUrl: austbrokersUrl,       logoH: 16, alt: 'AustBrokers',       value: 'Cyber cover enterprise procurement requires', sub: 'AU specialist — fast-track quote',   chatQ: 'What cyber insurance do I need before enterprise procurement will sign off, and how fast can I get it?' },
-  { logoUrl: wholesaleInvestorUrl, logoH: 14, alt: 'Wholesale Investor', value: '10,000+ AU accredited investors',              sub: 'When your posture is ready to raise', chatQ: 'How do I connect with AU accredited investors through Wholesale Investor, and what do I need to have in place first?' },
-  { logoUrl: eoSydneyUrl,          logoH: 16, alt: 'EO Sydney',          value: 'Peer network that opens doors — globally',      sub: 'Entrepreneurs\' Organisation Sydney',  chatQ: 'What does EO Sydney offer founders and how do I get involved?' },
-  { logoUrl: austradeUrl,          logoH: 16, alt: 'Austrade',           value: 'Government grants to take your product global',  sub: 'AU Trade & Investment Commission',    chatQ: 'What Austrade programs are available for AU tech founders looking to export?' },
-  { logoUrl: rimonUrl,             logoH: 22, alt: 'Rimon',              value: 'Startup legal without the big-firm overhead',    sub: 'Corporate, IP & investment law',      chatQ: 'How can Rimon Advisory help me with startup legal — term sheets, IP, cap table?' },
-  { logoUrl: prescientSecurityUrl, logoH: 22, alt: 'Prescient Security', value: 'Independent audit that unlocks enterprise trust',  sub: 'SOC 2, ISO 27001, pen testing',       chatQ: 'When do I need an independent security audit and what does Prescient Security do?' },
-  { logoUrl: arcticWolfUrl,        logoH: 22, alt: 'Arctic Wolf',        value: '24/7 security monitoring — without a SOC team',  sub: 'Managed detection & response',           chatQ: 'What does Arctic Wolf provide and when does a scaling startup need managed security?' },
-  { logoUrl: cognitiveViewUrl,     logoH: 18, alt: 'Cognitive View',     value: 'AI governance that satisfies investor DD',        sub: 'AI risk, compliance & monitoring',       chatQ: 'What does Cognitive View do and when do I need AI governance tooling?' },
-  { logoUrl: auAiExpertGroupUrl,   logoH: 22, alt: 'AU AI Expert Group', value: 'Stay ahead of AU AI regulation',                  sub: 'Dept. of Industry advisory body',        chatQ: 'What is Australia\'s AI Expert Group and how does its guidance affect my product or fundraising?' },
-  { logoUrl: stripeUrl,            logoH: 20, alt: 'Stripe',             value: 'The payments layer investors expect to see',      sub: 'Stripe Atlas, Capital & Revenue Rec',    chatQ: 'What Stripe products matter most for a scaling startup — Atlas, Capital, or Revenue Recognition?' },
-  { logoUrl: metronomeUrl,  logoH: 18, alt: 'Metronome',   value: 'Usage-based billing without the eng headcount',      sub: 'Acquired by Stripe',                     chatQ: 'What is Metronome and when does a startup need usage-based billing infrastructure?' },
-  { logoUrl: unitypacUrl,     logoH: 22, alt: 'UnityPac',     value: 'Singapore entity, audit and tax — done right',          sub: 'SG launch · audit · corporate services',    chatQ: 'What do I need to set up a legal entity in Singapore and how does Unity Assurance PAC help?' },
-  { logoUrl: enterpriseSgUrl, logoH: 22, alt: 'Enterprise SG', value: 'SG government grants to scale internationally',          sub: 'Market access · grants · global expansion', chatQ: 'What Enterprise Singapore programs are available for a company looking to use Singapore as a launchpad?' },
+  { logoUrl: cloudflareUrl, logoH: 22, alt: 'Cloudflare', value: 'Enterprise security posture, zero cost',    sub: 'What DD teams check — free for startups',    chatQ: 'How do I get Cloudflare free as a startup and what does it do for my security posture?' },
+  { logoUrl: vantaUrl,      logoH: 22, alt: 'Vanta',      value: 'SOC 2 — the cert that unlocks B2B deals',   sub: '90-day automated path to certified',          chatQ: 'Walk me through the 90-day SOC 2 path with Vanta and what it costs.' },
+  { logoUrl: ciscoUrl,      logoH: 20, alt: 'Cisco',       value: 'Security stack enterprise buyers trust',    sub: 'Startup partner access',                     chatQ: 'How does Cisco help startups build a security stack that enterprise buyers trust?' },
+  { logoUrl: austbrokersUrl,       logoH: 22, alt: 'AustBrokers',       value: 'Cyber cover enterprise procurement requires', sub: 'AU specialist — fast-track quote',   chatQ: 'What cyber insurance do I need before enterprise procurement will sign off, and how fast can I get it?' },
+  { logoUrl: wholesaleInvestorUrl, logoH: 20, alt: 'Wholesale Investor', value: '10,000+ AU accredited investors',              sub: 'When your posture is ready to raise', chatQ: 'How do I connect with AU accredited investors through Wholesale Investor, and what do I need to have in place first?' },
+  { logoUrl: eoSydneyUrl,          logoH: 22, alt: 'EO Sydney',          value: 'Peer network that opens doors — globally',      sub: 'Entrepreneurs\' Organisation Sydney',  chatQ: 'What does EO Sydney offer founders and how do I get involved?' },
+  { logoUrl: austradeUrl,          logoH: 22, alt: 'Austrade',           value: 'Government grants to take your product global',  sub: 'AU Trade & Investment Commission',    chatQ: 'What Austrade programs are available for AU tech founders looking to export?' },
+  { logoUrl: rimonUrl,             logoH: 26, alt: 'Rimon',              value: 'Startup legal without the big-firm overhead',    sub: 'Corporate, IP & investment law',      chatQ: 'How can Rimon Advisory help me with startup legal — term sheets, IP, cap table?' },
+  { logoUrl: prescientSecurityUrl, logoH: 26, alt: 'Prescient Security', value: 'Independent audit that unlocks enterprise trust',  sub: 'SOC 2, ISO 27001, pen testing',       chatQ: 'When do I need an independent security audit and what does Prescient Security do?' },
+  { logoUrl: arcticWolfUrl,        logoH: 28, alt: 'Arctic Wolf',        value: '24/7 security monitoring — without a SOC team',  sub: 'Managed detection & response',           chatQ: 'What does Arctic Wolf provide and when does a scaling startup need managed security?' },
+  { logoUrl: cognitiveViewUrl,     logoH: 24, alt: 'Cognitive View',     value: 'AI governance that satisfies investor DD',        sub: 'AI risk, compliance & monitoring',       chatQ: 'What does Cognitive View do and when do I need AI governance tooling?' },
+  { logoUrl: auAiExpertGroupUrl,   logoH: 26, alt: 'AU AI Expert Group', value: 'Stay ahead of AU AI regulation',                  sub: 'Dept. of Industry advisory body',        chatQ: 'What is Australia\'s AI Expert Group and how does its guidance affect my product or fundraising?' },
+  { logoUrl: stripeUrl,            logoH: 26, alt: 'Stripe',             value: 'The payments layer investors expect to see',      sub: 'Stripe Atlas, Capital & Revenue Rec',    chatQ: 'What Stripe products matter most for a scaling startup — Atlas, Capital, or Revenue Recognition?' },
+  { logoUrl: metronomeUrl,         logoH: 24, alt: 'Metronome',          value: 'Usage-based billing without the eng headcount',  sub: 'Acquired by Stripe',                     chatQ: 'What is Metronome and when does a startup need usage-based billing infrastructure?' },
+  { logoUrl: unitypacUrl,          logoH: 26, alt: 'UnityPac',           value: 'Singapore entity, audit and tax — done right',   sub: 'SG launch · audit · corporate services',    chatQ: 'What do I need to set up a legal entity in Singapore and how does Unity Assurance PAC help?' },
+  { logoUrl: enterpriseSgUrl,      logoH: 26, alt: 'Enterprise SG',      value: 'SG government grants to scale internationally',  sub: 'Market access · grants · global expansion', chatQ: 'What Enterprise Singapore programs are available for a company looking to use Singapore as a launchpad?' },
 ];
 
 function DomainRow({ id, label, userScore, tk }) {
@@ -131,156 +131,16 @@ function DomainRow({ id, label, userScore, tk }) {
   );
 }
 
-const BOOKING_WHY = {
-  AWS: {
-    headline: 'You\'re sitting on unclaimed AWS credits.',
-    body: 'Most founders apply for one program and miss the other nine. We check your stage against every AWS track, handle the applications, and make sure what you\'re owed actually lands.',
-  },
-  Microsoft: {
-    headline: 'The Microsoft partner track is the enterprise sales shortcut most founders miss.',
-    body: 'Co-sell puts you in front of Microsoft\'s enterprise customers — deals you can\'t reach cold. We map which programs fit your product and get you into the motion.',
-  },
-  Cloudflare: {
-    headline: 'Enterprise security posture, set up correctly from the start.',
-    body: 'Cloudflare is free for startups, but the configuration is what shows up in due diligence. We get you set up so it actually signals credibility when investors and buyers look.',
-  },
-  Vanta: {
-    headline: 'SOC 2 is blocking deals you don\'t know you\'re losing.',
-    body: 'Enterprise buyers check before the first meeting. We scope your 90-day Vanta path, handle the setup, and get you to your first audit — without the consultant fees.',
-  },
-  Cisco: {
-    headline: 'Enterprise buyers see your infrastructure before they see your deck.',
-    body: 'Cisco-aligned security signals you play at enterprise level. We identify the right partner program for your stage and get you positioned correctly.',
-  },
-  AustBrokers: {
-    headline: 'Cyber insurance is now a procurement checkbox, not an afterthought.',
-    body: 'Enterprise contracts and investor DD both check for it. We connect you to the AU specialist who can get you quoted and covered fast — before it costs you a deal.',
-  },
-  'Wholesale Investor': {
-    headline: 'You don\'t pitch AU investors cold — you get introduced.',
-    body: 'Wholesale Investor connects you to 10,000+ accredited investors, but your trust posture needs to be ready first. We help you get there, then make the introduction.',
-  },
-  'EO Sydney': {
-    headline: 'The room where AU founders actually talk to each other.',
-    body: 'EO Sydney is peer learning at the founder level — no pitching, no posturing. If you\'re scaling and want access to the network, we can make the introduction.',
-  },
-  'Austrade': {
-    headline: 'The Australian government will fund your expansion — most founders never ask.',
-    body: 'Austrade has grant programs, trade missions, and market entry support for AU tech companies going global. We identify what you qualify for and help you navigate the application.',
-  },
-  'Rimon': {
-    headline: 'Startup legal done by people who\'ve actually sat at the cap table.',
-    body: 'Rimon Advisory handles the legal work that matters at your stage — term sheets, IP protection, employment agreements, shareholder structure. No partner padding, no unnecessary hours.',
-  },
-  'Prescient Security': {
-    headline: 'An independent audit is the evidence layer investors and buyers actually trust.',
-    body: 'Self-reported compliance isn\'t enough anymore. Prescient Security provides the third-party audit — SOC 2, ISO 27001, penetration testing — that converts your claims into verified evidence.',
-  },
-  'Arctic Wolf': {
-    headline: 'Enterprise buyers check whether you have security monitoring before they sign.',
-    body: 'Arctic Wolf gives you a 24/7 security operations centre without the headcount. It\'s the signal that tells enterprise procurement you take security seriously — and it shows up in due diligence.',
-  },
-  'Cognitive View': {
-    headline: 'AI governance is the next compliance checkbox — and it\'s arriving fast.',
-    body: 'If you\'re building with AI, investors and enterprise buyers are already asking about governance, bias controls, and audit trails. Cognitive View gives you the tooling to answer those questions with evidence.',
-  },
-  'AU AI Expert Group': {
-    headline: 'AU AI regulation is being written right now — get ahead of it.',
-    body: 'The Australian Government\'s AI Expert Group is shaping the guardrails that will affect every AI product. We track what\'s coming and help you build compliance posture before it\'s mandatory.',
-  },
-  'Stripe': {
-    headline: 'Stripe is infrastructure — investors check whether you\'re on it.',
-    body: 'Beyond payments: Stripe Atlas for clean incorporation, Stripe Capital for non-dilutive funding, Revenue Recognition for investor-ready reporting. We help you get the right products in place at the right stage.',
-  },
-  'Metronome': {
-    headline: 'Usage-based pricing is where SaaS is going — your billing needs to keep up.',
-    body: 'Metronome (now part of Stripe) handles the billing complexity that usage-based models create. If you\'re moving to consumption pricing, this is the infrastructure play before your next round.',
-  },
-  'UnityPac': {
-    headline: 'Singapore is the gateway — but you need a clean entity before you walk in.',
-    body: 'Unity Assurance PAC handles SG incorporation, audit, tax, and corporate secretarial — the compliance layer that makes your Singapore presence credible to enterprise buyers and investors in the region.',
-  },
-  'Enterprise SG': {
-    headline: 'The Singapore government will back your expansion — if you know how to ask.',
-    body: 'Enterprise Singapore funds market entry, capability development, and international growth for companies using Singapore as a launchpad. We map which schemes fit your stage and help you apply.',
-  },
-};
-
-const BOOKING_WHY_GENERIC = {
-  headline: 'Most founders leave serious value on the table.',
-  body: 'Cloud credits, compliance shortcuts, co-sell programs, investor connections — we map what you actually qualify for, handle the applications, and track what you\'re owed. This call is a working session, not a sales pitch.',
-};
-
-function BookingModal({ onClose, context }) {
-  const why = context ? (BOOKING_WHY[context] ?? BOOKING_WHY_GENERIC) : BOOKING_WHY_GENERIC;
-  return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 200,
-        background: 'rgba(24,20,32,0.55)', backdropFilter: 'blur(3px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          background: '#fbf8f1',
-          borderRadius: 14,
-          width: 'min(700px, 95vw)',
-          height: 'min(760px, 92vh)',
-          display: 'flex', flexDirection: 'column',
-          overflow: 'hidden',
-          boxShadow: '0 24px 80px rgba(0,0,0,0.28)',
-        }}
-      >
-        {/* Header */}
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '13px 18px', borderBottom: '1px solid #e0d8c9', flexShrink: 0,
-        }}>
-          <span style={{
-            fontFamily: '"IBM Plex Mono", monospace',
-            fontSize: 9, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase',
-            color: '#8c8499',
-          }}>Book time with John</span>
-          <button onClick={onClose} style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: 20, color: '#8c8499', lineHeight: 1, padding: 0,
-          }}>×</button>
-        </div>
-
-        {/* Why */}
-        <div style={{
-          padding: '18px 22px 16px',
-          borderBottom: '1px solid #e0d8c9',
-          flexShrink: 0, background: '#f4efe6',
-        }}>
-          <div style={{
-            fontFamily: '"Instrument Serif", Georgia, serif',
-            fontStyle: 'italic',
-            fontSize: 15.5, color: '#241f31', lineHeight: 1.45, marginBottom: 7,
-          }}>{why.headline}</div>
-          <div style={{
-            fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-            fontSize: 12, color: '#6b5f4e', lineHeight: 1.6,
-          }}>{why.body}</div>
-        </div>
-
-        {/* Calendar */}
-        <iframe
-          src="https://meetings.hubspot.com/john3174?embed=true"
-          title="Book a meeting with John"
-          style={{ flex: 1, border: 'none', width: '100%' }}
-        />
-      </div>
-    </div>
-  );
-}
-
-function DiscoveryView({ tk, onAsk, currentUser, onSignIn, onTelegram }) {
+function DiscoveryView({ tk, onAsk, focusedProgram }) {
   const [openId, setOpenId] = useState(null);
-  const [bookingOpen, setBookingOpen] = useState(false);
+  const itemRefs = useRef({});
+
+  useEffect(() => {
+    if (!focusedProgram) return;
+    setOpenId(focusedProgram);
+    const el = itemRefs.current[focusedProgram];
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [focusedProgram]);
 
   return (
     <div style={{ flex: 1 }}>
@@ -291,7 +151,11 @@ function DiscoveryView({ tk, onAsk, currentUser, onSignIn, onTelegram }) {
         const expandHeight = count ? 16 + count * 28 + 48 : 90;
 
         return (
-          <div key={v.alt} style={{ borderBottom: isLast ? 'none' : `1px solid ${tk.hairline}` }}>
+          <div
+            key={v.alt}
+            ref={el => { itemRefs.current[v.alt] = el; }}
+            style={{ borderBottom: isLast ? 'none' : `1px solid ${tk.hairline}` }}
+          >
             <button
               onClick={() => setOpenId(isOpen ? null : v.alt)}
               style={{
@@ -371,72 +235,22 @@ function DiscoveryView({ tk, onAsk, currentUser, onSignIn, onTelegram }) {
       })}
 
       <div style={{
-        padding: '16px 16px 16px',
+        padding: '16px 16px 20px',
         borderTop: `1px solid ${tk.hairline}`,
       }}>
         <div style={{
           fontFamily: '"Instrument Serif", Georgia, serif',
           fontStyle: 'italic',
-          fontSize: 11.5, color: tk.inkSoft, lineHeight: 1.55, marginBottom: 12,
+          fontSize: 11.5, color: tk.inkSoft, lineHeight: 1.55,
         }}>
           Tell us about your company — we'll map what's relevant to where you are.
         </div>
-        <button
-          onClick={() => setBookingOpen(true)}
-          style={{
-            width: '100%',
-            fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-            fontSize: 11.5, fontWeight: 600,
-            color: '#fff', background: '#241f31',
-            border: 'none', borderRadius: 8,
-            padding: '9px 14px',
-            cursor: 'pointer', letterSpacing: '0.01em',
-          }}
-        >Book time with John →</button>
-
-        {/* Sign in / user state */}
-        {currentUser ? (
-          <div style={{
-            marginTop: 10, padding: '8px 12px', borderRadius: 8,
-            background: '#f4efe6', border: '1px solid #e0d8c9',
-            display: 'flex', alignItems: 'center', gap: 8,
-          }}>
-            <span style={{
-              width: 22, height: 22, borderRadius: '50%', background: '#a8651e',
-              color: '#fff', fontSize: 10, fontWeight: 700, flexShrink: 0,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>{(currentUser.name || currentUser.email || '?')[0].toUpperCase()}</span>
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#241f31' }}>
-                {currentUser.name?.split(' ')[0] || currentUser.email?.split('@')[0]}
-              </div>
-              <div style={{ fontSize: 10, color: '#8c8499' }}>Signed in</div>
-            </div>
-            {onTelegram && (
-              <button onClick={onTelegram} style={{
-                marginLeft: 'auto', fontSize: 10, color: '#4f46e5',
-                background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                fontFamily: '"IBM Plex Mono", monospace',
-              }}>msg John</button>
-            )}
-          </div>
-        ) : onSignIn ? (
-          <button onClick={onSignIn} style={{
-            marginTop: 10, width: '100%', padding: '8px 0',
-            borderRadius: 8, border: '1px dashed #c8b89a',
-            background: 'transparent', cursor: 'pointer',
-            fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-            fontSize: 11, fontWeight: 600, color: '#8c8499',
-          }}>Sign in to track your programs →</button>
-        ) : null}
       </div>
-
-      {bookingOpen && <BookingModal onClose={() => setBookingOpen(false)} context={openId} />}
     </div>
   );
 }
 
-export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onAsk, currentUser, onSignIn, onTelegram }) {
+export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onAsk, focusedProgram }) {
   const [blink, setBlink] = useState(true);
 
   useEffect(() => {
@@ -479,7 +293,7 @@ export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onAsk, cu
       </div>
 
       {!hasMessages ? (
-        <DiscoveryView tk={tk} onAsk={onAsk} currentUser={currentUser} onSignIn={onSignIn} onTelegram={onTelegram} />
+        <DiscoveryView tk={tk} onAsk={onAsk} focusedProgram={focusedProgram} />
       ) : (
         <div style={{ padding: '14px 16px', flex: 1 }}>
           {/* Company info */}
