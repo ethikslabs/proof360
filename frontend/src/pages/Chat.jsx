@@ -26,6 +26,8 @@ import { GuidanceBlock }      from '../components/chat/GuidanceBlock.jsx';
 import { MOCK_GUIDANCE_BLOCK } from '../data/mock/signals.js';
 import { VendorShortlist } from '../components/chat/VendorShortlist.jsx';
 import { rankVendorsBySignals } from '../data/mock/vendors.js';
+import { AuthorityLayer }      from '../components/chat/AuthorityLayer.jsx';
+import { useSurfaceAuthority } from '../hooks/useSurfaceAuthority.js';
 
 /* ─── Auth constants ─────────────────────────────────────────────────────── */
 const AUTH0_DOMAIN    = import.meta.env.VITE_AUTH0_DOMAIN    || 'dev-ethikslabs.au.auth0.com';
@@ -1248,6 +1250,13 @@ export default function Chat() {
   );
   const [cinStats,        setCinStats]        = useState(STATS_FALLBACK);
   const [selectedModel,   setSelectedModel]   = useState('claude-sonnet-4-6');
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const {
     activeSignals,
@@ -1260,7 +1269,24 @@ export default function Chat() {
     addContextSignal,
   } = useSignals();
 
+  const {
+    surfaceAuthority,
+    suggestion,
+    surfaceFlex: _surfaceFlex,
+    recordChatActivity: _recordChatActivity,
+    recordProjectionIntent: _recordProjectionIntent,
+    commit: commitAuthority,
+    dismiss: dismissAuthority,
+    resetTurn: _resetAuthorityTurn,
+  } = useSurfaceAuthority();
+
   const isDemoMode = activeStageId === DEFAULT_STAGE_ID;
+  const activeStage = DEMO_STAGES.find(s => s.id === activeStageId);
+  const authorityEntity = {
+    name:     companyProfile.name ?? activeStage?.company?.name ?? null,
+    stage:    companyProfile.stage ?? null,
+    vertical: companyProfile.industry ?? null,
+  };
   const rankedVendors = rankVendorsBySignals(activeSignals);
 
   const [shortlist, setShortlist] = useState([]);
@@ -1772,7 +1798,7 @@ export default function Chat() {
 
   return (
     <div style={{
-      position: 'relative', height: '100vh', display: 'flex', overflow: 'hidden',
+      position: 'relative', height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
       background: `radial-gradient(ellipse at 100% 100%, ${tk.bgTint} 0%, ${tk.bg} 60%)`,
       color: tk.ink,
       fontFamily: '"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif',
@@ -1785,7 +1811,26 @@ export default function Chat() {
 
       <OperationalField onLogoClick={setLogoCard} active rightOffset={previewOpen ? 0 : 252} />
 
-      <main style={{ flex: 1, display: 'flex', minWidth: 0, overflow: 'hidden' }}>
+      <AuthorityLayer
+        isDemoMode={isDemoMode}
+        entity={authorityEntity}
+        activeLens={analysisProfile}
+        surfaceAuthority={surfaceAuthority}
+        signals={activeSignals}
+        selectedModel={selectedModel}
+        onModelChange={setSelectedModel}
+        suggestion={suggestion}
+        onCommit={commitAuthority}
+        onDismiss={dismissAuthority}
+        isMobile={isMobile}
+        onMobileSurfaceSelect={(surface) => {
+          commitAuthority(surface);
+          if (surface === 'Vendors') setActiveSpace('vendors');
+          else if (surface === 'Chat') setActiveSpace('chat');
+        }}
+      />
+
+      <main style={{ flex: 1, minHeight: 0, display: 'flex', minWidth: 0, overflow: 'hidden' }}>
 
         {/* Left icon rail — section spaces, like Claude's left nav */}
         <Sidebar
@@ -1973,6 +2018,7 @@ export default function Chat() {
                   mode={analysisProfile}
                   onModeChange={setAnalysisProfile}
                   hideChips
+                  hideModelPicker={true}
                   model={selectedModel}
                   onModelChange={setSelectedModel}
                   activeModes={activeModes}
@@ -2005,89 +2051,72 @@ export default function Chat() {
             );
           })}
 
-          {/* Chat header */}
+          {/* Status strip — preview toggle, live indicator, sign in/out */}
           <div style={{
-            padding: '12px 36px',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            position: 'relative', zIndex: 2,
-            borderBottom: hasUserMsg ? `1px solid ${tk.hairline}` : 'none',
-            transition: 'border-color 0.6s ease',
+            display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+            gap: 12, padding: '4px 36px', flexShrink: 0, zIndex: 2,
           }}>
-            <span style={{
-              fontFamily: '"IBM Plex Mono", monospace',
-              fontSize: 10, color: tk.inkSoft,
-              letterSpacing: '0.22em', textTransform: 'uppercase',
-            }}>The strategy room</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              {previewUrl && (
-                <button
-                  onClick={() => setPreviewOpen(o => !o)}
-                  style={{
-                    background: previewOpen ? `${tk.plum}15` : 'none',
-                    border: `1px solid ${previewOpen ? `${tk.plum}40` : tk.hairline}`,
-                    borderRadius: 6, cursor: 'pointer',
-                    color: previewOpen ? tk.plum : tk.inkSoft,
-                    fontFamily: '"IBM Plex Mono", monospace',
-                    fontSize: 9.5, letterSpacing: '0.14em', textTransform: 'uppercase',
-                    padding: '4px 10px', transition: 'all 0.2s',
-                  }}
-                >
-                  {previewOpen ? '◁ hide' : '▷ preview'}
-                </button>
-              )}
-              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{
-                  width: 6, height: 6, borderRadius: '50%',
-                  background: t.returningUser ? tk.inkSoft : '#22c55e',
-                  boxShadow: t.returningUser ? 'none' : '0 0 0 0 #22c55e',
-                  animation: t.returningUser ? 'none' : 'liveping 2s ease-in-out infinite',
-                  flexShrink: 0,
-                }} />
-                <span style={{
+            {previewUrl && (
+              <button
+                onClick={() => setPreviewOpen(o => !o)}
+                style={{
+                  background: previewOpen ? `${tk.plum}15` : 'none',
+                  border: `1px solid ${previewOpen ? `${tk.plum}40` : tk.hairline}`,
+                  borderRadius: 6, cursor: 'pointer',
+                  color: previewOpen ? tk.plum : tk.inkSoft,
                   fontFamily: '"IBM Plex Mono", monospace',
-                  fontSize: 10, color: tk.inkSoft, letterSpacing: '0.1em',
-                }}>{t.returningUser ? 'session resumed' : 'live'}</span>
-              </span>
-              {currentUser ? (
-                <button
-                  onClick={() => { localStorage.removeItem('founder_auth'); setCurrentUser(null); }}
-                  title="Sign out"
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 6, padding: '3px 10px',
-                    borderRadius: 14, border: `1px solid ${tk.hairline}`,
-                    background: 'transparent', cursor: 'pointer',
-                    fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-                    fontSize: 11, color: tk.inkSoft,
-                  }}
-                >
-                  <span style={{
-                    width: 18, height: 18, borderRadius: '50%', background: tk.umber,
-                    color: '#fff', fontSize: 9, fontWeight: 700,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                  }}>{(currentUser.name || currentUser.email || '?')[0].toUpperCase()}</span>
-                  {currentUser.name?.split(' ')[0] || currentUser.email?.split('@')[0]}
-                </button>
-              ) : (
-                <button
-                  onClick={() => setLoginOpen(true)}
-                  style={{
-                    padding: '4px 13px', borderRadius: 14,
-                    border: `1px solid ${tk.hairline}`,
-                    background: 'transparent', cursor: 'pointer',
-                    fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-                    fontSize: 11, fontWeight: 600, color: tk.inkSoft,
-                    transition: 'all 0.15s',
-                  }}
-                >Sign in</button>
-              )}
-              <style>{`
-                @keyframes liveping {
-                  0%   { box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
-                  70%  { box-shadow: 0 0 0 7px rgba(34,197,94,0); }
-                  100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
-                }
-              `}</style>
-            </div>
+                  fontSize: 9.5, letterSpacing: '0.14em', textTransform: 'uppercase',
+                  padding: '4px 10px', transition: 'all 0.2s',
+                }}
+              >
+                {previewOpen ? '◁ hide' : '▷ preview'}
+              </button>
+            )}
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{
+                width: 6, height: 6, borderRadius: '50%',
+                background: t.returningUser ? tk.inkSoft : '#22c55e',
+                boxShadow: t.returningUser ? 'none' : '0 0 0 0 #22c55e',
+                animation: t.returningUser ? 'none' : 'liveping 2s ease-in-out infinite',
+                flexShrink: 0,
+              }} />
+              <span style={{
+                fontFamily: '"IBM Plex Mono", monospace',
+                fontSize: 10, color: tk.inkSoft, letterSpacing: '0.1em',
+              }}>{t.returningUser ? 'session resumed' : 'live'}</span>
+            </span>
+            {currentUser ? (
+              <button
+                onClick={() => { localStorage.removeItem('founder_auth'); setCurrentUser(null); }}
+                title="Sign out"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6, padding: '3px 10px',
+                  borderRadius: 14, border: `1px solid ${tk.hairline}`,
+                  background: 'transparent', cursor: 'pointer',
+                  fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                  fontSize: 11, color: tk.inkSoft,
+                }}
+              >
+                <span style={{
+                  width: 18, height: 18, borderRadius: '50%', background: tk.umber,
+                  color: '#fff', fontSize: 9, fontWeight: 700,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                }}>{(currentUser.name || currentUser.email || '?')[0].toUpperCase()}</span>
+                {currentUser.name?.split(' ')[0] || currentUser.email?.split('@')[0]}
+              </button>
+            ) : (
+              <button
+                onClick={() => setLoginOpen(true)}
+                style={{
+                  padding: '4px 13px', borderRadius: 14,
+                  border: `1px solid ${tk.hairline}`,
+                  background: 'transparent', cursor: 'pointer',
+                  fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                  fontSize: 11, fontWeight: 600, color: tk.inkSoft,
+                  transition: 'all 0.15s',
+                }}
+              >Sign in</button>
+            )}
           </div>
 
           <div ref={scrollRef} style={{ flex: 1, minHeight: 0, overflowY: 'auto', position: 'relative', zIndex: 2 }}>
@@ -2328,6 +2357,7 @@ export default function Chat() {
                 messages={messages}
                 mode={analysisProfile}
                 onModeChange={setAnalysisProfile}
+                hideModelPicker={true}
                 model={selectedModel}
                 onModelChange={setSelectedModel}
                 activeModes={activeModes}
