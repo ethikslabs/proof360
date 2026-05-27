@@ -2392,7 +2392,7 @@ export default function Chat() {
               t={t}
               onAsk={q => setInputValue(q)}
               focusedProgram={focusedProgram}
-              onVendorSelect={id => { setActiveSpace(id); setDrawerCollapsed(false); if (isMobile) setMobileActiveTab('Vendors'); }}
+              onVendorSelect={id => { setActiveSpace(id); setDrawerCollapsed(false); if (isMobile) { setMobileActiveTab('Vendors'); commitAuthority('Vendor Intelligence'); } }}
               isDemoMode={isDemoMode}
               activeSignals={activeSignals}
               rankedVendors={rankedVendors}
