@@ -1,6 +1,7 @@
 // frontend/src/components/chat/AuthorityLayer.jsx
 import { useState, useRef, useEffect } from 'react';
 import { VECTOR_MODELS } from '../../data/vectorModels.js';
+import { signalFreshness } from '../../rendering/protocol.js';
 
 const LENS_LABELS = {
   investor:    'Sophia · investor/trust',
@@ -9,7 +10,7 @@ const LENS_LABELS = {
 };
 
 function hasEvidenceMix(signals) {
-  return signals.some(s => s._corrected || s.type === 'self_disclosed');
+  return signals.some(s => s._corrected || s.type === 'self_disclosed' || signalFreshness(s) === 'stale');
 }
 
 function InferenceChip({ selectedModel, onModelChange }) {
@@ -144,7 +145,7 @@ function MobileAuthorityLayer({
         )}
       </div>
       <div style={{ display: 'flex', gap: 5 }}>
-        {['Chat', 'Vendors'].map(s => {
+        {['Chat', 'Vendors', 'Shortlist'].map(s => {
           const active = s === mobileActiveTab;
           return (
             <button
@@ -200,6 +201,7 @@ export function AuthorityLayer({
   const showEvidence = hasEvidenceMix(signals);
   const correctedCount = signals.filter(s => s._corrected).length;
   const selfDisclosedCount = signals.filter(s => s.type === 'self_disclosed').length;
+  const staleCount = signals.filter(s => signalFreshness(s) === 'stale').length;
 
   return (
     <div style={{
@@ -299,6 +301,13 @@ export function AuthorityLayer({
                 borderRadius: 10, padding: '1px 6px',
                 fontSize: 9, color: '#15803d',
               }}>● Self-disclosed</span>
+            )}
+            {staleCount > 0 && (
+              <span style={{
+                background: '#f8fafc', border: '1px solid #cbd5e144',
+                borderRadius: 10, padding: '1px 6px',
+                fontSize: 9, color: '#64748b',
+              }}>◌ Stale</span>
             )}
           </div>
         </>

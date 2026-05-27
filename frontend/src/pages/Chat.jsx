@@ -37,7 +37,7 @@ const CF_TURNSTILE_SITEKEY = import.meta.env.VITE_CF_TURNSTILE_SITEKEY || '1x000
 
 /* ─── Mobile navigation constants ───────────────────────────────────────── */
 const VENDOR_AUTHORITY = 'Vendor Intelligence';
-const CHIP_TO_SURFACE_MOBILE = { Chat: 'Chat', Vendors: VENDOR_AUTHORITY };
+const CHIP_TO_SURFACE_MOBILE = { Chat: 'Chat', Vendors: VENDOR_AUTHORITY, Shortlist: 'Chat' };
 
 async function generatePKCE() {
   const arr = new Uint8Array(32);
@@ -1282,7 +1282,7 @@ export default function Chat() {
     recordProjectionIntent,
     commit: commitAuthority,
     dismiss: dismissAuthority,
-    resetTurn: _resetAuthorityTurn,
+    resetTurn: resetAuthorityTurn,
   } = useSurfaceAuthority();
 
   const isDemoMode = activeStageId === DEFAULT_STAGE_ID;
@@ -1502,6 +1502,7 @@ export default function Chat() {
   };
 
   const submit = useCallback(async (input) => {
+    resetAuthorityTurn();
     const text = input.trim();
     if (!text || !inputReady || isProcessing) return;
     setInputValue('');
