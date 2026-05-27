@@ -466,7 +466,7 @@ const FOLLOWUP_CHIPS = [
 
 // ── Main component ────────────────────────────────────────────────────────────
 export const ChatInput = forwardRef(function ChatInput(
-  { onSubmit, disabled, messages = [], onContextInject, value: valueProp, onChange: onChangeProp, mode = 'investor', onModeChange, hideChips, model, onModelChange, activeModes = [], onToggleMode },
+  { onSubmit, disabled, messages = [], onContextInject, value: valueProp, onChange: onChangeProp, mode = 'investor', onModeChange, hideChips, hideModelPicker = false, model, onModelChange, activeModes = [], onToggleMode },
   ref
 ) {
   const hasExchange = messages.length >= 2;
@@ -617,7 +617,7 @@ export const ChatInput = forwardRef(function ChatInput(
           borderTop: '1px solid #f3f4f6',
         }}>
           <PlusMenu onSelect={onContextInject ?? (() => {})} activeModes={activeModes} onToggleMode={onToggleMode} />
-          <ModelPicker model={model ?? 'claude-sonnet-4-6'} onModelChange={onModelChange ?? (() => {})} />
+          {!hideModelPicker && <ModelPicker model={model ?? 'claude-sonnet-4-6'} onModelChange={onModelChange ?? (() => {})} />}
           <div style={{ flex: 1 }} />
           {/* Mic — STT */}
           <button
