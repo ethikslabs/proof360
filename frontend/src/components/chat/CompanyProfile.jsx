@@ -161,32 +161,79 @@ const ALT_TO_SPACE = {
   'Xero': 'xero', 'HubSpot': 'hubspot',
 };
 
-function DiscoveryView({ tk, onVendorSelect, isDemoMode, rankedVendors }) {  // eslint-disable-line no-unused-vars
+function DiscoveryView({ tk, onVendorSelect, isDemoMode, rankedVendors }) {
+  const useNewSchema = !!rankedVendors;
+  const vendors = rankedVendors || DISCOVERY_VENDORS;
+
   return (
     <div style={{ flex: 1 }}>
-      {DISCOVERY_VENDORS.map((v, i) => {
-        const isLast = i === DISCOVERY_VENDORS.length - 1;
-        const count = v.programs?.length;
+      {vendors.map((v, i) => {
+        const isLast = i === vendors.length - 1;
+        const vendorKey = useNewSchema ? v.id : v.alt;
+        const vendorName = useNewSchema ? v.name : v.alt;
+        const description = useNewSchema ? v.synthesis : v.value;
+
         return (
-          <button
-            key={v.alt}
-            onClick={() => onVendorSelect?.(ALT_TO_SPACE[v.alt])}
+          <div
+            key={vendorKey}
             style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              width: '100%', padding: '13px 16px',
-              background: 'none', border: 'none', cursor: 'pointer',
+              padding: '11px 16px',
               borderBottom: isLast ? 'none' : `1px solid ${tk.hairline}`,
             }}
           >
-            <img src={v.logoUrl} alt={v.alt} style={{ height: v.logoH, objectFit: 'contain', objectPosition: 'left', maxWidth: 110, flexShrink: 0 }} />
-            <div style={{ flex: 1 }} />
-            {count && (
-              <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9, fontWeight: 700, color: '#a8651e', background: '#f5e6cc', border: '1px solid #e8c98a', borderRadius: 10, padding: '1px 7px', letterSpacing: '0.04em', flexShrink: 0 }}>{count}</span>
+            {/* Name + CTA row */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              {useNewSchema ? (
+                <span style={{
+                  fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                  fontSize: 11, fontWeight: 700, color: tk.inkSoft,
+                }}>{vendorName}</span>
+              ) : (
+                <img src={v.logoUrl} alt={v.alt} style={{ height: v.logoH, objectFit: 'contain', objectPosition: 'left', maxWidth: 110, flexShrink: 0 }} />
+              )}
+              {isDemoMode ? (
+                <span style={{
+                  fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                  fontSize: 9.5, color: '#b0956e', cursor: 'default',
+                }}>See how this applies →</span>
+              ) : (
+                <button
+                  onClick={() => onVendorSelect?.(useNewSchema ? v.name.toLowerCase() : ALT_TO_SPACE[v.alt])}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                >
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                    <path d="M3 2 L7 5 L3 8" stroke="#8c8499" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            {/* Description */}
+            <div style={{
+              fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+              fontSize: 10.5, color: tk.inkSoft, lineHeight: 1.4, marginTop: 3,
+            }}>
+              {description}
+            </div>
+
+            {/* Reason line — new schema only, always visible when present */}
+            {useNewSchema && v.reasonLine && (
+              <div style={{
+                fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                fontSize: 9.5, color: '#8c8499', fontStyle: 'italic',
+                lineHeight: 1.4, marginTop: 3,
+              }}>
+                {v.reasonLine}
+              </div>
             )}
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0, opacity: 0.4 }}>
-              <path d="M3 2 L7 5 L3 8" stroke="#8c8499" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
+
+            {/* Programs count badge — old schema only */}
+            {!useNewSchema && v.programs?.length > 0 && (
+              <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9, fontWeight: 700, color: '#a8651e', background: '#f5e6cc', border: '1px solid #e8c98a', borderRadius: 10, padding: '1px 7px', letterSpacing: '0.04em' }}>
+                {v.programs.length}
+              </span>
+            )}
+          </div>
         );
       })}
     </div>

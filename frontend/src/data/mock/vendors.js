@@ -1,9 +1,67 @@
+// frontend/src/data/mock/vendors.js
+
+const VENDOR_CATALOG = [
+  {
+    id: 'v1', name: 'Vanta',
+    category: 'compliance_evidence',
+    timing: 'now',
+    synthesis: 'SOC 2 — the cert that unlocks B2B deals',
+    signal_ids: ['no_soc2_detected', 'no_ir_controls', 'au_healthcare_enterprise'],
+    routeability: 'ethiks', regionFit: 'AU',
+  },
+  {
+    id: 'v2', name: 'AWS',
+    category: 'cloud',
+    timing: 'now',
+    synthesis: '$220k+ in credits — most founders claim a fraction',
+    signal_ids: ['seed_stage'],
+    routeability: 'self_serve', regionFit: 'Global',
+  },
+  {
+    id: 'v3', name: 'Microsoft',
+    category: 'cloud',
+    timing: 'soon',
+    synthesis: 'Sell into enterprise through the Microsoft channel',
+    signal_ids: ['au_healthcare_enterprise', 'seed_stage'],
+    routeability: 'partner', regionFit: 'Global',
+  },
+  {
+    id: 'v4', name: 'Cisco',
+    category: 'security',
+    timing: 'soon',
+    synthesis: 'Security stack enterprise buyers recognise on sight',
+    signal_ids: ['no_ir_controls', 'au_healthcare_enterprise'],
+    routeability: 'partner', regionFit: 'AU',
+  },
+  {
+    id: 'v5', name: 'Cloudflare',
+    category: 'security',
+    timing: 'now',
+    synthesis: 'Edge security — already active on your domain',
+    signal_ids: ['cloudflare_active'],
+    routeability: 'self_serve', regionFit: 'Global',
+  },
+];
+
+export function rankVendorsBySignals(activeSignals = []) {
+  const activeIds = new Set(activeSignals.map(s => s.id));
+  return VENDOR_CATALOG
+    .map(v => {
+      const matchedSignals = (v.signal_ids || []).filter(id => activeIds.has(id));
+      const matchedValues = matchedSignals
+        .map(id => activeSignals.find(s => s.id === id)?.value)
+        .filter(Boolean);
+      return {
+        ...v,
+        signalCount: matchedSignals.length,
+        reasonLine: matchedValues.length > 0
+          ? `Ranked because: ${matchedValues.join(' · ')}`
+          : null,
+      };
+    })
+    .sort((a, b) => b.signalCount - a.signalCount);
+}
+
 export function getMockVendors() {
-  return [
-    { id: 'v1', name: 'Basic MFA / identity controls', category: 'identity', timing: 'now', reason: 'Digital orders and supplier records need access controls from day one. Compromised access is a supply-chain risk.', routeability: 'self_serve', regionFit: 'AU', status: 'suggested' },
-    { id: 'v2', name: 'Supply chain insurance', category: 'insurance', timing: 'now', reason: 'Hospitals and export buyers will ask about your insurance posture. A broker conversation is free.', routeability: 'ethiks', regionFit: 'AU', status: 'suggested' },
-    { id: 'v3', name: 'Supplier documentation template', category: 'compliance_evidence', timing: 'soon', reason: 'A lightweight supplier agreement and origin attestation creates the paper trail investors and enterprise buyers need.', routeability: 'self_serve', regionFit: 'AU', status: 'suggested' },
-    { id: 'v4', name: 'Vanta (compliance automation)', category: 'compliance_evidence', timing: 'later', reason: 'When digital infrastructure grows and enterprise accounts are in play. Overkill now — but understand the path.', routeability: 'ethiks', regionFit: 'AU/APAC', status: 'suggested' },
-    { id: 'v5', name: 'Okta (enterprise identity)', category: 'identity', timing: 'later', reason: 'When the team grows and multiple systems need governed access. Duo or Google Workspace is enough now.', routeability: 'partner', regionFit: 'Global', status: 'suggested' },
-  ];
+  return VENDOR_CATALOG;
 }
