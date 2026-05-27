@@ -545,6 +545,31 @@ export const GAP_DEFINITIONS = [
     ],
   },
   {
+    id: 'microsoft_program_eligibility',
+    severity: 'medium',
+    label: 'Microsoft program opportunity gap',
+    category: 'commercial',
+    why: "Microsoft has startup and ISV programs that give you Azure credits, co-sell support, and Marketplace distribution — but you have to apply. Most B2B SaaS companies on Azure are leaving significant commercial advantage on the table by not being enrolled.",
+    risk: 'Missed Azure credits (up to $150k for startups via Founders Hub). No co-sell pipeline with Microsoft field sales. No Marketplace listing means enterprise buyers cannot buy you using their Azure committed spend.',
+    time_estimate: '1–2 weeks to apply and get enrolled',
+    triggerCondition: (ctx) =>
+      (ctx.infrastructure === 'azure' || ctx.cloud_provider === 'azure' || ctx.cloud_provider === 'microsoft') &&
+      ctx.microsoft_program_enrolled !== true,
+    claimTemplate: (ctx) => ({
+      question: 'Is this company enrolled in relevant Microsoft partner and startup programs?',
+      evidence: `Infrastructure: ${ctx.infrastructure ?? 'unknown'}. Cloud provider: ${ctx.cloud_provider ?? 'unknown'}. Microsoft program enrolled: ${ctx.microsoft_program_enrolled ?? false}.`,
+    }),
+    framework_impact: [
+      { framework: 'Microsoft Partner Network', control: 'ISV Success — co-sell eligibility', blocker: false },
+      { framework: 'Azure Marketplace', control: 'Listing — enterprise MACC consumption', blocker: false },
+    ],
+    remediation: [
+      'Apply for Microsoft for Startups Founders Hub if pre-Series B — up to $150k in Azure credits plus GitHub Enterprise and Microsoft 365',
+      'Enroll in ISV Success to get co-sell support from Microsoft field sales — they bring deals to you',
+      'List on Azure Marketplace so enterprise customers can buy you against their Azure committed spend (MACC) — removes a procurement blocker that kills deals',
+    ],
+  },
+  {
     id: 'ip_reputation',
     severity: 'high',
     label: 'Server IP flagged for abuse',

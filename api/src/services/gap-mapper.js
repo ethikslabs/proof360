@@ -29,6 +29,7 @@ const GAP_QUERIES = {
   data_privacy:         'data privacy GDPR Australian Privacy Act compliance startup',
   penetration_testing:  'penetration testing vulnerability assessment security audit',
   aws_program_eligibility: 'AWS partner program Activate credits ISV Accelerate Marketplace',
+  microsoft_program_eligibility: 'Microsoft Azure startup program Founders Hub credits ISV Success partner Marketplace',
   network_perimeter:    'network security perimeter firewall zero trust cloud',
   waf:                  'web application firewall WAF DDoS protection API security',
 };

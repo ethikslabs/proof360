@@ -959,6 +959,37 @@ export const VENDORS = {
     }),
   },
 
+  microsoft_programs: {
+    id: 'microsoft_programs', display_name: 'Microsoft Programs', initials: 'MP',
+    closes: ['microsoft_program_eligibility'],
+    distributor: 'ingram', microsoft_native: true, marketplace_azure: false,
+    cost_range: 'Free to apply', timeline: '1–2 weeks',
+    is_partner: true, deal_label: 'Via Proof360 Microsoft Partner attribution',
+    best_for: 'B2B SaaS on Azure — credits, co-sell pipeline, and Marketplace distribution',
+    summary: 'Microsoft for Startups Founders Hub (up to $150k Azure credits), ISV Success (co-sell with Microsoft field sales), and Azure Marketplace listing (sell against enterprise MACC commitments). Applied via Proof360 Microsoft Partner attribution through Ingram Micro.',
+    referral_url: 'https://www.microsoft.com/en-us/startups',
+    partnership_reason: "As an Ingram Micro partner, Ethiks360 routes clients into the right Microsoft programs at the right time. Founders Hub gives you up to $150k in Azure credits — most Azure-hosted SaaS companies leave this on the table. ISV Success gets Microsoft's own sales team co-selling your product. Azure Marketplace listing lets enterprise buyers purchase you using their committed Azure spend (MACC), which removes a procurement blocker that kills deals. We handle the applications and the attribution.",
+    routing: (context) => ({
+      primary: {
+        party: 'john', type: 'internal',
+        label: 'Apply via Proof360 Microsoft Partner link',
+        template: 'hubspot_booking',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      managed: {
+        party: 'john', type: 'managed_service',
+        label: 'Have Ethiks360 manage your Microsoft program applications',
+        template: 'hubspot_msp',
+        url: 'https://meetings.hubspot.com/john3174',
+      },
+      alternatives: [{
+        party: 'distributor', type: 'distributor',
+        label: 'Via Ingram Micro',
+        contact: 'partner@ingrammicro.com.au',
+      }],
+    }),
+  },
+
   // ── CYBER INSURANCE ──────────────────────────────────────────────────────
 
   austbrokers: {

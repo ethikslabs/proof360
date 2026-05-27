@@ -21,6 +21,7 @@ export function normalizeContext(session, corrections = {}, followup_answers = {
     q_pen_test: 'pen_test_completed',
     q_backup: 'has_backup',
     q_aws_program: 'aws_program_enrolled',
+    q_microsoft_program: 'microsoft_program_enrolled',
   };
 
   for (const [qid, answer] of Object.entries(followup_answers)) {
@@ -39,7 +40,7 @@ export function normalizeContext(session, corrections = {}, followup_answers = {
   // Pass through sector signals from raw extraction — these inform industry-specific gaps
   const PASSTHROUGH_SIGNALS = [
     'sector', 'geo_market', 'handles_payments', 'data_sensitivity', 'stage', 'infrastructure', 'customer_type',
-    'uses_ai', 'handles_personal_data', 'pen_test_completed', 'has_backup', 'aws_program_enrolled',
+    'uses_ai', 'handles_personal_data', 'pen_test_completed', 'has_backup', 'aws_program_enrolled', 'microsoft_program_enrolled',
   ];
   for (const sig of session.raw_signals || []) {
     if (PASSTHROUGH_SIGNALS.includes(sig.type)) {

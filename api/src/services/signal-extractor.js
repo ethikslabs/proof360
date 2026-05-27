@@ -90,6 +90,7 @@ Respond with ONLY valid JSON matching this exact schema (no markdown, no explana
   "pen_test_completed": true | false | null,
   "has_backup": true | false | null,
   "aws_program_enrolled": true | false | null,
+  "microsoft_program_enrolled": true | false | null,
   "confidence": "confident" | "likely" | "probable",
   "company_summary": "2-3 sentence market read: what they build, who they sell to, and where they operate. Be specific — name the sector, geography, and buyer type. Plain English, no jargon."
 }
@@ -99,7 +100,8 @@ Signal rules:
 - handles_personal_data: true when the company processes user PII, health records, financial data, or personal profiles — infer from privacy policy mentions, GDPR/CCPA references, or data-type descriptions. false otherwise.
 - pen_test_completed: true only when they explicitly mention penetration testing, third-party security audits, or security assessments. null when not mentioned.
 - has_backup: true only when they explicitly mention backup, disaster recovery, or data redundancy. null when not mentioned.
-- aws_program_enrolled: true only when they explicitly mention AWS Activate, AWS Startup program, or AWS credits. null when not mentioned.`;
+- aws_program_enrolled: true only when they explicitly mention AWS Activate, AWS Startup program, or AWS credits. null when not mentioned.
+- microsoft_program_enrolled: true only when they explicitly mention Microsoft for Startups, Founders Hub, Azure credits, or Azure startup program. null when not mentioned.`;
 
   let response;
   try {
