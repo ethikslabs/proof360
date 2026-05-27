@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { makeObservedSignal } from '../rendering/protocol.js';
 import { MOCK_SIGNALS } from '../data/mock/signals.js';
 
@@ -68,11 +68,15 @@ export function useSignals(initialSignals = MOCK_SIGNALS) {
   }, []);
 
   // Active signals: not corrected, not ignored, not superseded
-  const activeSignals = signals.filter(s => !s._corrected && !s._ignored && !s._superseded);
+  // useMemo gives stable reference so callers (e.g. beforeunload effect) don't re-fire on unrelated renders
+  const activeSignals = useMemo(
+    () => signals.filter(s => !s._corrected && !s._ignored && !s._superseded),
+    [signals]
+  );
 
   // Signals that drive vendor ranking (active, polarity=gap)
-  const gapSignals = activeSignals.filter(s => s.polarity === 'gap');
-  const capabilitySignals = activeSignals.filter(s => s.polarity === 'capability');
+  const gapSignals = useMemo(() => activeSignals.filter(s => s.polarity === 'gap'), [activeSignals]);
+  const capabilitySignals = useMemo(() => activeSignals.filter(s => s.polarity === 'capability'), [activeSignals]);
 
   return {
     signals,
