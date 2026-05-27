@@ -1,6 +1,7 @@
 import FirecrawlApp from '@mendable/firecrawl-js';
 import { ENTERPRISE_SIGNALS_SCHEMA } from '../config/gaps.js';
 import { runReconPipeline } from './recon-pipeline.js';
+import { reconCompany } from './recon-company.js';
 import { record as recordConsumption } from './consumption-emitter.js';
 
 const PAGES_TO_CHECK = [
@@ -172,7 +173,7 @@ function mapToSignals(extracted) {
   }
 
   // Boolean signals — include only when explicitly true; undefined means unknown (gap fires conservatively)
-  for (const key of ['uses_ai', 'handles_personal_data', 'pen_test_completed', 'has_backup', 'aws_program_enrolled']) {
+  for (const key of ['uses_ai', 'handles_personal_data', 'pen_test_completed', 'has_backup', 'aws_program_enrolled', 'microsoft_program_enrolled']) {
     if (extracted[key] === true) {
       signals.push({ type: key, value: true, confidence });
     }
@@ -253,8 +254,8 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
       log({ text: `  ↳  ${label} ${baseUrl + path}`, type: 'muted' });
     }
 
-    // Run scraping + recon in parallel
-    const [pages, recon_context] = await Promise.all([
+    // Run scraping + recon + company research in parallel
+    const [pages, recon_context, company_research] = await Promise.all([
       scrapePages(firecrawl, baseUrl, log, session_id),
       new Promise((resolve) => {
         let timer = setTimeout(() => {
@@ -278,7 +279,13 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
         log({ text: `  ✗  Recon: ${err.message}`, type: 'err' });
         return null;
       }),
+      reconCompany(domain, session_id).catch(() => null),
     ]);
+
+    if (company_research) {
+      pages.unshift(company_research);
+      log({ text: `  ✓  company research · web`, type: 'ok' });
+    }
 
     if (pages.length === 0) {
       log({ text: '  ✗  No pages could be read from this site', type: 'err' });
