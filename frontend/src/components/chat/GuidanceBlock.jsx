@@ -47,8 +47,13 @@ export function GuidanceBlock({ block, isRegenerating }) {
 
       {/* Provenance */}
       <div style={{ fontSize: 9, color: '#b8b1c0', marginTop: 10, fontStyle: 'italic' }}>
-        {block.persona} lens · {block.signals.length} signal{block.signals.length !== 1 ? 's' : ''} ·{' '}
-        {new Date(block.generated_at).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })}
+        {(() => {
+          const n = block.signals?.length ?? 0;
+          const t = block.generated_at
+            ? new Date(block.generated_at).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })
+            : '';
+          return `${block.persona} lens · ${n} signal${n !== 1 ? 's' : ''}${t ? ` · ${t}` : ''}`;
+        })()}
       </div>
     </div>
   );
