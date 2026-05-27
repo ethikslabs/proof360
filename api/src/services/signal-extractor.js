@@ -223,7 +223,8 @@ const SIGNAL_READABLE = {
   handles_personal_data:  () => 'Handles personal data',
   pen_test_completed:     () => 'Penetration tested',
   has_backup:             () => 'Has backup/DR',
-  aws_program_enrolled:   () => 'AWS program enrolled',
+  aws_program_enrolled:       () => 'AWS program enrolled',
+  microsoft_program_enrolled: () => 'Microsoft program enrolled',
 };
 
 export async function extractSignals({ website_url, deck_file, session_id }, log = () => {}) {
@@ -241,6 +242,7 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
     const baseUrl = normalizeUrl(website_url);
     let domain = baseUrl;
     try { domain = new URL(baseUrl).hostname.replace('www.', ''); } catch {}
+    const companyName = domain.split('.')[0].replace(/[-_]/g, ' ');
 
     const firecrawl = new FirecrawlApp({
       apiKey: process.env.FIRECRAWL_API_KEY || 'self-hosted',
@@ -263,7 +265,7 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
           log({ text: '  ✗  Recon timed out after 20s — continuing without it', type: 'err' });
           resolve(null);
         }, 20000);
-        runReconPipeline(website_url, null, {
+        runReconPipeline(website_url, companyName, {
           firecrawl,
           abuseIpdbKey: process.env.ABUSEIPDB_API_KEY || null,
           onSourceComplete: (source, line) => log(line),
