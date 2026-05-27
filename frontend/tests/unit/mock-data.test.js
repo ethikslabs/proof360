@@ -43,7 +43,7 @@ describe('mock data shapes', () => {
       expect(['now', 'soon', 'later']).toContain(v.timing);
       expect(v).toHaveProperty('name');
       expect(v).toHaveProperty('category');
-      expect(v).toHaveProperty('reason');
+      expect(v).toHaveProperty('synthesis');
     });
   });
 });
