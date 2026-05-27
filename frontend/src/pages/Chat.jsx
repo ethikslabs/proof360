@@ -35,6 +35,10 @@ const AUTH0_CLIENT_ID = import.meta.env.VITE_AUTH0_CLIENT_ID || 'bh2RJb3CO25HFF6
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 const CF_TURNSTILE_SITEKEY = import.meta.env.VITE_CF_TURNSTILE_SITEKEY || '1x00000000000000000000AA';
 
+/* ─── Mobile navigation constants ───────────────────────────────────────── */
+const VENDOR_AUTHORITY = 'Vendor Intelligence';
+const CHIP_TO_SURFACE_MOBILE = { Chat: 'Chat', Vendors: VENDOR_AUTHORITY, Shortlist: 'Chat' };
+
 async function generatePKCE() {
   const arr = new Uint8Array(32);
   crypto.getRandomValues(arr);
@@ -1303,6 +1307,14 @@ export default function Chat() {
     setShortlist(prev => prev.filter(s => s.id !== vendorId));
   }, []);
 
+  const handleMobileSurfaceSelect = useCallback((chipLabel) => {
+    setMobileActiveTab(chipLabel);
+    const surface = CHIP_TO_SURFACE_MOBILE[chipLabel] ?? 'Chat';
+    commitAuthority(surface);
+    if (surface === VENDOR_AUTHORITY) setActiveSpace('vendors');
+    else setActiveSpace('chat');
+  }, [commitAuthority]);
+
   const hasUserMsg  = messages.some(m => m.role === 'user');
   const hasMessages = messages.length > 0;
   const isHeroState = !hasMessages;
@@ -1826,16 +1838,7 @@ export default function Chat() {
         onDismiss={dismissAuthority}
         isMobile={isMobile}
         mobileActiveTab={mobileActiveTab}
-        onMobileSurfaceSelect={(chipLabel) => {
-          // chipLabel is the raw chip label ('Chat' | 'Vendors' | 'Shortlist')
-          // Map to canonical surface authority here — keeps the mapping in one place
-          const chipToSurface = { Chat: 'Chat', Vendors: 'Vendor Intelligence', Shortlist: 'Chat' };
-          setMobileActiveTab(chipLabel);
-          const surface = chipToSurface[chipLabel] ?? 'Chat';
-          commitAuthority(surface);
-          if (surface === 'Vendor Intelligence') setActiveSpace('vendors');
-          else setActiveSpace('chat');
-        }}
+        onMobileSurfaceSelect={handleMobileSurfaceSelect}
       />
 
       <main style={{ flex: 1, minHeight: 0, display: 'flex', minWidth: 0, overflow: 'hidden' }}>
@@ -1877,7 +1880,7 @@ export default function Chat() {
           flex: previewOpen ? '0 0 400px' : (isMobile ? 1 : surfaceFlex.chat),
           transition: 'flex-grow 250ms ease, flex-shrink 250ms ease, flex-basis 0.38s cubic-bezier(0.32,0.72,0,1)',
           minWidth: isMobile ? 0 : 320,
-          display: (isMobile && surfaceAuthority === 'Vendor Intelligence') ? 'none' : undefined,
+          display: (isMobile && surfaceAuthority === VENDOR_AUTHORITY) ? 'none' : undefined,
         }}>
 
         {/* Chat space — kept mounted so theatrical doesn't reset on tab-switch */}
@@ -2392,7 +2395,7 @@ export default function Chat() {
               t={t}
               onAsk={q => setInputValue(q)}
               focusedProgram={focusedProgram}
-              onVendorSelect={id => { setActiveSpace(id); setDrawerCollapsed(false); if (isMobile) { setMobileActiveTab('Vendors'); commitAuthority('Vendor Intelligence'); } }}
+              onVendorSelect={id => { setActiveSpace(id); setDrawerCollapsed(false); if (isMobile) { setMobileActiveTab('Vendors'); commitAuthority(VENDOR_AUTHORITY); } }}
               isDemoMode={isDemoMode}
               activeSignals={activeSignals}
               rankedVendors={rankedVendors}
@@ -2438,9 +2441,9 @@ export default function Chat() {
         )}
 
         {/* Projection pane — elastic in-flow sibling (AC-8 AC-9 AC-10) */}
-        {/* Mobile (AC-14): full-width, shown only when surfaceAuthority === 'Vendor Intelligence' */}
+        {/* Mobile (AC-14): full-width, shown only when surfaceAuthority === VENDOR_AUTHORITY */}
         {/* Desktop: always mounted, compresses via surfaceFlex, never unmounts (AC-9) */}
-        {(isMobile ? surfaceAuthority === 'Vendor Intelligence' : true) && (
+        {(isMobile ? surfaceAuthority === VENDOR_AUTHORITY : true) && (
           <div
             onClick={() => {
               if (isMobile) return; // no intent recording on mobile tap

@@ -144,12 +144,13 @@ function MobileAuthorityLayer({
         )}
       </div>
       <div style={{ display: 'flex', gap: 5 }}>
-        {['Chat', 'Vendors', 'Shortlist'].map(s => {
+        {['Chat', 'Vendors'].map(s => {
           const active = s === mobileActiveTab;
           return (
             <button
               key={s}
               onClick={() => onMobileSurfaceSelect?.(s)}
+              aria-pressed={active}
               style={{
                 background: active ? '#241f31' : '#f7f1e6',
                 border: active ? 'none' : '1px solid #e0d8c9',
