@@ -36,11 +36,14 @@ export function useSurfaceAuthority() {
         chat: Math.min(1, prev.chat + 0.35),
         projection: Math.max(0, prev.projection - 0.1),
       };
+      const total = next.chat + next.projection;
+      if (total > 0) { next.chat = next.chat / total; next.projection = next.projection / total; }
       // Chat activity clears projection-intent suggestions
       setSuggestion(s => (s?.direction?.includes('→projection') ? null : s));
+      maybeOfferSuggestion(next, authorityKeyRef.current);
       return next;
     });
-  }, []);
+  }, [maybeOfferSuggestion]);
 
   // Call when vendor intent signal fires — mode tile select, vendor comparison pattern
   const recordProjectionIntent = useCallback(() => {
@@ -49,6 +52,8 @@ export function useSurfaceAuthority() {
         chat: Math.max(0, prev.chat - 0.05),
         projection: Math.min(1, prev.projection + 0.4),
       };
+      const total = next.chat + next.projection;
+      if (total > 0) { next.chat = next.chat / total; next.projection = next.projection / total; }
       maybeOfferSuggestion(next, authorityKeyRef.current);
       return next;
     });
@@ -60,7 +65,7 @@ export function useSurfaceAuthority() {
     authorityKeyRef.current = key;
     setSurfaceAuthority(surface);
     setSuggestion(null);
-    dismissedRef.current.clear();
+    // dismissedRef.current.clear() — REMOVED: resetTurn() is the sole reset mechanism
     setScores({
       chat: key === 'chat' ? 0.8 : 0.2,
       projection: key === 'projection' ? 0.8 : 0.2,
