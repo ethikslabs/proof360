@@ -37,7 +37,7 @@ const CF_TURNSTILE_SITEKEY = import.meta.env.VITE_CF_TURNSTILE_SITEKEY || '1x000
 
 /* ─── Mobile navigation constants ───────────────────────────────────────── */
 const VENDOR_AUTHORITY = 'Vendor Intelligence';
-const CHIP_TO_SURFACE_MOBILE = { Chat: 'Chat', Vendors: VENDOR_AUTHORITY, Shortlist: 'Chat' };
+const CHIP_TO_SURFACE_MOBILE = { Chat: 'Chat', Vendors: VENDOR_AUTHORITY };
 
 async function generatePKCE() {
   const arr = new Uint8Array(32);
