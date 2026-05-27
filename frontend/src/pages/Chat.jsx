@@ -2429,7 +2429,8 @@ export default function Chat() {
 
         {/* Projection pane — elastic in-flow sibling (AC-8 AC-9 AC-10) */}
         {/* Mobile: hidden entirely (Task 6 handles mobile stacking) */}
-        {!isMobile && activeSpace !== 'chat' && (
+        {/* AC-9: pane always mounted on desktop — compresses via surfaceFlex, never unmounts */}
+        {!isMobile && (
           <div
             onClick={recordProjectionIntent}
             style={{
