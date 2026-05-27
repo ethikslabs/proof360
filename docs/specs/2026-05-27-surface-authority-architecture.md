@@ -72,7 +72,7 @@ The model selector becomes a collapsed chip showing the current inference path: 
 
 ## Surface projections
 
-Three surfaces share the viewport below the authority layer. None have fixed widths. Gravity determines allocation.
+Three projection surfaces coexist beneath the authority layer. None have fixed widths. Gravity determines allocation.
 
 | Surface | Owns | Resting state |
 |---------|------|---------------|
