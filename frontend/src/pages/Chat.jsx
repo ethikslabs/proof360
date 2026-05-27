@@ -22,6 +22,7 @@ import { DEMO_STAGES, DEFAULT_STAGE_ID } from '../data/demoCompany.js';
 import { OperationalField } from '../components/OperationalField';
 import { useSignals }       from '../hooks/useSignals.js';
 import { ObservationStrip } from '../components/chat/ObservationStrip.jsx';
+import { VendorShortlist } from '../components/chat/VendorShortlist.jsx';
 import { rankVendorsBySignals } from '../data/mock/vendors.js';
 
 /* ─── Auth constants ─────────────────────────────────────────────────────── */
@@ -1260,6 +1261,19 @@ export default function Chat() {
   const isDemoMode = activeStageId === DEFAULT_STAGE_ID;
   const rankedVendors = rankVendorsBySignals(activeSignals);
 
+  const [shortlist, setShortlist] = useState([]);
+
+  const handleShortlist = useCallback((vendorObj) => {
+    setShortlist(prev => {
+      const alreadyIn = prev.some(s => (s.id || s) === vendorObj.id);
+      return alreadyIn ? prev : [...prev, vendorObj];
+    });
+  }, []);
+
+  const handleDefer = useCallback((vendorId) => {
+    setShortlist(prev => prev.filter(s => (s.id || s) !== vendorId));
+  }, []);
+
   const hasUserMsg  = messages.some(m => m.role === 'user');
   const hasMessages = messages.length > 0;
   const isHeroState = !hasMessages;
@@ -2202,6 +2216,15 @@ export default function Chat() {
                 onAddContext={addContextSignal}
                 regeneratingDomains={regeneratingDomains}
               />
+
+              {shortlist.length > 0 && (
+                <VendorShortlist
+                  vendors={shortlist}
+                  shortlistedIds={shortlist}
+                  onShortlist={handleShortlist}
+                  onDefer={handleDefer}
+                />
+              )}
 
               {messages.map((m, i) => {
                 const isLatest = i === messages.length - 1 && m.role !== 'user';
