@@ -1271,7 +1271,7 @@ export default function Chat() {
   }, []);
 
   const handleDefer = useCallback((vendorId) => {
-    setShortlist(prev => prev.filter(s => (s.id || s) !== vendorId));
+    setShortlist(prev => prev.filter(s => s.id !== vendorId));
   }, []);
 
   const hasUserMsg  = messages.some(m => m.role === 'user');
@@ -2218,6 +2218,8 @@ export default function Chat() {
               />
 
               {shortlist.length > 0 && (
+                // vendors=shortlist intentional: this panel shows only shortlisted items,
+                // all marked selected. shortlistedIds drives the "✓ Shortlisted" state per card.
                 <VendorShortlist
                   vendors={shortlist}
                   shortlistedIds={shortlist}
