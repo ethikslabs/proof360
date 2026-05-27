@@ -48,6 +48,16 @@ The header owns six slots, read left to right:
 
 BOUNDARY → ENTITY → LENS → SURFACE AUTHORITY → EVIDENCE → INFERENCE is a psychological sequence: containment → identity → reasoning shape → focus → provenance → infrastructure. Each slot answers a question the user might have, in the order they would ask it.
 
+### Empty session / pre-signal state
+
+Before any signals exist (first load, no conversation yet), the Always slots render as follows:
+
+- `BOUNDARY` — shows "Example" chip if `activeStageId === DEFAULT_STAGE_ID` (demo mode); hidden in workspace mode. This is the one slot that never depends on signals.
+- `ENTITY` — shows no text. The slot is present but unpopulated. No placeholder copy — absence communicates "session not yet oriented." (INVARIANTS.md §1: no stored copy.)
+- `LENS` — hidden until the first persona is active. No default label.
+- `SURFACE AUTHORITY` — shows "Chat" by default (chat always holds authority at session start).
+- `INFERENCE` — shows the current model chip regardless of session state.
+
 ### EVIDENCE / TRUST STATE
 
 This slot is a diagnostic overlay, not a compliance badge. It surfaces signal provenance when it carries information (mixed confidence, stale signals, self-disclosed overrides). When all signals are fresh and consistent, it does not appear. The slot communicates operational confidence, not moral judgement.
@@ -68,7 +78,7 @@ Three surfaces share the viewport below the authority layer. None have fixed wid
 |---------|------|---------------|
 | Chat | Reasoning — conversation transcript, GuidanceBlock, ObservationStrip | Dominant |
 | Projection | Vendor intelligence, company profile, comparison views | Compressed but legible |
-| Shortlist | Persisted vendor selections with provenance | Minimal — expands as items accumulate |
+| Shortlist | Persisted vendor selections with provenance | Expands in place within Chat surface — does not hold primary authority |
 
 **Key principle:** surfaces compress, they do not hide. When Projection holds authority, Chat compresses to a visible transcript — conversation continuity is preserved as ambient memory. The user never asks "where did my chat go?"
 
@@ -88,12 +98,15 @@ Internal runtime model — not exposed in the UI.
 authority_score = {
   chat:       float,   // driven by input focus, typing, response reading
   projection: float,   // driven by vendor intent signals, comparison patterns
-  evidence:   float,   // driven by signal correction activity
-  shortlist:  float,   // driven by shortlist item count
+  evidence:   float,   // driven by signal correction activity (transient)
 }
 ```
 
-Scores are continuous, decay over time without new signal, and are bounded to [0, 1] with normalisation across surfaces. The surface with the highest score is a candidate for authority. A score difference above a threshold triggers a SUGGEST phase. Explicit user actions (tapping a surface chip, opening the evidence drawer) override computed scores immediately — `explicit action > inferred authority`.
+Scores are continuous, decay over time without new signal, and are bounded to [0, 1] with normalisation across surfaces. The surface with the highest score is a candidate for authority. A score difference above `SUGGEST_THRESHOLD` triggers a SUGGEST phase. Explicit user actions (tapping a surface chip, opening the evidence drawer) override computed scores immediately — `explicit action > inferred authority`.
+
+**`SUGGEST_THRESHOLD = 0.25`** — the leading surface score must exceed the current authority-holder's score by at least 0.25 before a suggestion is offered. Start value; tuned empirically once baseline sessions are observed.
+
+**Note on shortlist:** Shortlist does not compete for primary surface authority. It expands in place as items accumulate, within whichever surface currently holds authority (typically Chat). Shortlist item count is not an authority score input. Shortlist surface chips on mobile are explicit navigation, not authority transitions.
 
 ---
 
@@ -110,6 +123,8 @@ Scores are continuous, decay over time without new signal, and are bounded to [0
 ### Conversational dignity
 
 The DISMISS phase encodes a governance rule: the system notices, the human decides, the system respects dismissal. A dismissed handoff suggestion is suppressed for the remainder of the session turn. This prevents the "nagging AI" failure mode. The system has no ambient pressure. It waits.
+
+**Definition — session turn:** one message submission + the system's response cycle. A new turn begins when the user submits the next message. DISMISS suppression is directional: dismissing a `chat → projection` suggestion does not suppress a later `projection → chat` suggestion in the same turn. Suppression resets at the start of each new turn.
 
 ---
 
@@ -147,7 +162,7 @@ This is conversational state introspection: runtime state exposed as readable co
 
 - **AC-1** BOUNDARY slot shows "Example" amber label in demo mode, clean in workspace mode
 - **AC-2** ENTITY slot populates from company signals — name, stage, vertical
-- **AC-3** LENS slot reflects active persona (Edison · operational / Leonardo · strategic / Sophia · narrative)
+- **AC-3** LENS slot reflects active persona per INVARIANTS.md §6: `Edison · operational/technical` / `Leonardo · commercial/narrative` / `Sophia · investor/trust`. Display may abbreviate (e.g. "Edison · operational") but must not reassign lens meanings.
 - **AC-4** SURFACE AUTHORITY slot names the current authority-holding surface; updates on commit
 - **AC-5** SURFACE AUTHORITY slot shows inline suggestion chip (`→ [Surface]  ✓  ✕`) when system detects score shift above threshold; suggestion persists until committed or dismissed
 - **AC-6** EVIDENCE / TRUST STATE row appears only when `activeSignals` contains mixed provenance or stale signals; hidden when not relevant
@@ -166,7 +181,7 @@ This is conversational state introspection: runtime state exposed as readable co
 
 - **AC-11** NOTICE phase is silent — no UI change until system has confidence in the handoff
 - **AC-12** COMMIT transfers authority and re-weights surfaces elastically
-- **AC-13** DISMISS suppresses re-suggestion of the same handoff for the remainder of the session turn
+- **AC-13** DISMISS suppresses re-suggestion of the same directional handoff (e.g. `chat → projection`) for the remainder of the current session turn (one submission + response cycle); suppression resets at turn start
 
 ### Mobile (AC-14)
 
@@ -174,7 +189,7 @@ This is conversational state introspection: runtime state exposed as readable co
 
 ### SessionSnapshot (AC-15)
 
-- **AC-15** `beforeunload` SessionSnapshot (already implemented in DESIGN-004 AC-11) includes `surface_authority_at_close` field — the SURFACE AUTHORITY slot value at time of snapshot
+- **AC-15** DESIGN-004's `SessionSnapshot` schema (implemented in AC-11) is extended with one new field: `surface_authority_at_close: string` — the SURFACE AUTHORITY slot value at time of snapshot (e.g. `"Chat"`, `"Vendor Intelligence"`). This extends but does not replace the existing schema: `{ session_id, entity_id, timestamp, signals, domain_scores, guidance_blocks_rendered, surface_authority_at_close }`.
 
 ---
 
