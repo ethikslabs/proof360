@@ -161,7 +161,7 @@ const ALT_TO_SPACE = {
   'Xero': 'xero', 'HubSpot': 'hubspot',
 };
 
-function DiscoveryView({ tk, onVendorSelect }) {
+function DiscoveryView({ tk, onVendorSelect, isDemoMode, rankedVendors }) {  // eslint-disable-line no-unused-vars
   return (
     <div style={{ flex: 1 }}>
       {DISCOVERY_VENDORS.map((v, i) => {
@@ -193,7 +193,7 @@ function DiscoveryView({ tk, onVendorSelect }) {
   );
 }
 
-export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onAsk, focusedProgram, onVendorSelect }) {
+export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onAsk, focusedProgram, onVendorSelect, isDemoMode, activeSignals, rankedVendors, ctaEarned }) {
   const [blink, setBlink] = useState(true);
 
   useEffect(() => {
@@ -212,6 +212,19 @@ export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onAsk, fo
       display: 'flex', flexDirection: 'column',
       overflowY: 'auto',
     }}>
+      {isDemoMode && (
+        <div style={{
+          padding: '7px 16px',
+          background: '#fef3c7',
+          borderBottom: '1px solid #fcd34d',
+          fontFamily: '"IBM Plex Mono", monospace',
+          fontSize: 9, fontWeight: 700, letterSpacing: '0.18em',
+          textTransform: 'uppercase', color: '#92400e',
+          flexShrink: 0,
+        }}>
+          Example · Hive &amp; Code
+        </div>
+      )}
       {/* Header */}
       <div style={{
         padding: '13px 16px 10px',
@@ -307,22 +320,36 @@ export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onAsk, fo
           </div>
 
           {/* Signals */}
-          {profile.signals.length > 0 && (
+          {(activeSignals?.length > 0 || profile.signals.length > 0) && (
             <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${tk.hairline}` }}>
               <div style={{
                 fontFamily: '"IBM Plex Mono", monospace',
                 fontSize: 8.5, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase',
                 color: tk.inkSoft, marginBottom: 8,
               }}>Signals read</div>
-              {profile.signals.slice(-5).map((s, i) => (
-                <div key={i} style={{ display: 'flex', gap: 6, marginBottom: 5, alignItems: 'flex-start' }}>
-                  <span style={{ color: '#b0956e', fontSize: 9, marginTop: 2, flexShrink: 0 }}>◆</span>
-                  <span style={{
-                    fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-                    fontSize: 10.5, color: tk.inkSoft, lineHeight: 1.4,
-                  }}>{s}</span>
-                </div>
-              ))}
+              {activeSignals?.length > 0
+                ? activeSignals.slice(-5).map(sig => {
+                    const isGap = sig.polarity === 'gap';
+                    return (
+                      <div key={sig.id} style={{ display: 'flex', gap: 6, marginBottom: 5, alignItems: 'flex-start' }}>
+                        <span style={{ color: isGap ? '#15803d' : '#92400e', fontSize: 9, marginTop: 2, flexShrink: 0 }}>◆</span>
+                        <span style={{
+                          fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                          fontSize: 10.5, color: tk.inkSoft, lineHeight: 1.4,
+                        }}>{sig.value}</span>
+                      </div>
+                    );
+                  })
+                : profile.signals.slice(-5).map((s, i) => (
+                    <div key={i} style={{ display: 'flex', gap: 6, marginBottom: 5, alignItems: 'flex-start' }}>
+                      <span style={{ color: '#b0956e', fontSize: 9, marginTop: 2, flexShrink: 0 }}>◆</span>
+                      <span style={{
+                        fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                        fontSize: 10.5, color: tk.inkSoft, lineHeight: 1.4,
+                      }}>{s}</span>
+                    </div>
+                  ))
+              }
             </div>
           )}
 
@@ -337,7 +364,7 @@ export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onAsk, fo
           )}
         </div>
       )}
-      <DiscoveryView tk={tk} onVendorSelect={onVendorSelect} />
+      <DiscoveryView tk={tk} onVendorSelect={onVendorSelect} isDemoMode={isDemoMode} rankedVendors={rankedVendors} />
     </div>
   );
 }
