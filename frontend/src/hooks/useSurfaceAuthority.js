@@ -9,6 +9,7 @@ const SURFACE_NAME = { chat: 'Chat', projection: 'Vendor Intelligence' };
 export function useSurfaceAuthority() {
   // Continuous authority scores, bounded [0,1]. Chat starts dominant.
   const [scores, setScores] = useState({ chat: 0.7, projection: 0.3 });
+  const scoresRef = useRef({ chat: 0.7, projection: 0.3 });
   // Which surface currently holds primary authority
   const [surfaceAuthority, setSurfaceAuthority] = useState('Chat');
   // Active suggestion (SUGGEST phase) or null (NOTICE/WAIT/idle)
@@ -31,32 +32,31 @@ export function useSurfaceAuthority() {
 
   // Call when user types, submits, or is reading chat — raises chat score
   const recordChatActivity = useCallback(() => {
-    setScores(prev => {
-      const next = {
-        chat: Math.min(1, prev.chat + 0.35),
-        projection: Math.max(0, prev.projection - 0.1),
-      };
-      const total = next.chat + next.projection;
-      if (total > 0) { next.chat = next.chat / total; next.projection = next.projection / total; }
-      // Chat activity clears projection-intent suggestions
-      setSuggestion(s => (s?.direction?.includes('→projection') ? null : s));
-      maybeOfferSuggestion(next, authorityKeyRef.current);
-      return next;
-    });
+    const prev = scoresRef.current;
+    const raw = {
+      chat: Math.min(1, prev.chat + 0.35),
+      projection: Math.max(0, prev.projection - 0.1),
+    };
+    const total = raw.chat + raw.projection;
+    const next = total > 0 ? { chat: raw.chat / total, projection: raw.projection / total } : raw;
+    scoresRef.current = next;
+    setScores(next);
+    setSuggestion(s => (s?.direction?.includes('→projection') ? null : s));
+    maybeOfferSuggestion(next, authorityKeyRef.current);
   }, [maybeOfferSuggestion]);
 
   // Call when vendor intent signal fires — mode tile select, vendor comparison pattern
   const recordProjectionIntent = useCallback(() => {
-    setScores(prev => {
-      const next = {
-        chat: Math.max(0, prev.chat - 0.05),
-        projection: Math.min(1, prev.projection + 0.4),
-      };
-      const total = next.chat + next.projection;
-      if (total > 0) { next.chat = next.chat / total; next.projection = next.projection / total; }
-      maybeOfferSuggestion(next, authorityKeyRef.current);
-      return next;
-    });
+    const prev = scoresRef.current;
+    const raw = {
+      chat: Math.max(0, prev.chat - 0.05),
+      projection: Math.min(1, prev.projection + 0.4),
+    };
+    const total = raw.chat + raw.projection;
+    const next = total > 0 ? { chat: raw.chat / total, projection: raw.projection / total } : raw;
+    scoresRef.current = next;
+    setScores(next);
+    maybeOfferSuggestion(next, authorityKeyRef.current);
   }, [maybeOfferSuggestion]);
 
   // User taps ✓ on suggestion chip — authority transfers (COMMIT phase)
@@ -66,10 +66,12 @@ export function useSurfaceAuthority() {
     setSurfaceAuthority(surface);
     setSuggestion(null);
     // dismissedRef.current.clear() — REMOVED: resetTurn() is the sole reset mechanism
-    setScores({
+    const newScores = {
       chat: key === 'chat' ? 0.8 : 0.2,
       projection: key === 'projection' ? 0.8 : 0.2,
-    });
+    };
+    scoresRef.current = newScores;
+    setScores(newScores);
   }, []);
 
   // User taps ✕ — suggestion suppressed for this turn (DISMISS phase)
