@@ -1253,7 +1253,7 @@ export default function Chat() {
     activeSignals,
     // gapSignals and capabilitySignals reserved for Task 7+
     regeneratingDomains,
-    // domainTurns and recordDomainTurn reserved for Task 7+
+    domainTurns,
     ctaEarned,
     correctSignal,
     ignoreSignal,
@@ -1294,6 +1294,29 @@ export default function Chat() {
     models: 2,
     sources: companyData.inferences?.length ?? 0,
   } : null;
+
+  // Session snapshot — written on close for temporal narrative (AC-11)
+  useEffect(() => {
+    const writeSnapshot = () => {
+      const snapshot = {
+        session_id: sessionStorage.getItem('proof360_session_id') || crypto.randomUUID(),
+        entity_id:  'hive_and_code_demo',
+        timestamp:  new Date().toISOString(),
+        signals:    activeSignals,
+        domain_scores: Object.fromEntries(
+          Object.entries(domainTurns).map(([d, turns]) => [d, Math.min(100, turns * 20)])
+        ),
+        guidance_blocks_rendered: [],
+      };
+      try {
+        sessionStorage.setItem('proof360_last_snapshot', JSON.stringify(snapshot));
+      } catch {
+        // sessionStorage unavailable — silent no-op
+      }
+    };
+    window.addEventListener('beforeunload', writeSnapshot);
+    return () => window.removeEventListener('beforeunload', writeSnapshot);
+  }, [activeSignals, domainTurns]);
 
   const inputRef    = useRef(null);
   const scrollRef   = useRef(null);
