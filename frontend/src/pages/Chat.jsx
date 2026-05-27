@@ -1272,9 +1272,9 @@ export default function Chat() {
   const {
     surfaceAuthority,
     suggestion,
-    surfaceFlex: _surfaceFlex,
+    surfaceFlex,
     recordChatActivity: _recordChatActivity,
-    recordProjectionIntent: _recordProjectionIntent,
+    recordProjectionIntent,
     commit: commitAuthority,
     dismiss: dismissAuthority,
     resetTurn: _resetAuthorityTurn,
@@ -1862,11 +1862,12 @@ export default function Chat() {
           t={t}
         />
 
-        {/* Chat pane — shrinks to make room for preview */}
+        {/* Chat pane — elastic width driven by surfaceFlex.chat (AC-8/AC-10) */}
         <div style={{
           position: 'relative', overflow: 'hidden',
-          flex: previewOpen ? '0 0 400px' : '1',
-          transition: 'flex-basis 0.38s cubic-bezier(0.32,0.72,0,1)',
+          flex: previewOpen ? '0 0 400px' : (isMobile ? 1 : surfaceFlex.chat),
+          transition: 'flex 250ms ease, flex-basis 0.38s cubic-bezier(0.32,0.72,0,1)',
+          minWidth: isMobile ? 0 : 320,
         }}>
 
         {/* Chat space — kept mounted so theatrical doesn't reset on tab-switch */}
@@ -2426,63 +2427,57 @@ export default function Chat() {
           />
         )}
 
-        {/* Projection drawer — wide overlay with collapse handle */}
-        {activeSpace !== 'chat' && (
-          <>
-            {/* Dim backdrop — only when drawer is expanded */}
-            {!drawerCollapsed && (
-              <div
-                style={{ position: 'fixed', inset: 0, zIndex: 19, background: 'rgba(0,0,0,0.06)' }}
-                onClick={() => setDrawerCollapsed(true)}
-              />
-            )}
-            <div style={{
-              position: 'fixed', right: 0, top: 0, bottom: 0,
-              width: drawerCollapsed ? 28 : 'clamp(580px, 64vw, 860px)',
-              zIndex: 20,
+        {/* Projection pane — elastic in-flow sibling (AC-8 AC-9 AC-10) */}
+        {/* Mobile: hidden entirely (Task 6 handles mobile stacking) */}
+        {!isMobile && activeSpace !== 'chat' && (
+          <div
+            onClick={recordProjectionIntent}
+            style={{
+              flex: surfaceFlex.projection,
+              transition: 'flex 250ms ease',
+              minWidth: 180,
+              overflow: 'hidden',
+              display: 'flex', flexDirection: 'row',
               background: tk.bg,
               borderLeft: `1px solid ${tk.hairline}`,
-              boxShadow: '-12px 0 40px rgba(0,0,0,0.09)',
-              display: 'flex', flexDirection: 'row',
-              transition: 'width 0.3s cubic-bezier(0.32,0.72,0,1)',
-              overflow: 'hidden',
-            }}>
-              {/* Collapse / expand handle — always visible on left edge */}
-              <button
-                onClick={() => setDrawerCollapsed(c => !c)}
-                title={drawerCollapsed ? 'Expand panel' : 'Collapse panel'}
-                style={{
-                  flexShrink: 0, width: 28,
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  borderRight: `1px solid ${tk.hairline}`,
-                  color: tk.inkSoft,
-                  transition: 'background 0.15s',
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = tk.surfaceLo}
-                onMouseLeave={e => e.currentTarget.style.background = 'none'}
-              >
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <path
-                    d={drawerCollapsed ? 'M3 2 L7 5 L3 8' : 'M7 2 L3 5 L7 8'}
-                    stroke="currentColor" strokeWidth="1.4"
-                    strokeLinecap="round" strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-
-              {/* Panel content — hidden while collapsed (overflow:hidden handles it) */}
-              <div style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
-                <Projection
-                  id={activeSpace}
-                  company="hive"
-                  hiveStage={hiveStage}
-                  onBack={() => setActiveSpace('chat')}
-                  t={t}
+              boxShadow: '-4px 0 16px rgba(0,0,0,0.06)',
+            }}
+          >
+            {/* Collapse / expand handle — always visible on left edge */}
+            <button
+              onClick={e => { e.stopPropagation(); setDrawerCollapsed(c => !c); }}
+              title={drawerCollapsed ? 'Expand panel' : 'Collapse panel'}
+              style={{
+                flexShrink: 0, width: 28,
+                background: 'none', border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                borderRight: `1px solid ${tk.hairline}`,
+                color: tk.inkSoft,
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = tk.surfaceLo}
+              onMouseLeave={e => e.currentTarget.style.background = 'none'}
+            >
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path
+                  d={drawerCollapsed ? 'M3 2 L7 5 L3 8' : 'M7 2 L3 5 L7 8'}
+                  stroke="currentColor" strokeWidth="1.4"
+                  strokeLinecap="round" strokeLinejoin="round"
                 />
-              </div>
+              </svg>
+            </button>
+
+            {/* Panel content — scrollable, compressed but visible at low flex (AC-9) */}
+            <div style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
+              <Projection
+                id={activeSpace}
+                company="hive"
+                hiveStage={hiveStage}
+                onBack={() => setActiveSpace('chat')}
+                t={t}
+              />
             </div>
-          </>
+          </div>
         )}
 
 
