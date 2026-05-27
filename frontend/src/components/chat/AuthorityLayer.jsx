@@ -24,8 +24,15 @@ function InferenceChip({ selectedModel, onModelChange }) {
     function close(e) {
       if (!ref.current?.contains(e.target)) setOpen(false);
     }
+    function onKeyDown(e) {
+      if (e.key === 'Escape') setOpen(false);
+    }
     document.addEventListener('mousedown', close);
-    return () => document.removeEventListener('mousedown', close);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      document.removeEventListener('keydown', onKeyDown);
+    };
   }, [open]);
 
   return (
@@ -124,7 +131,7 @@ function MobileAuthorityLayer({
               padding: '1px 6px', borderRadius: 3,
               fontSize: 8, fontWeight: 700, letterSpacing: '.1em',
               textTransform: 'uppercase', color: '#92400e',
-            }}>Example</span>
+            }}>Example{entity?.name ? ` · ${entity.name}` : ''}</span>
           )}
           {entity?.name && (
             <span style={{ color: '#241f31', fontWeight: 600, fontSize: 12 }}>{entity.name}</span>
@@ -206,7 +213,7 @@ export function AuthorityLayer({
           padding: '1px 7px', borderRadius: 3,
           fontSize: 9, fontWeight: 700, letterSpacing: '.1em',
           textTransform: 'uppercase', color: '#92400e', flexShrink: 0,
-        }}>Example</span>
+        }}>Example{entity?.name ? ` · ${entity.name}` : ''}</span>
       )}
 
       {/* ENTITY — name · stage · vertical (AC-2) */}
@@ -257,7 +264,7 @@ export function AuthorityLayer({
               }}
             >✓</button>
             <button
-              onClick={() => onDismiss?.(suggestion.direction)}
+              onClick={() => onDismiss?.(suggestion.direction ?? suggestion.to)}
               title="Dismiss"
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
