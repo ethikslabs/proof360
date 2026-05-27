@@ -1347,6 +1347,7 @@ export default function Chat() {
   const inputRef    = useRef(null);
   const scrollRef   = useRef(null);
   const browserTabsRef = useRef([]);
+  const projectionIntentTimerRef = useRef(0);
 
   useEffect(() => {
     if (!logoCard) return;
@@ -1809,7 +1810,7 @@ export default function Chat() {
         requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' }));
       }} />}
 
-      <OperationalField onLogoClick={setLogoCard} active rightOffset={previewOpen ? 0 : 252} />
+      <OperationalField onLogoClick={setLogoCard} active />
 
       <AuthorityLayer
         isDemoMode={isDemoMode}
@@ -1866,7 +1867,7 @@ export default function Chat() {
         <div style={{
           position: 'relative', overflow: 'hidden',
           flex: previewOpen ? '0 0 400px' : (isMobile ? 1 : surfaceFlex.chat),
-          transition: 'flex 250ms ease, flex-basis 0.38s cubic-bezier(0.32,0.72,0,1)',
+          transition: 'flex-grow 250ms ease, flex-shrink 250ms ease, flex-basis 0.38s cubic-bezier(0.32,0.72,0,1)',
           minWidth: isMobile ? 0 : 320,
         }}>
 
@@ -2432,7 +2433,13 @@ export default function Chat() {
         {/* AC-9: pane always mounted on desktop — compresses via surfaceFlex, never unmounts */}
         {!isMobile && (
           <div
-            onClick={recordProjectionIntent}
+            onClick={() => {
+              const now = Date.now();
+              if (now - projectionIntentTimerRef.current > 800) {
+                projectionIntentTimerRef.current = now;
+                recordProjectionIntent();
+              }
+            }}
             style={{
               flex: surfaceFlex.projection,
               transition: 'flex 250ms ease',
