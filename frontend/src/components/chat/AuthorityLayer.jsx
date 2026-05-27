@@ -112,6 +112,18 @@ function InferenceChip({ selectedModel, onModelChange }) {
   );
 }
 
+// Maps display chip label → surface authority name (as used by useSurfaceAuthority)
+const CHIP_TO_SURFACE = {
+  Chat: 'Chat',
+  Vendors: 'Vendor Intelligence',
+  Shortlist: 'Chat', // Shortlist expands in place within Chat surface per spec
+};
+
+// Returns true when a chip's logical surface matches the current surfaceAuthority
+function chipIsActive(chipLabel, surfaceAuthority) {
+  return CHIP_TO_SURFACE[chipLabel] === surfaceAuthority;
+}
+
 function MobileAuthorityLayer({
   isDemoMode, entity, activeLens, surfaceAuthority, onMobileSurfaceSelect,
 }) {
@@ -144,20 +156,23 @@ function MobileAuthorityLayer({
         )}
       </div>
       <div style={{ display: 'flex', gap: 5 }}>
-        {['Chat', 'Vendors', 'Shortlist'].map(s => (
-          <button
-            key={s}
-            onClick={() => onMobileSurfaceSelect?.(s)}
-            style={{
-              background: surfaceAuthority === s ? '#241f31' : '#f7f1e6',
-              border: surfaceAuthority === s ? 'none' : '1px solid #e0d8c9',
-              padding: '4px 8px', borderRadius: 10,
-              fontSize: 9, fontWeight: 600,
-              color: surfaceAuthority === s ? '#fbf8f1' : '#5a5267',
-              cursor: 'pointer',
-            }}
-          >{s}</button>
-        ))}
+        {['Chat', 'Vendors', 'Shortlist'].map(s => {
+          const active = chipIsActive(s, surfaceAuthority);
+          return (
+            <button
+              key={s}
+              onClick={() => onMobileSurfaceSelect?.(CHIP_TO_SURFACE[s])}
+              style={{
+                background: active ? '#241f31' : '#f7f1e6',
+                border: active ? 'none' : '1px solid #e0d8c9',
+                padding: '4px 8px', borderRadius: 10,
+                fontSize: 9, fontWeight: 600,
+                color: active ? '#fbf8f1' : '#5a5267',
+                cursor: 'pointer',
+              }}
+            >{s}</button>
+          );
+        })}
       </div>
     </div>
   );

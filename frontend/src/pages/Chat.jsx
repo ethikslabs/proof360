@@ -1825,9 +1825,11 @@ export default function Chat() {
         onDismiss={dismissAuthority}
         isMobile={isMobile}
         onMobileSurfaceSelect={(surface) => {
+          // surface is already the canonical authority name ('Chat' | 'Vendor Intelligence')
+          // because MobileAuthorityLayer maps chip labels via CHIP_TO_SURFACE before calling back
           commitAuthority(surface);
-          if (surface === 'Vendors') setActiveSpace('vendors');
-          else if (surface === 'Chat') setActiveSpace('chat');
+          if (surface === 'Vendor Intelligence') setActiveSpace('vendors');
+          else setActiveSpace('chat');
         }}
       />
 
@@ -1864,11 +1866,13 @@ export default function Chat() {
         />
 
         {/* Chat pane — elastic width driven by surfaceFlex.chat (AC-8/AC-10) */}
+        {/* Mobile: hidden when Vendor Intelligence holds authority (AC-14) */}
         <div style={{
           position: 'relative', overflow: 'hidden',
           flex: previewOpen ? '0 0 400px' : (isMobile ? 1 : surfaceFlex.chat),
           transition: 'flex-grow 250ms ease, flex-shrink 250ms ease, flex-basis 0.38s cubic-bezier(0.32,0.72,0,1)',
           minWidth: isMobile ? 0 : 320,
+          display: (isMobile && surfaceAuthority === 'Vendor Intelligence') ? 'none' : undefined,
         }}>
 
         {/* Chat space — kept mounted so theatrical doesn't reset on tab-switch */}
@@ -2429,11 +2433,12 @@ export default function Chat() {
         )}
 
         {/* Projection pane — elastic in-flow sibling (AC-8 AC-9 AC-10) */}
-        {/* Mobile: hidden entirely (Task 6 handles mobile stacking) */}
-        {/* AC-9: pane always mounted on desktop — compresses via surfaceFlex, never unmounts */}
-        {!isMobile && (
+        {/* Mobile (AC-14): full-width, shown only when surfaceAuthority === 'Vendor Intelligence' */}
+        {/* Desktop: always mounted, compresses via surfaceFlex, never unmounts (AC-9) */}
+        {(isMobile ? surfaceAuthority === 'Vendor Intelligence' : true) && (
           <div
             onClick={() => {
+              if (isMobile) return; // no intent recording on mobile tap
               const now = Date.now();
               if (now - projectionIntentTimerRef.current > 800) {
                 projectionIntentTimerRef.current = now;
@@ -2441,39 +2446,42 @@ export default function Chat() {
               }
             }}
             style={{
-              flex: surfaceFlex.projection,
-              transition: 'flex 250ms ease',
-              minWidth: 180,
+              flex: isMobile ? 'none' : surfaceFlex.projection,
+              width: isMobile ? '100%' : undefined,
+              transition: isMobile ? 'none' : 'flex 250ms ease',
+              minWidth: isMobile ? 0 : 180,
               overflow: 'hidden',
               display: 'flex', flexDirection: 'row',
               background: tk.bg,
-              borderLeft: `1px solid ${tk.hairline}`,
-              boxShadow: '-4px 0 16px rgba(0,0,0,0.06)',
+              borderLeft: isMobile ? 'none' : `1px solid ${tk.hairline}`,
+              boxShadow: isMobile ? 'none' : '-4px 0 16px rgba(0,0,0,0.06)',
             }}
           >
-            {/* Collapse / expand handle — always visible on left edge */}
-            <button
-              onClick={e => { e.stopPropagation(); setDrawerCollapsed(c => !c); }}
-              title={drawerCollapsed ? 'Expand panel' : 'Collapse panel'}
-              style={{
-                flexShrink: 0, width: 28,
-                background: 'none', border: 'none', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                borderRight: `1px solid ${tk.hairline}`,
-                color: tk.inkSoft,
-                transition: 'background 0.15s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = tk.surfaceLo}
-              onMouseLeave={e => e.currentTarget.style.background = 'none'}
-            >
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path
-                  d={drawerCollapsed ? 'M3 2 L7 5 L3 8' : 'M7 2 L3 5 L7 8'}
-                  stroke="currentColor" strokeWidth="1.4"
-                  strokeLinecap="round" strokeLinejoin="round"
-                />
-              </svg>
-            </button>
+            {/* Collapse / expand handle — desktop only */}
+            {!isMobile && (
+              <button
+                onClick={e => { e.stopPropagation(); setDrawerCollapsed(c => !c); }}
+                title={drawerCollapsed ? 'Expand panel' : 'Collapse panel'}
+                style={{
+                  flexShrink: 0, width: 28,
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  borderRight: `1px solid ${tk.hairline}`,
+                  color: tk.inkSoft,
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = tk.surfaceLo}
+                onMouseLeave={e => e.currentTarget.style.background = 'none'}
+              >
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path
+                    d={drawerCollapsed ? 'M3 2 L7 5 L3 8' : 'M7 2 L3 5 L7 8'}
+                    stroke="currentColor" strokeWidth="1.4"
+                    strokeLinecap="round" strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            )}
 
             {/* Panel content — scrollable, compressed but visible at low flex (AC-9) */}
             <div style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
@@ -2481,7 +2489,11 @@ export default function Chat() {
                 id={activeSpace}
                 company="hive"
                 hiveStage={hiveStage}
-                onBack={() => setActiveSpace('chat')}
+                onBack={() => {
+                  setActiveSpace('chat');
+                  // On mobile, tapping back returns authority to Chat
+                  if (isMobile) commitAuthority('Chat');
+                }}
                 t={t}
               />
             </div>
