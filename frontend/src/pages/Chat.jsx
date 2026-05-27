@@ -2392,7 +2392,7 @@ export default function Chat() {
               t={t}
               onAsk={q => setInputValue(q)}
               focusedProgram={focusedProgram}
-              onVendorSelect={id => { setActiveSpace(id); setDrawerCollapsed(false); }}
+              onVendorSelect={id => { setActiveSpace(id); setDrawerCollapsed(false); if (isMobile) setMobileActiveTab('Vendors'); }}
               isDemoMode={isDemoMode}
               activeSignals={activeSignals}
               rankedVendors={rankedVendors}
@@ -2497,7 +2497,10 @@ export default function Chat() {
                 onBack={() => {
                   setActiveSpace('chat');
                   // On mobile, tapping back returns authority to Chat
-                  if (isMobile) commitAuthority('Chat');
+                  if (isMobile) {
+                    commitAuthority('Chat');
+                    setMobileActiveTab('Chat');
+                  }
                 }}
                 t={t}
               />
