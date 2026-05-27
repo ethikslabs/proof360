@@ -1346,6 +1346,7 @@ export default function Chat() {
           Object.entries(domainTurns).map(([d, turns]) => [d, Math.min(100, turns * 20)])
         ),
         guidance_blocks_rendered: [],
+        surface_authority_at_close: surfaceAuthority,
       };
       try {
         sessionStorage.setItem('proof360_last_snapshot', JSON.stringify(snapshot));
@@ -1355,7 +1356,7 @@ export default function Chat() {
     };
     window.addEventListener('beforeunload', writeSnapshot);
     return () => window.removeEventListener('beforeunload', writeSnapshot);
-  }, [activeSignals, domainTurns]);
+  }, [activeSignals, domainTurns, surfaceAuthority]);
 
   const inputRef    = useRef(null);
   const scrollRef   = useRef(null);
