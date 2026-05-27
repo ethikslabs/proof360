@@ -22,6 +22,8 @@ import { DEMO_STAGES, DEFAULT_STAGE_ID } from '../data/demoCompany.js';
 import { OperationalField } from '../components/OperationalField';
 import { useSignals }       from '../hooks/useSignals.js';
 import { ObservationStrip } from '../components/chat/ObservationStrip.jsx';
+import { GuidanceBlock }      from '../components/chat/GuidanceBlock.jsx';
+import { MOCK_GUIDANCE_BLOCK } from '../data/mock/signals.js';
 import { VendorShortlist } from '../components/chat/VendorShortlist.jsx';
 import { rankVendorsBySignals } from '../data/mock/vendors.js';
 
@@ -2216,6 +2218,20 @@ export default function Chat() {
                 onAddContext={addContextSignal}
                 regeneratingDomains={regeneratingDomains}
               />
+
+              {/* Demo GuidanceBlock — Edison three-beat render (AC-4) */}
+              <div style={{ alignSelf: 'flex-start', maxWidth: '72%' }}>
+                <div style={{
+                  fontSize: 11, fontWeight: 700, letterSpacing: '0.5px',
+                  textTransform: 'uppercase', color: '#176577', marginBottom: 4,
+                }}>
+                  Edison · operational lens
+                </div>
+                <GuidanceBlock
+                  block={MOCK_GUIDANCE_BLOCK}
+                  isRegenerating={regeneratingDomains.size > 0}
+                />
+              </div>
 
               {shortlist.length > 0 && (
                 // vendors=shortlist intentional: this panel shows only shortlisted items,

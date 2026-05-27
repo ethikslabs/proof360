@@ -1,4 +1,4 @@
-import { makeObservedSignal } from '../../rendering/protocol.js';
+import { makeObservedSignal, makeGuidanceBlock } from '../../rendering/protocol.js';
 
 const NOW = new Date().toISOString();
 const TURN_0 = new Date(Date.now() - 2 * 60 * 1000).toISOString(); // 2 min ago
@@ -77,3 +77,15 @@ export const MOCK_CAPABILITY_SIGNALS = [
 ];
 
 export const MOCK_SIGNALS = [...MOCK_GAP_SIGNALS, ...MOCK_CAPABILITY_SIGNALS];
+
+export const MOCK_GUIDANCE_BLOCK = makeGuidanceBlock({
+  persona: 'edison',
+  signals: [
+    { id: 'au_healthcare_enterprise' },
+    { id: 'no_soc2_detected' },
+    { id: 'no_ir_controls' },
+  ],
+  synthesis: 'Healthcare enterprise procurement commonly requires SOC 2 Type II. Your public repo shows no access controls or incident response documentation — three checklist items that will stall a deal. Vanta closes this in 90 days.',
+  next_move: 'Add an incident response policy to your repo this week (template in Vanta docs, free). That clears one checklist item independently of any vendor spend. Then evaluate Vanta for audit automation if an enterprise deal is in the next 6 months.',
+  confidence: 0.87,
+});
