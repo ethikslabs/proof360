@@ -112,20 +112,8 @@ function InferenceChip({ selectedModel, onModelChange }) {
   );
 }
 
-// Maps display chip label → surface authority name (as used by useSurfaceAuthority)
-const CHIP_TO_SURFACE = {
-  Chat: 'Chat',
-  Vendors: 'Vendor Intelligence',
-  Shortlist: 'Chat', // Shortlist expands in place within Chat surface per spec
-};
-
-// Returns true when a chip's logical surface matches the current surfaceAuthority
-function chipIsActive(chipLabel, surfaceAuthority) {
-  return CHIP_TO_SURFACE[chipLabel] === surfaceAuthority;
-}
-
 function MobileAuthorityLayer({
-  isDemoMode, entity, activeLens, surfaceAuthority, onMobileSurfaceSelect,
+  isDemoMode, entity, activeLens, surfaceAuthority, mobileActiveTab = 'Chat', onMobileSurfaceSelect,
 }) {
   const lensLabel = LENS_LABELS[activeLens];
   return (
@@ -157,11 +145,11 @@ function MobileAuthorityLayer({
       </div>
       <div style={{ display: 'flex', gap: 5 }}>
         {['Chat', 'Vendors', 'Shortlist'].map(s => {
-          const active = chipIsActive(s, surfaceAuthority);
+          const active = s === mobileActiveTab;
           return (
             <button
               key={s}
-              onClick={() => onMobileSurfaceSelect?.(CHIP_TO_SURFACE[s])}
+              onClick={() => onMobileSurfaceSelect?.(s)}
               style={{
                 background: active ? '#241f31' : '#f7f1e6',
                 border: active ? 'none' : '1px solid #e0d8c9',
@@ -190,6 +178,7 @@ export function AuthorityLayer({
   onCommit,
   onDismiss,
   isMobile = false,
+  mobileActiveTab = 'Chat',
   onMobileSurfaceSelect,
 }) {
   if (isMobile) {
@@ -199,6 +188,7 @@ export function AuthorityLayer({
         entity={entity}
         activeLens={activeLens}
         surfaceAuthority={surfaceAuthority}
+        mobileActiveTab={mobileActiveTab}
         onMobileSurfaceSelect={onMobileSurfaceSelect}
       />
     );

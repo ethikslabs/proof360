@@ -1230,6 +1230,7 @@ export default function Chat() {
   });
   const [logoCard,        setLogoCard]        = useState(null);
   const [activeSpace,     setActiveSpace]     = useState('chat');
+  const [mobileActiveTab, setMobileActiveTab] = useState('Chat');
   const [currentUser,     setCurrentUser]     = useState(() => {
     try { const s = localStorage.getItem('founder_auth'); return s ? JSON.parse(s).user : null; } catch { return null; }
   });
@@ -1824,9 +1825,13 @@ export default function Chat() {
         onCommit={commitAuthority}
         onDismiss={dismissAuthority}
         isMobile={isMobile}
-        onMobileSurfaceSelect={(surface) => {
-          // surface is already the canonical authority name ('Chat' | 'Vendor Intelligence')
-          // because MobileAuthorityLayer maps chip labels via CHIP_TO_SURFACE before calling back
+        mobileActiveTab={mobileActiveTab}
+        onMobileSurfaceSelect={(chipLabel) => {
+          // chipLabel is the raw chip label ('Chat' | 'Vendors' | 'Shortlist')
+          // Map to canonical surface authority here — keeps the mapping in one place
+          const chipToSurface = { Chat: 'Chat', Vendors: 'Vendor Intelligence', Shortlist: 'Chat' };
+          setMobileActiveTab(chipLabel);
+          const surface = chipToSurface[chipLabel] ?? 'Chat';
           commitAuthority(surface);
           if (surface === 'Vendor Intelligence') setActiveSpace('vendors');
           else setActiveSpace('chat');
