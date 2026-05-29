@@ -22,3 +22,6 @@ api/leads.ndjson
 docs/superpowers/
 _staging*/
 .superpowers/
+
+# Cloudflare Wrangler build cache
+.wrangler/
