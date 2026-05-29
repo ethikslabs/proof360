@@ -2403,7 +2403,38 @@ export default function Chat() {
         </div>{/* end chat pane */}
 
         {/* Company profile panel — discovery on landing, profile after first message */}
-        {!previewOpen && (
+        {!previewOpen && (isMobile ? (
+          mobileActiveTab === 'Vendors' && (
+            <>
+              {/* Full-screen backdrop — clicking anywhere collapses the panel */}
+              <div
+                onClick={() => { setMobileActiveTab('Chat'); commitAuthority('Chat'); }}
+                style={{ position: 'fixed', inset: 0, zIndex: 24, background: 'transparent' }}
+              />
+              {/* Slide-in panel — 88vw from right */}
+              <div style={{
+                position: 'fixed', top: 0, right: 0, bottom: 0,
+                width: '88vw', zIndex: 25, overflowY: 'auto',
+                boxShadow: '-12px 0 40px rgba(0,0,0,0.14)',
+              }}>
+                <CompanyProfile
+                  profile={companyProfile}
+                  isBuilding={isProcessing}
+                  hasMessages={hasMessages}
+                  tk={tk}
+                  t={t}
+                  onAsk={q => setInputValue(q)}
+                  focusedProgram={focusedProgram}
+                  onVendorSelect={id => { setActiveSpace(id); setDrawerCollapsed(false); setMobileActiveTab('Vendors'); commitAuthority(VENDOR_AUTHORITY); }}
+                  isDemoMode={isDemoMode}
+                  activeSignals={activeSignals}
+                  rankedVendors={rankedVendors}
+                  ctaEarned={ctaEarned}
+                />
+              </div>
+            </>
+          )
+        ) : (
           <div style={{ position: 'relative', zIndex: 25, flexShrink: 0, display: 'flex' }}>
             <CompanyProfile
               profile={companyProfile}
@@ -2413,14 +2444,14 @@ export default function Chat() {
               t={t}
               onAsk={q => setInputValue(q)}
               focusedProgram={focusedProgram}
-              onVendorSelect={id => { setActiveSpace(id); setDrawerCollapsed(false); if (isMobile) { setMobileActiveTab('Vendors'); commitAuthority(VENDOR_AUTHORITY); } }}
+              onVendorSelect={id => { setActiveSpace(id); setDrawerCollapsed(false); }}
               isDemoMode={isDemoMode}
               activeSignals={activeSignals}
               rankedVendors={rankedVendors}
               ctaEarned={ctaEarned}
             />
           </div>
-        )}
+        ))}
 
         {/* Browser panel */}
         {previewUrl && previewOpen && (

@@ -259,28 +259,6 @@ export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onAsk, fo
       display: 'flex', flexDirection: 'column',
       overflowY: 'auto',
     }}>
-      {/* Header */}
-      <div style={{
-        padding: '13px 16px 10px',
-        borderBottom: `1px solid ${tk.hairline}`,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        flexShrink: 0,
-      }}>
-        <span style={{
-          fontFamily: '"IBM Plex Mono", monospace',
-          fontSize: 9, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase',
-          color: tk.inkSoft,
-        }}>{hasMessages ? 'Your Profile' : 'Programs'}</span>
-        {isBuilding && (
-          <span style={{
-            fontFamily: '"IBM Plex Mono", monospace',
-            fontSize: 8.5, letterSpacing: '0.1em',
-            color: '#b0956e',
-            opacity: blink ? 1 : 0.35,
-            transition: 'opacity 0.4s ease',
-          }}>● reading</span>
-        )}
-      </div>
 
       {hasMessages && (
         <div style={{ padding: '14px 16px', borderBottom: `1px solid ${tk.hairline}` }}>
