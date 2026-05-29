@@ -19,26 +19,50 @@ git config --global --add safe.directory $REPO_DIR 2>/dev/null || true
 git pull origin main
 
 echo "==> Loading secrets from SSM"
+# Optional secret: empty is allowed, but always log a visible WARN so a
+# missing/failed fetch never silently writes a blank key into .env.
 get_ssm() {
-  aws ssm get-parameter \
+  local val
+  val=$(aws ssm get-parameter \
     --region ap-southeast-2 \
     --name "$1" \
     --with-decryption \
     --query "Parameter.Value" \
-    --output text 2>/dev/null || echo ""
+    --output text 2>/dev/null) || val=""
+  if [ -z "$val" ] || [ "$val" = "None" ]; then
+    echo "WARN: SSM param $1 is empty or missing — value left blank" >&2
+    val=""
+  fi
+  echo "$val"
+}
+
+# Required secret: deploy aborts if absent. The API is non-functional without these.
+require_ssm() {
+  local val
+  val=$(get_ssm "$1")
+  if [ -z "$val" ]; then
+    echo "FATAL: required SSM param $1 is missing — aborting deploy" >&2
+    exit 1
+  fi
+  echo "$val"
 }
 
 PORT=$(get_ssm "$SSM_PREFIX/PORT")
 FIRECRAWL_API_KEY=$(get_ssm "$SSM_PREFIX/FIRECRAWL_API_KEY")
 FIRECRAWL_API_URL=$(get_ssm "$SSM_PREFIX/FIRECRAWL_API_URL")
-ANTHROPIC_API_KEY=$(get_ssm "/ethikslabs/anthropic/api-key")
+ANTHROPIC_API_KEY=$(require_ssm "/ethikslabs/anthropic/api-key")
 ABUSEIPDB_API_KEY=$(get_ssm "$SSM_PREFIX/ABUSEIPDB_API_KEY")
 HIBP_API_KEY=$(get_ssm "$SSM_PREFIX/HIBP_API_KEY")
-VECTOR_URL=$(get_ssm "$SSM_PREFIX/VECTOR_URL")
+VECTOR_URL=$(require_ssm "$SSM_PREFIX/VECTOR_URL")
 VERITAS_URL=$(get_ssm "$SSM_PREFIX/VERITAS_URL")
 VERITAS_API_KEY=$(get_ssm "$SSM_PREFIX/VERITAS_API_KEY")
 TELEGRAM_BOT_TOKEN=$(get_ssm "$SSM_PREFIX/TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID=$(get_ssm "$SSM_PREFIX/TELEGRAM_CHAT_ID")
+PERPLEXITY_API_KEY=$(get_ssm "$SSM_PREFIX/perplexity-api-key")
+GEMINI_API_KEY=$(get_ssm "$SSM_PREFIX/gemini-api-key")
+# TODO: v3 Postgres handlers (override/recompute/publish/engage) read PG_HOST/
+# PG_PORT/PG_DATABASE/PG_USER/PG_PASSWORD from env but these are NOT fetched here.
+# Add require_ssm fetches once the /proof360/postgres/* SSM paths are confirmed.
 
 # Write .env for pm2 to pick up
 cat > "$API_DIR/.env" <<EOF
@@ -53,6 +77,8 @@ VERITAS_URL=$VERITAS_URL
 VERITAS_API_KEY=$VERITAS_API_KEY
 TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN
 TELEGRAM_CHAT_ID=$TELEGRAM_CHAT_ID
+PERPLEXITY_API_KEY=$PERPLEXITY_API_KEY
+GEMINI_API_KEY=$GEMINI_API_KEY
 LOG_LEVEL=info
 EOF
 
