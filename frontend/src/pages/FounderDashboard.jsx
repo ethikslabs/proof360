@@ -332,8 +332,8 @@ export default function FounderDashboard() {
                 </div>
               </>
             ) : (
-              <Link to="/audit" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#5eead4', fontWeight: 700, textDecoration: 'none', borderBottom: '1px solid #5eead4', paddingBottom: 1 }}>
-                Run your first scan — takes 90 seconds →
+              <Link to="/chat" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#5eead4', fontWeight: 700, textDecoration: 'none', borderBottom: '1px solid #5eead4', paddingBottom: 1 }}>
+                Start your first trust check →
               </Link>
             )}
           </div>
@@ -346,8 +346,8 @@ export default function FounderDashboard() {
               <span style={{ fontSize: 11, color: '#92400e' }}>
                 Demo data — book meetings from a report to populate your real pipeline
               </span>
-              <Link to="/report/demo" style={{ fontSize: 11, color: '#5eead4', fontWeight: 700, textDecoration: 'none' }}>
-                View demo →
+              <Link to="/chat" style={{ fontSize: 11, color: '#5eead4', fontWeight: 700, textDecoration: 'none' }}>
+                Open chat →
               </Link>
             </div>
           )}
@@ -383,8 +383,8 @@ export default function FounderDashboard() {
             <p style={{ fontSize: 11, fontWeight: 700, color: '#5eead4', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
               {activeStage === 'all' ? 'All engagements' : STAGE_MAP[activeStage]?.label} · {filtered.length}
             </p>
-            <Link to="/audit" style={{ fontSize: 13, color: '#0A1628', textDecoration: 'none', fontWeight: 600 }}>
-              + New audit
+            <Link to="/chat" style={{ fontSize: 13, color: '#0A1628', textDecoration: 'none', fontWeight: 600 }}>
+              + New trust check
             </Link>
           </div>
 

@@ -5,9 +5,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Current direction (2026-05-15) — supersedes all previous direction blocks
 
 **Surface:** `frontend/` — chat-first conversational trust layer. This is the active build surface.  
-**Entry point:** `/chat` route — new `frontend/src/pages/Chat.jsx`. All existing routes (`/audit`, `/report`, `/portal`, `/account`) stay intact and must not be broken.  
+**Entry point:** `/chat` route — `frontend/src/pages/Chat.jsx`. `/` redirects to `/chat`. Live routes: `/chat`, `/portal/*`, `/account`, `/admin/preread`.  
 **CLI:** `proof360/cli.mjs` is preserved as the signal/retrieval layer. Not the product surface.  
-**Old cold-read flow (URL in → audit → report):** retained as legacy, not direction.  
+**Old cold-read flow (URL in → audit → report):** DELETED 2026-05-29 (John ruling: strip all legacy, super fresh). The `/audit`, `/audit/reading`, `/audit/cold-read`, `/processing`, `/report/:id`, `/home` routes and their pages/components/handlers are gone. `/chat` is the only entry. Do not reintroduce.  
 **Atelier:** deferred — chat UI is built in the existing React/Vite frontend first.
 
 **Active plan:** `docs/plans/2026-05-15-conversational-trust-layer-mvp.md`  
@@ -53,7 +53,7 @@ cd api && node --env-file=.env src/server.js
 cd frontend && npm run preview
 ```
 
-**No test suite** — manual testing via API endpoints and frontend pages. Demo mode: visit `/report/demo` (uses `frontend/src/data/demo-report.js` without API).
+**Tests** — `api/` has vitest unit + property + preservation suites (`cd api && npm test`); `frontend/` has vitest (`cd frontend && npm test`). Manual smoke via the `/chat` surface and the honey demo.
 
 ## Local environment
 
@@ -119,9 +119,8 @@ GET  /api/session/early-signal   (estimated score pre-report)
 | `api/src/config/vendors.js` | Vendor catalog (partners and non-partners, category-keyed) with quadrant x/y positions |
 | `api/src/config/frameworks.js` | Compliance framework mapping per customer type (SOC 2, ISO 27001, APRA CPS 234, etc.) |
 | `api/src/services/pulse-emitter.js` | Fire-and-forget pulse emission to dashboard API on pipeline events; no-ops if `DASHBOARD_API_URL` unset |
-| `frontend/src/App.jsx` | React Router: 10 routes — audit flow, report, partner portal, founder account |
+| `frontend/src/App.jsx` | React Router: `/chat` (entry), partner portal, founder account, admin pre-read |
 | `frontend/src/api/client.js` | All API calls funnel through this single wrapper |
-| `frontend/src/data/demo-report.js` | Hardcoded demo report — used for /report/demo without API |
 | `frontend/src/data/portal-leads.js` | Static data: `TENANTS` (partner orgs + their vendor catalogs) and `PORTAL_LEADS` (sample leads); source of truth for portal demo |
 | `frontend/src/pages/Portal.jsx` | Partner portal login — Google/Microsoft OAuth (implicit) + Auth0 PKCE; handles `/portal/callback` for both portal and founder intents |
 | `frontend/src/pages/PortalDashboard.jsx` | Lead list filtered to tenant's vendor catalog; lead status managed in localStorage |
