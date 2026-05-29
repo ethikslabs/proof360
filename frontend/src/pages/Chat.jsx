@@ -210,122 +210,105 @@ function LoginModal({ onClose, onUser }) {
   return (
     <div onClick={onClose} style={{
       position: 'fixed', inset: 0, zIndex: 300,
-      background: 'rgba(8,12,24,0.7)', backdropFilter: 'blur(16px)',
+      background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(24px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        width: 'min(380px, 95vw)', borderRadius: 6,
-        boxShadow: '0 32px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06)',
-        fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+        width: 'min(360px, 92vw)',
+        background: '#ffffff',
+        borderRadius: 16,
+        boxShadow: '0 24px 64px rgba(0,0,0,0.18), 0 0 0 0.5px rgba(0,0,0,0.07)',
+        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif',
         overflow: 'hidden',
       }}>
 
-        {/* ── Dark header — trust layer ────────────────────────────── */}
-        <div style={{
-          background: '#0c1424',
-          padding: '18px 24px 16px',
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
-        }}>
-          <div style={{ fontSize: 11, color: '#475569', fontFamily: '"IBM Plex Mono", monospace', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 14 }}>
-            Secure access
+        {/* ── Header ────────────────────────────────────────────────── */}
+        <div style={{ padding: '28px 28px 0' }}>
+          <div style={{ fontSize: 21, fontWeight: 600, color: '#1d1d1f', letterSpacing: '-0.3px', marginBottom: 5 }}>
+            Sign in
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            {/* Cloudflare */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <svg width="22" height="14" viewBox="0 0 109 73" fill="none">
-                <path d="M96.3 35.5c-1.3-4.8-5.7-8.3-10.9-8.3-1.6 0-3.2.3-4.6.9-2.2-7.2-8.8-12.4-16.7-12.4-9.7 0-17.6 7.9-17.6 17.6v.3c-6.3.7-11.2 6-11.2 12.5 0 7 5.7 12.7 12.7 12.7h47.6c6.1 0 11-4.9 11-11 0-5.7-4.3-10.4-10.3-11.3z" fill="#F48120"/>
-                <path d="M68.5 57.7c.2-.7.3-1.4.3-2.1 0-4.8-3.9-8.7-8.7-8.7-.9 0-1.8.1-2.6.4-1.1-3.6-4.4-6.2-8.4-6.2-4.8 0-8.8 3.9-8.8 8.8v.1c-3.2.3-5.6 3-5.6 6.3 0 3.5 2.8 6.3 6.3 6.3h23.8c3 0 5.5-2.5 5.5-5.5-.1-1.6-.7-3-1.8-4z" fill="#FBAD41"/>
-              </svg>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: '#e2e8f0', letterSpacing: '0.01em' }}>Cloudflare</div>
-                <div style={{ fontSize: 10, color: '#475569', marginTop: 1 }}>WAF · bot protection</div>
-              </div>
-              {ready && (
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ marginLeft: 4 }}>
-                  <circle cx="8" cy="8" r="7.5" fill="#16a34a"/>
-                  <path d="M4.5 8.5L7 11L11.5 6" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              )}
-            </div>
-            <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.08)' }} />
-            {/* Okta */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <svg width="18" height="18" viewBox="0 0 60 60" fill="none">
-                <circle cx="30" cy="30" r="30" fill="#007DC1"/>
-                <circle cx="30" cy="30" r="14" stroke="#fff" strokeWidth="5" fill="none"/>
-              </svg>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: '#e2e8f0', letterSpacing: '0.01em' }}>Okta</div>
-                <div style={{ fontSize: 10, color: '#475569', marginTop: 1 }}>identity · SSO</div>
-              </div>
-            </div>
+          <div style={{ fontSize: 13, color: '#6e6e73', lineHeight: 1.45 }}>
+            Access your proof360 workspace
           </div>
         </div>
 
-        {/* ── Body — white ────────────────────────────────────────── */}
-        <div style={{ background: '#ffffff' }}>
-
-          {/* Cloudflare widget — shown until verified */}
+        {/* ── Cloudflare verification ────────────────────────────────── */}
+        <div style={{ padding: '20px 28px 0' }}>
           {!ready && (
-            <div style={{ padding: '18px 24px 16px', borderBottom: '1px solid #f1f5f9' }}>
+            <>
               <div ref={tsRef} />
-              {tsError && <div style={{ fontSize: 11, color: '#dc2626', marginTop: 8 }}>Verification failed — please try again.</div>}
-            </div>
+              {tsError && <div style={{ fontSize: 12, color: '#ff3b30', marginTop: 6 }}>Verification failed — please try again.</div>}
+            </>
           )}
-          {ready && <div ref={tsRef} style={{ display: 'none' }} />}
+          {ready && (
+            <>
+              <div ref={tsRef} style={{ display: 'none' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0' }}>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                  <circle cx="8" cy="8" r="8" fill="#34c759"/>
+                  <path d="M4.5 8.5L7 11L11.5 6" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span style={{ fontSize: 13, color: '#34c759', fontWeight: 500 }}>Bot check passed</span>
+              </div>
+            </>
+          )}
+        </div>
 
-          {/* Auth section */}
-          <div style={{
-            padding: '20px 24px 22px',
-            opacity: ready ? 1 : 0.45,
-            transition: 'opacity 0.35s ease',
-            pointerEvents: ready ? 'auto' : 'none',
-          }}>
-            <div style={{ fontSize: 11, color: '#94a3b8', fontFamily: '"IBM Plex Mono", monospace', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 14 }}>
-              {ready ? 'Identity verified by Okta' : 'Awaiting Cloudflare verification'}
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {GOOGLE_CLIENT_ID && (
-                <button onClick={loginGoogle} disabled={!ready} style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
-                  padding: '10px 0', borderRadius: 4,
-                  border: '1px solid #e2e8f0', background: '#f8fafc',
-                  cursor: 'pointer', fontSize: 13, fontWeight: 500, color: '#1e293b',
-                  transition: 'background 0.12s, border-color 0.12s',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-                  Continue with Google
-                </button>
-              )}
-              <button onClick={loginAuth0} disabled={!ready} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
-                padding: '10px 0', borderRadius: 4,
-                border: 'none', background: '#0c1424',
-                cursor: 'pointer', fontSize: 13, fontWeight: 500, color: '#f1f5f9',
-                transition: 'background 0.12s',
+        {/* ── Auth buttons ───────────────────────────────────────────── */}
+        <div style={{
+          padding: '16px 28px 0',
+          opacity: ready ? 1 : 0.38,
+          transition: 'opacity 0.3s ease',
+          pointerEvents: ready ? 'auto' : 'none',
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {GOOGLE_CLIENT_ID && (
+              <button onClick={loginGoogle} disabled={!ready} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                padding: '11px 0', borderRadius: 10,
+                border: '1px solid #e0e0e5', background: '#fafafa',
+                cursor: 'pointer', fontSize: 14, fontWeight: 500, color: '#1d1d1f',
+                transition: 'background 0.1s',
               }}
-              onMouseEnter={e => e.currentTarget.style.background = '#162032'}
-              onMouseLeave={e => e.currentTarget.style.background = '#0c1424'}
+              onMouseEnter={e => e.currentTarget.style.background = '#f2f2f5'}
+              onMouseLeave={e => e.currentTarget.style.background = '#fafafa'}
               >
-                <svg width="16" height="16" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
-                Continue with Microsoft / email
+                <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                Continue with Google
               </button>
-            </div>
-
-            <button onClick={demoLogin} style={{
-              display: 'block', width: '100%', marginTop: 18,
-              padding: '5px 0', border: 'none', background: 'transparent',
-              cursor: 'pointer', fontSize: 10.5, color: '#94a3b8',
-              fontFamily: '"IBM Plex Mono", monospace', letterSpacing: '0.08em',
-            }}>
-              skip → demo mode
+            )}
+            <button onClick={loginAuth0} disabled={!ready} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              padding: '11px 0', borderRadius: 10,
+              border: 'none', background: '#1d1d1f',
+              cursor: 'pointer', fontSize: 14, fontWeight: 500, color: '#ffffff',
+              transition: 'background 0.1s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = '#333'}
+            onMouseLeave={e => e.currentTarget.style.background = '#1d1d1f'}
+            >
+              <svg width="16" height="16" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
+              Continue with Microsoft / email
             </button>
           </div>
         </div>
+
+        {/* ── Skip + trust footer ────────────────────────────────────── */}
+        <div style={{ padding: '14px 28px 22px', textAlign: 'center' }}>
+          <button onClick={demoLogin} style={{
+            border: 'none', background: 'transparent',
+            cursor: 'pointer', fontSize: 12, color: '#aeaeb2',
+            marginBottom: 14,
+          }}>
+            skip → demo mode
+          </button>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <span style={{ fontSize: 11, color: '#c7c7cc' }}>Protected by Cloudflare</span>
+            <span style={{ fontSize: 10, color: '#d1d1d6' }}>·</span>
+            <span style={{ fontSize: 11, color: '#c7c7cc' }}>Identity by Okta</span>
+          </div>
+        </div>
+
       </div>
     </div>
   );
