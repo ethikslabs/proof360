@@ -1,7 +1,7 @@
 // Feature: overnight-v1, Property 8: AWS programmes catalogue schema validity
 // **Validates: Requirements 9.2, 9.4**
 
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import fc from 'fast-check';
 import { AWS_PROGRAMS, KNOWN_SIGNAL_FIELDS } from '../../src/config/aws-programs.js';

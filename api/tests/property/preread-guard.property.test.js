@@ -1,7 +1,7 @@
 // Feature: overnight-v1, Property 5: Preread memory guard preserves non-preread sessions
 // **Validates: Requirements 4.12, 4.13**
 
-import { describe, it, afterEach } from 'node:test';
+import { describe, it, afterEach } from 'vitest';
 import assert from 'node:assert/strict';
 import fc from 'fast-check';
 import { enforcePrereadMemoryGuard } from '../../src/handlers/admin-preread.js';

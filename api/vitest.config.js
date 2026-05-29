@@ -6,6 +6,7 @@ export default defineConfig({
       'tests/unit/**/*.test.js',
       'tests/exploration/**/*.test.js',
       'tests/preservation/**/*.test.js',
+      'tests/property/**/*.test.js',
     ],
   },
 });

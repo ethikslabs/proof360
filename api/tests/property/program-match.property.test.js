@@ -1,7 +1,7 @@
 // Feature: overnight-v1, Property 6: Program match returns only eligible programs
 // **Validates: Requirements 8.1**
 
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import fc from 'fast-check';
 import { evaluatePrograms } from '../../src/handlers/program-match.js';

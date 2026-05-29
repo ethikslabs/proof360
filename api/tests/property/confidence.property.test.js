@@ -1,7 +1,7 @@
 // Feature: overnight-v1, Property 3: Confidence computation from source counts
 // **Validates: Requirements 14.2, 14.3, 14.4, 14.5**
 
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import fc from 'fast-check';
 import { computeConfidence } from '../../src/handlers/inferences.js';
