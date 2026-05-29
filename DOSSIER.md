@@ -47,6 +47,29 @@ IMPERIUM (control plane)
 
 ---
 
+## UX Architecture (DESIGN-005, locked 2026-05-29)
+
+### Surface Authority — the defining UX primitive
+
+> Backend computes authority. Frontend expresses gravity. Human commits handoff.
+
+**Attention allocation is a first-class runtime primitive, not a layout concern.**
+
+proof360's chat interface is not a chat UI with sidebars. It is an attention orchestration system with a legible session contract. Three surfaces (Chat, Projection, Shortlist) share a viewport without fixed widths. Authority — which surface is cognitively dominant at any moment — is computed from signals, expressed as elastic visual weight, and transferred only when the human commits.
+
+The session contract (six-slot header, always visible):
+```
+BOUNDARY → ENTITY → LENS → SURFACE AUTHORITY → EVIDENCE/TRUST STATE → INFERENCE
+```
+
+Each slot answers a question the user might have, in the order they would ask it: containment → identity → reasoning shape → focus → provenance → infrastructure.
+
+This is conversational state introspection: runtime state exposed as readable context, not as settings or logs. The user never needs to understand the underlying system — they can read the header.
+
+**What this is not:** not a tab model, not a dashboard, not AI automation, not a responsive design problem. It is the authority model under a spatial constraint.
+
+---
+
 ## v3 Architecture (locked 2026-04-26)
 
 ### Doctrine pair governing the system
@@ -276,5 +299,5 @@ Per doctrine: every MCP caller is just another renderer + writer of the same con
 
 ---
 
-*Last updated: 2026-04-26 (v3 architecture locked Round 3)*
+*Last updated: 2026-05-29 (DESIGN-005 UX architecture added)*
 *Authority: john-coates*
