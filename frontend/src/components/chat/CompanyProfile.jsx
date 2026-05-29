@@ -259,19 +259,6 @@ export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onAsk, fo
       display: 'flex', flexDirection: 'column',
       overflowY: 'auto',
     }}>
-      {isDemoMode && (
-        <div style={{
-          padding: '7px 16px',
-          background: '#fef3c7',
-          borderBottom: '1px solid #fcd34d',
-          fontFamily: '"IBM Plex Mono", monospace',
-          fontSize: 9, fontWeight: 700, letterSpacing: '0.18em',
-          textTransform: 'uppercase', color: '#92400e',
-          flexShrink: 0,
-        }}>
-          Example · Hive &amp; Code
-        </div>
-      )}
       {/* Header */}
       <div style={{
         padding: '13px 16px 10px',

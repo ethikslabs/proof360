@@ -314,7 +314,7 @@ function LoginModal({ onClose, onUser }) {
           <button onClick={demoLogin} style={{
             display: 'block', width: '100%', marginTop: 14,
             padding: '6px 0', border: 'none', background: 'transparent',
-            cursor: 'pointer', fontSize: 11.5, color: '#4b5563',
+            cursor: 'pointer', fontSize: 11.5, color: '#94a3b8',
             fontFamily: '"IBM Plex Mono", monospace', letterSpacing: '0.06em',
           }}>
             skip → demo mode
@@ -1825,8 +1825,6 @@ export default function Chat() {
         requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' }));
       }} />}
 
-      <OperationalField onLogoClick={setLogoCard} active />
-
       <AuthorityLayer
         isDemoMode={isDemoMode}
         entity={authorityEntity}
@@ -1884,6 +1882,8 @@ export default function Chat() {
           minWidth: isMobile ? 0 : 320,
           display: (isMobile && surfaceAuthority === VENDOR_AUTHORITY) ? 'none' : undefined,
         }}>
+
+          <OperationalField onLogoClick={setLogoCard} active />
 
         {/* Chat space — kept mounted so theatrical doesn't reset on tab-switch */}
         <div style={{
@@ -2444,7 +2444,7 @@ export default function Chat() {
 
         {/* Projection pane — elastic in-flow sibling (AC-8 AC-9 AC-10) */}
         {/* Mobile (AC-14): full-width, shown only when surfaceAuthority === VENDOR_AUTHORITY */}
-        {/* Desktop: always mounted, compresses via surfaceFlex, never unmounts (AC-9) */}
+        {/* Desktop: always mounted for smooth transitions; collapses to 0 when no content */}
         {(isMobile ? surfaceAuthority === VENDOR_AUTHORITY : true) && (
           <div
             onClick={() => {
@@ -2456,15 +2456,15 @@ export default function Chat() {
               }
             }}
             style={{
-              flex: isMobile ? 'none' : surfaceFlex.projection,
+              flex: isMobile ? 'none' : (activeSpace === 'chat' ? '0 0 0px' : surfaceFlex.projection),
               width: isMobile ? '100%' : undefined,
               transition: isMobile ? 'none' : 'flex 250ms ease',
-              minWidth: isMobile ? 0 : 180,
+              minWidth: isMobile ? 0 : (activeSpace === 'chat' ? 0 : 180),
               overflow: 'hidden',
               display: 'flex', flexDirection: 'row',
               background: tk.bg,
-              borderLeft: isMobile ? 'none' : `1px solid ${tk.hairline}`,
-              boxShadow: isMobile ? 'none' : '-4px 0 16px rgba(0,0,0,0.06)',
+              borderLeft: (isMobile || activeSpace === 'chat') ? 'none' : `1px solid ${tk.hairline}`,
+              boxShadow: (isMobile || activeSpace === 'chat') ? 'none' : '-4px 0 16px rgba(0,0,0,0.06)',
             }}
           >
             {/* Collapse / expand handle — desktop only */}

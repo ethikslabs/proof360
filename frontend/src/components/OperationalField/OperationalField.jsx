@@ -55,7 +55,7 @@ export function OperationalField({ onLogoClick, active = true, rightOffset = 0 }
 
   return (
     <div style={{
-      position: 'fixed', top: 0, right: rightOffset, bottom: 0, left: 0, zIndex: 4,
+      position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, zIndex: 4,
       overflow: 'hidden', pointerEvents: 'none',
     }}>
       {fieldConfig.map((entry, idx) => {
