@@ -48,6 +48,14 @@
       "approved_by": "john-coates",
       "source": "edge:task_enhancement",
       "added": "2026-05-24"
+    },
+    {
+      "id": "PROOF360-CATCHALL-ROUTE-001",
+      "status": "ready",
+      "boundary": "Add a catch-all route (path='*') to frontend/src/App.jsx that redirects any unmatched path to /chat, so deleted/legacy paths (/audit, /home, /report, /processing) never render a blank SPA shell. Small HX polish surfaced by the 2026-05-29 legacy strip.",
+      "approved_by": "john-coates",
+      "source": "edge:task_enhancement",
+      "added": "2026-05-29"
     }
   ]
 }
