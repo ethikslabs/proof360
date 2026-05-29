@@ -293,19 +293,46 @@ function LoginModal({ onClose, onUser }) {
           </div>
         </div>
 
-        {/* ── Skip + trust footer ────────────────────────────────────── */}
-        <div style={{ padding: '14px 28px 22px', textAlign: 'center' }}>
+        {/* ── Skip ──────────────────────────────────────────────────── */}
+        <div style={{ padding: '14px 28px 0', textAlign: 'center' }}>
           <button onClick={demoLogin} style={{
             border: 'none', background: 'transparent',
             cursor: 'pointer', fontSize: 12, color: '#aeaeb2',
-            marginBottom: 14,
           }}>
             skip → demo mode
           </button>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-            <span style={{ fontSize: 11, color: '#c7c7cc' }}>Protected by Cloudflare</span>
-            <span style={{ fontSize: 10, color: '#d1d1d6' }}>·</span>
-            <span style={{ fontSize: 11, color: '#c7c7cc' }}>Identity by Okta</span>
+        </div>
+
+        {/* ── Trust strip ───────────────────────────────────────────── */}
+        <div style={{
+          margin: '14px 0 0',
+          borderTop: '1px solid #f0f0f0',
+          background: '#f5f5f7',
+          display: 'flex', alignItems: 'stretch',
+        }}>
+          {/* Cloudflare */}
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 0' }}>
+            <svg width="22" height="15" viewBox="0 0 109 73" fill="none">
+              <path d="M96.3 35.5c-1.3-4.8-5.7-8.3-10.9-8.3-1.6 0-3.2.3-4.6.9-2.2-7.2-8.8-12.4-16.7-12.4-9.7 0-17.6 7.9-17.6 17.6v.3c-6.3.7-11.2 6-11.2 12.5 0 7 5.7 12.7 12.7 12.7h47.6c6.1 0 11-4.9 11-11 0-5.7-4.3-10.4-10.3-11.3z" fill="#F48120"/>
+              <path d="M68.5 57.7c.2-.7.3-1.4.3-2.1 0-4.8-3.9-8.7-8.7-8.7-.9 0-1.8.1-2.6.4-1.1-3.6-4.4-6.2-8.4-6.2-4.8 0-8.8 3.9-8.8 8.8v.1c-3.2.3-5.6 3-5.6 6.3 0 3.5 2.8 6.3 6.3 6.3h23.8c3 0 5.5-2.5 5.5-5.5-.1-1.6-.7-3-1.8-4z" fill="#FBAD41"/>
+            </svg>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#1d1d1f', lineHeight: 1.2 }}>Cloudflare</div>
+              <div style={{ fontSize: 10.5, color: '#8e8e93', lineHeight: 1.2 }}>WAF · bot protection</div>
+            </div>
+          </div>
+          {/* Divider */}
+          <div style={{ width: 1, background: '#e5e5ea', margin: '10px 0' }} />
+          {/* Okta */}
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 0' }}>
+            <svg width="20" height="20" viewBox="0 0 60 60" fill="none">
+              <circle cx="30" cy="30" r="30" fill="#007DC1"/>
+              <circle cx="30" cy="30" r="13" stroke="#fff" strokeWidth="5" fill="none"/>
+            </svg>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#1d1d1f', lineHeight: 1.2 }}>Okta</div>
+              <div style={{ fontSize: 10.5, color: '#8e8e93', lineHeight: 1.2 }}>identity · SSO</div>
+            </div>
           </div>
         </div>
 
