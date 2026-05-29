@@ -210,111 +210,140 @@ function LoginModal({ onClose, onUser }) {
   return (
     <div onClick={onClose} style={{
       position: 'fixed', inset: 0, zIndex: 300,
-      background: 'rgba(15,12,22,0.72)', backdropFilter: 'blur(8px)',
+      background: 'rgba(15,20,35,0.55)', backdropFilter: 'blur(12px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        background: '#0e1117', borderRadius: 18,
-        width: 'min(420px, 95vw)',
-        boxShadow: '0 40px 100px rgba(0,0,0,0.55)',
+        background: '#ffffff', borderRadius: 12,
+        width: 'min(400px, 95vw)',
+        boxShadow: '0 24px 64px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.06)',
         fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
         overflow: 'hidden',
-        border: '1px solid #1e2330',
+        border: '1px solid #e2e8f0',
       }}>
 
-        {/* ── Step 1: Cloudflare ──────────────────────────────────── */}
+        {/* ── Trust stack badges ──────────────────────────────────── */}
         <div style={{
-          padding: '24px 28px 20px',
-          borderBottom: `1px solid ${ready ? '#1a3a1a' : '#1e2330'}`,
-          background: ready ? 'rgba(244,129,32,0.06)' : 'transparent',
-          transition: 'background 0.4s ease',
+          padding: '14px 24px',
+          background: '#f8fafc',
+          borderBottom: '1px solid #e2e8f0',
+          display: 'flex', alignItems: 'center', gap: 16,
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-            {/* Cloudflare cloud SVG */}
-            <svg width="28" height="18" viewBox="0 0 109 73" fill="none">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <svg width="20" height="13" viewBox="0 0 109 73" fill="none">
               <path d="M96.3 35.5c-1.3-4.8-5.7-8.3-10.9-8.3-1.6 0-3.2.3-4.6.9-2.2-7.2-8.8-12.4-16.7-12.4-9.7 0-17.6 7.9-17.6 17.6v.3c-6.3.7-11.2 6-11.2 12.5 0 7 5.7 12.7 12.7 12.7h47.6c6.1 0 11-4.9 11-11 0-5.7-4.3-10.4-10.3-11.3z" fill="#F48120"/>
               <path d="M68.5 57.7c.2-.7.3-1.4.3-2.1 0-4.8-3.9-8.7-8.7-8.7-.9 0-1.8.1-2.6.4-1.1-3.6-4.4-6.2-8.4-6.2-4.8 0-8.8 3.9-8.8 8.8v.1c-3.2.3-5.6 3-5.6 6.3 0 3.5 2.8 6.3 6.3 6.3h23.8c3 0 5.5-2.5 5.5-5.5-.1-1.6-.7-3-1.8-4z" fill="#FBAD41"/>
             </svg>
-            <div>
-              <div style={{
-                fontFamily: '"IBM Plex Mono", monospace',
-                fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase',
-                color: '#F48120',
-              }}>Cloudflare</div>
-              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1 }}>Human verification</div>
+            <span style={{ fontSize: 11, fontWeight: 600, color: '#F48120', letterSpacing: '0.04em' }}>Cloudflare</span>
+          </div>
+          <div style={{ width: 1, height: 14, background: '#cbd5e1' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <svg width="14" height="14" viewBox="0 0 60 60" fill="none">
+              <circle cx="30" cy="30" r="30" fill="#007DC1"/>
+              <circle cx="30" cy="30" r="14" stroke="#fff" strokeWidth="5" fill="none"/>
+            </svg>
+            <span style={{ fontSize: 11, fontWeight: 600, color: '#007DC1', letterSpacing: '0.04em' }}>Okta</span>
+          </div>
+          <div style={{ marginLeft: 'auto', fontSize: 10, color: '#94a3b8', letterSpacing: '0.06em', fontFamily: '"IBM Plex Mono", monospace' }}>
+            Enterprise access
+          </div>
+        </div>
+
+        {/* ── Step 1: Cloudflare verification ─────────────────────── */}
+        <div style={{
+          padding: '20px 24px 18px',
+          borderBottom: `1px solid ${ready ? '#dcfce7' : '#f1f5f9'}`,
+          background: ready ? '#f0fdf4' : '#ffffff',
+          transition: 'background 0.4s ease, border-color 0.4s ease',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: ready ? 0 : 14 }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>
+                {ready ? 'Bot protection verified' : 'Bot protection'}
+              </div>
+              <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+                {ready ? 'Cloudflare WAF · human confirmed' : 'Cloudflare WAF · confirming you are human'}
+              </div>
             </div>
-            {ready && (
+            {ready ? (
               <div style={{
-                marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5,
+                display: 'flex', alignItems: 'center', gap: 5,
                 fontFamily: '"IBM Plex Mono", monospace',
-                fontSize: 10, fontWeight: 700, letterSpacing: '0.08em',
-                color: '#22c55e',
+                fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', color: '#16a34a',
               }}>
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                  <circle cx="8" cy="8" r="7" stroke="#22c55e" strokeWidth="1.5"/>
-                  <path d="M4.5 8.5L7 11L11.5 6" stroke="#22c55e" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                  <circle cx="8" cy="8" r="7.5" fill="#16a34a"/>
+                  <path d="M4.5 8.5L7 11L11.5 6" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
                 VERIFIED
               </div>
+            ) : (
+              <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #e2e8f0' }} />
             )}
           </div>
-          <div ref={tsRef} style={{ minHeight: ready ? 0 : 65 }} />
-          {tsError && <div style={{ fontSize: 11, color: '#f87171', marginTop: 6 }}>Verification failed — please try again.</div>}
+          {!ready && <div ref={tsRef} style={{ minHeight: 65 }} />}
+          {ready && <div ref={tsRef} style={{ display: 'none' }} />}
+          {tsError && <div style={{ fontSize: 11, color: '#dc2626', marginTop: 8 }}>Verification failed — please try again.</div>}
         </div>
 
         {/* ── Step 2: Okta identity ───────────────────────────────── */}
         <div style={{
-          padding: '22px 28px 24px',
-          opacity: ready ? 1 : 0.4,
+          padding: '20px 24px 22px',
+          opacity: ready ? 1 : 0.5,
           transition: 'opacity 0.4s ease',
           pointerEvents: ready ? 'auto' : 'none',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-            {/* Okta "O" wordmark — simplified */}
-            <svg width="22" height="22" viewBox="0 0 60 60" fill="none">
+          {/* Okta identity header */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18, paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}>
+            <svg width="32" height="32" viewBox="0 0 60 60" fill="none">
               <circle cx="30" cy="30" r="30" fill="#007DC1"/>
               <circle cx="30" cy="30" r="14" stroke="#fff" strokeWidth="5" fill="none"/>
             </svg>
             <div>
-              <div style={{
-                fontFamily: '"IBM Plex Mono", monospace',
-                fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase',
-                color: '#007DC1',
-              }}>Okta</div>
-              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1 }}>Identity provider</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', letterSpacing: '-0.01em' }}>
+                Authenticated by Okta
+              </div>
+              <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+                Workforce identity · enterprise SSO
+              </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {GOOGLE_CLIENT_ID && (
               <button onClick={loginGoogle} disabled={!ready} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                padding: '11px 0', borderRadius: 10, border: '1px solid #2a2f3d',
-                background: '#161b27', cursor: 'pointer',
-                fontSize: 13.5, fontWeight: 500, color: '#e2e8f0',
-                transition: 'border-color 0.15s',
-              }}>
+                padding: '11px 0', borderRadius: 8,
+                border: '1px solid #e2e8f0', background: '#ffffff',
+                cursor: 'pointer', fontSize: 13.5, fontWeight: 500, color: '#0f172a',
+                transition: 'border-color 0.15s, background 0.15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#94a3b8'; e.currentTarget.style.background = '#f8fafc'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = '#ffffff'; }}
+              >
                 <svg width="17" height="17" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
                 Continue with Google
               </button>
             )}
             <button onClick={loginAuth0} disabled={!ready} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-              padding: '11px 0', borderRadius: 10, border: '1px solid #2a2f3d',
-              background: '#161b27', cursor: 'pointer',
-              fontSize: 13.5, fontWeight: 500, color: '#e2e8f0',
-              transition: 'border-color 0.15s',
-            }}>
-              {/* Microsoft logo */}
+              padding: '11px 0', borderRadius: 8,
+              border: '1px solid #e2e8f0', background: '#ffffff',
+              cursor: 'pointer', fontSize: 13.5, fontWeight: 500, color: '#0f172a',
+              transition: 'border-color 0.15s, background 0.15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#94a3b8'; e.currentTarget.style.background = '#f8fafc'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = '#ffffff'; }}
+            >
               <svg width="17" height="17" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
               Continue with Microsoft / email
             </button>
           </div>
 
           <button onClick={demoLogin} style={{
-            display: 'block', width: '100%', marginTop: 14,
+            display: 'block', width: '100%', marginTop: 16,
             padding: '6px 0', border: 'none', background: 'transparent',
-            cursor: 'pointer', fontSize: 11.5, color: '#94a3b8',
+            cursor: 'pointer', fontSize: 11, color: '#94a3b8',
             fontFamily: '"IBM Plex Mono", monospace', letterSpacing: '0.06em',
           }}>
             skip → demo mode
