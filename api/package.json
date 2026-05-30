@@ -10,6 +10,7 @@
     "test:log": "node scripts/test-log.js"
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.1057.0",
     "@aws-sdk/client-ses": "^3.1037.0",
     "@fastify/cors": "^11.0.1",
     "@mendable/firecrawl-js": "^1.23.0",
