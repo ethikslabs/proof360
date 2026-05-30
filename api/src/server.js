@@ -23,8 +23,6 @@ import { telegramWebhookHandler } from './handlers/telegram-webhook.js';
 import { johnMessagesHandler } from './handlers/john-messages.js';
 import { corpusStatsHandler } from './handlers/corpus-stats.js';
 import { notifyHandler } from './handlers/notify.js';
-import { liveMintHandler, liveTamperHandler, liveAttestHandler, liveStatusHandler } from './handlers/lab.js';
-import { liveAgentHandler } from './handlers/agent.js';
 
 const PORT = parseInt(process.env.PORT || '3002', 10);
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
@@ -76,13 +74,6 @@ app.post('/api/v1/notify', notifyHandler);
 
 // --- CORPUS ---
 app.get('/api/v1/corpus/stats', corpusStatsHandler);
-
-// --- proof360.au/live — verification console (real machinery, ephemeral sandbox) ---
-app.post('/api/v1/live/mint', liveMintHandler);
-app.post('/api/v1/live/tamper', liveTamperHandler);
-app.post('/api/v1/live/attest', liveAttestHandler);
-app.get('/api/v1/live/status', liveStatusHandler);
-app.post('/api/v1/live/agent', liveAgentHandler);
 
 // --- Health ---
 app.get('/health', healthHandler);
