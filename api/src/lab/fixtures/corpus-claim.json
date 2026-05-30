@@ -1,0 +1,24 @@
+{
+  "schema_version": "corpus.claim.v0.9",
+  "id": "cl-microsoft-365-startup-program-2026-37f4aebf5ec3",
+  "text": "Up to $150,000 in Azure credits",
+  "entity_ref": "en-microsoft-365-startup-program-2026",
+  "supported_by": [
+    "ev-microsoft-m365-startup-program-2026-185e824a"
+  ],
+  "provenance": {
+    "captured_by": "classify.mjs",
+    "captured_at": "2026-05-24T05:13:33.242Z",
+    "source_ref": null
+  },
+  "access_layer": "public",
+  "output_permission": "public_ok",
+  "confidence": "confirmed",
+  "valid_from": "2026-05-24T05:13:33.242Z",
+  "valid_to": null,
+  "superseded_by": [],
+  "last_verified_at": "2026-05-24T05:13:33.242Z",
+  "stale": false,
+  "proposed": false,
+  "proposal_state": null
+}
