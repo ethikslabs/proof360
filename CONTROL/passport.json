@@ -126,11 +126,11 @@
     },
     "pricing_hypothesis": {
       "model": "Free or low-friction diagnostic feeding paid routing and partner economics; later per-report/subscription surfaces for enterprise buyers, investors, insurers, AWS sellers, and distributors.",
-      "anchor_price": null,
+      "anchor_price": "AUD 0 diagnostic; revenue = routing commission",
       "currency": "AUD/USD depending on route",
       "basis": "Existing proof360 commercial notes: reseller embed fees, vendor partner lead routing commission, three-branch attribution, Austbrokers underwriting model, AWS program and Marketplace motions.",
       "evidence_state": "untested",
-      "notes": "Keep pricing explicitly hypothetical. The first revenue test is likely founder-to-quote/vendor routing or partner/distributor embed rather than charging the founder upfront."
+      "notes": "Anchor selected by John 2026-05-31: the diagnostic is free; revenue is routing/embed commission, not a founder-facing price. Keep pricing explicitly hypothetical. The first revenue test is likely founder-to-quote/vendor routing or partner/distributor embed rather than charging the founder upfront."
     },
     "gtm_motion": {
       "primary_channel": "Public proof360.au cold read leading to email capture and actionable Tier 2 routing.",
@@ -189,7 +189,7 @@
     "accounting_environment_id": "acct-env-ethiks360-pty-ltd",
     "tracking_option_id": "spv-proof360",
     "coa_account_block_id": "proof360-account-block",
-    "unit_economics_state": "unknown",
+    "unit_economics_state": "modelled (untested): near-zero CAC via cold-read funnel; 15-30% routing margin per closed SKU",
     "stripe_refs": [],
     "accounting_provider_refs": [],
     "budget_refs": [],
@@ -240,11 +240,11 @@
   },
 
   "capital": {
-    "state": "materials_pending",
-    "raise_refs": [],
-    "use_of_funds_refs": [],
-    "valuation_refs": [],
-    "notes": "Can become data-room ready after legal, finance, claims, and use-of-funds views are generated and attested."
+    "state": "illustrative",
+    "raise_refs": ["AUD 750k SAFE (illustrative, non-binding)"],
+    "use_of_funds_refs": ["60% engineering, 25% GTM, 15% ops"],
+    "valuation_refs": ["AUD 6M pre-money (illustrative, non-binding)"],
+    "notes": "Illustrative notional SPV raise selected by John 2026-05-31 to exercise the term-sheet-from-passport model. proof360 is parent-owned (ethiks360) and is NOT raising standalone — these figures are non-binding placeholders, not a live offer. Can become data-room ready after legal, finance, claims, and use-of-funds views are generated and attested."
   },
 
   "data_room": {
