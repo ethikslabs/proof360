@@ -1,0 +1,258 @@
+{
+  "$schema": "../../CONTROL/workspace.spvs.schema.json",
+  "_meta": {
+    "name": "proof360 SPV Passport",
+    "authority": "john-coates",
+    "status": "authored",
+    "created": "2026-05-31",
+    "template": "CONTROL/templates/spv-passport.template.json",
+    "description": "Authored single source for proof360 — the commercial front engine and first commercial lens on the estate. Empty-but-present: empty = null | [] | explicit enum. Shared supplier rights referenced by id from CONTROL/workspace.commercial.json. Outbound architecture edges authored here; reverse (used_by) derived in the roll-up."
+  },
+
+  "spv_id": "proof360",
+  "name": "proof360",
+  "state": "live",
+  "tier": "product",
+  "authority": "john-coates",
+  "parent_entity_id": "ethiks360-apac-pte-ltd",
+  "operating_entity_id": "ethiks360-pty-ltd",
+  "repo_ids": ["proof360"],
+
+  "genesis": {
+    "birth_certificate_id": "birth-proof360-2026-04-28",
+    "origin_summary": "Trust readiness diagnostic: URL to scored gap report and vendor recommendations.",
+    "problem_statement": "Founders and operators need a fast way to understand trust, compliance, and security readiness gaps before enterprise sale or diligence.",
+    "solution_statement": "Provide a diagnostic report that turns public/input signals into readiness gaps, recommendations, and evidence-backed next actions.",
+    "intake_refs": [],
+    "contributors": [
+      { "name": "John Coates", "role": "originator", "contribution": "Concept, operating model, and product direction.", "attestation_state": "operator_attested" }
+    ]
+  },
+
+  "legal": {
+    "state": "parent_owned",
+    "jurisdiction": "AU",
+    "entity_refs": ["ethiks360-pty-ltd", "ethiks360-apac-pte-ltd"],
+    "document_refs": [],
+    "notes": "Standalone SPV entity not yet recorded; product is currently parent-owned."
+  },
+
+  "ownership": {
+    "ip_owner_entity_id": "ethiks360-apac-pte-ltd",
+    "ip_boundary": "Trust readiness diagnostic workflows, scoring, report generation, and associated product packaging.",
+    "license_model": "future_intercompany_or_spv_license",
+    "contributor_refs": ["john-coates"],
+    "notes": "Ownership structure is explicit but final intercompany documents remain pending."
+  },
+
+  "architecture": {
+    "role": "Commercial front engine and first commercial lens. Cold-reads any entity into trust gaps, refines through CORPUS, and surfaces eligible supplier/insurer routes through FORUM.",
+    "layer": "product",
+    "flow_position": "Front of the money flow (ESSENCE.md): proof360 cold-reads an entity -> CORPUS supplies the read + refinement -> gaps -> FORUM surfaces eligible SKUs/quotes -> attribution to PULSUS -> marketplace margin. Tetrad: CORPUS declares -> VERITAS attests -> Guard enforces -> proof360 renders.",
+    "depends_on": [
+      { "peer": "CORPUS", "relation": "reads_from", "why": "The trust read and refinement — cold-read an entity into gap signals. CORPUS is the substrate proof360 renders on top of." },
+      { "peer": "VERITAS", "relation": "attested_by", "why": "Tier 2 attestation of claims before investor/customer/external use." },
+      { "peer": "FORUM", "relation": "routed_through", "why": "Each gap is routed to eligible supplier/vendor/insurer SKUs (forum_routes: ingram-micro-catalog-feed, vanta-compliance-feed), attribution preserved." },
+      { "peer": "PULSUS", "relation": "metered_by", "why": "Cost and co-sell attribution events." },
+      { "peer": "ARGUS", "relation": "monitored_by", "why": "Health and observability (GET /health, ARGUS/config/services.json)." }
+    ],
+    "surfaces": [
+      { "kind": "trust_readiness_report", "note": "Scored gap report from a public-source cold read. Guide-not-grade; shows the retrieval chain ('Retrieved from X'); no score out of 100." },
+      { "kind": "vendor_insurance_routing", "note": "Each gap -> a routed next step (vendor / distributor / AWS program / insurer / internal owner) with attribution." }
+    ],
+    "external_services": [
+      { "name": "Perplexity", "purpose": "Company recon — recency / live signal." },
+      { "name": "Gemini", "purpose": "Company recon — large-document synthesis." },
+      { "name": "Firecrawl (self-hosted on EC2)", "purpose": "Content fetch for recon (one of three recon sources)." },
+      { "name": "Direct inference (Bedrock default)", "purpose": "proof360 ships inference DIRECT, not via VECTOR (ruling 2026-05-29; P9 decouple). Keys centralised in SSM." }
+    ],
+    "mcp_surfaces": [],
+    "a2a_agent_cards": [],
+    "nexus_capabilities": ["trust-readiness-diagnostic", "vendor-gap-routing"]
+  },
+
+  "product": {
+    "offer": "Trust readiness diagnostic and report.",
+    "target_customer": "Founders, CISOs, operators, and vendors preparing for enterprise trust review.",
+    "positioning": "Fast trust gap visibility with partner/vendor routing.",
+    "roadmap_state": "live",
+    "notes": "Can consume Vanta, commercial partner, and VERITAS evidence flows."
+  },
+
+  "technical": {
+    "repo_refs": ["proof360"],
+    "service_refs": ["proof360"],
+    "runtime_refs": ["CONTROL/workspace.control.json:proof360"],
+    "notes": "HTTP product service (port 3002 on EC2) with ARGUS observability. Recon via Firecrawl+Perplexity+Gemini; inference direct."
+  },
+
+  "commercial": {
+    "state": "revenue_possible",
+    "market_category": "Founder-facing trust readiness and enterprise deal readiness diagnostic.",
+    "positioning_narrative": "proof360 helps founders understand which public trust gaps will block enterprise deals, fundraising, procurement, insurance, or partner conversations, then routes them toward a governed, vendor-neutral path to fix the gaps. It is a trust troubleshooting console, not a compliance audit or generic scanner.",
+    "icp": {
+      "label": "B2B SaaS founder approaching enterprise trust friction",
+      "description": "A founder-led or lean operator-led B2B company that sells into enterprise, regulated, or security-sensitive buyers and needs a fast, plain-English read on the trust gaps that could slow a deal, diligence process, partner motion, or insurance quote.",
+      "company_size": "Seed to Series B/growth; roughly 10-250 employees as a starting hypothesis.",
+      "industry": "B2B SaaS, AI, fintech, healthtech, marketplaces, cloud services, MSP/MSSP, and other companies where enterprise trust, security posture, or compliance questions affect revenue.",
+      "trigger_event": "Enterprise prospect sends a security questionnaire, procurement stalls, investor diligence asks for security evidence, AWS/partner program qualification begins, or cyber insurance / underwriting questions surface.",
+      "pain": "The founder can feel trust friction but cannot translate it into a prioritised, business-readable action plan without hiring a consultant or starting a full compliance program too early.",
+      "current_alternative": "Founder guesses from questionnaires, asks a vCISO or advisor, starts Vanta/Drata/Secureframe prematurely, runs technical scanners, or leaves the trust story as an unresolved sales/diligence risk."
+    },
+    "buyer": {
+      "role": "Founder/operator responsible for revenue trust friction.",
+      "title": "Founder, CEO, COO, CTO, VP Sales, Head of Revenue, or fractional security/compliance lead.",
+      "reports_to": "Founder/board for early-stage companies; revenue or operations leadership for larger companies.",
+      "budget_authority": "Likely discretionary founder/operator budget for the diagnostic; implementation budget may sit with operations, security, IT, or partner/vendor spend.",
+      "decision_criteria": [
+        "Explains trust gaps in business language rather than control-matrix language.",
+        "Produces useful clarity quickly from public-source signals.",
+        "Connects gaps to enterprise deal readiness, fundraising, procurement, insurance, or partner outcomes.",
+        "Keeps vendor recommendations neutral and separated from diagnosis.",
+        "Can become a shareable or governed trust profile later without rebuilding the workflow."
+      ],
+      "objections": [
+        "This looks like another compliance checklist.",
+        "The company is too early for SOC 2 or ISO 27001.",
+        "Public-source analysis may be incomplete.",
+        "Vendor routing could bias the diagnosis.",
+        "Founder does not want another dashboard or account to maintain."
+      ]
+    },
+    "user": {
+      "role": "Founder or operator trying to get a trusted external conversation unstuck.",
+      "daily_context": "Has limited time, a buyer/investor/partner asking trust questions, and needs an understandable read that turns uncertainty into a next action.",
+      "success_metric": "User can explain the top trust blockers, knows which gap to fix first, and has a credible path to a vendor, distributor, AWS program, insurer, or internal owner."
+    },
+    "pricing_hypothesis": {
+      "model": "Free or low-friction diagnostic feeding paid routing and partner economics; later per-report/subscription surfaces for enterprise buyers, investors, insurers, AWS sellers, and distributors.",
+      "anchor_price": null,
+      "currency": "AUD/USD depending on route",
+      "basis": "Existing proof360 commercial notes: reseller embed fees, vendor partner lead routing commission, three-branch attribution, Austbrokers underwriting model, AWS program and Marketplace motions.",
+      "evidence_state": "untested",
+      "notes": "Keep pricing explicitly hypothetical. The first revenue test is likely founder-to-quote/vendor routing or partner/distributor embed rather than charging the founder upfront."
+    },
+    "gtm_motion": {
+      "primary_channel": "Public proof360.au cold read leading to email capture and actionable Tier 2 routing.",
+      "secondary_channels": [
+        "Distributor embed via Ingram/Dicker partner portal",
+        "AWS partner/program qualification and Marketplace co-sell motion",
+        "Cyber insurance / Austbrokers underwriting path",
+        "Founder-led referrals from enterprise sales and investor diligence moments",
+        "Future enterprise buyer, investor, and distributor surfaces once commercially pulled"
+      ],
+      "first_touchpoint": "Company URL cold read or partner-distributed assessment link.",
+      "conversion_trigger": "A user sees a trust gap that blocks a live deal/diligence process and chooses a routed next step: John, distributor, or vendor direct.",
+      "notes": "Founder remains the first served persona in the locked v3 posture. Multi-stakeholder surfaces are future commercial paths and should not dilute the first ICP until John ratifies expansion."
+    },
+    "competitive_frame": [
+      { "category": "Compliance automation", "examples": ["Vanta", "Drata", "Secureframe"], "view": "They help companies run compliance programs; proof360 helps founders understand which trust gaps matter before or alongside that tooling." },
+      { "category": "GRC platforms", "examples": ["Enterprise GRC suites", "audit dashboards"], "view": "They speak to compliance and legal teams; proof360 speaks first to founders and revenue operators." },
+      { "category": "Security scanners and scorecards", "examples": ["technical scanners", "external risk scores"], "view": "They surface technical findings or external scores; proof360 translates trust posture into deal-readiness consequences and supported next paths." },
+      { "category": "Ecosystem-native trust scoring", "examples": ["AWS Marketplace trust assessment", "Vanta trust score", "Cloudflare trust posture features"], "view": "Strategic risk: large ecosystems may move into trust scoring. proof360's defensibility is the structured signal dataset, reasoning corpus, and portable governed profile." }
+    ],
+    "messaging": {
+      "headline": "Know what trust gaps are blocking your next enterprise yes.",
+      "subheadline": "Run a fast public-source trust read, understand the business consequence of each gap, and choose a governed path to fix what matters first.",
+      "value_props": [
+        "Turns security and trust uncertainty into a founder-readable action plan.",
+        "Frames gaps by revenue, diligence, procurement, insurance, and partner impact.",
+        "Separates diagnosis from vendor routing so trust stays neutral.",
+        "Builds a structured signal dataset that can become a portable trust profile.",
+        "Routes action through proof360, distributor, or vendor direct paths with attribution."
+      ],
+      "proof_points": [
+        "v1 live at proof360.au.",
+        "v3 architecture locked: deterministic recompute, override contract, VERITAS Tier 2 attestation, engagement router."
+      ]
+    },
+    "revenue_model": "Free/low-friction diagnostic feeding paid routing economics: reseller embed fees, vendor/distributor routing commission, AWS program/Marketplace co-sell margin, insurance origination, future buyer/investor subscription surfaces.",
+    "eligible_agreement_ids": [
+      "dicker-data-reseller",
+      "ingram-micro-reseller",
+      "vanta-msp",
+      "cisco-msp",
+      "palo-alto-partner",
+      "austbrokers-cyberpro-referrer"
+    ],
+    "attestation": {
+      "state": "agent_drafted_placeholder",
+      "by": "john-coates",
+      "date": "2026-05-02",
+      "basis": "Best-guess placeholder drafted from proof360 DOSSIER, NORTH_STAR, strategy brief, convergence locks, and commercial notes. Not market-validated. review_needed."
+    }
+  },
+
+  "finance": {
+    "billing_code": "EL-PROOF360",
+    "cost_centre_id": "cc-product-spvs",
+    "accounting_environment_id": "acct-env-ethiks360-pty-ltd",
+    "tracking_option_id": "spv-proof360",
+    "coa_account_block_id": "proof360-account-block",
+    "unit_economics_state": "unknown",
+    "stripe_refs": [],
+    "accounting_provider_refs": [],
+    "budget_refs": [],
+    "notes": "Direct product costs are attributed to proof360; live revenue state remains feed-dependent."
+  },
+
+  "operations": {
+    "owner": "john-coates",
+    "support_model": "operator_managed",
+    "runbook_refs": ["CONTROL/views/RUNBOOK.md"],
+    "health_refs": ["ARGUS/config/services.json", "CONTROL/views/status.sh"],
+    "incident_refs": [],
+    "notes": "Status view and ARGUS monitor operating health."
+  },
+
+  "marketing": {
+    "brand_identity_ref": "_ethiks-design-system/tokens/module-palette.json",
+    "website_refs": ["proof360.au"],
+    "messaging_refs": [],
+    "campaign_refs": [],
+    "notes": "Commercial register should use warmer 360 treatment once finalized."
+  },
+
+  "sales": {
+    "pipeline_state": "manual",
+    "crm_refs": ["hubspot-crm-feed"],
+    "customer_refs": [],
+    "proposal_refs": [],
+    "notes": "HubSpot feed is registered but not treated as evidence authority."
+  },
+
+  "evidence": {
+    "document_state": "operator_attested",
+    "veritas_claim_refs": [],
+    "corpus_refs": [],
+    "source_refs": ["DOSSIER.md", "CONTROL/workspace.control.json"],
+    "notes": "Investor/customer claims should be promoted through VERITAS before external use."
+  },
+
+  "risk": {
+    "state": "identified",
+    "risk_refs": [],
+    "open_risks": [
+      "Commercial terms and pricing remain unverified.",
+      "Standalone SPV legal formation is not recorded."
+    ],
+    "notes": "Unknowns remain explicit until evidence is attached."
+  },
+
+  "capital": {
+    "state": "materials_pending",
+    "raise_refs": [],
+    "use_of_funds_refs": [],
+    "valuation_refs": [],
+    "notes": "Can become data-room ready after legal, finance, claims, and use-of-funds views are generated and attested."
+  },
+
+  "data_room": {
+    "state": "draft",
+    "index_refs": [],
+    "audience_views": ["investor", "enterprise_buyer", "partner"],
+    "notes": "Data room is generated from this passport plus evidence registries."
+  },
+
+  "unknowns": ["Pricing model", "Unit economics", "Standalone SPV legal formation"]
+}
