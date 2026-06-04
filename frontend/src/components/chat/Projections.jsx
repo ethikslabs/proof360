@@ -122,8 +122,8 @@ function ProjectionShell({ tile, company, attributedTo, lastUpdated, children, t
           <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: tk[personaMeta.token] }} />
             <span style={{
-              fontFamily: '"Instrument Serif", Georgia, serif',
-              fontStyle: 'italic', fontSize: 15, color: tk.inkMid,
+              fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+              fontSize: 13, fontWeight: 500, color: tk.inkMid, letterSpacing: '0.01em',
             }}>{personaMeta.label}&apos;s lens · {personaMeta.note.toLowerCase()}</span>
           </div>
         )}
@@ -223,7 +223,7 @@ function InvestorProjection({ panel, company, t }) {
                   <span style={{ fontSize: 14, fontWeight: 500, color: tk.ink }}>{e.label}</span>
                   <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9.5, color: c, letterSpacing: '0.14em', textTransform: 'uppercase' }}>{label}</span>
                 </div>
-                <div style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic', fontSize: 12.5, color: tk.inkMid }}>{e.note}</div>
+                <div style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 12, color: tk.inkSoft }}>{e.note}</div>
               </div>
             );
           })}
@@ -263,7 +263,7 @@ function VendorsProjection({ panel, company, t }) {
 
   return (
     <ProjectionShell tile={tile} company={company} attributedTo="leonardo" lastUpdated="6m ago" t={t}>
-      <p style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic', fontSize: 20, lineHeight: 1.4, color: tk.inkMid, margin: '0 0 36px', maxWidth: 640 }}>
+      <p style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 16, lineHeight: 1.55, color: tk.inkMid, margin: '0 0 36px', maxWidth: 640 }}>
         {d.summary}
       </p>
       {d.vendors.length === 0 ? (
@@ -287,7 +287,7 @@ function VendorsProjection({ panel, company, t }) {
                 <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9.5, fontWeight: 600, color: priorityColor(v.priority), letterSpacing: '0.18em', textTransform: 'uppercase' }}>{priorityLabel(v.priority)}</div>
               </div>
               <div>
-                <div style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic', fontSize: 15, color: tk.inkMid, lineHeight: 1.5, marginBottom: 8 }}>{v.why}</div>
+                <div style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 13.5, color: tk.inkMid, lineHeight: 1.5, marginBottom: 8 }}>{v.why}</div>
                 <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9.5, color: tk.inkSoft, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Addresses · {v.addresses}</div>
               </div>
               <a href="https://meetings.hubspot.com/john3174" target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ alignSelf: 'center', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.teal, borderBottom: `1px solid ${tk.teal}66`, paddingBottom: 1, letterSpacing: '0.04em', textDecoration: 'none', whiteSpace: 'nowrap' }}>Apply →</a>
@@ -438,7 +438,7 @@ function VendorDetailProjection({ id, company, t }) {
   const statusLabel = (s) => s === 'available' ? 'Available' : s === 'eligible' ? 'Eligible' : 'Not enrolled';
   return (
     <ProjectionShell tile={tile} company={company} attributedTo={d.attributedTo} lastUpdated="live" t={t}>
-      <p style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic', fontSize: 20, lineHeight: 1.4, color: tk.inkMid, margin: '0 0 36px', maxWidth: 640 }}>
+      <p style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 16, lineHeight: 1.55, color: tk.inkMid, margin: '0 0 36px', maxWidth: 640 }}>
         {d.summary}
       </p>
       <PSection kicker="Programs" title="Where you can apply now" source={d.source} t={t}>
@@ -450,10 +450,10 @@ function VendorDetailProjection({ id, company, t }) {
           }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 4 }}>
-                <span style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontSize: 18, color: tk.ink, letterSpacing: '-0.005em' }}>{p.name}</span>
+                <span style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 15, fontWeight: 600, color: tk.ink, letterSpacing: '-0.005em' }}>{p.name}</span>
                 <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9.5, color: statusColor(p.status), letterSpacing: '0.16em', textTransform: 'uppercase' }}>{statusLabel(p.status)}</span>
               </div>
-              <div style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic', fontSize: 14, color: tk.inkMid }}>{p.value} · {p.detail}</div>
+              <div style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 13, lineHeight: 1.5, color: tk.inkMid }}>{p.value} · {p.detail}</div>
             </div>
             {(p.status === 'available' || p.status === 'eligible') && (
               <a href="https://meetings.hubspot.com/john3174" target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ alignSelf: 'center', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.teal, borderBottom: `1px solid ${tk.teal}66`, paddingBottom: 1, letterSpacing: '0.04em', textDecoration: 'none', whiteSpace: 'nowrap' }}>Apply →</a>
@@ -495,14 +495,48 @@ const YOURS_MICROSOFT = {
 
 function AwsProjection({ panel, company, t }) {
   const tk = tokens(t.theme);
-  const tile = { kind: 'Programs', token: 'teal', glyphKey: 'aws', title: 'AWS programs matched to your stage' };
+  const tile = { kind: 'AWS', token: 'aws', glyphKey: 'aws', title: 'AWS programs matched to your stage' };
   const d = panel ?? YOURS_AWS;
+  const availableCount = d.programs.filter(p => p.status === 'available').length;
   const statusColor = (s) => s === 'available' ? tk.sevOk : s === 'eligible' ? tk.umber : tk.inkSoft;
   const statusLabel = (s) => s === 'available' ? 'Available' : s === 'eligible' ? 'Eligible' : 'Not enrolled';
 
   return (
     <ProjectionShell tile={tile} company={company} attributedTo="edison" lastUpdated="9m ago" t={t}>
-      <p style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic', fontSize: 20, lineHeight: 1.4, color: tk.inkMid, margin: '0 0 36px', maxWidth: 640 }}>
+      {/* AWS co-sell hero — the commercial moment, top of the panel */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 20,
+        padding: '22px 26px', marginBottom: 30,
+        background: tk.awsInk, borderRadius: 14,
+      }}>
+        <span style={{ display: 'flex', width: 42, height: 42, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          {SPACE_GLYPHS[tile.glyphKey]?.(tk.aws)}
+        </span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontFamily: '"IBM Plex Mono", monospace', fontSize: 10, fontWeight: 600,
+            letterSpacing: '0.22em', textTransform: 'uppercase', color: tk.aws, marginBottom: 7,
+          }}>AWS Marketplace · Co-sell</div>
+          <div style={{
+            fontFamily: '"Instrument Serif", Georgia, serif', fontSize: 30,
+            color: '#ffffff', lineHeight: 1.05, letterSpacing: '-0.015em',
+          }}>{d.creditHeadline ?? '$220k+ in credits + co-sell'}</div>
+          <div style={{
+            fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 12.5,
+            color: '#c2c8d2', marginTop: 8,
+          }}>{availableCount} available now · {d.programs.length} matched to your stage</div>
+        </div>
+        <a href="https://aws.amazon.com/marketplace" target="_blank" rel="noopener noreferrer"
+          onClick={e => e.stopPropagation()}
+          style={{
+            flexShrink: 0, alignSelf: 'center',
+            background: tk.aws, color: tk.awsInk,
+            fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 13, fontWeight: 700,
+            padding: '10px 18px', borderRadius: 9, textDecoration: 'none',
+            letterSpacing: '0.01em', whiteSpace: 'nowrap',
+          }}>Apply →</a>
+      </div>
+      <p style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 16, lineHeight: 1.55, color: tk.inkMid, margin: '0 0 36px', maxWidth: 640 }}>
         {d.summary}
       </p>
       {d.programs.length === 0 ? (
@@ -519,10 +553,10 @@ function AwsProjection({ panel, company, t }) {
             }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 4 }}>
-                  <span style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontSize: 18, color: tk.ink, letterSpacing: '-0.005em' }}>{p.name}</span>
+                  <span style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 15, fontWeight: 600, color: tk.ink, letterSpacing: '-0.005em' }}>{p.name}</span>
                   <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9.5, color: statusColor(p.status), letterSpacing: '0.16em', textTransform: 'uppercase' }}>{statusLabel(p.status)}</span>
                 </div>
-                <div style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic', fontSize: 14, color: tk.inkMid }}>{p.value} · {p.detail}</div>
+                <div style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 13, lineHeight: 1.5, color: tk.inkMid }}>{p.value} · {p.detail}</div>
               </div>
               {(p.status === 'available' || p.status === 'eligible') && (
                 <a href="https://meetings.hubspot.com/john3174" target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ alignSelf: 'center', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.teal, borderBottom: `1px solid ${tk.teal}66`, paddingBottom: 1, letterSpacing: '0.04em', textDecoration: 'none', whiteSpace: 'nowrap' }}>Apply →</a>
@@ -544,7 +578,7 @@ function MicrosoftProjection({ panel, company, t }) {
 
   return (
     <ProjectionShell tile={tile} company={company} attributedTo="leonardo" lastUpdated="5m ago" t={t}>
-      <p style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic', fontSize: 20, lineHeight: 1.4, color: tk.inkMid, margin: '0 0 36px', maxWidth: 640 }}>
+      <p style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 16, lineHeight: 1.55, color: tk.inkMid, margin: '0 0 36px', maxWidth: 640 }}>
         {d.summary}
       </p>
       {d.programs.length === 0 ? (
@@ -561,10 +595,10 @@ function MicrosoftProjection({ panel, company, t }) {
             }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 4 }}>
-                  <span style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontSize: 18, color: tk.ink, letterSpacing: '-0.005em' }}>{p.name}</span>
+                  <span style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 15, fontWeight: 600, color: tk.ink, letterSpacing: '-0.005em' }}>{p.name}</span>
                   <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9.5, color: statusColor(p.status), letterSpacing: '0.16em', textTransform: 'uppercase' }}>{statusLabel(p.status)}</span>
                 </div>
-                <div style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic', fontSize: 14, color: tk.inkMid }}>{p.value} · {p.detail}</div>
+                <div style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 13, lineHeight: 1.5, color: tk.inkMid }}>{p.value} · {p.detail}</div>
               </div>
               {(p.status === 'available' || p.status === 'eligible') && (
                 <a href="https://meetings.hubspot.com/john3174" target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ alignSelf: 'center', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.teal, borderBottom: `1px solid ${tk.teal}66`, paddingBottom: 1, letterSpacing: '0.04em', textDecoration: 'none', whiteSpace: 'nowrap' }}>Apply →</a>
@@ -598,7 +632,7 @@ function PostureProjection({ panel, company, t }) {
 
   return (
     <ProjectionShell tile={tile} company={company} attributedTo="edison" lastUpdated="6m ago" t={t}>
-      <p style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic', fontSize: 20, lineHeight: 1.4, color: tk.inkMid, margin: '0 0 36px', maxWidth: 640 }}>
+      <p style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 16, lineHeight: 1.55, color: tk.inkMid, margin: '0 0 36px', maxWidth: 640 }}>
         {d.summary}
       </p>
       <PSection kicker="Checks" title="What's running right now" source={`${d.items.length} integrations · live`} t={t}>
@@ -636,7 +670,7 @@ function SpvProjection({ panel, company, t }) {
 
   return (
     <ProjectionShell tile={tile} company={company} attributedTo="leonardo" lastUpdated="just now" t={t}>
-      <p style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontStyle: 'italic', fontSize: 20, lineHeight: 1.4, color: tk.inkMid, margin: '0 0 36px', maxWidth: 640 }}>
+      <p style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 16, lineHeight: 1.55, color: tk.inkMid, margin: '0 0 36px', maxWidth: 640 }}>
         {d.summary}
       </p>
       <PSection kicker="Current state" title="What the passport says today" t={t}>

@@ -1953,11 +1953,11 @@ export default function Chat() {
                     fontSize: hasMessages ? 'clamp(20px, 2.6vw, 30px)' : 'clamp(26px, 3.6vw, 42px)',
                     letterSpacing: '-0.022em', color: tk.ink, lineHeight: 1.18, marginBottom: 10,
                   }}>
-                    Investors are evaluating you<em style={{ fontStyle: 'italic' }}> right now.</em>
+                    Investors are evaluating you<span style={{ color: tk.plum }}> right now.</span>
                   </div>
                   <div style={{
-                    fontFamily: '"Instrument Serif", Georgia, serif',
-                    fontStyle: 'italic', fontSize: 14, color: tk.inkSoft,
+                    fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                    fontSize: 13.5, color: tk.inkSoft, letterSpacing: '0.01em',
                   }}>Before the pitch. Before the meeting. Before you know they&apos;re looking.</div>
                   <div style={{
                     fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
@@ -2162,11 +2162,11 @@ export default function Chat() {
                     fontSize: 'clamp(24px, 3vw, 38px)',
                     letterSpacing: '-0.022em', color: tk.ink, lineHeight: 1.18, marginBottom: 10,
                   }}>
-                    Investors are evaluating you<em style={{ fontStyle: 'italic' }}> right now.</em>
+                    Investors are evaluating you<span style={{ color: tk.plum }}> right now.</span>
                   </div>
                   <div style={{
-                    fontFamily: '"Instrument Serif", Georgia, serif',
-                    fontStyle: 'italic', fontSize: 14, color: tk.inkSoft,
+                    fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+                    fontSize: 13.5, color: tk.inkSoft, letterSpacing: '0.01em',
                   }}>Before the pitch. Before the meeting. Before you know they&apos;re looking.</div>
                   <div style={{
                     fontFamily: '"IBM Plex Sans", system-ui, sans-serif',

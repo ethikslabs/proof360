@@ -521,6 +521,7 @@ export const ChatInput = forwardRef(function ChatInput(
   });
 
   const canSend = !disabled && !isEmpty;
+  const firstTurn = !(messages?.length > 0);
 
   return (
     <form onSubmit={handleSubmit}>
@@ -642,14 +643,21 @@ export const ChatInput = forwardRef(function ChatInput(
             title="Send"
             disabled={!canSend}
             style={{
-              width: 30, height: 30, borderRadius: 8,
-              background: canSend ? '#111827' : '#f3f4f6',
+              height: 34, borderRadius: 9,
+              width: firstTurn ? 'auto' : 34,
+              padding: firstTurn ? '0 15px' : 0,
+              gap: 7,
+              background: canSend ? '#111827' : '#eceef1',
               border: 'none', cursor: canSend ? 'pointer' : 'default',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               transition: 'background 0.15s', flexShrink: 0,
+              fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+              fontSize: 13, fontWeight: 600,
+              color: canSend ? '#ffffff' : '#aab0bb',
             }}
           >
-            <IconSend color={canSend ? '#ffffff' : '#d1d5db'} />
+            {firstTurn && <span>Analyze</span>}
+            <IconSend color={canSend ? '#ffffff' : '#aab0bb'} />
           </button>
         </div>
       </div>
