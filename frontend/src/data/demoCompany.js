@@ -23,6 +23,11 @@ export const DEMO_STAGES = [
       { id: 'demo-s1-2', persona: 'edison',   model: 'claude-sonnet-4-6',         tok: 94,  ms: 580,
         content: "You don't exist online. No website, no email domain, nothing that would survive a Google search by a buyer. That's not a minor gap — it's the first thing any commercial buyer checks before they pick up the phone." },
     ],
+    hopeSees: {
+      caption: 'A net-new logo not yet in the cloud funnel.',
+      logo: false,
+      usage: 'none',       // none → first → rising → compounding → exploding
+    },
   },
 
   {
@@ -49,6 +54,11 @@ export const DEMO_STAGES = [
       { id: 'demo-s2-2', persona: 'edison',   model: 'claude-sonnet-4-6',         tok: 108, ms: 620,
         content: "Four gaps between you and signing. The food safety certification is the blocker — everything else can run in parallel once that's in motion. The FSA registration is straightforward but don't leave it late. I'd start Monday." },
     ],
+    hopeSees: {
+      caption: 'Routed into qualified AWS/Ingram pathways instead of leaking out the side.',
+      logo: true,
+      usage: 'rising',
+    },
   },
 
   {
@@ -75,6 +85,11 @@ export const DEMO_STAGES = [
       { id: 'demo-s3-2', persona: 'edison',   model: 'claude-sonnet-4-6',         tok: 128, ms: 710,
         content: "The QR system is collecting data at every scan — location, time, device. Valuable. But you don't have a privacy policy, the API has no access control, and there's no incident response plan. For B2B clients in food safety, those aren't nice-to-haves." },
     ],
+    hopeSees: {
+      caption: 'Usage expands — evidence, data, storage, compute, AI workflows compound.',
+      logo: true,
+      usage: 'compounding',
+    },
   },
 
   {
@@ -102,6 +117,11 @@ export const DEMO_STAGES = [
       { id: 'demo-s4-2', persona: 'edison',   model: 'claude-sonnet-4-6',         tok: 138, ms: 760,
         content: "Six gaps, two critical. The blockchain code review is the one that surprises founders — it's not on most checklists, but any investor with a technical background will ask for it. The security audit clock is the other problem: 14-month average wait time means you should have started six months ago. Let's sequence the rest." },
     ],
+    hopeSees: {
+      caption: 'One logo becomes many logos.',
+      logo: true,
+      usage: 'exploding',
+    },
   },
 ];
 
