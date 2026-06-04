@@ -1110,6 +1110,49 @@ function JourneyConsentCards({ onSelect, stages, tk }) {
   );
 }
 
+// The binary "have a crack" gate — the first decision, before the dashboard.
+// Not a pitch: two doors. Be the founder of Hive & Co, or be you.
+function DecisionPage({ onHive, onYou, tk }) {
+  const [hover, setHover] = useState(null);
+  const card = (active) => ({
+    flex: '1 1 320px', maxWidth: 360, minWidth: 280,
+    textAlign: 'left', cursor: 'pointer', padding: '26px 24px 22px',
+    borderRadius: 16,
+    border: `1px solid ${active ? tk.plum : tk.hairline}`,
+    background: active ? `${tk.plum}08` : (tk.panel ?? '#ffffff'),
+    boxShadow: active ? `0 6px 24px ${tk.plum}1f` : '0 1px 3px rgba(0,0,0,0.04)',
+    transition: 'all 0.18s', fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+  });
+  const eyebrow = { fontSize: 10.5, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: tk.plum, marginBottom: 9 };
+  const title = { fontFamily: '"Instrument Serif", Georgia, serif', fontSize: 25, lineHeight: 1.15, color: tk.ink, marginBottom: 10 };
+  const body = { fontSize: 13, lineHeight: 1.55, color: tk.inkSoft, marginBottom: 18 };
+  const cta = { fontSize: 13, fontWeight: 600, color: tk.plum };
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, overflowY: 'auto' }}>
+      <div style={{ textAlign: 'center', fontFamily: '"Instrument Serif", Georgia, serif', fontSize: 'clamp(26px, 3.4vw, 40px)', color: tk.ink, lineHeight: 1.15, marginBottom: 8 }}>
+        Don&rsquo;t take our word for it.
+      </div>
+      <div style={{ textAlign: 'center', fontSize: 14.5, color: tk.inkSoft, marginBottom: 34, fontFamily: '"IBM Plex Sans", system-ui, sans-serif' }}>
+        Have a crack. See what the system reveals.
+      </div>
+      <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', justifyContent: 'center', width: '100%', maxWidth: 760 }}>
+        <button type="button" onClick={onHive} onMouseEnter={() => setHover('hive')} onMouseLeave={() => setHover(null)} style={card(hover === 'hive')}>
+          <div style={eyebrow}>The reference founder</div>
+          <div style={title}>Be the founder of Hive &amp; Co</div>
+          <div style={body}>Walk a real company from a market stall to a serious raise. Press the buttons. See exactly what an investor and an enterprise buyer see.</div>
+          <div style={cta}>See the journey &rarr;</div>
+        </button>
+        <button type="button" onClick={onYou} onMouseEnter={() => setHover('you')} onMouseLeave={() => setHover(null)} style={card(hover === 'you')}>
+          <div style={eyebrow}>Your own company</div>
+          <div style={title}>Be you</div>
+          <div style={body}>Paste a site, drop a deck, or just describe what you&rsquo;re building. Same crack &mdash; your numbers, your gaps.</div>
+          <div style={cta}>Map your own &rarr;</div>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // Hope's two numbers — always-on executive status strip (reads the active stage's hopeSees)
 const HUD_USAGE = {
   none:        { dots: 0, label: 'none' },
@@ -1279,6 +1322,7 @@ export default function Chat() {
   const [briefShown, setBriefShown]       = useState(false);
   const [phase, setPhase]                 = useState('triage');  // 'triage' | 'active'
   const [intent, setIntent]               = useState(null);      // 'browse' | 'raise' | 'question'
+  const [entryChoice, setEntryChoice]     = useState(null);      // null | 'hive' | 'you' — the binary "have a crack" gate
   const [previewUrl, setPreviewUrl]       = useState(null);
   const [previewOpen, setPreviewOpen]     = useState(false);
   const [browserTabs, setBrowserTabs] = useState([]);
@@ -1953,7 +1997,13 @@ export default function Chat() {
           flexDirection: 'column',
           overflow: 'hidden',
         }}>
-          {isHeroState ? (
+          {entryChoice === null ? (
+            <DecisionPage
+              tk={tk}
+              onHive={() => { setEntryChoice('hive'); selectIntent('browse'); }}
+              onYou={() => setEntryChoice('you')}
+            />
+          ) : isHeroState ? (
             /* ── Hero / centered state ── */
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', minHeight: 0 }}>
               {/* Hero auth bar */}
