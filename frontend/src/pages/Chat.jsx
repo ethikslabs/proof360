@@ -1110,6 +1110,53 @@ function JourneyConsentCards({ onSelect, stages, tk }) {
   );
 }
 
+// Hope's two numbers — always-on executive status strip (reads the active stage's hopeSees)
+const HUD_USAGE = {
+  none:        { dots: 0, label: 'none' },
+  first:       { dots: 1, label: 'first workload' },
+  rising:      { dots: 2, label: 'rising' },
+  compounding: { dots: 3, label: 'compounding' },
+  exploding:   { dots: 4, label: 'exploding' },
+};
+function HopeHud({ stage, tk }) {
+  const hs = stage?.hopeSees;
+  if (!hs) return null;
+  const u = HUD_USAGE[hs.usage] ?? HUD_USAGE.none;
+  const line = tk.line ?? '#dde2e8';
+  const good = '#1f9d57';
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
+      padding: '8px 14px', marginBottom: 12,
+      background: tk.panel ?? '#f4f6f8',
+      border: `1px solid ${line}`, borderRadius: 9,
+      fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 12,
+    }}>
+      <span style={{ color: tk.inkSoft }}>
+        Net-new logo:{' '}
+        <span style={{ color: tk.ink, fontWeight: 600 }}>{stage.company?.name ?? 'Hive & Co'}</span>{' '}
+        <span style={{ color: hs.logo ? good : tk.inkSoft, fontWeight: 700 }}>{hs.logo ? '✓' : '—'}</span>
+      </span>
+      <span style={{ color: line }}>·</span>
+      <span style={{ color: tk.inkSoft }}>
+        AWS usage:{' '}
+        <span style={{ color: tk.ink, fontWeight: 600 }}>{u.label}</span>{' '}
+        <span style={{ letterSpacing: 2, color: good }}>
+          {'●'.repeat(u.dots)}<span style={{ color: line }}>{'○'.repeat(4 - u.dots)}</span>
+        </span>
+      </span>
+      {stage.id === 'sainsburys' && (
+        <>
+          <span style={{ color: line }}>·</span>
+          <span style={{ color: tk.inkSoft }}>
+            Routed pathway: <span style={{ color: tk.ink, fontWeight: 600 }}>AWS-qualified programs</span>
+          </span>
+        </>
+      )}
+    </div>
+  );
+}
+
 function StageSelector({ stages, activeId, onSelect, tk }) {
   const activeIdx = stages.findIndex(s => s.id === activeId);
   return (
@@ -2229,6 +2276,7 @@ export default function Chat() {
                   {/* Hive & Co stage selector — shown only once journey is running */}
                   {intent === 'browse' && phase === 'active' && (
                     <div style={{ marginBottom: 24 }}>
+                      <HopeHud stage={activeStage} tk={tk} />
                       <StageSelector
                         stages={DEMO_STAGES}
                         activeId={activeStageId}
