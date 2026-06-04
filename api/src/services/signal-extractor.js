@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import FirecrawlApp from '@mendable/firecrawl-js';
 import { ENTERPRISE_SIGNALS_SCHEMA } from '../config/gaps.js';
+import { CHAT_COMPLETIONS_URL } from '../config/inference.js';
 import { runReconPipeline } from './recon-pipeline.js';
 import { reconCompany } from './recon-company.js';
 import { record as recordConsumption } from './consumption-emitter.js';
@@ -68,7 +69,6 @@ async function scrapePages(firecrawl, baseUrl, log, session_id) {
 }
 
 async function extractWithClaude(pages, log = () => {}, session_id = null) {
-  const vectorUrl = process.env.VECTOR_URL || 'http://localhost:3003/v1';
   const correlationId = session_id || 'proof360';
 
   const content = pages.map((p) => `### ${p.label}\n${p.content}`).join('\n\n');
@@ -116,7 +116,7 @@ Signal rules:
 
   let response;
   try {
-    const res = await fetch(`${vectorUrl}/chat/completions`, {
+    const res = await fetch(CHAT_COMPLETIONS_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
