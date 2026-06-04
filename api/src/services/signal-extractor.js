@@ -1,8 +1,18 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 import FirecrawlApp from '@mendable/firecrawl-js';
 import { ENTERPRISE_SIGNALS_SCHEMA } from '../config/gaps.js';
 import { runReconPipeline } from './recon-pipeline.js';
 import { reconCompany } from './recon-company.js';
 import { record as recordConsumption } from './consumption-emitter.js';
+import { resolve as resolveModel } from '../lib/model-resolver.mjs';
+
+// Model resolution: ask the vendored registry for the role's model (governed SSOT,
+// synced from workspace-control via sync-registry) instead of hardcoding an id that can
+// silently deprecate. Aliased to resolveModel — this file uses `resolve` as a Promise cb below.
+const _registry = JSON.parse(readFileSync(
+  join(dirname(fileURLToPath(import.meta.url)), '../../config/models.registry.json'), 'utf8'));
 
 const PAGES_TO_CHECK = [
   { path: '/', label: 'homepage' },
@@ -114,7 +124,7 @@ Signal rules:
         'X-Tenant-ID': 'proof360',
       },
       body: JSON.stringify({
-        model: 'amazon.nova-lite-v1:0',
+        model: resolveModel('classify', { registry: _registry, onLedger: () => {} }).model,
         max_tokens: 1024,
         messages: [{ role: 'user', content: prompt }],
         tenant_id: 'proof360',
