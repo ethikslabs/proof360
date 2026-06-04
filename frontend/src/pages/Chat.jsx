@@ -2108,6 +2108,7 @@ export default function Chat() {
                       onSelect={question => {
                         submit(question);
                       }}
+                      onJourney={() => selectIntent('browse')}
                     />
                   </div>
                 )}

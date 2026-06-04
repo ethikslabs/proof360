@@ -45,7 +45,7 @@ const MODES = [
   },
 ];
 
-export function ModeTiles({ onSelect, t }) {
+export function ModeTiles({ onSelect, onJourney, t }) {
   const tk = tokens(t?.theme ?? 'pearl');
   const [activeId, setActiveId] = useState(null);
   const [hoveredId, setHoveredId] = useState(null);
@@ -67,6 +67,28 @@ export function ModeTiles({ onSelect, t }) {
 
       {/* Mode chips */}
       <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', justifyContent: 'center', marginBottom: activeMode ? 10 : 0 }}>
+        {onJourney && (
+          <button
+            type="button"
+            onClick={onJourney}
+            onMouseEnter={() => setHoveredId('__journey')}
+            onMouseLeave={() => setHoveredId(null)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '6px 16px',
+              border: `1px solid ${tk.plum}`,
+              borderRadius: 20,
+              background: hoveredId === '__journey' ? tk.plum : `${tk.plum}12`,
+              color: hoveredId === '__journey' ? '#f8f5f0' : tk.plum,
+              fontSize: 12.5, fontWeight: 600,
+              fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+              cursor: 'pointer', transition: 'all 0.15s',
+            }}
+          >
+            <span>Walk the Hive &amp; Co journey</span>
+            <span style={{ fontSize: 13 }}>→</span>
+          </button>
+        )}
         {MODES.map(m => {
           const isActive = activeId === m.id;
           return (
