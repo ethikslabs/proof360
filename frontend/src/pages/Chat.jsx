@@ -1262,7 +1262,7 @@ export default function Chat() {
     window.addEventListener('proof360:telegram', handler);
     return () => window.removeEventListener('proof360:telegram', handler);
   }, []);
-  const [drawerCollapsed, setDrawerCollapsed] = useState(false);
+  const [, setDrawerCollapsed] = useState(false);
   const [sidebarCollapsed,setSidebarCollapsed]= useState(true);
   const [hiveStage,       setHiveStage]       = useState(1);
   const litTiles = useMemo(() => ({ investor: false, vendors: false, aws: false, microsoft: false, posture: false, spv: false }), []);
@@ -1293,9 +1293,7 @@ export default function Chat() {
   const {
     surfaceAuthority,
     suggestion,
-    surfaceFlex,
     recordChatActivity: _recordChatActivity,
-    recordProjectionIntent,
     commit: commitAuthority,
     dismiss: dismissAuthority,
     resetTurn: resetAuthorityTurn,
@@ -1377,7 +1375,6 @@ export default function Chat() {
   const inputRef    = useRef(null);
   const scrollRef   = useRef(null);
   const browserTabsRef = useRef([]);
-  const projectionIntentTimerRef = useRef(0);
 
   useEffect(() => {
     if (!logoCard) return;
@@ -1893,7 +1890,7 @@ export default function Chat() {
         {/* Mobile: hidden when Vendor Intelligence holds authority (AC-14) */}
         <div style={{
           position: 'relative', overflow: 'hidden',
-          flex: previewOpen ? '0 0 400px' : (isMobile ? 1 : surfaceFlex.chat),
+          flex: previewOpen ? '0 0 400px' : 1,
           transition: 'flex-grow 250ms ease, flex-shrink 250ms ease, flex-basis 0.38s cubic-bezier(0.32,0.72,0,1)',
           minWidth: isMobile ? 0 : 320,
           display: (isMobile && surfaceAuthority === VENDOR_AUTHORITY) ? 'none' : undefined,
@@ -2435,22 +2432,10 @@ export default function Chat() {
             </>
           )
         ) : (
-          <div style={{ position: 'relative', zIndex: 25, flexShrink: 0, display: 'flex' }}>
-            <CompanyProfile
-              profile={companyProfile}
-              isBuilding={isProcessing}
-              hasMessages={hasMessages}
-              tk={tk}
-              t={t}
-              onAsk={q => setInputValue(q)}
-              focusedProgram={focusedProgram}
-              onVendorSelect={id => { setActiveSpace(id); setDrawerCollapsed(false); }}
-              isDemoMode={isDemoMode}
-              activeSignals={activeSignals}
-              rankedVendors={rankedVendors}
-              ctaEarned={ctaEarned}
-            />
-          </div>
+          /* Desktop: vendor recommendations are no longer a persistent column.
+             They are reached via the left rail / chat and render in the fly-in
+             sheet below (same surface as AWS programs). */
+          null
         ))}
 
         {/* Browser panel */}
@@ -2489,75 +2474,51 @@ export default function Chat() {
           />
         )}
 
-        {/* Projection pane — elastic in-flow sibling (AC-8 AC-9 AC-10) */}
-        {/* Mobile (AC-14): full-width, shown only when surfaceAuthority === VENDOR_AUTHORITY */}
-        {/* Desktop: always mounted for smooth transitions; collapses to 0 when no content */}
-        {(isMobile ? surfaceAuthority === VENDOR_AUTHORITY : true) && (
-          <div
-            onClick={() => {
-              if (isMobile) return; // no intent recording on mobile tap
-              const now = Date.now();
-              if (now - projectionIntentTimerRef.current > 800) {
-                projectionIntentTimerRef.current = now;
-                recordProjectionIntent();
-              }
-            }}
-            style={{
-              flex: isMobile ? 'none' : (activeSpace === 'chat' ? '0 0 0px' : surfaceFlex.projection),
-              width: isMobile ? '100%' : undefined,
-              transition: isMobile ? 'none' : 'flex 250ms ease',
-              minWidth: isMobile ? 0 : (activeSpace === 'chat' ? 0 : 180),
-              overflow: 'hidden',
-              display: 'flex', flexDirection: 'row',
-              background: tk.bg,
-              borderLeft: (isMobile || activeSpace === 'chat') ? 'none' : `1px solid ${tk.hairline}`,
-              boxShadow: (isMobile || activeSpace === 'chat') ? 'none' : '-4px 0 16px rgba(0,0,0,0.06)',
-            }}
-          >
-            {/* Collapse / expand handle — desktop only */}
-            {!isMobile && (
-              <button
-                onClick={e => { e.stopPropagation(); setDrawerCollapsed(c => !c); }}
-                title={drawerCollapsed ? 'Expand panel' : 'Collapse panel'}
-                style={{
-                  flexShrink: 0, width: 28,
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  borderRight: `1px solid ${tk.hairline}`,
-                  color: tk.inkSoft,
-                  transition: 'background 0.15s',
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = tk.surfaceLo}
-                onMouseLeave={e => e.currentTarget.style.background = 'none'}
-              >
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <path
-                    d={drawerCollapsed ? 'M3 2 L7 5 L3 8' : 'M7 2 L3 5 L7 8'}
-                    stroke="currentColor" strokeWidth="1.4"
-                    strokeLinecap="round" strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-            )}
-
-            {/* Panel content — scrollable, compressed but visible at low flex (AC-9) */}
-            <div style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
-              <Projection
-                id={activeSpace}
-                company="hive"
-                hiveStage={hiveStage}
-                onBack={() => {
-                  setActiveSpace('chat');
-                  // On mobile, tapping back returns authority to Chat
-                  if (isMobile) {
-                    commitAuthority('Chat');
-                    setMobileActiveTab('Chat');
-                  }
-                }}
-                t={t}
-              />
+        {/* Projection — fly-in sheet over a dimmed, click-to-collapse backdrop.
+            Chat stays full-width beneath; the sheet takes most of the page and
+            collapses when the backdrop is clicked (mobile + desktop, one model). */}
+        {activeSpace !== 'chat' && (
+          <>
+            {/* Backdrop — click anywhere outside the sheet collapses back to chat */}
+            <div
+              onClick={() => {
+                setActiveSpace('chat');
+                if (isMobile) { commitAuthority('Chat'); setMobileActiveTab('Chat'); }
+              }}
+              style={{
+                position: 'fixed', inset: 0, zIndex: 40,
+                background: 'rgba(20,22,28,0.40)',
+                backdropFilter: 'blur(2px)',
+                animation: 'backdropIn 0.2s ease both',
+              }}
+            />
+            {/* Sheet — flies in from the right, ~most of the page */}
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{
+                position: 'fixed', top: 0, right: 0, bottom: 0,
+                width: isMobile ? '92vw' : 'min(1040px, 82vw)',
+                zIndex: 41, background: tk.bg,
+                borderLeft: `1px solid ${tk.hairline}`,
+                boxShadow: '-18px 0 56px rgba(0,0,0,0.20)',
+                display: 'flex', flexDirection: 'column', overflow: 'hidden',
+                animation: 'sheetIn 0.34s cubic-bezier(0.32,0.72,0,1) both',
+              }}
+            >
+              <div style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
+                <Projection
+                  id={activeSpace}
+                  company="hive"
+                  hiveStage={hiveStage}
+                  onBack={() => {
+                    setActiveSpace('chat');
+                    if (isMobile) { commitAuthority('Chat'); setMobileActiveTab('Chat'); }
+                  }}
+                  t={t}
+                />
+              </div>
             </div>
-          </div>
+          </>
         )}
 
 
