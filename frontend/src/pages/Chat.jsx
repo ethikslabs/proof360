@@ -2109,6 +2109,7 @@ export default function Chat() {
                         submit(question);
                       }}
                       onJourney={() => selectIntent('browse')}
+                      onOwn={() => inputRef.current?.focus()}
                     />
                   </div>
                 )}

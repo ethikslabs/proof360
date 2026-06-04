@@ -45,7 +45,7 @@ const MODES = [
   },
 ];
 
-export function ModeTiles({ onSelect, onJourney, t }) {
+export function ModeTiles({ onSelect, onJourney, onOwn, t }) {
   const tk = tokens(t?.theme ?? 'pearl');
   const [activeId, setActiveId] = useState(null);
   const [hoveredId, setHoveredId] = useState(null);
@@ -62,33 +62,54 @@ export function ModeTiles({ onSelect, onJourney, t }) {
     onSelect?.(question);
   }
 
+  // Invite mode — the single "have a crack" decision shown on the landing.
+  // Not a pitch: an invitation to step in and let the system reveal.
+  if (onJourney) {
+    return (
+      <div style={{ width: '100%', maxWidth: 560, margin: '0 auto', textAlign: 'center' }}>
+        <div style={{
+          fontFamily: '"Instrument Serif", Georgia, serif',
+          fontSize: 23, lineHeight: 1.25, color: tk.ink, marginBottom: 16,
+        }}>You&rsquo;re the founder of Hive &amp; Co.</div>
+        <button
+          type="button"
+          onClick={onJourney}
+          onMouseEnter={() => setHoveredId('__journey')}
+          onMouseLeave={() => setHoveredId(null)}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            padding: '11px 26px',
+            border: `1px solid ${tk.plum}`, borderRadius: 24,
+            background: hoveredId === '__journey' ? tk.plum : `${tk.plum}10`,
+            color: hoveredId === '__journey' ? '#f8f5f0' : tk.plum,
+            fontSize: 14, fontWeight: 600,
+            fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+            cursor: 'pointer', transition: 'all 0.15s',
+          }}
+        >
+          See your journey <span style={{ fontSize: 15 }}>→</span>
+        </button>
+        <div style={{ marginTop: 14 }}>
+          <button
+            type="button"
+            onClick={onOwn}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: tk.inkSoft, fontSize: 12.5,
+              fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+              textDecoration: 'underline', textUnderlineOffset: 3,
+            }}
+          >or map your own company</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ width: '100%', maxWidth: 600, margin: '0 auto' }}>
 
       {/* Mode chips */}
       <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', justifyContent: 'center', marginBottom: activeMode ? 10 : 0 }}>
-        {onJourney && (
-          <button
-            type="button"
-            onClick={onJourney}
-            onMouseEnter={() => setHoveredId('__journey')}
-            onMouseLeave={() => setHoveredId(null)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '6px 16px',
-              border: `1px solid ${tk.plum}`,
-              borderRadius: 20,
-              background: hoveredId === '__journey' ? tk.plum : `${tk.plum}12`,
-              color: hoveredId === '__journey' ? '#f8f5f0' : tk.plum,
-              fontSize: 12.5, fontWeight: 600,
-              fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-              cursor: 'pointer', transition: 'all 0.15s',
-            }}
-          >
-            <span>Walk the Hive &amp; Co journey</span>
-            <span style={{ fontSize: 13 }}>→</span>
-          </button>
-        )}
         {MODES.map(m => {
           const isActive = activeId === m.id;
           return (
