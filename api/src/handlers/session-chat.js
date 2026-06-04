@@ -3,8 +3,8 @@ import { buildSystemPrompt } from '../services/persona-prompts.js';
 import { notifyJohn } from '../services/john-relay.js';
 import { normalizeContext } from '../services/context-normalizer.js';
 import { runGapAnalysis } from '../services/gap-mapper.js';
+import { CHAT_COMPLETIONS_URL } from '../config/inference.js';
 
-const VECTOR_URL = process.env.VECTOR_URL || 'http://localhost:3003/v1';
 const MODEL = 'claude-haiku-4-5-20251001';
 
 const INTENT_RULES = [
@@ -125,7 +125,7 @@ export async function sessionChatHandler(request, reply) {
   let fullResponse = '';
 
   try {
-    const res = await fetch(`${VECTOR_URL}/chat/completions`, {
+    const res = await fetch(CHAT_COMPLETIONS_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
