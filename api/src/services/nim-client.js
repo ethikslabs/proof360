@@ -1,5 +1,6 @@
 // NIM inference client — routes through VECTOR (port 3003)
 // VECTOR handles provider routing and credentials. No keys needed here.
+import * as meter from '../lib/meter.mjs';
 
 const VECTOR_URL = process.env.VECTOR_URL || 'http://localhost:3003/v1';
 const NIM_MODEL   = process.env.NIM_MODEL || 'nvidia/llama-3.1-nemotron-ultra-253b-v1';
@@ -66,7 +67,14 @@ export async function nimComplete({ messages, temperature = 0.1, session_id }) {
     throw new Error(`NIM returned ${res.status}: ${body.slice(0, 100)}`);
   }
 
-  return await res.json();
+  const data = await res.json();
+  meter.emit({
+    provider: meter.providerForModel(data.model || NIM_MODEL),
+    model: data.model || NIM_MODEL,
+    correlation_id: correlationId,
+    ...meter.extractUsage(data),
+  });
+  return data;
 }
 
 // --- internals ---

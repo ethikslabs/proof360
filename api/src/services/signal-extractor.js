@@ -3,6 +3,7 @@ import { ENTERPRISE_SIGNALS_SCHEMA } from '../config/gaps.js';
 import { runReconPipeline } from './recon-pipeline.js';
 import { reconCompany } from './recon-company.js';
 import { record as recordConsumption } from './consumption-emitter.js';
+import * as meter from '../lib/meter.mjs';
 
 const PAGES_TO_CHECK = [
   { path: '/', label: 'homepage' },
@@ -137,6 +138,14 @@ Signal rules:
     if (err.status) log({ text: `  ↳  HTTP ${err.status}`, type: 'err' });
     throw err;
   }
+
+  // Usage meter: LLM tokens at the call site (attributed to proof360). Fire-and-forget.
+  meter.emit({
+    provider: meter.providerForModel(response.model || 'amazon.nova-lite-v1:0'),
+    model: response.model || 'amazon.nova-lite-v1:0',
+    correlation_id: correlationId,
+    ...meter.extractUsage(response),
+  });
 
   const text = response.choices[0].message.content.trim();
   // Strip markdown code fences if present
