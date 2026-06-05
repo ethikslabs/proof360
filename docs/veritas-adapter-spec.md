@@ -214,15 +214,15 @@ This mapping enforced server-side in `recompute.js` Tier-2 path — frontend nev
 
 ```
 VERITAS_URL=https://veritas.ethikslabs.com
-VERITAS_API_KEY=<from SSM /proof360/veritas/api-key>
+VERITAS_API_KEY=<from SSM /proof360/VERITAS_API_KEY>
 VERITAS_TIMEOUT_MS=30000
 VERITAS_MAX_RETRIES=3
 ```
 
 ### SSM paths
 
-- `/proof360/veritas/api-key` — VERITAS API key for proof360 tenant
-- `/proof360/veritas/url` — base URL (allows pointing at staging vs production)
+- `/proof360/VERITAS_API_KEY` — VERITAS API key for proof360 tenant
+- `/proof360/VERITAS_URL` — base URL (allows pointing at staging vs production)
 
 ### Tenant provisioning
 
@@ -233,7 +233,7 @@ proof360's `tenant_id` is provisioned in VERITAS before adapter goes live. One-t
 curl -X POST $VERITAS_URL/tenants \
   -H "x-api-key: $ADMIN_KEY" \
   -d '{"name": "proof360", "owner": "john-coates"}'
-# Returns { tenant_id: "<uuid>" } — store in SSM /proof360/veritas/tenant-id
+# Returns { tenant_id: "<uuid>" } — store in SSM /proof360/VERITAS_TENANT_ID
 ```
 
 This `tenant_id` is sent on every evidence-ingest call.
