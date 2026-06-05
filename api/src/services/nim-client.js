@@ -1,6 +1,7 @@
 // NIM inference client — inference transport is read from one place (config/inference.js).
 // The carrier handles provider routing and credentials. No keys needed here.
 import { INFERENCE_HEALTH_URL, CHAT_COMPLETIONS_URL } from '../config/inference.js';
+import * as meter from '../lib/meter.mjs';
 
 const NIM_MODEL   = process.env.NIM_MODEL || 'nvidia/llama-3.1-nemotron-ultra-253b-v1';
 const TIMEOUT_MS  = 30_000;
@@ -65,7 +66,14 @@ export async function nimComplete({ messages, temperature = 0.1, session_id }) {
     throw new Error(`NIM returned ${res.status}: ${body.slice(0, 100)}`);
   }
 
-  return await res.json();
+  const data = await res.json();
+  meter.emit({
+    provider: meter.providerForModel(data.model || NIM_MODEL),
+    model: data.model || NIM_MODEL,
+    correlation_id: correlationId,
+    ...meter.extractUsage(data),
+  });
+  return data;
 }
 
 // --- internals ---

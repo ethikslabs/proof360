@@ -8,6 +8,7 @@ import { runReconPipeline } from './recon-pipeline.js';
 import { reconCompany } from './recon-company.js';
 import { record as recordConsumption } from './consumption-emitter.js';
 import { resolve as resolveModel } from '../lib/model-resolver.mjs';
+import * as meter from '../lib/meter.mjs';
 
 // Model resolution: ask the vendored registry for the role's model (governed SSOT,
 // synced from workspace-control via sync-registry) instead of hardcoding an id that can
@@ -147,6 +148,13 @@ Signal rules:
     if (err.status) log({ text: `  ↳  HTTP ${err.status}`, type: 'err' });
     throw err;
   }
+
+  meter.emit({
+    provider: meter.providerForModel(response.model || 'unknown'),
+    model: response.model || 'unknown',
+    correlation_id: correlationId,
+    ...meter.extractUsage(response),
+  });
 
   const text = response.choices[0].message.content.trim();
   // Strip markdown code fences if present
