@@ -1,0 +1,30 @@
+{
+  "research-web": {
+    "provider": "perplexity",
+    "primary": "sonar-pro",
+    "fallbacks": ["sonar"]
+  },
+  "research-synth": {
+    "provider": "gemini",
+    "primary": "gemini-flash-latest",
+    "fallbacks": [],
+    "constraints": { "required_modality": ["text"], "required_region": null, "allow_preview": false, "allow_deprecated": false, "max_price_tier": "mid" },
+    "policy": { "fallback_allowed": true, "hard_fail_if_no_valid_fallback": true, "alert_on_fallback": true }
+  },
+  "classify": {
+    "provider": "bedrock",
+    "primary": "amazon.nova-lite-v1:0",
+    "fallbacks": ["amazon.nova-micro-v1:0"],
+    "constraints": { "required_modality": ["text"], "required_region": ["ap-southeast-2"], "allow_deprecated": false, "max_price_tier": "low" }
+  },
+  "embed": {
+    "provider": "bedrock",
+    "primary": "amazon.titan-embed-text-v2:0",
+    "constraints": { "required_modality": ["embed"], "required_region": ["ap-southeast-2"] }
+  },
+  "reason": {
+    "provider": "bedrock",
+    "primary": "au.anthropic.claude-sonnet-4-6",
+    "fallbacks": ["au.anthropic.claude-sonnet-4-5"]
+  }
+}
