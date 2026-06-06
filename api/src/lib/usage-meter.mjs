@@ -12,11 +12,16 @@
 // A repo declares its identity once via env (ETHIKS_ACTOR, ETHIKS_SPV) or passes it per call.
 // Ledger path: $USAGE_LEDGER, else ~/.ethikslabs/usage/usage.ndjson  (EC2 -> /home/ec2-user/...).
 
-import { appendFileSync, mkdirSync } from 'node:fs';
+import { appendFileSync, mkdirSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { homedir } from 'node:os';
 
-export const ledgerPath = process.env.USAGE_LEDGER || join(homedir(), '.ethikslabs', 'usage', 'usage.ndjson');
+// Default ledger: the shared EC2 path when running on the box (any user writes the 0777 dir),
+// else the dev home. USAGE_LEDGER env always wins. This keeps the meter working across deploys
+// without needing per-process env wired into every repo's deploy.
+export const ledgerPath = process.env.USAGE_LEDGER
+  || (existsSync('/home/ec2-user') ? '/home/ec2-user/.ethikslabs/usage/usage.ndjson'
+      : join(homedir(), '.ethikslabs', 'usage', 'usage.ndjson'));
 const DEFAULT_ACTOR = process.env.ETHIKS_ACTOR || 'unknown';
 const DEFAULT_SPV = process.env.ETHIKS_SPV || null;
 let dirReady = false;
