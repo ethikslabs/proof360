@@ -23,6 +23,13 @@ import { telegramWebhookHandler } from './handlers/telegram-webhook.js';
 import { johnMessagesHandler } from './handlers/john-messages.js';
 import { corpusStatsHandler } from './handlers/corpus-stats.js';
 import { notifyHandler } from './handlers/notify.js';
+import { requireAuth } from './lib/auth.js';
+import {
+  profileCurrentHandler,
+  profileEventsHandler,
+  profileProjectionsHandler,
+} from './handlers/profile.js';
+import { sessionAttachHandler } from './handlers/session-attach.js';
 
 const PORT = parseInt(process.env.PORT || '3002', 10);
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
@@ -66,6 +73,12 @@ app.post('/api/v1/session/:id/analyze', analyzeHandler);
 // --- Session-keyed chat (intent classification, server-side history) ---
 app.post('/api/v1/session/:id/chat', sessionChatHandler);
 app.get('/api/v1/session/:id/chat/history', sessionChatHistoryHandler);
+
+// --- Founder memory kernel (private, Auth0-verified, file-backed) ---
+app.get('/api/v1/profile/current', { preHandler: requireAuth }, profileCurrentHandler);
+app.get('/api/v1/profile/current/projections', { preHandler: requireAuth }, profileProjectionsHandler);
+app.post('/api/v1/profile/current/events', { preHandler: requireAuth }, profileEventsHandler);
+app.post('/api/v1/sessions/:sessionId/profile', { preHandler: requireAuth }, sessionAttachHandler);
 
 // --- John relay ---
 app.post('/api/telegram/webhook', telegramWebhookHandler);

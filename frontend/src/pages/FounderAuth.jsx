@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Proof360Mark } from '../components/Proof360Mark';
+import { AUTH0_AUDIENCE, clearTokens } from '../api/auth.js';
 
 const AUTH0_DOMAIN    = import.meta.env.VITE_AUTH0_DOMAIN    || '';
 const AUTH0_CLIENT_ID = import.meta.env.VITE_AUTH0_CLIENT_ID || 'bh2RJb3CO25HFF6rqOVzd9uk2WUKiCGM';
@@ -22,7 +23,8 @@ function buildAuth0Url(challenge) {
     client_id: AUTH0_CLIENT_ID,
     redirect_uri: REDIRECT_URI,
     response_type: 'code',
-    scope: 'openid email profile',
+    audience: AUTH0_AUDIENCE,
+    scope: 'openid email profile offline_access',
     code_challenge: challenge,
     code_challenge_method: 'S256',
     state: 'auth0',
@@ -47,6 +49,7 @@ export default function FounderAuth() {
   }
 
   function demoLogin() {
+    clearTokens();
     localStorage.setItem('founder_auth', JSON.stringify({
       user: { name: 'Demo Founder', email: 'demo@startup.com' },
     }));
