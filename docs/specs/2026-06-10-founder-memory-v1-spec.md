@@ -6,7 +6,7 @@
 
 ## Summary
 
-Build proof360 as a private, server-durable founder memory system.
+Build proof360 as a private, server-durable founder memory system — **the memory kernel**. The Company Profile is the *first projection* of that kernel, not the product: once memory is canonical and reconstruction is deterministic, every future view (investor, vendor, insurance, enterprise DD, SPV, Ethiks360) is another disposable projection of the same substrate. Build the smallest possible kernel: durable memory, deterministic reconstruction, explainable projections. Not a CRM, not a profile editor, not sharing, not SPV Passport.
 
 **The Company Profile is not a form. It is reconstructed, not edited.** Founders contribute memory through conversations, corrections, and activity. The system derives observations, maintains claims, and generates projections, but the visible profile is always rebuilt from underlying memory and evidence rather than manually authored.
 
@@ -18,6 +18,7 @@ Build proof360 as a private, server-durable founder memory system.
   - `observation`: first-class derived signal linked to events and evidence. V1 stores explicit/content-based observations only, not tone or hesitation inference.
   - `claim`: current believed profile state promoted from observations or evidence.
   - `projection`: future-facing interpretation generated from current claims and observations.
+- Sixth primitive (added at ratification review, 2026-06-10): `source` — origin **metadata, not a table**. Every event and evidence row carries `source`: `founder` | `cold_read` | `chat` | later `aws` | `microsoft` | `hubspot` | `linkedin` | `document` | `corpus` | … Open vocabulary (no CHECK constraint — it grows as feeds arrive). Provenance groups by **origin** as well as evidence kind, so when external systems start feeding evidence, "what did AWS tell us" is a query, not a migration.
 - Keep unknowns explicit. Missing data remains `unknown`, not guessed.
 - Projections are not facts; they always mean "based on what we currently know."
 

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** proof360 becomes a private, server-durable founder memory system — the Company Profile is reconstructed from events → evidence → observations → claims → projections, never hand-edited.
+**Goal:** proof360 becomes a private, server-durable founder **memory kernel** — the Company Profile is reconstructed from events → evidence → observations → claims → projections, never hand-edited. The profile is the kernel's *first* projection; future views (investor, vendor, insurance, enterprise DD, SPV, Ethiks360) are later projections of the same substrate. Three invariants govern everything: **promotion** (nothing becomes founder truth accidentally), **durability** (fail loud, transactional), **reconstruction** (views are disposable, memory is canonical). Every memory row carries origin `source` metadata (sixth primitive) so provenance groups by origin when external feeds (AWS, Microsoft, HubSpot, CORPUS) arrive.
 
 **Architecture:** Five new Postgres tables behind Auth0-verified routes (`jose` JWKS verification, Auth0 `sub` = founder identity). Session truth (existing `signals`) promotes into durable founder truth (`claims`) only through one explicit route — the promotion invariant. Projections are never stored: `GET .../projections` computes them deterministically from current claims, mirroring the pure-kernel idiom of `recompute.js`. Frontend replaces the frozen lit-tile object at `Chat.jsx:1268` with projection-derived state.
 
@@ -92,6 +92,12 @@ describe('002_founder_memory migration', () => {
     expect(sql).toMatch(/auth0_sub TEXT UNIQUE NOT NULL/);
   });
 
+  it('events and evidence both carry origin source metadata (sixth primitive)', () => {
+    const sourceCols = sql.match(/source TEXT NOT NULL/g) ?? [];
+    expect(sourceCols.length).toBe(2);   // profile_events + profile_evidence
+    expect(sql).not.toMatch(/source TEXT NOT NULL CHECK/);   // open vocabulary — no enum
+  });
+
   it('is registered in run-migrations', () => {
     const runner = readFileSync(join(dirname(fileURLToPath(import.meta.url)),
       '..', '..', 'scripts', 'run-migrations.js'), 'utf8');
@@ -140,12 +146,16 @@ CREATE TABLE profile_sessions (
   attached_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- append-only: no UPDATE path exists in code; memory fragments are immutable
+-- append-only: no UPDATE path exists in code; memory fragments are immutable.
+-- `source` = ORIGIN metadata (sixth primitive, spec): 'founder'|'cold_read'|'chat'|
+-- later 'aws'|'microsoft'|'hubspot'|'linkedin'|'document'|'corpus'|...
+-- Deliberately NO CHECK constraint — the vocabulary grows as feeds arrive.
+-- Pointers (session id etc.) live in content, not in source.
 CREATE TABLE profile_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   profile_id UUID NOT NULL REFERENCES company_profiles(id),
   kind TEXT NOT NULL CHECK (kind IN ('chat', 'cold_read', 'correction', 'session_activity')),
-  source TEXT,                      -- e.g. session id, 'founder', route name
+  source TEXT NOT NULL,             -- origin vocabulary, open (see header comment)
   content JSONB NOT NULL,
   occurred_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -157,6 +167,7 @@ CREATE TABLE profile_evidence (
   event_id UUID REFERENCES profile_events(id),
   kind TEXT NOT NULL CHECK (kind IN ('founder_statement', 'session_signal', 'cold_read_signal',
                                      'document', 'filing', 'integration', 'corpus_ref')),
+  source TEXT NOT NULL,             -- origin vocabulary, open (same as profile_events.source)
   ref TEXT,                         -- external pointer (CORPUS id, document key) — V1 unused
   content JSONB,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -188,6 +199,7 @@ CREATE TABLE claims (
 
 CREATE INDEX idx_profile_events_profile ON profile_events (profile_id);
 CREATE INDEX idx_profile_evidence_profile ON profile_evidence (profile_id);
+CREATE INDEX idx_profile_evidence_source ON profile_evidence (profile_id, source);
 CREATE INDEX idx_observations_profile_field ON observations (profile_id, field);
 CREATE INDEX idx_claims_profile_field ON claims (profile_id, field) WHERE state = 'believed';
 CREATE INDEX idx_profile_sessions_profile ON profile_sessions (profile_id);
@@ -387,17 +399,23 @@ describe('profile-store', () => {
     expect(query).not.toHaveBeenCalled();
   });
 
-  it('appendEvent inserts and returns the row — and never swallows PG errors', async () => {
+  it('appendEvent never swallows PG errors (fail-loud durability contract)', async () => {
     query.mockRejectedValueOnce(new Error('connection refused'));
-    await expect(appendEvent('p1', { kind: 'chat', content: { text: 'hi' } }))
-      .rejects.toThrow('connection refused');   // fail-loud durability contract
+    await expect(appendEvent('p1', { kind: 'chat', source: 'chat', content: { text: 'hi' } }))
+      .rejects.toThrow('connection refused');
   });
 
   it('addEvidence links to an event and returns the row', async () => {
     query.mockResolvedValueOnce({ rows: [{ id: 'ev1', kind: 'founder_statement' }] });
-    const ev = await addEvidence('p1', { kind: 'founder_statement', event_id: 'e1', content: { text: 'we use AWS' } });
+    const ev = await addEvidence('p1', { kind: 'founder_statement', source: 'founder', event_id: 'e1', content: { text: 'we use AWS' } });
     expect(ev.id).toBe('ev1');
     expect(query.mock.calls[0][0]).toMatch(/INSERT INTO profile_evidence/);
+  });
+
+  it('every memory write requires an origin source (sixth primitive)', async () => {
+    await expect(appendEvent('p1', { kind: 'chat', content: { text: 'hi' } })).rejects.toThrow(/source/);
+    await expect(addEvidence('p1', { kind: 'founder_statement', content: {} })).rejects.toThrow(/source/);
+    expect(query).not.toHaveBeenCalled();
   });
 });
 ```
@@ -426,8 +444,15 @@ export async function getOrCreateActiveProfile(founderId, exec = query) {
   return created.rows[0];
 }
 
-export async function appendEvent(profileId, { kind, source = null, content }, exec = query) {
+// `source` is the ORIGIN (sixth primitive): 'founder'|'cold_read'|'chat'|later feed names.
+// Open vocabulary by design — validate presence, never membership.
+function assertSource(source) {
+  if (!source || typeof source !== 'string') throw new Error('source (origin) is required on all memory writes');
+}
+
+export async function appendEvent(profileId, { kind, source, content }, exec = query) {
   if (!EVENT_KINDS.includes(kind)) throw new Error(`invalid event kind: ${kind}`);
+  assertSource(source);
   if (!content || typeof content !== 'object') throw new Error('event content must be an object');
   const { rows } = await exec(
     `INSERT INTO profile_events (profile_id, kind, source, content)
@@ -436,12 +461,13 @@ export async function appendEvent(profileId, { kind, source = null, content }, e
   return rows[0];
 }
 
-export async function addEvidence(profileId, { kind, event_id = null, ref = null, content = null }, exec = query) {
+export async function addEvidence(profileId, { kind, source, event_id = null, ref = null, content = null }, exec = query) {
   if (!EVIDENCE_KINDS.includes(kind)) throw new Error(`invalid evidence kind: ${kind}`);
+  assertSource(source);
   const { rows } = await exec(
-    `INSERT INTO profile_evidence (profile_id, event_id, kind, ref, content)
-     VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-    [profileId, event_id, kind, ref, content ? JSON.stringify(content) : null]);
+    `INSERT INTO profile_evidence (profile_id, event_id, kind, source, ref, content)
+     VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+    [profileId, event_id, kind, source, ref, content ? JSON.stringify(content) : null]);
   return rows[0];
 }
 
@@ -881,7 +907,7 @@ export async function profileEventsHandler(req, reply) {
 
   const profile = await getOrCreateActiveProfile(req.founder.id);
   const event = await appendEvent(profile.id, { kind, source: 'founder', content });
-  const evidence = await addEvidence(profile.id, { kind: 'founder_statement', event_id: event.id, content });
+  const evidence = await addEvidence(profile.id, { kind: 'founder_statement', source: 'founder', event_id: event.id, content });
 
   // Explicit promotion only: a founder statement that names a field+value becomes
   // an explicit observation and a founder claim. Free text stays memory, nothing more.
@@ -1092,8 +1118,9 @@ export async function sessionAttachHandler(req, reply) {
     const { rows: signals } = await exec(
       `SELECT field, current_value, status FROM signals WHERE session_id = $1`, [sessionId]);
 
+    // source = ORIGIN ('cold_read'), never a pointer — the session id rides in content.
     const event = await appendEvent(profile.id, {
-      kind: 'cold_read', source: sessionId,
+      kind: 'cold_read', source: 'cold_read',
       content: { session_id: sessionId, signal_count: signals.length, reattach: !attach.fresh },
     }, exec);
 
@@ -1103,6 +1130,7 @@ export async function sessionAttachHandler(req, reply) {
       if (s.status === 'conflicted') continue;  // unresolved conflicts never become durable claims
       const evidence = await addEvidence(profile.id, {
         kind: s.status === 'overridden' ? 'session_signal' : 'cold_read_signal',
+        source: s.status === 'overridden' ? 'founder' : 'cold_read',
         event_id: event.id, content: { field: s.field, value: s.current_value, status: s.status },
       }, exec);
       const obs = await recordObservation(profile.id, {
