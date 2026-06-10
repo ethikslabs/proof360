@@ -1,7 +1,7 @@
 # proof360 Founder Memory V1 — Spec
 
 **Authored:** John Coates (workshopped), 2026-06-10
-**Ratified:** 2026-06-10 — with two additions from the Claude Code challenge (promotion invariant, fail-loud durability contract). Token strategy: rotating refresh tokens. Auth0 API audience: John creates in dashboard.
+**Ratified:** 2026-06-10 — with two additions from the Claude Code challenge (promotion invariant, fail-loud durability contract). Storage strategy revised to JSON-first file-backed memory; Postgres is a later adapter. Token strategy: rotating refresh tokens. Auth0 API audience: John creates in dashboard.
 **Status:** ratified — plan at `docs/plans/2026-06-10-founder-memory-v1.md`
 
 ## Summary
@@ -25,12 +25,12 @@ Build proof360 as a private, server-durable founder memory system — **the memo
 ## Ratified invariants (added at challenge, 2026-06-10)
 
 1. **Promotion invariant:** session signals never silently become claims. Explicit promotion (`POST /api/v1/sessions/:sessionId/profile`) is the only path from session truth to durable founder truth. Founder-actor claims are never superseded by system-actor claims.
-2. **Durability contract:** founder-memory routes are synchronous-Postgres and fail loud (5xx). The cold-read pipeline's in-memory-first / async-PG posture does not apply to memory routes.
+2. **Durability contract:** founder-memory routes use atomic file-backed writes and fail loud (5xx). The cold-read pipeline's in-memory-first / async-PG posture does not apply to memory routes.
 
 ## Implementation Changes
 
 - Add backend Auth0 verification for durable memory routes; Auth0 `sub` is the founder identity.
-- Add Postgres tables for founders, one active Company Profile per founder, profile sessions, events, evidence, observations, and claims.
+- Add a file-backed memory store under `MEMORY_STORE_DIR`, with one active Company Profile per founder, immutable transaction files, rebuildable snapshots, and session first-claimer bindings.
 - Persist authenticated chat and cold-read signals into the active Company Profile.
 - Add API routes:
   - `GET /api/v1/profile/current`
@@ -65,3 +65,4 @@ Use deterministic scoring rules for projection state, with AI synthesis only for
 - Observations are explicit/content-based only.
 - Evidence exists in V1 as a schema primitive, even before uploads or external integrations.
 - Ethiks360 handoff is intentionally absent from V1 UI.
+- V1 does not create `002_founder_memory.sql`; the future Postgres backend must implement the same memory-store interface.

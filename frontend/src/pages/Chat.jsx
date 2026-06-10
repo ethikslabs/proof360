@@ -28,6 +28,9 @@ import { VendorShortlist } from '../components/chat/VendorShortlist.jsx';
 import { rankVendorsBySignals } from '../data/mock/vendors.js';
 import { AuthorityLayer }      from '../components/chat/AuthorityLayer.jsx';
 import { useSurfaceAuthority } from '../hooks/useSurfaceAuthority.js';
+import { AUTH0_AUDIENCE, clearTokens } from '../api/auth.js';
+import { attachSessionToProfile, getProfile, getProjections, postProfileEvent } from '../api/client.js';
+import { EMPTY_TILES, tilesFromProjections } from '../utils/projectionTiles.js';
 
 /* ─── Auth constants ─────────────────────────────────────────────────────── */
 const AUTH0_DOMAIN    = import.meta.env.VITE_AUTH0_DOMAIN    || 'dev-ethikslabs.au.auth0.com';
@@ -190,7 +193,8 @@ function LoginModal({ onClose, onUser }) {
       client_id: AUTH0_CLIENT_ID,
       redirect_uri: `${window.location.origin}/portal/callback`,
       response_type: 'code',
-      scope: 'openid email profile',
+      audience: AUTH0_AUDIENCE,
+      scope: 'openid email profile offline_access',
       code_challenge: challenge,
       code_challenge_method: 'S256',
       state: 'auth0',
@@ -200,6 +204,7 @@ function LoginModal({ onClose, onUser }) {
 
   function demoLogin() {
     const user = { name: 'Demo Founder', email: 'demo@startup.com' };
+    clearTokens();
     localStorage.setItem('founder_auth', JSON.stringify({ user }));
     onUser(user);
     onClose();
@@ -1216,6 +1221,34 @@ function FollowUpChips({ persona, onSelect, tk }) {
   );
 }
 
+function profileFromResponse(data) {
+  if (data?.profile && data?.snapshot?.current_claims) {
+    return {
+      ...data.profile,
+      claims: data.snapshot.current_claims,
+      observations: data.snapshot.observations ?? [],
+    };
+  }
+  return data?.profile ?? data?.company_profile ?? data?.current_profile ?? data ?? null;
+}
+
+function claimValue(claim) {
+  if (!claim) return null;
+  if (typeof claim === 'string') return claim;
+  return claim.value ?? claim.current_value ?? claim.content?.value ?? null;
+}
+
+function companyNameFromProfile(profile) {
+  const p = profileFromResponse(profile);
+  const claims = p?.claims ?? p?.profile_claims ?? {};
+  return p?.company_name
+    ?? p?.name
+    ?? p?.display_name
+    ?? claimValue(claims.company_name)
+    ?? claimValue(claims.name)
+    ?? null;
+}
+
 export default function Chat() {
   const t = TWEAK_DEFAULTS;
   const tk = tokens(t.theme);
@@ -1257,6 +1290,7 @@ export default function Chat() {
   const [loginOpen,       setLoginOpen]       = useState(false);
   const [telegramOpen,    setTelegramOpen]    = useState(false);
   const [focusedProgram,  setFocusedProgram]  = useState(null);
+  const [founderProfile,  setFounderProfile]  = useState(null);
   useEffect(() => {
     const handler = () => setTelegramOpen(true);
     window.addEventListener('proof360:telegram', handler);
@@ -1265,7 +1299,9 @@ export default function Chat() {
   const [, setDrawerCollapsed] = useState(false);
   const [sidebarCollapsed,setSidebarCollapsed]= useState(true);
   const [hiveStage,       setHiveStage]       = useState(1);
-  const litTiles = useMemo(() => ({ investor: false, vendors: false, aws: false, microsoft: false, posture: false, spv: false }), []);
+  const [projectionCompany, setProjectionCompany] = useState('hive');
+  const [litTiles, setLitTiles] = useState(EMPTY_TILES);
+  const attachedProfileSessionsRef = useRef(new Set());
   const [showIntro,       setShowIntro]       = useState(
     () => !new URLSearchParams(window.location.search).has('demo')
   );
@@ -1301,12 +1337,75 @@ export default function Chat() {
 
   const isDemoMode = activeStageId === DEFAULT_STAGE_ID;
   const activeStage = DEMO_STAGES.find(s => s.id === activeStageId);
+  const founderProfileName = useMemo(() => companyNameFromProfile(founderProfile), [founderProfile]);
   const authorityEntity = {
-    name:     companyProfile.name ?? activeStage?.company?.name ?? null,
+    name:     founderProfileName ?? companyProfile.name ?? activeStage?.company?.name ?? null,
     stage:    companyProfile.stage ?? null,
     vertical: companyProfile.industry ?? null,
   };
   const rankedVendors = rankVendorsBySignals(activeSignals);
+
+  const refreshFounderMemory = useCallback(async () => {
+    if (!currentUser) {
+      setFounderProfile(null);
+      setLitTiles(EMPTY_TILES);
+      return;
+    }
+
+    const [profileResult, projectionResult] = await Promise.allSettled([
+      getProfile(),
+      getProjections(),
+    ]);
+
+    if (profileResult.status === 'fulfilled') {
+      setFounderProfile(profileFromResponse(profileResult.value));
+    } else {
+      setFounderProfile(null);
+    }
+
+    if (projectionResult.status === 'fulfilled') {
+      setLitTiles(tilesFromProjections(projectionResult.value));
+    } else {
+      setLitTiles(EMPTY_TILES);
+    }
+  }, [currentUser]);
+
+  const persistFounderMemoryEvent = useCallback((kind, content, source = 'chat', facts = []) => {
+    postProfileEvent({ kind, source, content, facts })
+      .catch(err => {
+        if (err?.status !== 401) console.warn('Founder memory event failed', err);
+      });
+  }, []);
+
+  const attachCurrentSessionToProfile = useCallback(async (sessionId, sessionData = null) => {
+    if (!currentUser || !sessionId || attachedProfileSessionsRef.current.has(sessionId)) return;
+
+    attachedProfileSessionsRef.current.add(sessionId);
+    try {
+      await attachSessionToProfile(sessionId, {
+        source: 'cold_read',
+        context: {
+          company_name: sessionData?.company_name ?? null,
+          trust_score: sessionData?.trust_score ?? null,
+          gaps: sessionData?.gaps?.length ?? null,
+        },
+      });
+      await refreshFounderMemory();
+    } catch (err) {
+      attachedProfileSessionsRef.current.delete(sessionId);
+      if (err?.status !== 401) console.warn('Founder memory session attach failed', err);
+    }
+  }, [currentUser, refreshFounderMemory]);
+
+  useEffect(() => {
+    refreshFounderMemory();
+  }, [refreshFounderMemory]);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    const sessionId = companyData?.session_id ?? sessionStorage.getItem('proof360_session_id');
+    if (sessionId) attachCurrentSessionToProfile(sessionId, companyData);
+  }, [currentUser, companyData, attachCurrentSessionToProfile]);
 
   const [shortlist, setShortlist] = useState([]);
 
@@ -1320,6 +1419,18 @@ export default function Chat() {
   const handleDefer = useCallback((vendorId) => {
     setShortlist(prev => prev.filter(s => s.id !== vendorId));
   }, []);
+
+  const handleCorrectSignal = useCallback((signalId) => {
+    const sig = activeSignals.find(s => s.id === signalId);
+    correctSignal(signalId);
+    if (!sig) return;
+    persistFounderMemoryEvent('correction', {
+      signal_id: signalId,
+      domain: sig.domain ?? null,
+      rejected_value: sig.value ?? sig.label ?? null,
+      session_id: companyData?.session_id ?? sessionStorage.getItem('proof360_session_id') ?? null,
+    }, 'founder');
+  }, [activeSignals, correctSignal, persistFounderMemoryEvent, companyData]);
 
   const handleMobileSurfaceSelect = useCallback((chipLabel) => {
     setMobileActiveTab(chipLabel);
@@ -1523,9 +1634,24 @@ export default function Chat() {
     setBriefShown(false);
     setMessages(prev => [...prev, { id: `u-${Date.now()}`, role: 'user', content: text }]);
     setIsProcessing(true);
+    const sessionId = companyData?.session_id ?? null;
+    const memorySessionId = sessionId ?? sessionStorage.getItem('proof360_session_id') ?? null;
 
-    // Update company profile from message signals
+    // Update company profile from message signals. These are explicit text
+    // signals from the founder's own message, so they may be promoted as
+    // founder facts in the private memory kernel.
     const inf = inferProfile(text);
+    const memoryFacts = [
+      ...(inf.stage ? [{ field: 'stage', value: inf.stage, source: 'founder' }] : []),
+      ...(inf.industry ? [{ field: 'sector', value: inf.industry, source: 'founder' }] : []),
+    ];
+    persistFounderMemoryEvent('chat', {
+      text,
+      role: 'user',
+      session_id: memorySessionId,
+      occurred_at: new Date().toISOString(),
+    }, 'chat', memoryFacts);
+
     if (inf.signals.length > 0 || inf.stage || inf.industry) {
       setCompanyProfile(prev => {
         const newDomains = { ...prev.domains };
@@ -1541,8 +1667,6 @@ export default function Chat() {
         };
       });
     }
-
-    const sessionId = companyData?.session_id;
 
     // ── URL detection: start cold-read pipeline if no session yet ──
     if (!sessionId) {
@@ -1563,6 +1687,7 @@ export default function Chat() {
           });
           if (!startRes.ok) throw new Error('start failed');
           const { session_id } = await startRes.json();
+          sessionStorage.setItem('proof360_session_id', session_id);
 
           // Update status label with session context
           setMessages(prev => prev.map(m => m.id === statusId
@@ -1593,6 +1718,7 @@ export default function Chat() {
             deal_readiness: analysis.deal_readiness,
             inferences: analysis.inferences,
           });
+          attachCurrentSessionToProfile(session_id, analysis);
 
           const gapCount = analysis.gaps?.length ?? 0;
           const score = analysis.trust_score ?? 0;
@@ -1708,7 +1834,7 @@ export default function Chat() {
       setThinkingSteps([]);
       setIsProcessing(false);
     }
-  }, [inputReady, isProcessing, messages, t.returningUser, companyData, analysisProfile]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [inputReady, isProcessing, messages, t.returningUser, companyData, analysisProfile, persistFounderMemoryEvent, attachCurrentSessionToProfile]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectIntent = useCallback(async (chosen) => {
     const speedMs = t.typeSpeed === 'fast' ? 8 : t.typeSpeed === 'instant' ? 0 : 18;
@@ -1864,6 +1990,7 @@ export default function Chat() {
           onSwitch={(id, ctx) => {
             setActiveSpace(prev => prev === id ? 'chat' : id);
             setDrawerCollapsed(false);
+            if (ctx?.company) setProjectionCompany(ctx.company);
             if (ctx?.stage !== undefined) setHiveStage(ctx.stage);
           }}
           litTiles={litTiles}
@@ -1883,6 +2010,7 @@ export default function Chat() {
           sessionTok={0}
           sessionModels={[]}
           onSignIn={() => setLoginOpen(true)}
+          yourCompanyName={founderProfileName ?? companyProfile.name ?? (currentUser ? 'Company Profile' : undefined)}
           t={t}
         />
 
@@ -1913,7 +2041,7 @@ export default function Chat() {
               <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '10px 24px 0' }}>
                 {currentUser ? (
                   <button
-                    onClick={() => { localStorage.removeItem('founder_auth'); setCurrentUser(null); }}
+                    onClick={() => { clearTokens(); localStorage.removeItem('founder_auth'); setCurrentUser(null); setFounderProfile(null); setLitTiles(EMPTY_TILES); }}
                     title="Sign out"
                     style={{
                       display: 'flex', alignItems: 'center', gap: 6, padding: '3px 10px',
@@ -2116,7 +2244,7 @@ export default function Chat() {
             </span>
             {currentUser ? (
               <button
-                onClick={() => { localStorage.removeItem('founder_auth'); setCurrentUser(null); }}
+                onClick={() => { clearTokens(); localStorage.removeItem('founder_auth'); setCurrentUser(null); setFounderProfile(null); setLitTiles(EMPTY_TILES); }}
                 title="Sign out"
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6, padding: '3px 10px',
@@ -2294,7 +2422,7 @@ export default function Chat() {
               <ObservationStrip
                 signals={activeSignals}
                 isDemoMode={isDemoMode}
-                onCorrect={correctSignal}
+                onCorrect={handleCorrectSignal}
                 onIgnore={ignoreSignal}
                 onAddContext={addContextSignal}
                 regeneratingDomains={regeneratingDomains}
@@ -2508,7 +2636,7 @@ export default function Chat() {
               <div style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
                 <Projection
                   id={activeSpace}
-                  company="hive"
+                  company={projectionCompany}
                   hiveStage={hiveStage}
                   onBack={() => {
                     setActiveSpace('chat');

@@ -17,6 +17,10 @@ frontend/dist/
 api/leads.ndjson
 *.ndjson
 
+# Founder memory kernel — canonical store lives outside the repo
+memory/
+api/memory/
+
 # Local design/superpowers scratch.
 .superpowers/
 docs/superpowers/
