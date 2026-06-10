@@ -1,6 +1,9 @@
 // Company research — real-time web intelligence about the target company.
 // Perplexity sonar is primary (real-time web). Gemini 2.0 Flash is fallback if Perplexity
 // returns thin content or fails. Silent if neither key is present.
+//
+// Token usage is metered at each direct call site (Perplexity, Gemini) → estate usage ledger.
+import * as meter from '../lib/meter.mjs';
 
 const PERPLEXITY_URL = 'https://api.perplexity.ai/chat/completions';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=`;
@@ -23,6 +26,8 @@ async function fetchPerplexity(query, apiKey) {
     clearTimeout(timeout);
     if (!res.ok) return null;
     const data = await res.json();
+    // Meter the spend even if the content is later judged thin — the tokens were consumed.
+    meter.emit({ provider: 'perplexity', model: 'sonar', ...meter.extractUsage(data) });
     return data.choices?.[0]?.message?.content?.trim() || null;
   } catch {
     clearTimeout(timeout);
@@ -43,6 +48,9 @@ async function fetchGemini(query, apiKey) {
     clearTimeout(timeout);
     if (!res.ok) return null;
     const data = await res.json();
+    // Gemini reports usageMetadata (not OpenAI-shaped usage), so pass tokens explicitly.
+    const um = data.usageMetadata || {};
+    meter.emit({ provider: 'gemini', model: 'gemini-2.0-flash', in: um.promptTokenCount ?? 0, out: um.candidatesTokenCount ?? 0 });
     return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null;
   } catch {
     clearTimeout(timeout);

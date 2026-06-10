@@ -58,8 +58,10 @@ VERITAS_URL=$(get_ssm "$SSM_PREFIX/VERITAS_URL")
 VERITAS_API_KEY=$(get_ssm "$SSM_PREFIX/VERITAS_API_KEY")
 TELEGRAM_BOT_TOKEN=$(get_ssm "$SSM_PREFIX/TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID=$(get_ssm "$SSM_PREFIX/TELEGRAM_CHAT_ID")
-PERPLEXITY_API_KEY=$(get_ssm "$SSM_PREFIX/perplexity-api-key")
-GEMINI_API_KEY=$(get_ssm "$SSM_PREFIX/gemini-api-key")
+# Centralised keys (no per-repo duplication): read from /ethikslabs/* like ANTHROPIC above.
+# The old /proof360/{perplexity,gemini}-api-key paths were never populated.
+PERPLEXITY_API_KEY=$(get_ssm "/ethikslabs/perplexity/api-key")
+GEMINI_API_KEY=$(get_ssm "/ethikslabs/gemini/api-key")
 # TODO: v3 Postgres handlers (override/recompute/publish/engage) read PG_HOST/
 # PG_PORT/PG_DATABASE/PG_USER/PG_PASSWORD from env but these are NOT fetched here.
 # Add require_ssm fetches once the /proof360/postgres/* SSM paths are confirmed.
