@@ -1,3 +1,5 @@
+import { getAccessToken } from './auth.js';
+
 const BASE = import.meta.env.VITE_API_BASE_URL ?? '';
 
 async function request(method, path, body, extraHeaders) {
@@ -8,7 +10,8 @@ async function request(method, path, body, extraHeaders) {
   if (body) opts.body = JSON.stringify(body);
 
   const res = await fetch(`${BASE}${path}`, opts);
-  const data = await res.json();
+  const raw = await res.text();
+  const data = raw ? JSON.parse(raw) : {};
 
   if (!res.ok) {
     const err = new Error(data.error || 'Something went wrong');
@@ -18,6 +21,16 @@ async function request(method, path, body, extraHeaders) {
   }
 
   return data;
+}
+
+async function authRequest(method, path, body) {
+  const token = await getAccessToken();
+  if (!token) {
+    const err = new Error('not authenticated');
+    err.status = 401;
+    throw err;
+  }
+  return request(method, path, body, { Authorization: `Bearer ${token}` });
 }
 
 // v1 mutation + publish + engage
@@ -31,3 +44,9 @@ export const postEngage = (sessionId, body) => request('POST', `/api/v1/session/
 export const getFeatures = () => request('GET', '/api/features');
 export const submitPreread = (body, adminKey) => request('POST', '/api/admin/preread', body, { 'x-admin-key': adminKey });
 export const getPrereadStatus = (batchId, adminKey) => request('GET', `/api/admin/preread/${batchId}`, null, { 'x-admin-key': adminKey });
+
+// Founder Memory V1
+export const getProfile = () => authRequest('GET', '/api/v1/profile/current');
+export const getProjections = () => authRequest('GET', '/api/v1/profile/current/projections');
+export const postProfileEvent = (body) => authRequest('POST', '/api/v1/profile/current/events', body);
+export const attachSessionToProfile = (sessionId, body) => authRequest('POST', `/api/v1/sessions/${sessionId}/profile`, body);

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { TENANTS } from '../data/portal-leads';
+import { AUTH0_AUDIENCE, clearTokens, storeTokens } from '../api/auth.js';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 const MS_CLIENT_ID    = import.meta.env.VITE_MS_CLIENT_ID || '';
@@ -57,16 +58,17 @@ function buildMicrosoftUrl() {
   return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params}`;
 }
 
-function buildAuth0Url(challenge) {
+function buildAuth0Url(challenge, withFounderMemory = false) {
   const params = new URLSearchParams({
     client_id: AUTH0_CLIENT_ID,
     redirect_uri: REDIRECT_URI,
     response_type: 'code',
-    scope: 'openid email profile',
+    scope: withFounderMemory ? 'openid email profile offline_access' : 'openid email profile',
     code_challenge: challenge,
     code_challenge_method: 'S256',
     state: 'auth0',
   });
+  if (withFounderMemory) params.set('audience', AUTH0_AUDIENCE);
   return `https://${AUTH0_DOMAIN}/authorize?${params}`;
 }
 
@@ -141,6 +143,7 @@ export default function Portal() {
       sessionStorage.removeItem('auth0_intent');
 
       if (intent === 'chat') {
+        clearTokens();
         localStorage.setItem('founder_auth', JSON.stringify({ user: { name, email, picture: avatar || null } }));
         navigate('/chat');
         return;
@@ -163,7 +166,7 @@ export default function Portal() {
     sessionStorage.setItem('auth0_intent', intent);
     const { verifier, challenge } = await generatePKCE();
     sessionStorage.setItem('auth0_pkce_verifier', verifier);
-    window.location.href = buildAuth0Url(challenge);
+    window.location.href = buildAuth0Url(challenge, ['auto', 'founder', 'chat'].includes(intent));
   }
 
   async function handleAuth0Callback(code, verifier) {
@@ -180,6 +183,9 @@ export default function Portal() {
       sessionStorage.removeItem('auth0_intent');
 
       const tenantKey = tenantFromEmail(email);
+      if (intent === 'auto' || intent === 'founder' || intent === 'chat') {
+        storeTokens(tokens);
+      }
 
       // Merge any pending founder report regardless of routing outcome
       function mergePendingReport() {

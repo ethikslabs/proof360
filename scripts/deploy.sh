@@ -62,6 +62,10 @@ TELEGRAM_CHAT_ID=$(get_ssm "$SSM_PREFIX/TELEGRAM_CHAT_ID")
 # The old /proof360/{perplexity,gemini}-api-key paths were never populated.
 PERPLEXITY_API_KEY=$(get_ssm "/ethikslabs/perplexity/api-key")
 GEMINI_API_KEY=$(get_ssm "/ethikslabs/gemini/api-key")
+AUTH0_DOMAIN=$(require_ssm "$SSM_PREFIX/AUTH0_DOMAIN")
+AUTH0_AUDIENCE=$(require_ssm "$SSM_PREFIX/AUTH0_AUDIENCE")
+MEMORY_STORE_DIR="/home/ec2-user/.ethikslabs/proof360/memory"
+mkdir -p "$MEMORY_STORE_DIR"
 # TODO: v3 Postgres handlers (override/recompute/publish/engage) read PG_HOST/
 # PG_PORT/PG_DATABASE/PG_USER/PG_PASSWORD from env but these are NOT fetched here.
 # Add require_ssm fetches once the /proof360/postgres/* SSM paths are confirmed.
@@ -81,6 +85,9 @@ TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN
 TELEGRAM_CHAT_ID=$TELEGRAM_CHAT_ID
 PERPLEXITY_API_KEY=$PERPLEXITY_API_KEY
 GEMINI_API_KEY=$GEMINI_API_KEY
+AUTH0_DOMAIN=$AUTH0_DOMAIN
+AUTH0_AUDIENCE=$AUTH0_AUDIENCE
+MEMORY_STORE_DIR=$MEMORY_STORE_DIR
 LOG_LEVEL=info
 EOF
 

@@ -84,6 +84,10 @@ jobs:
           PG_DATABASE=$(get_ssm "/proof360/postgres/database")
           PG_USER=$(get_ssm "/proof360/postgres/user")
           PG_PASSWORD=$(get_ssm "/proof360/postgres/password")
+          AUTH0_DOMAIN=$(get_ssm "/proof360/AUTH0_DOMAIN")
+          AUTH0_AUDIENCE=$(get_ssm "/proof360/AUTH0_AUDIENCE")
+          MEMORY_STORE_DIR="/home/ec2-user/.ethikslabs/proof360/memory"
+          mkdir -p "$MEMORY_STORE_DIR"
           cat > $API_DIR/.env << EOF
           PORT=$PORT
           FIRECRAWL_API_KEY=$(get_ssm "/proof360/FIRECRAWL_API_KEY")
@@ -108,6 +112,9 @@ jobs:
           PG_DATABASE=$PG_DATABASE
           PG_USER=$PG_USER
           PG_PASSWORD=$PG_PASSWORD
+          AUTH0_DOMAIN=$AUTH0_DOMAIN
+          AUTH0_AUDIENCE=$AUTH0_AUDIENCE
+          MEMORY_STORE_DIR=$MEMORY_STORE_DIR
           LOG_LEVEL=info
           EOF
 
