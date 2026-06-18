@@ -8,6 +8,7 @@
     "migrate": "node --env-file=.env scripts/run-migrations.js",
     "migrate:memory": "node --env-file=.env scripts/run-memory-migrations.js",
     "migrate:kernel-atoms": "node --env-file=.env scripts/migrate-kernel-to-atoms.js",
+    "seed:demo-journey": "node --env-file=.env scripts/seed-demo-journey.js",
     "test": "vitest --run",
     "test:log": "node scripts/test-log.js"
   },
