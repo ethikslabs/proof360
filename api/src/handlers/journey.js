@@ -1,5 +1,6 @@
 import memPool from '../memory/db.js';
 import { journey, companyForFounder } from '../memory/journey.js';
+import { requireAuth } from '../lib/auth.js';
 
 // Map an authenticated user to a person entity via entity.ref (ref == Auth0 sub).
 export async function resolveFounderEntity(authUser, client = memPool) {
@@ -29,4 +30,10 @@ export async function journeyHandler(request, reply) {
 // demo founder renders locally without a real Auth0 token. Never used when the flag is off.
 export async function demoAuth(request) {
   request.authUser = { sub: 'demo-founder' };
+}
+
+// Pure, testable selection of the journey route's auth gate. Fail-closed: ONLY the exact
+// string 'true' enables the no-token demo gate; anything else uses real auth (requireAuth).
+export function selectJourneyGate(env = process.env) {
+  return env.DEMO_FOUNDER_MODE === 'true' ? demoAuth : requireAuth;
 }

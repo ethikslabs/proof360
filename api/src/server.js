@@ -24,7 +24,7 @@ import { johnMessagesHandler } from './handlers/john-messages.js';
 import { corpusStatsHandler } from './handlers/corpus-stats.js';
 import { notifyHandler } from './handlers/notify.js';
 import { requireAuth } from './lib/auth.js';
-import { journeyHandler, demoAuth } from './handlers/journey.js';
+import { journeyHandler, selectJourneyGate } from './handlers/journey.js';
 import {
   profileCurrentHandler,
   profileEventsHandler,
@@ -78,7 +78,7 @@ app.get('/api/v1/session/:id/chat/history', sessionChatHistoryHandler);
 // --- Founder memory kernel (private, Auth0-verified, file-backed) ---
 app.get('/api/v1/profile/current', { preHandler: requireAuth }, profileCurrentHandler);
 app.get('/api/v1/profile/current/projections', { preHandler: requireAuth }, profileProjectionsHandler);
-const journeyGate = process.env.DEMO_FOUNDER_MODE === 'true' ? demoAuth : requireAuth;
+const journeyGate = selectJourneyGate();
 app.get('/api/v1/profile/current/journey', { preHandler: journeyGate }, journeyHandler);
 app.post('/api/v1/profile/current/events', { preHandler: requireAuth }, profileEventsHandler);
 app.post('/api/v1/sessions/:sessionId/profile', { preHandler: requireAuth }, sessionAttachHandler);
