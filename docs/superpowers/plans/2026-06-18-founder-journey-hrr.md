@@ -35,7 +35,7 @@
 **Verified signatures (do not guess):**
 - `recordEvidence({ entity_id, type='turn', content, source_type='operator_entry', access_layer, output_permission })` → `{ evidence_id, corpus_id, hash }`. Currently inserts neither `collected_at` nor `extensions`.
 - `assertClaim({ entity_id, subject, value, authority, evidence_ids=[], access_layer, output_permission, confidence='probable', valid_from })` → writes `claim_evidence` for each `evidence_ids` entry. Note the param is **`value`** (stored into the `statement` column), not `statement`.
-- `createEntity({ type, name, ref=null, access_layer, output_permission, extensions })` → `{ entity_id, corpus_id }`. `type` must be in `('vendor','program','product','person','region','deal_condition','customer_segment','company')`.
+- `createEntity({ type, name, ref=null, access_layer, output_permission, extensions })` → `{ entity_id, corpus_id }`. `type` CHECK (post-002) allows `vendor/program/product/person/region/deal_condition/customer_segment/company/capability/partner/lawyer/investor`. The seed uses only `person` + `company`.
 - `createEdge({ from, to, kind, from_type='Entity', to_type='Entity', access_layer, output_permission, extensions, valid_from })` — `from`/`to` are **corpus_id** values.
 - `project(viewerEntityId, targetEntityId, client=pool)` → `{ viewer_role, claims:[{claim_id, corpus_id, subject, statement, authority, access_layer, output_permission, confidence, valid_from}] }`. Already permission-filters; self-view unfiltered.
 - Test harness `tests/memory/_setup.js` exports `{ pool, reachable }`; suites use `describe.skipIf(!reachable)` and `afterAll(() => pool.end())`. `global-setup.js` resets the schema once per run.
@@ -474,15 +474,21 @@ git commit -m "feat(journey): idempotent demo founder seed (Acme, 3 sessions)"
 
 - [ ] **Step 1: Add the client call**
 
+⚠️ `authRequest` calls `getAccessToken()` which **throws a client-side 401 when `localStorage.founder_tokens` is absent** (`frontend/src/api/auth.js`). The demo bypass writes `founder_auth`, NOT `founder_tokens` — so `authRequest` would fail before any request reaches the backend. In demo mode we must use the plain (non-auth) `request()` instead. `request` already exists in `client.js` (used by `getFeatures` et al.).
+
 In `frontend/src/api/client.js`, near the other profile calls, add:
 ```js
-export const getJourney = () => authRequest('GET', '/api/v1/profile/current/journey');
+const DEMO_FOUNDER = import.meta.env.VITE_DEMO_FOUNDER_MODE === 'true';
+export const getJourney = () =>
+  DEMO_FOUNDER
+    ? request('GET', '/api/v1/profile/current/journey')        // demo: no token needed (backend gate is demoAuth)
+    : authRequest('GET', '/api/v1/profile/current/journey');   // prod: real Auth0 token
 ```
-> In `DEMO_FOUNDER_MODE` the backend ignores the token; `authRequest` still works (token, if any, is unused server-side).
+> The frontend `VITE_DEMO_FOUNDER_MODE` must match the backend `DEMO_FOUNDER_MODE`. Both are set in Step 4.
 
 - [ ] **Step 2: Create the page**
 
-Create `frontend/src/pages/Journey.jsx` — a vertical timeline, oldest at top, each session an expandable card. Reuse existing design tokens (`../tokens.js`) and `ConfidenceChip` where a claim has confidence. Minimal, no new design system:
+Create `frontend/src/pages/Journey.jsx` — a vertical timeline, oldest at top, each session an expandable card. v1 uses minimal inline styles (no new design system); polishing with the existing `tokens.js` / `ConfidenceChip` is a follow-up, not required for the demo:
 ```jsx
 import { useEffect, useState } from 'react';
 import { getJourney } from '../api/client.js';
@@ -537,14 +543,14 @@ import Journey from './pages/Journey.jsx';
 // ...inside <Routes>:
 <Route path="/journey" element={<Journey />} />
 ```
-> Auth gating: mirror the existing founder-route guard pattern in this file. If founder routes use a wrapper/redirect-to-login component, wrap `<Journey/>` the same way. In `DEMO_FOUNDER_MODE` the page renders without login.
+> Auth gating note: `App.jsx` has **no wrapper guard component** — founder routes guard *inside* the page via a `useEffect` that reads `localStorage.founder_auth` and `navigate()`s to login on miss (see `FounderDashboard.jsx`). For **v1 demo, leave `/journey` ungated** (the backend `demoAuth` resolves the demo founder; `VITE_DEMO_FOUNDER_MODE` makes the client skip the token). When real-founder gating is wanted later, replicate `FounderDashboard.jsx`'s in-component `useEffect` localStorage check in `Journey.jsx` — do not look for a wrapper that doesn't exist.
 
 - [ ] **Step 4: Manual verification in the browser**
 
-Run (two terminals or background):
+Run (two terminals or background) — both the backend AND frontend demo flags must be on:
 ```bash
 cd api && DEMO_FOUNDER_MODE=true npm start &
-cd frontend && npm run dev
+cd frontend && VITE_DEMO_FOUNDER_MODE=true npm run dev
 ```
 Open `http://localhost:5173/journey`. Expected: "Your trust journey — Acme", three cards (First read → vendor match → outcome) oldest-to-newest; clicking a card expands its claims.
 
