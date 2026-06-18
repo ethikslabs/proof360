@@ -9,7 +9,7 @@ import pool from './db.js';
 // What output_permission ceilings a partial-scope member may see. Founder/full scope = no filter.
 const MEMBER_DEFAULT_ALLOWED = ['public_ok', 'customer_safe_summary_ok'];
 
-async function corpusIdOf(entity_id, client) {
+export async function corpusIdOf(entity_id, client) {
   const r = await client.query(`SELECT corpus_id, type FROM entity WHERE entity_id=$1`, [entity_id]);
   return r.rows[0] || null;
 }
