@@ -1,6 +1,7 @@
 import { getAccessToken } from './auth.js';
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? '';
+const DEMO_FOUNDER = import.meta.env.VITE_DEMO_FOUNDER_MODE === 'true';
 
 async function request(method, path, body, extraHeaders) {
   const opts = {
@@ -50,3 +51,9 @@ export const getProfile = () => authRequest('GET', '/api/v1/profile/current');
 export const getProjections = () => authRequest('GET', '/api/v1/profile/current/projections');
 export const postProfileEvent = (body) => authRequest('POST', '/api/v1/profile/current/events', body);
 export const attachSessionToProfile = (sessionId, body) => authRequest('POST', `/api/v1/sessions/${sessionId}/profile`, body);
+
+// Founder Journey (HRR v1)
+export const getJourney = () =>
+  DEMO_FOUNDER
+    ? request('GET', '/api/v1/profile/current/journey')        // demo: no token needed (backend gate is demoAuth)
+    : authRequest('GET', '/api/v1/profile/current/journey');   // prod: real Auth0 token
