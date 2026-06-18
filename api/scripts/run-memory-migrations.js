@@ -13,6 +13,7 @@ const dir = join(__dirname, '..', 'db', 'memory-migrations');
 const MIGRATIONS = [
   { id: '001_engine', file: join(dir, '001_engine.sql') },
   { id: '002_proof360_atom', file: join(dir, '002_proof360_atom.sql') },
+  { id: '003_journey', file: join(dir, '003_journey.sql') },
 ];
 
 export async function runMemoryMigrations(targetPool = pool) {

@@ -37,13 +37,13 @@ export async function createFounderAndCompany({ founderName, companyName }, clie
   return { person, company, edge };
 }
 
-export async function recordEvidence({ entity_id, type = 'turn', content, source_type = 'operator_entry', access_layer = null, output_permission = null }, client = pool) {
+export async function recordEvidence({ entity_id, type = 'turn', content, source_type = 'operator_entry', access_layer = null, output_permission = null, collected_at = null, extensions = null }, client = pool) {
   const { id, corpus_id } = nodeId('ev');
   const h = hash({ entity_id, content, source_type, nonce: id });
   await client.query(
-    `INSERT INTO evidence (evidence_id, corpus_id, entity_id, hash, type, uri, source_type, access_layer, output_permission)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
-    [id, corpus_id, entity_id, h, type, `content://${h}`, source_type, access_layer, output_permission]);
+    `INSERT INTO evidence (evidence_id, corpus_id, entity_id, hash, type, uri, source_type, access_layer, output_permission, collected_at, extensions)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+    [id, corpus_id, entity_id, h, type, `content://${h}`, source_type, access_layer, output_permission, collected_at, extensions]);
   return { evidence_id: id, corpus_id, hash: h };
 }
 
