@@ -6,6 +6,8 @@
     "start": "node --env-file=.env src/server.js",
     "dev": "node --env-file=.env --watch src/server.js",
     "migrate": "node --env-file=.env scripts/run-migrations.js",
+    "migrate:memory": "node --env-file=.env scripts/run-memory-migrations.js",
+    "migrate:kernel-atoms": "node --env-file=.env scripts/migrate-kernel-to-atoms.js",
     "test": "vitest --run",
     "test:log": "node scripts/test-log.js"
   },

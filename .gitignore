@@ -17,9 +17,11 @@ frontend/dist/
 api/leads.ndjson
 *.ndjson
 
-# Founder memory kernel — canonical store lives outside the repo
-memory/
-api/memory/
+# Founder memory kernel — canonical store lives outside the repo.
+# Anchored to repo root: ignore a top-level/api memory STORE dir, but NOT nested source dirs
+# like api/src/memory or api/tests/memory (the memory-v2 engine code).
+/memory/
+/api/memory/
 
 # Local design/superpowers scratch.
 .superpowers/
