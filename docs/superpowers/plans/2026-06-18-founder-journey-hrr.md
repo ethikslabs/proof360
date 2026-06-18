@@ -429,7 +429,7 @@ async function main() {
 main().catch((e) => { console.error(e); process.exitCode = 1; }).finally(() => pool.end());
 ```
 
-> Note: session demo-s3 supersedes the `gap:mfa` claim (authority `reality` ≥ `founder`), demonstrating walk-back/outcome. The live `gap:mfa` then shows the outcome; the journey still lists it under the session whose evidence it links to.
+> Note: session demo-s3 asserts `gap:mfa` with authority `reality` (rank 5 ≥ founder rank 4), so it **supersedes** the demo-s1 `gap:mfa` founder claim. `project()` returns only live claims (`superseded_by IS NULL`), so the superseded demo-s1 copy is **excluded** — `gap:mfa` appears only under demo-s3 (the outcome). Net rendering: demo-s1 shows `stage` + `gap:soc2` (2 items), demo-s3 shows the `gap:mfa` outcome. This is the intended walk-back: the live truth is the outcome, traceable to its session evidence. Still 3 sessions; acceptance asserts entry count + order, not per-session counts.
 
 - [ ] **Step 2: Add the npm script**
 
