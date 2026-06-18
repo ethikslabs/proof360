@@ -1,7 +1,7 @@
 // Slice 2 verification: the atom write path + Person/Company split + project().
 // Covers acceptance test #2 (separation) and #3 (extensibility) from the approved plan.
-import { beforeAll, afterAll, describe, it, expect } from 'vitest';
-import { pool, pgReachable } from './_setup.js';
+import { afterAll, describe, it, expect } from 'vitest';
+import { pool, reachable } from './_setup.js';
 import { createFounderAndCompany, createEntity, createEdge, recordEvidence, assertClaim } from '../../src/memory/nodes.js';
 import { project } from '../../src/memory/project.js';
 
@@ -14,13 +14,10 @@ async function tableNames() {
   return rows.map((r) => r.table_name);
 }
 
-let reachable = false;
-beforeAll(async () => { reachable = await pgReachable(); }); // globalSetup owns reset+migrate
 afterAll(async () => { await pool.end(); });
 
-describe('atom write path + project()', () => {
+describe.skipIf(!reachable)('atom write path + project()', () => {
   it('round-trips a stamped atom: turn -> evidence -> claim -> project(founder, company)', async () => {
-    if (!reachable) return expect.soft(reachable, 'Postgres not reachable — skipped').toBe(true);
     const { person, company } = await createFounderAndCompany({ founderName: 'Ada', companyName: 'Roundtrip Inc' });
     const ev = await recordEvidence({ entity_id: company.entity_id, content: 'we are seed stage', ...COMPANY_SAFE });
     await assertClaim({ entity_id: company.entity_id, subject: 'stage', value: 'seed', authority: 'founder', evidence_ids: [ev.evidence_id], ...COMPANY_SAFE });

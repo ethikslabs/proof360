@@ -1,7 +1,7 @@
 // Slice 1 verification: the engine's plpgsql invariants actually fire on real Postgres.
 // These are the guarantees the whole floor rests on; mocks/pg-mem cannot validate plpgsql triggers.
-import { beforeAll, afterAll, describe, it, expect } from 'vitest';
-import { pool, pgReachable } from './_setup.js';
+import { afterAll, describe, it, expect } from 'vitest';
+import { pool, reachable } from './_setup.js';
 
 const ts = '2026-06-18T00:00:00Z';
 const EXT = JSON.stringify({ model: 'test', code: 'slice1' });
@@ -26,13 +26,10 @@ async function newClaim(entity_id, { subject = 'stage', statement = 'seed', auth
   return r.rows[0];
 }
 
-let reachable = false;
-beforeAll(async () => { reachable = await pgReachable(); }); // globalSetup owns reset+migrate
 afterAll(async () => { await pool.end(); });
 
-describe('memory engine invariants (real Postgres)', () => {
+describe.skipIf(!reachable)('memory engine invariants (real Postgres)', () => {
   it('has the canonical tables incl the proof360 projection primitive', async () => {
-    if (!reachable) return expect.soft(reachable, 'Postgres not reachable — skipped').toBe(true);
     const { rows } = await pool.query(
       `SELECT table_name FROM information_schema.tables WHERE table_schema='public'`);
     const names = rows.map((r) => r.table_name);

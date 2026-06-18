@@ -1,7 +1,7 @@
 // Slice 4 verification: the JSON-kernel migration replays a founder's claims into atoms and
 // project(founder, company) reproduces today's lit tiles (continuity proof for the cutover).
-import { beforeAll, afterAll, describe, it, expect } from 'vitest';
-import { pool, pgReachable } from './_setup.js';
+import { afterAll, describe, it, expect } from 'vitest';
+import { pool, reachable } from './_setup.js';
 import { project } from '../../src/memory/project.js';
 import { migrateProfile, tilesFromClaims } from '../../src/memory/migrate.js';
 import { buildProfileProjections } from '../../src/services/profile-projections.js';
@@ -22,13 +22,10 @@ function v1Snapshot() {
   };
 }
 
-let reachable = false;
-beforeAll(async () => { reachable = await pgReachable(); });
 afterAll(async () => { await pool.end(); });
 
-describe('JSON-kernel -> atoms migration reproduces today tiles', () => {
+describe.skipIf(!reachable)('JSON-kernel -> atoms migration reproduces today tiles', () => {
   it('lit tiles after migration match the file-kernel tiles tile-for-tile', async () => {
-    if (!reachable) return expect.soft(reachable, 'Postgres not reachable — skipped').toBe(true);
     const snap = v1Snapshot();
     const expected = buildProfileProjections(snap).lit_tiles; // the file-kernel result
 

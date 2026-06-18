@@ -17,6 +17,10 @@ export async function pgReachable() {
   try { await pool.query('SELECT 1'); return true; } catch { return false; }
 }
 
+// Evaluated at module load so suites can `describe.skipIf(!reachable)` — clean skip (not a soft
+// failure) when no Postgres is provisioned, e.g. CI without a pg service.
+export const reachable = await pgReachable();
+
 export async function resetMemoryDb() {
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
   await runMemoryMigrations(pool);

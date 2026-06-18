@@ -1,8 +1,8 @@
 // Slice 3 verification: posture -> capability -> match -> recommendation -> outcome.
 // Covers acceptance test #1 (walk-back) and #4 (outcome) from the approved plan, plus the
 // mandatory data-model constraint (posture snapshot retained with input_claim_ids).
-import { beforeAll, afterAll, describe, it, expect } from 'vitest';
-import { pool, pgReachable } from './_setup.js';
+import { afterAll, describe, it, expect } from 'vitest';
+import { pool, reachable } from './_setup.js';
 import { createFounderAndCompany, recordEvidence, assertClaim } from '../../src/memory/nodes.js';
 import { project } from '../../src/memory/project.js';
 import { posture, snapshotPosture } from '../../src/memory/posture.js';
@@ -12,8 +12,6 @@ import { recordOutcome } from '../../src/memory/outcome.js';
 
 const SAFE = { access_layer: 'authenticated_customer_portal', output_permission: 'customer_safe_summary_ok' };
 
-let reachable = false;
-beforeAll(async () => { reachable = await pgReachable(); });
 afterAll(async () => { await pool.end(); });
 
 async function navScenario() {
@@ -33,9 +31,8 @@ async function navScenario() {
   return { person, company, p, rec, recNode };
 }
 
-describe('navigation: posture -> match -> recommendation -> outcome', () => {
+describe.skipIf(!reachable)('navigation: posture -> match -> recommendation -> outcome', () => {
   it('TEST #1 walk-back: recommendation.input_claim_ids -> claims -> evidence resolves fully', async () => {
-    if (!reachable) return expect.soft(reachable, 'Postgres not reachable — skipped').toBe(true);
     const { rec, recNode } = await navScenario();
     expect(rec.eligible).toBe(true); // seed in [pre-seed,seed,series-a] AND cloud aws in [aws]
 
