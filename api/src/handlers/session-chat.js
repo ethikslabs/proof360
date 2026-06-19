@@ -3,7 +3,7 @@ import { buildSystemPrompt } from '../services/persona-prompts.js';
 import { notifyJohn } from '../services/john-relay.js';
 import { normalizeContext } from '../services/context-normalizer.js';
 import { runGapAnalysis } from '../services/gap-mapper.js';
-import { CHAT_COMPLETIONS_URL } from '../config/inference.js';
+import { chatStream } from '../lib/inference.js';
 
 const MODEL = 'claude-haiku-4-5-20251001';
 
@@ -108,7 +108,7 @@ export async function sessionChatHandler(request, reply) {
     .slice(-20)
     .map(({ role, content }) => ({ role, content }));
 
-  // @john passthrough — notify, skip VECTOR
+  // @john passthrough — notify, skip inference
   if (/@john\b/i.test(cleanMessage)) {
     notifyJohn({
       sessionId: id,
@@ -125,71 +125,30 @@ export async function sessionChatHandler(request, reply) {
   let fullResponse = '';
 
   try {
-    const res = await fetch(CHAT_COMPLETIONS_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Correlation-ID': id,
-        'X-Tenant-ID': 'proof360',
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 300,
-        messages: [{ role: 'system', content: systemPrompt }, ...apiMessages],
-        stream: true,
-        tenant_id: 'proof360',
-        session_id: id,
-        correlation_id: id,
-      }),
+    const stream = chatStream({
+      model: MODEL,
+      max_tokens: 300,
+      messages: [{ role: 'system', content: systemPrompt }, ...apiMessages],
+      correlation_id: id,
     });
 
-    if (!res.ok) {
-      const body = await res.text().catch(() => '');
-      request.log.error({ status: res.status, body: body.slice(0, 200) }, 'VECTOR gateway error');
-      return reply.status(500).send({ error: 'chat_failed' });
-    }
-
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
-
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const payload = line.slice(6).trim();
-        if (payload === '[DONE]') continue;
-
-        try {
-          const chunk = JSON.parse(payload);
-          const delta = chunk.choices?.[0]?.delta?.content;
-          if (delta) {
-            if (!headersWritten) {
-              reply.raw.writeHead(200, {
-                'Content-Type': 'text/plain; charset=utf-8',
-                'Transfer-Encoding': 'chunked',
-                'Cache-Control': 'no-cache',
-                'X-Accel-Buffering': 'no',
-                'X-Persona': persona,
-                'X-Model': MODEL,
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Expose-Headers': 'X-Persona, X-Model',
-              });
-              headersWritten = true;
-            }
-            fullResponse += delta;
-            reply.raw.write(delta);
-          }
-        } catch {
-          // skip malformed SSE chunks
-        }
+    for await (const delta of stream) {
+      if (!delta) continue;
+      if (!headersWritten) {
+        reply.raw.writeHead(200, {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'Transfer-Encoding': 'chunked',
+          'Cache-Control': 'no-cache',
+          'X-Accel-Buffering': 'no',
+          'X-Persona': persona,
+          'X-Model': MODEL,
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Expose-Headers': 'X-Persona, X-Model',
+        });
+        headersWritten = true;
       }
+      fullResponse += delta;
+      reply.raw.write(delta);
     }
 
     if (fullResponse) {

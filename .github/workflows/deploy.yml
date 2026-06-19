@@ -100,7 +100,6 @@ jobs:
           ANTHROPIC_API_KEY=$(get_ssm "/ethikslabs/anthropic/api-key")
           ABUSEIPDB_API_KEY=$(get_ssm "/proof360/ABUSEIPDB_API_KEY")
           HIBP_API_KEY=$(get_ssm "/proof360/HIBP_API_KEY")
-          NIM_MODEL=$(get_ssm "/proof360/NIM_MODEL")
           VERITAS_URL=$(get_ssm "/proof360/VERITAS_URL")
           VERITAS_API_KEY=$(get_ssm "/proof360/VERITAS_API_KEY")
           TRUST360_URL=$(get_ssm "/proof360/TRUST360_URL")
@@ -118,7 +117,6 @@ jobs:
           PG_PASSWORD=$PG_PASSWORD
           AUTH0_DOMAIN=$AUTH0_DOMAIN
           AUTH0_AUDIENCE=$AUTH0_AUDIENCE
-          INFERENCE_URL=$(get_ssm "/proof360/INFERENCE_URL")
           DEMO_FOUNDER_MODE=$(get_ssm "/proof360/DEMO_FOUNDER_MODE")
           PG_MEMORY_DATABASE=proof360_memory
           MEMORY_STORE_DIR=$MEMORY_STORE_DIR

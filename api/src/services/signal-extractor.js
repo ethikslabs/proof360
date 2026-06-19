@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import FirecrawlApp from '@mendable/firecrawl-js';
 import { ENTERPRISE_SIGNALS_SCHEMA } from '../config/gaps.js';
-import { CHAT_COMPLETIONS_URL } from '../config/inference.js';
+import { chatComplete } from '../lib/inference.js';
 import { runReconPipeline } from './recon-pipeline.js';
 import { reconCompany } from './recon-company.js';
 import { record as recordConsumption } from './consumption-emitter.js';
@@ -117,45 +117,19 @@ Signal rules:
 
   let response;
   try {
-    const res = await fetch(CHAT_COMPLETIONS_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Correlation-ID': correlationId,
-        'X-Tenant-ID': 'proof360',
-      },
-      body: JSON.stringify({
-        model: resolveModel('classify', { registry: _registry, onLedger: () => {} }).model,
-        max_tokens: 1024,
-        messages: [{ role: 'user', content: prompt }],
-        tenant_id: 'proof360',
-        session_id: session_id || null,
-        correlation_id: session_id || null,
-      }),
+    response = await chatComplete({
+      model: resolveModel('classify', { registry: _registry, onLedger: () => {} }).model,
+      max_tokens: 1024,
+      messages: [{ role: 'user', content: prompt }],
+      correlation_id: correlationId,
     });
-
-    if (!res.ok) {
-      const body = await res.text().catch(() => '');
-      const err = new Error(`Claude API error: HTTP ${res.status}`);
-      err.status = res.status;
-      err._body = body.slice(0, 200);
-      throw err;
-    }
-
-    response = await res.json();
   } catch (err) {
-    log({ text: `  ✗  Claude API error: ${err.message}`, type: 'err' });
-    if (err.status) log({ text: `  ↳  HTTP ${err.status}`, type: 'err' });
+    log({ text: `  ✗  Bedrock inference error: ${err.message}`, type: 'err' });
+    if (err.status) log({ text: `  ↳  ${err.name || 'error'} ${err.status}`, type: 'err' });
     throw err;
   }
 
-  meter.emit({
-    provider: meter.providerForModel(response.model || 'unknown'),
-    model: response.model || 'unknown',
-    correlation_id: correlationId,
-    ...meter.extractUsage(response),
-  });
-
+  // chatComplete() already emits the meter event (provider=bedrock).
   const text = response.choices[0].message.content.trim();
   // Strip markdown code fences if present
   const json = text.startsWith('```') ? text.replace(/^```\w*\n?/, '').replace(/```$/, '').trim() : text;

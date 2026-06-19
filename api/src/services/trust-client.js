@@ -1,7 +1,6 @@
 // Trust evaluation client
-// Routing: NIM (Nemotron) → Trust360; all failures return confirmed=false.
-// NIM is preferred when NVIDIA_API_KEY is set. Silent fallback on failure.
-// All VECTOR calls carry { tenant_id, session_id, correlation_id } per v3 contract.
+// Routing: Bedrock-direct claim eval → Trust360 fallback; all failures return confirmed=false.
+// All calls carry { tenant_id, session_id, correlation_id } per v3 contract.
 
 import { nimEvaluateClaim, isNIMAvailable } from './nim-client.js';
 
@@ -46,7 +45,7 @@ async function fetchWithRetry(url, options, retries = MAX_RETRIES) {
         clearTimeout(timeout);
         const body = await res.json().catch(() => ({}));
         const reason = body.reason || body.message || `sovereignty policy blocked request (HTTP ${res.status})`;
-        throw new Error(`VECTOR sovereignty block: ${reason}`);
+        throw new Error(`sovereignty block: ${reason}`);
       }
 
       clearTimeout(timeout);
@@ -54,7 +53,7 @@ async function fetchWithRetry(url, options, retries = MAX_RETRIES) {
     } catch (err) {
       clearTimeout(timeout);
       // Re-throw our own errors (429 exhausted, sovereignty block)
-      if (err.message.startsWith('service capacity reached') || err.message.startsWith('VECTOR sovereignty block')) {
+      if (err.message.startsWith('service capacity reached') || err.message.startsWith('sovereignty block')) {
         throw err;
       }
       // On last attempt, throw the underlying error
@@ -74,12 +73,12 @@ export async function evaluateClaim({ question, evidence, metadata, session_id }
       return await nimEvaluateClaim({ question, evidence, metadata, session_id });
     } catch (err) {
       // Surface sovereignty blocks — do not silently fall back
-      if (err.message?.startsWith('VECTOR sovereignty block')) throw err;
-      console.warn('[trust] NIM failed, falling back to Trust360:', err.message);
+      if (err.message?.startsWith('sovereignty block')) throw err;
+      console.warn('[trust] Bedrock claim-eval failed, falling back to Trust360:', err.message);
     }
   }
 
-  // Trust360 fallback — with VECTOR contract fields + retry logic
+  // Trust360 fallback — with v3 contract fields + retry logic
   const body = {
     question,
     evidence,
@@ -118,7 +117,7 @@ export async function evaluateClaims(claims, session_id) {
       };
     } catch (err) {
       // Surface capacity/sovereignty errors — don't swallow them into fallback
-      if (err.message?.startsWith('service capacity reached') || err.message?.startsWith('VECTOR sovereignty block')) {
+      if (err.message?.startsWith('service capacity reached') || err.message?.startsWith('sovereignty block')) {
         results[claim.metadata.gapId] = {
           confirmed: false,
           error: err.message,

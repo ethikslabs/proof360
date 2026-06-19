@@ -9,6 +9,14 @@ import assert from 'node:assert/strict';
 import { recompute } from '../../src/services/recompute.js';
 import { evaluateClaims } from '../../src/services/trust-client.js';
 
+// Test 3 simulates "all inference paths fail". The primary path is now Bedrock-direct
+// (via nim-client), which uses the AWS SDK rather than global fetch — so we mock it to
+// reject, leaving the Trust360 fallback (stubbed fetch) as the second failing path.
+vi.mock('../../src/services/nim-client.js', () => ({
+  isNIMAvailable: () => Promise.resolve(true),
+  nimEvaluateClaim: () => Promise.reject(new Error('bedrock unavailable')),
+}));
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 /** Minimal mock session for Tier 1 (not published) */

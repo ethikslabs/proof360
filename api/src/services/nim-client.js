@@ -1,12 +1,8 @@
-// NIM inference client — inference transport is read from one place (config/inference.js).
-// The carrier handles provider routing and credentials. No keys needed here.
-import { INFERENCE_HEALTH_URL, CHAT_COMPLETIONS_URL } from '../config/inference.js';
-import * as meter from '../lib/meter.mjs';
+// Trust-claim evaluator — DIRECT to Amazon Bedrock. No NIM, no gateway, no VECTOR.
+// Legacy export names kept so trust-client.js needs no change.
+import { chatComplete } from '../lib/inference.js';
 
-const NIM_MODEL   = process.env.NIM_MODEL || 'nvidia/llama-3.1-nemotron-ultra-253b-v1';
-const TIMEOUT_MS  = 30_000;
-
-// System prompt shaping NIM output to match Trust360 response contract
+// System prompt shaping output to the Trust360 response contract.
 const SYSTEM_PROMPT = `You are a precise trust and compliance evaluator.
 Given a claim and supporting evidence, assess whether the claim is supported.
 Respond only with valid JSON in this exact shape:
@@ -17,63 +13,25 @@ Respond only with valid JSON in this exact shape:
 }
 Do not include any other text.`;
 
-// Evaluate a trust claim via NIM.
+// Evaluate a trust claim via Bedrock.
 // Returns { consensus: { mos, variance, agreement }, traceId } — same shape as Trust360.
 export async function nimEvaluateClaim({ question, evidence, metadata, session_id }) {
-  const raw = await nimComplete({
+  const raw = await chatComplete({
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: _buildPrompt(question, evidence) },
     ],
-    session_id,
+    max_tokens: 256,
+    temperature: 0.1,
+    correlation_id: session_id,
   });
 
   return _parseResponse(raw, metadata);
 }
 
-// Check whether the gateway is reachable — used by trust-client.js before routing
+// Bedrock is always reachable via the instance role — no health probe needed.
 export async function isNIMAvailable() {
-  try {
-    const res = await fetch(INFERENCE_HEALTH_URL, { signal: AbortSignal.timeout(3_000) });
-    if (!res.ok) return false;
-    const body = await res.json();
-    return body.providers?.nim === true;
-  } catch {
-    return false;
-  }
-}
-
-// Raw chat completions — routed through gateway
-// All VECTOR calls carry { tenant_id, session_id, correlation_id } per v3 contract.
-export async function nimComplete({ messages, temperature = 0.1, session_id }) {
-  const correlationId = session_id || 'proof360';
-  const res = await fetch(CHAT_COMPLETIONS_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Correlation-ID': correlationId, 'X-Tenant-ID': 'proof360' },
-    body: JSON.stringify({
-      model: NIM_MODEL,
-      messages,
-      temperature,
-      tenant_id: 'proof360',
-      session_id: session_id || null,
-      correlation_id: session_id || null,
-    }),
-    signal: AbortSignal.timeout(TIMEOUT_MS),
-  });
-
-  if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    throw new Error(`NIM returned ${res.status}: ${body.slice(0, 100)}`);
-  }
-
-  const data = await res.json();
-  meter.emit({
-    provider: meter.providerForModel(data.model || NIM_MODEL),
-    model: data.model || NIM_MODEL,
-    correlation_id: correlationId,
-    ...meter.extractUsage(data),
-  });
-  return data;
+  return true;
 }
 
 // --- internals ---
@@ -87,11 +45,10 @@ function _parseResponse(raw, metadata) {
 
   let parsed;
   try {
-    // Nemotron thinking model may wrap output in <think> tags — strip them
     const clean = text.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
     parsed = JSON.parse(clean);
   } catch {
-    throw new Error(`NIM returned non-JSON: ${text.slice(0, 150)}`);
+    throw new Error(`claim eval returned non-JSON: ${text.slice(0, 150)}`);
   }
 
   const mos = typeof parsed.confidence === 'number'
@@ -99,14 +56,10 @@ function _parseResponse(raw, metadata) {
     : parsed.supported ? 7 : 4;
 
   return {
-    traceId: `nim-${Date.now()}-${metadata?.gapId ?? 'unknown'}`,
-    consensus: {
-      mos,
-      variance: 0,
-      agreement: 'full',
-    },
-    provider: 'nim-gateway',
-    model: NIM_MODEL,
+    traceId: `claim-${Date.now()}-${metadata?.gapId ?? 'unknown'}`,
+    consensus: { mos, variance: 0, agreement: 'full' },
+    provider: 'bedrock',
+    model: 'claude-haiku',
     reasoning: parsed.reasoning ?? null,
   };
 }

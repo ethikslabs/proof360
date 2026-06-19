@@ -1,7 +1,7 @@
 // api/src/handlers/chat.js
 import { buildSystemPrompt } from '../services/persona-prompts.js';
 import { notifyJohn } from '../services/john-relay.js';
-import { CHAT_COMPLETIONS_URL } from '../config/inference.js';
+import { chatStream } from '../lib/inference.js';
 
 const VALID_PERSONAS = ['sophia', 'leonardo', 'edison'];
 
@@ -33,7 +33,7 @@ export async function chatHandler(request, reply) {
   const sessionId = context?.session_id || null;
   const correlationId = sessionId || 'proof360';
 
-  // @john detection — skip VECTOR, notify John via Telegram, return inline response
+  // @john detection — skip inference, notify John via Telegram, return inline response
   const lastUserMsg = apiMessages[apiMessages.length - 1]?.content || '';
   if (/@john\b/i.test(lastUserMsg)) {
     notifyJohn({
@@ -50,69 +50,26 @@ export async function chatHandler(request, reply) {
   let headersWritten = false;
 
   try {
-    const res = await fetch(CHAT_COMPLETIONS_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Correlation-ID': correlationId,
-        'X-Tenant-ID': 'proof360',
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 300,
-        messages: [{ role: 'system', content: systemPrompt }, ...apiMessages],
-        stream: true,
-        tenant_id: 'proof360',
-        session_id: sessionId,
-        correlation_id: sessionId,
-      }),
+    const stream = chatStream({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 300,
+      messages: [{ role: 'system', content: systemPrompt }, ...apiMessages],
+      correlation_id: correlationId,
     });
 
-    if (!res.ok) {
-      const body = await res.text().catch(() => '');
-      request.log.error({ status: res.status, body: body.slice(0, 200) }, 'VECTOR gateway error');
-      return reply.status(500).send({ error: 'chat_failed' });
-    }
-
-    // Parse SSE stream from fetch response
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      // Keep the last partial line in the buffer
-      buffer = lines.pop() || '';
-
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const payload = line.slice(6).trim();
-        if (payload === '[DONE]') continue;
-
-        try {
-          const chunk = JSON.parse(payload);
-          const delta = chunk.choices?.[0]?.delta?.content;
-          if (delta) {
-            if (!headersWritten) {
-              reply.raw.writeHead(200, {
-                'Content-Type': 'text/plain; charset=utf-8',
-                'Transfer-Encoding': 'chunked',
-                'Cache-Control': 'no-cache',
-                'X-Accel-Buffering': 'no',
-                'Access-Control-Allow-Origin': '*',
-              });
-              headersWritten = true;
-            }
-            reply.raw.write(delta);
-          }
-        } catch {
-          // skip malformed SSE chunks
-        }
+    for await (const delta of stream) {
+      if (!delta) continue;
+      if (!headersWritten) {
+        reply.raw.writeHead(200, {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'Transfer-Encoding': 'chunked',
+          'Cache-Control': 'no-cache',
+          'X-Accel-Buffering': 'no',
+          'Access-Control-Allow-Origin': '*',
+        });
+        headersWritten = true;
       }
+      reply.raw.write(delta);
     }
 
     if (headersWritten) {
