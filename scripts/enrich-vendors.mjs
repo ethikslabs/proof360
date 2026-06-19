@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // proof360/scripts/enrich-vendors.mjs
-// Enriches vendor catalog with structured positioning data via VECTOR.
+// Enriches vendor catalog with structured positioning data — Bedrock + Perplexity, direct.
 // Chain: Perplexity (live web intel) → Nova Lite (structured extraction)
 // Output: runs/vendor-matrix.json
 //
@@ -19,10 +19,13 @@ const ROOT = resolve(__dir, '..');
 loadEnv(resolve(ROOT, 'api/.env'));
 
 import { VENDORS } from '../api/src/config/vendors.js';
+import { chatComplete } from '../api/src/lib/inference.js';
 
-const VECTOR_URL = process.env.VECTOR_URL || 'http://localhost:3003/v1';
+// Inference is DIRECT — Perplexity for live intel, Bedrock for structured extraction. No VECTOR.
+const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY || '';
+const PERPLEXITY_URL = 'https://api.perplexity.ai/chat/completions';
 const PERPLEXITY_MODEL = 'sonar';
-const EXTRACT_MODEL = 'amazon.nova-lite-v1:0';
+const EXTRACT_MODEL = 'claude-haiku-4-5-20251001';
 const RUNS_DIR = resolve(ROOT, 'runs');
 const OUTPUT_PATH = resolve(RUNS_DIR, 'vendor-matrix.json');
 
@@ -58,28 +61,24 @@ function saveMatrix(matrix) {
   writeFileSync(OUTPUT_PATH, JSON.stringify(matrix, null, 2));
 }
 
-async function vectorCall(model, messages, extra = {}) {
-  const res = await fetch(`${VECTOR_URL}/chat/completions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Tenant-ID': 'proof360',
-    },
-    body: JSON.stringify({
-      model,
-      messages,
-      max_tokens: 1024,
-      sovereignty_override: true,
-      sovereignty_justification: 'proof360 vendor catalog enrichment — internal research use',
-      ...extra,
-    }),
-    signal: AbortSignal.timeout(60_000),
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(`VECTOR ${res.status}: ${text.slice(0, 120)}`);
+// Direct inference: Perplexity (sonar) for live web intel, Bedrock for everything else.
+async function inferCall(model, messages, extra = {}) {
+  if (model === PERPLEXITY_MODEL) {
+    if (!PERPLEXITY_API_KEY) throw new Error('PERPLEXITY_API_KEY not set (live intel is Perplexity-direct)');
+    const res = await fetch(PERPLEXITY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${PERPLEXITY_API_KEY}` },
+      body: JSON.stringify({ model, messages, max_tokens: 1024, ...extra }),
+      signal: AbortSignal.timeout(60_000),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(`Perplexity ${res.status}: ${text.slice(0, 120)}`);
+    }
+    return res.json();
   }
-  return res.json();
+  // Bedrock-direct (instance role / local AWS creds)
+  return chatComplete({ model, messages, max_tokens: 1024, correlation_id: 'enrich-vendors', ...extra });
 }
 
 async function fetchPerplexityIntel(vendor) {
@@ -99,7 +98,7 @@ Provide detailed information on:
 
 Be specific and factual. Include pricing signals where available.`;
 
-  const result = await vectorCall(PERPLEXITY_MODEL, [
+  const result = await inferCall(PERPLEXITY_MODEL, [
     { role: 'user', content: prompt }
   ]);
   return result.choices?.[0]?.message?.content || '';
@@ -131,7 +130,7 @@ Return ONLY valid JSON matching this exact schema:
   "updated_best_for": ""    // improved version of best_for field
 }`;
 
-  const result = await vectorCall(EXTRACT_MODEL, [
+  const result = await inferCall(EXTRACT_MODEL, [
     { role: 'user', content: prompt }
   ]);
 
@@ -175,12 +174,9 @@ async function main() {
   console.log(`${C.dim}chain: Perplexity (live intel) → Nova Lite (structured extraction)${C.reset}`);
   console.log(`${C.dim}output: runs/vendor-matrix.json${C.reset}\n`);
 
-  // Check VECTOR health
-  try {
-    const health = await fetch(`${VECTOR_URL.replace('/v1', '')}/health`).then(r => r.json());
-    console.log(`${C.green}VECTOR${C.reset} ${health.status} · ${health.registry?.models} models\n`);
-  } catch {
-    console.error(`${C.red}VECTOR not reachable at ${VECTOR_URL}${C.reset}`);
+  // Inference is direct (Bedrock instance role + Perplexity key) — no carrier to health-check.
+  if (!PERPLEXITY_API_KEY) {
+    console.error(`${C.red}PERPLEXITY_API_KEY not set — live vendor intel needs it (Perplexity-direct)${C.reset}`);
     process.exit(1);
   }
 

@@ -24,6 +24,7 @@ import { reconPorts } from './api/src/services/recon-ports.js';
 import { reconAbuseIpdb } from './api/src/services/recon-abuseipdb.js';
 import { extractReconContext } from './api/src/services/recon-pipeline.js';
 import { GAP_DEFINITIONS, SEVERITY_WEIGHTS } from './api/src/config/gaps.js';
+import { chatComplete } from './api/src/lib/inference.js';
 import { VENDORS } from './api/src/config/vendors.js';
 import { AWS_PROGRAMS, evaluateTrigger } from './api/src/config/aws-programs.js';
 import { createCorpusStore } from '../CORPUS/src/loader/index.mjs';
@@ -62,16 +63,16 @@ const SOURCE_NAMES = [
   'asic',
 ];
 
-const VECTOR_URL = process.env.VECTOR_URL || 'http://localhost:3003/v1';
-const VECTOR_EXTRACT_MODEL =
-  process.env.PROOF360_VECTOR_EXTRACT_MODEL ||
-  process.env.PROOF360_VECTOR_MODEL ||
-  'amazon.nova-lite-v1:0';
-const VECTOR_WEB_INTEL_MODEL = process.env.PROOF360_VECTOR_WEB_INTEL_MODEL || 'sonar';
+// Inference is DIRECT — Bedrock for signal extraction, Perplexity for web intelligence.
+// No VECTOR, no gateway, no localhost carrier.
+const EXTRACT_MODEL = process.env.PROOF360_EXTRACT_MODEL || 'claude-haiku-4-5-20251001';
+const WEB_INTEL_MODEL = process.env.PROOF360_WEB_INTEL_MODEL || 'sonar';
+const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY || '';
+const PERPLEXITY_URL = 'https://api.perplexity.ai/chat/completions';
 
 const MODEL_REASONS = {
-  [VECTOR_EXTRACT_MODEL]: 'signal extraction - cheap, fast, structured output, Bedrock-sovereign',
-  [VECTOR_WEB_INTEL_MODEL]: 'indexed web intelligence - live search grounding with citations via VECTOR',
+  [EXTRACT_MODEL]: 'signal extraction - Bedrock-direct, structured JSON output',
+  [WEB_INTEL_MODEL]: 'indexed web intelligence - Perplexity-direct, live search with citations',
 };
 
 const C = {
@@ -556,44 +557,28 @@ async function traceRecon(ledger, url, domain, pages) {
 
 async function traceVector(ledger, pages) {
   if (pages.length === 0) {
-    ledger.skip('vector', 'extract', 'no pages fetched; sonar web intelligence still runs separately');
+    ledger.skip('bedrock', 'extract', 'no pages fetched; sonar web intelligence still runs separately');
     return {
       attempted: false,
       ok: false,
       extracted: fallbackExtraction(),
-      model: VECTOR_EXTRACT_MODEL,
+      model: EXTRACT_MODEL,
       usage: zeroUsage(),
     };
   }
 
-  const model = VECTOR_EXTRACT_MODEL;
-  const call = ledger.call('vector', 'extract', `model=${model} via VECTOR pages=${pages.length}`);
+  const model = EXTRACT_MODEL;
+  const call = ledger.call('bedrock', 'extract', `model=${model} direct pages=${pages.length}`);
   ledger.detail(call, 'why:', MODEL_REASONS[model] || 'configured proof360 signal extraction model');
   ledger.detail(call, 'prompt:', 'extract business/SPV signals as strict JSON from live page content');
   const prompt = buildVectorPrompt(pages);
   try {
-    const response = await fetch(`${VECTOR_URL}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Correlation-ID': 'proof360-cli',
-        'X-Tenant-ID': 'proof360',
-      },
-      body: JSON.stringify({
-        model,
-        max_tokens: 1200,
-        messages: [{ role: 'user', content: prompt }],
-        tenant_id: 'proof360',
-        session_id: 'cli',
-        correlation_id: 'cli',
-      }),
-      signal: AbortSignal.timeout(45000),
+    const json = await chatComplete({
+      model,
+      max_tokens: 1200,
+      messages: [{ role: 'user', content: prompt }],
+      correlation_id: 'cli',
     });
-    if (!response.ok) {
-      const body = await response.text().catch(() => '');
-      throw new Error(`VECTOR HTTP ${response.status}: ${oneLine(body, 100)}`);
-    }
-    const json = await response.json();
     const content = json.choices?.[0]?.message?.content?.trim() || '';
     const parsed = parseJsonResponse(content);
     const usage = extractUsage(json);
@@ -604,41 +589,36 @@ async function traceVector(ledger, pages) {
     );
     return { attempted: true, ok: true, extracted: parsed, model, usage };
   } catch (err) {
-    ledger.fail(call, err.message || 'VECTOR extraction failed');
+    ledger.fail(call, err.message || 'extraction failed');
     return { attempted: true, ok: false, extracted: fallbackExtraction(), model, usage: zeroUsage() };
   }
 }
 
 async function traceWebIntelligence(ledger, domain) {
-  const model = VECTOR_WEB_INTEL_MODEL;
+  const model = WEB_INTEL_MODEL;
   const prompt = buildWebIntelPrompt(domain);
-  const call = ledger.call('perplexity', 'sonar', `model=${model} via VECTOR domain=${domain}`);
+  const call = ledger.call('perplexity', 'sonar', `model=${model} direct domain=${domain}`);
   ledger.detail(call, 'why:', MODEL_REASONS[model] || 'configured proof360 indexed web intelligence model');
   ledger.detail(call, 'prompt:', 'recent news, security incidents, data breaches, funding, CVEs, third-party mentions');
 
   try {
-    const response = await fetch(`${VECTOR_URL}/chat/completions`, {
+    if (!PERPLEXITY_API_KEY) throw new Error('PERPLEXITY_API_KEY not set (web intelligence is Perplexity-direct)');
+    const response = await fetch(PERPLEXITY_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Correlation-ID': 'proof360-cli-web-intel',
-        'X-Tenant-ID': 'proof360',
+        'Authorization': `Bearer ${PERPLEXITY_API_KEY}`,
       },
       body: JSON.stringify({
         model,
         max_tokens: 1200,
         messages: [{ role: 'user', content: prompt }],
-        tenant_id: 'proof360',
-        session_id: 'cli-web-intel',
-        correlation_id: 'cli-web-intel',
-        sovereignty_override: true,
-        sovereignty_justification: 'Proof360 authorized defensive due diligence uses indexed public web intelligence for customer-controlled assessments.',
       }),
       signal: AbortSignal.timeout(70000),
     });
     if (!response.ok) {
       const body = await response.text().catch(() => '');
-      throw new Error(`VECTOR HTTP ${response.status}: ${oneLine(body, 120)}`);
+      throw new Error(`Perplexity HTTP ${response.status}: ${oneLine(body, 120)}`);
     }
 
     const json = await response.json();
@@ -667,7 +647,7 @@ async function traceWebIntelligence(ledger, domain) {
 
     return { attempted: true, ok: true, ...result };
   } catch (err) {
-    ledger.fail(call, err.message || 'VECTOR sonar failed');
+    ledger.fail(call, err.message || 'web intel failed');
     return {
       attempted: true,
       ok: false,
@@ -679,7 +659,7 @@ async function traceWebIntelligence(ledger, domain) {
       coverage: [],
       parsed: {},
       raw_summary: '',
-      error: err.message || 'VECTOR sonar failed',
+      error: err.message || 'web intel failed',
     };
   }
 }
@@ -1409,12 +1389,12 @@ function printEvidenceQuality({ pages, ledger, vector, webIntel, corpusAvailable
   line(`  Pages read: ${pages.length} of ${PAGE_TARGETS.length}`);
   line(`  Perplexity: ${webIntel?.ok ? `yes - ${webIntel.citation_count} citations (${list(webIntel.coverage, 4)})` : webIntel?.attempted ? `failed - ${webIntel.error || 'see trace'}` : 'not called'}`);
   line(`  Recon sources: ${okCount} of ${reconSources.length}${skipped.length ? ` (${skipped.join(', ')} skipped)` : ''}`);
-  line(`  VECTOR called: ${vectorAttempted ? 'yes' : 'no'} - extraction=${vector?.ok ? vector.model : vector?.attempted ? 'failed' : 'skipped'} sonar=${webIntel?.ok ? webIntel.model : webIntel?.attempted ? 'failed' : 'not_called'}`);
+  line(`  Inference called: ${vectorAttempted ? 'yes' : 'no'} - extraction=${vector?.ok ? vector.model : vector?.attempted ? 'failed' : 'skipped'} sonar=${webIntel?.ok ? webIntel.model : webIntel?.attempted ? 'failed' : 'not_called'}`);
   line(`  CORPUS called: ${corpusAvailable ? 'yes' : 'no'}`);
   line(`  Founder input: ${founderAnswers.length} fields, ${notSure} not sure`);
   line(`  Gaps shown: ${gaps.length}`);
   if (evidencePoor) {
-    line(`${C.red}  WARNING: no website documents were read and no useful VECTOR intelligence was returned. Scores are provisional.${C.reset}`);
+    line(`${C.red}  WARNING: no website documents were read and no useful web intelligence was returned. Scores are provisional.${C.reset}`);
   }
   line(`  ${dim('HIGH = live recon. PROBABLE = inferred. UNVERIFIED = not sure / not asked, not negative evidence.')}`);
 }
@@ -1427,11 +1407,11 @@ function printWebIntelligence(webIntel) {
     return;
   }
   if (!webIntel.ok) {
-    line(`${C.red}  Sonar via VECTOR failed: ${webIntel.error || 'see trace'}${C.reset}`);
+    line(`${C.red}  Sonar (Perplexity) failed: ${webIntel.error || 'see trace'}${C.reset}`);
     return;
   }
   const parsed = webIntel.parsed || {};
-  line(`  Model: ${webIntel.model} via VECTOR`);
+  line(`  Model: ${webIntel.model} direct`);
   line(`  Why: ${webIntel.model_reason}`);
   if (parsed.summary) line(`  Summary: ${oneLine(parsed.summary, 220)}`);
   line(`  Breach: ${parsed.breach_status || 'unknown'}  Funding: ${parsed.funding_status || 'unknown'}  Stage: ${parsed.stage || 'Unknown'}`);
@@ -1567,8 +1547,8 @@ function printProvenanceBlock({ ledger, pages, vector, webIntel, corpusAvailable
   const reconSources = ['dns', 'http', 'crtsh', 'github', 'ipapi', 'jobs', 'hibp', 'abuseipdb', 'ssllabs', 'ports'];
   const calledRecon = reconSources.filter((source) => ledger.entries.some((entry) => entry.type === 'CALL' && entry.source === source));
   const skippedRecon = reconSources.filter((source) => ledger.sourceStatus.get(source) === 'skipped');
-  const llmCalls = ledger.entries.filter((entry) => entry.type === 'CALL' && ['vector', 'perplexity'].includes(entry.source));
-  const llmResults = ledger.entries.filter((entry) => entry.type === 'RX' && ['vector', 'perplexity'].includes(entry.source));
+  const llmCalls = ledger.entries.filter((entry) => entry.type === 'CALL' && ['bedrock', 'perplexity'].includes(entry.source));
+  const llmResults = ledger.entries.filter((entry) => entry.type === 'RX' && ['bedrock', 'perplexity'].includes(entry.source));
   const tokensIn = llmResults.reduce((sum, entry) => sum + (entry.result?.usage?.input || 0), 0);
   const tokensOut = llmResults.reduce((sum, entry) => sum + (entry.result?.usage?.output || 0), 0);
   const notSure = founderAnswers.filter((answer) => answer.state === 'not_sure').length;
@@ -1592,7 +1572,7 @@ function printProvenanceBlock({ ledger, pages, vector, webIntel, corpusAvailable
   line();
   line(`  ${dim('Web intelligence:')}`);
   if (webIntel?.ok) {
-    line(`    ${webIntel.model} via VECTOR — ${webIntel.model_reason}`);
+    line(`    ${webIntel.model} direct — ${webIntel.model_reason}`);
     line(`    ${webIntel.citation_count} citations from indexed web · indexed ${new Date().toISOString().slice(0, 10)}`);
   } else if (webIntel?.attempted) {
     line(`    ${webIntel.model} — failed (${webIntel.error || 'see trace'})`);
@@ -1605,7 +1585,7 @@ function printProvenanceBlock({ ledger, pages, vector, webIntel, corpusAvailable
   line();
   line(`  ${dim('Signal extraction:')}`);
   if (vector?.ok) {
-    line(`    ${vector.model} via VECTOR — ${MODEL_REASONS[vector.model] || 'signal extraction'}`);
+    line(`    ${vector.model} direct — ${MODEL_REASONS[vector.model] || 'signal extraction'}`);
   } else {
     line(`    ${vector?.attempted ? `${vector.model} — failed` : 'skipped (no pages read)'}`);
   }
