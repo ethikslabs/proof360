@@ -32,6 +32,11 @@ jobs:
 
       - name: Build frontend
         working-directory: frontend
+        # VITE_DEMO_FOUNDER_MODE: the journey/profile surfaces resolve the seeded
+        # demo founder without a real Auth0 token. Temporary until live founder->atom
+        # resolution lands; remove this flag then.
+        env:
+          VITE_DEMO_FOUNDER_MODE: 'true'
         run: |
           npm install
           npm run build
@@ -95,7 +100,6 @@ jobs:
           ANTHROPIC_API_KEY=$(get_ssm "/ethikslabs/anthropic/api-key")
           ABUSEIPDB_API_KEY=$(get_ssm "/proof360/ABUSEIPDB_API_KEY")
           HIBP_API_KEY=$(get_ssm "/proof360/HIBP_API_KEY")
-          VECTOR_URL=$(get_ssm "/proof360/VECTOR_URL")
           NIM_MODEL=$(get_ssm "/proof360/NIM_MODEL")
           VERITAS_URL=$(get_ssm "/proof360/VERITAS_URL")
           VERITAS_API_KEY=$(get_ssm "/proof360/VERITAS_API_KEY")
@@ -114,12 +118,17 @@ jobs:
           PG_PASSWORD=$PG_PASSWORD
           AUTH0_DOMAIN=$AUTH0_DOMAIN
           AUTH0_AUDIENCE=$AUTH0_AUDIENCE
+          INFERENCE_URL=$(get_ssm "/proof360/INFERENCE_URL")
+          DEMO_FOUNDER_MODE=$(get_ssm "/proof360/DEMO_FOUNDER_MODE")
+          PG_MEMORY_DATABASE=proof360_memory
           MEMORY_STORE_DIR=$MEMORY_STORE_DIR
           LOG_LEVEL=info
           EOF
 
           echo "=== Running database migrations ==="
           node --env-file=$API_DIR/.env $API_DIR/scripts/run-migrations.js || echo "Migrations skipped (Postgres not configured)"
+          echo "=== Running memory-store migrations (journey atom spine) ==="
+          node --env-file=$API_DIR/.env $API_DIR/scripts/run-memory-migrations.js || echo "Memory migrations skipped (proof360_memory not provisioned)"
 
           echo "=== Restarting PM2 ==="
           PM2_HOME=/etc/.pm2 pm2 delete proof360 2>/dev/null || true

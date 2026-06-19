@@ -62,7 +62,7 @@ function CompanyLogo({ domain, name, size = 40 }) {
         background: '#f3f4f6', border: '1px solid #e5e7eb',
         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
       }}>
-        <span style={{ fontSize: size * 0.33, fontWeight: 700, color: '#9ca3af', fontFamily: "'DM Sans', sans-serif" }}>{initials}</span>
+        <span style={{ fontSize: size * 0.33, fontWeight: 700, color: '#9ca3af', fontFamily: "var(--p360-sans)" }}>{initials}</span>
       </div>
     );
   }
@@ -263,7 +263,7 @@ function LeadRow({ lead, tenant, tenantKey, engagement, onEngage, index }) {
                 style={{
                   padding: '8px 18px', background: tc, color: '#ffffff',
                   border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 700,
-                  cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+                  cursor: 'pointer', fontFamily: "var(--p360-sans)",
                 }}
               >Engage lead →</button>
             )}
@@ -275,7 +275,7 @@ function LeadRow({ lead, tenant, tenantKey, engagement, onEngage, index }) {
                     padding: '7px 13px', background: '#ffffff',
                     border: '1px solid #d1d5db', borderRadius: 7,
                     fontSize: 12, color: '#374151', cursor: 'pointer',
-                    fontFamily: "'DM Sans', sans-serif", fontWeight: 500,
+                    fontFamily: "var(--p360-sans)", fontWeight: 500,
                   }}
                 >Update status ▾</button>
                 {showStatusMenu && (
@@ -291,7 +291,7 @@ function LeadRow({ lead, tenant, tenantKey, engagement, onEngage, index }) {
                           display: 'block', width: '100%', textAlign: 'left', padding: '9px 14px',
                           background: status === key ? '#f9fafb' : 'transparent',
                           border: 'none', color: val.color, fontSize: 12, cursor: 'pointer',
-                          fontFamily: "'DM Sans', sans-serif", fontWeight: status === key ? 700 : 400,
+                          fontFamily: "var(--p360-sans)", fontWeight: status === key ? 700 : 400,
                         }}
                       >{val.label}</button>
                     ))}
@@ -301,7 +301,7 @@ function LeadRow({ lead, tenant, tenantKey, engagement, onEngage, index }) {
             )}
             <button
               onClick={e => { e.stopPropagation(); window.location.href = `/portal/leads/${lead.id}`; }}
-              style={{ padding: '7px 13px', background: 'transparent', border: '1px solid #d1d5db', borderRadius: 7, fontSize: 11, color: '#6b7280', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}
+              style={{ padding: '7px 13px', background: 'transparent', border: '1px solid #d1d5db', borderRadius: 7, fontSize: 11, color: '#6b7280', cursor: 'pointer', fontFamily: "var(--p360-sans)" }}
             >Full brief ↗</button>
           </div>
 
@@ -331,9 +331,9 @@ function LeadRow({ lead, tenant, tenantKey, engagement, onEngage, index }) {
                 onChange={e => setDraft(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
                 placeholder="Message this founder…"
-                style={{ flex: 1, padding: '8px 11px', border: '1px solid #e5e7eb', borderRadius: 7, fontSize: 13, fontFamily: "'DM Sans', sans-serif", outline: 'none', color: '#111827' }}
+                style={{ flex: 1, padding: '8px 11px', border: '1px solid #e5e7eb', borderRadius: 7, fontSize: 13, fontFamily: "var(--p360-sans)", outline: 'none', color: '#111827' }}
               />
-              <button onClick={sendMessage} disabled={!draft.trim()} style={{ padding: '8px 14px', background: tc, color: '#fff', border: 'none', borderRadius: 7, fontSize: 13, fontWeight: 600, cursor: draft.trim() ? 'pointer' : 'default', opacity: draft.trim() ? 1 : 0.4, fontFamily: "'DM Sans', sans-serif" }}>Send</button>
+              <button onClick={sendMessage} disabled={!draft.trim()} style={{ padding: '8px 14px', background: tc, color: '#fff', border: 'none', borderRadius: 7, fontSize: 13, fontWeight: 600, cursor: draft.trim() ? 'pointer' : 'default', opacity: draft.trim() ? 1 : 0.4, fontFamily: "var(--p360-sans)" }}>Send</button>
             </div>
           </div>
         </div>
@@ -413,7 +413,7 @@ export default function PortalDashboard() {
   ];
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f3f4f6', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: '#f3f4f6', fontFamily: "var(--p360-sans)" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
         @keyframes pulseDot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(1.5)} }
@@ -434,7 +434,7 @@ export default function PortalDashboard() {
             {/* Proof360 stamp — quiet */}
             <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none', opacity: 0.45, flexShrink: 0 }}>
               <Proof360Mark size={16} />
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em', fontFamily: "'DM Sans', sans-serif" }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em', fontFamily: "var(--p360-sans)" }}>
                 Proof<span style={{ color: '#5eead4' }}>360</span>
               </span>
             </Link>
@@ -487,7 +487,7 @@ export default function PortalDashboard() {
               <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)', marginBottom: 3 }}>
                 {auth.tenant === 'ethikslabs' ? 'alfred@ethikslabs.com' : auth.user?.email}
               </div>
-              <button onClick={logout} style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", padding: 0, display: 'block' }}>
+              <button onClick={logout} style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: "var(--p360-sans)", padding: 0, display: 'block' }}>
                 Sign out
               </button>
             </div>
@@ -539,7 +539,7 @@ export default function PortalDashboard() {
                 border: 'none', borderRadius: 7,
                 color: filter === f.id ? '#ffffff' : '#6b7280',
                 fontSize: 13, fontWeight: filter === f.id ? 700 : 500,
-                cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+                cursor: 'pointer', fontFamily: "var(--p360-sans)",
                 display: 'flex', alignItems: 'center', gap: 7,
                 transition: 'all 0.15s',
                 whiteSpace: 'nowrap',

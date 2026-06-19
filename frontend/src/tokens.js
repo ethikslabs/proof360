@@ -79,3 +79,35 @@ export function personaColor(persona, theme) {
   const meta = PERSONA[persona];
   return tk[meta?.token] || tk.plum;
 }
+
+// ---------------------------------------------------------------------------
+// THE MASTER TEMPLATE
+// One source of truth for type + colour. JS code reads tokens()/FONT directly;
+// CSS and <style> blocks read the same values as `var(--p360-*)` custom
+// properties, emitted onto :root by applyTheme(). Change a value here and it
+// updates everywhere — like a Word template's styles.
+// ---------------------------------------------------------------------------
+
+export const FONT = {
+  serif: "'Instrument Serif', Georgia, 'Times New Roman', serif",
+  sans:  "'IBM Plex Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+  mono:  "'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace",
+};
+
+export const DEFAULT_THEME = 'pearl';
+
+// Emit the active theme's palette + fonts as CSS custom properties on :root,
+// so stylesheets/<style> blocks can use var(--p360-ink), var(--p360-serif), etc.
+// and stay perfectly in sync with the JS-side tokens() consumers (e.g. /chat).
+export function applyTheme(theme = DEFAULT_THEME, root) {
+  const el = root || (typeof document !== 'undefined' ? document.documentElement : null);
+  if (!el) return;
+  const tk = tokens(theme);
+  for (const [key, value] of Object.entries(tk)) {
+    el.style.setProperty(`--p360-${key}`, value);
+  }
+  el.style.setProperty('--p360-serif', FONT.serif);
+  el.style.setProperty('--p360-sans', FONT.sans);
+  el.style.setProperty('--p360-mono', FONT.mono);
+  el.setAttribute('data-theme', theme);
+}

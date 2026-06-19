@@ -7,11 +7,16 @@
   --p360-amber: #C7922E;
   --p360-green: #3D9B5A;
   --p360-tick:  #46B561;
+  /* Canonical type stack — fallback values; applyTheme() in tokens.js sets the
+     authoritative --p360-serif/sans/mono on :root at startup. */
+  --p360-serif: 'Instrument Serif', Georgia, serif;
+  --p360-sans:  'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --p360-mono:  'IBM Plex Mono', ui-monospace, monospace;
 }
 
 body {
   margin: 0;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--p360-sans);
   -webkit-font-smoothing: antialiased;
   background: #fff;
   color: #1a1a1a;

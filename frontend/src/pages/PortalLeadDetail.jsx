@@ -135,7 +135,7 @@ export default function PortalLeadDetail() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f3f4f6', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: '#f3f4f6', fontFamily: "var(--p360-sans)" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
         @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -154,7 +154,7 @@ export default function PortalLeadDetail() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
           <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none', opacity: 0.4, flexShrink: 0 }}>
             <Proof360Mark size={15} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em', fontFamily: "'DM Sans', sans-serif" }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em', fontFamily: "var(--p360-sans)" }}>
               Proof<span style={{ color: '#5eead4' }}>360</span>
             </span>
           </Link>
@@ -172,7 +172,7 @@ export default function PortalLeadDetail() {
                 fontSize: 9, fontWeight: 800, color: tc,
               }}>{tenant.name.slice(0,2).toUpperCase()}</div>
             )}
-            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', fontFamily: "'DM Sans', sans-serif" }}>← {tenant.name}</span>
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', fontFamily: "var(--p360-sans)" }}>← {tenant.name}</span>
           </button>
           <span style={{ color: 'rgba(255,255,255,0.15)', margin: '0 8px' }}>·</span>
           <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', fontFamily: "'IBM Plex Mono', monospace" }}>{lead.id}</span>
@@ -230,7 +230,7 @@ export default function PortalLeadDetail() {
             style={{
               width: '100%', padding: '13px', background: tc, color: '#ffffff',
               border: 'none', borderRadius: 9, fontSize: 13, fontWeight: 800,
-              cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em',
+              cursor: 'pointer', fontFamily: "var(--p360-sans)", letterSpacing: '-0.01em',
               marginBottom: 16, transition: 'opacity 0.15s',
             }}
             onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
@@ -250,12 +250,12 @@ export default function PortalLeadDetail() {
               <button onClick={engage} style={{
                 padding: '9px 18px', background: tc, color: '#ffffff',
                 border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 700,
-                cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+                cursor: 'pointer', fontFamily: "var(--p360-sans)",
               }}>Confirm engagement</button>
               <button onClick={() => setShowEngage(false)} style={{
                 padding: '9px 14px', background: 'transparent',
                 color: '#6b7280', border: '1px solid #d1d5db',
-                borderRadius: 7, fontSize: 12, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+                borderRadius: 7, fontSize: 12, cursor: 'pointer', fontFamily: "var(--p360-sans)",
               }}>Cancel</button>
             </div>
           </div>
@@ -286,7 +286,7 @@ export default function PortalLeadDetail() {
                 padding: '6px 12px', background: '#f9fafb',
                 border: '1px solid #d1d5db', borderRadius: 6,
                 fontSize: 11, color: '#374151', cursor: 'pointer',
-                fontFamily: "'DM Sans', sans-serif", fontWeight: 500,
+                fontFamily: "var(--p360-sans)", fontWeight: 500,
               }}>Update ▾</button>
               {showStatusMenu && (
                 <div style={{
@@ -299,7 +299,7 @@ export default function PortalLeadDetail() {
                       display: 'flex', alignItems: 'center', gap: 8, width: '100%',
                       textAlign: 'left', padding: '9px 14px',
                       background: status === key ? '#f9fafb' : 'transparent',
-                      border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+                      border: 'none', cursor: 'pointer', fontFamily: "var(--p360-sans)",
                     }}>
                       <span style={{ width: 7, height: 7, borderRadius: '50%', background: val.color, flexShrink: 0 }}/>
                       <span style={{ fontSize: 12, color: val.color, fontWeight: status === key ? 700 : 400 }}>{val.label}</span>
@@ -388,7 +388,7 @@ export default function PortalLeadDetail() {
                   padding: '8px 16px', background: `${tc}0d`,
                   border: `1px solid ${tc}35`, borderRadius: 7,
                   fontSize: 12, color: tc, cursor: 'pointer',
-                  fontFamily: "'DM Sans', sans-serif", fontWeight: 600,
+                  fontFamily: "var(--p360-sans)", fontWeight: 600,
                   whiteSpace: 'nowrap',
                 }}
               >Reveal contact</button>
@@ -427,12 +427,12 @@ export default function PortalLeadDetail() {
               onChange={e => setDraft(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
               placeholder="Write a message…"
-              style={{ flex: 1, padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "'DM Sans', sans-serif", outline: 'none', color: '#111827' }}
+              style={{ flex: 1, padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: "var(--p360-sans)", outline: 'none', color: '#111827' }}
             />
             <button
               onClick={sendMessage}
               disabled={!draft.trim()}
-              style={{ padding: '9px 16px', background: tc, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: draft.trim() ? 'pointer' : 'default', opacity: draft.trim() ? 1 : 0.4, fontFamily: "'DM Sans', sans-serif" }}
+              style={{ padding: '9px 16px', background: tc, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: draft.trim() ? 'pointer' : 'default', opacity: draft.trim() ? 1 : 0.4, fontFamily: "var(--p360-sans)" }}
             >Send</button>
           </div>
         </div>

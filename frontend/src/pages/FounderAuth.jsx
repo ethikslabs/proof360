@@ -57,7 +57,7 @@ export default function FounderAuth() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: '100vh', display: 'flex', fontFamily: "var(--p360-sans)" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap');
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -138,7 +138,7 @@ export default function FounderAuth() {
               padding: '12px 20px', background: '#0A1628', color: '#ffffff',
               border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700,
               cursor: redirecting ? 'not-allowed' : 'pointer',
-              fontFamily: "'DM Sans', sans-serif", letterSpacing: '-0.01em',
+              fontFamily: "var(--p360-sans)", letterSpacing: '-0.01em',
               opacity: redirecting ? 0.7 : 1, transition: 'opacity 0.15s',
               marginBottom: 12,
             }}
@@ -181,7 +181,7 @@ export default function FounderAuth() {
               background: '#ffffff', color: '#374151',
               border: '1px solid #d1d5db', borderRadius: 10,
               fontSize: 13, fontWeight: 500, cursor: 'pointer',
-              fontFamily: "'DM Sans', sans-serif", transition: 'border-color 0.15s',
+              fontFamily: "var(--p360-sans)", transition: 'border-color 0.15s',
             }}
             onMouseEnter={e => e.currentTarget.style.borderColor = '#9ca3af'}
             onMouseLeave={e => e.currentTarget.style.borderColor = '#d1d5db'}

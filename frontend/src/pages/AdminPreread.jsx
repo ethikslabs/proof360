@@ -160,13 +160,13 @@ export default function AdminPreread() {
   const done = reads.length > 0 && allTerminal(reads);
 
   return (
-    <div style={{ background: '#FFFFFF', minHeight: '100vh', color: '#0D0D0F', fontFamily: '"DM Sans", sans-serif' }}>
+    <div style={{ background: '#FFFFFF', minHeight: '100vh', color: '#0D0D0F', fontFamily: 'var(--p360-sans)' }}>
       <style>{`
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         .btn-primary {
           display: inline-flex; align-items: center; gap: 8px;
           padding: 13px 26px; background: #E07B39; color: #09090B;
-          font-family: "DM Sans", sans-serif; font-weight: 500; font-size: 14px;
+          font-family: var(--p360-sans); font-weight: 500; font-size: 14px;
           letter-spacing: 0.02em; border-radius: 5px; text-decoration: none;
           transition: background 0.2s, transform 0.15s;
           border: none; cursor: pointer;
@@ -176,7 +176,7 @@ export default function AdminPreread() {
         .btn-secondary {
           display: inline-flex; align-items: center; gap: 6px;
           padding: 8px 16px; background: transparent; color: #0B2545;
-          font-family: "DM Sans", sans-serif; font-weight: 500; font-size: 13px;
+          font-family: var(--p360-sans); font-weight: 500; font-size: 13px;
           border: 1px solid #D1D5DB; border-radius: 5px;
           cursor: pointer; transition: background 0.2s, border-color 0.2s;
         }
@@ -198,7 +198,7 @@ export default function AdminPreread() {
           <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
             <Proof360Mark size={28} />
             <span style={{
-              fontFamily: '"DM Sans", sans-serif',
+              fontFamily: 'var(--p360-sans)',
               fontSize: 19, fontWeight: 700,
               color: '#FFFFFF', letterSpacing: '-0.02em',
             }}>
@@ -231,7 +231,7 @@ export default function AdminPreread() {
               aria-label="Admin key"
               style={{
                 width: '100%', padding: '12px 16px', fontSize: 14,
-                fontFamily: '"DM Sans", sans-serif',
+                fontFamily: 'var(--p360-sans)',
                 border: '1px solid #D1D5DB', borderRadius: 5,
                 outline: 'none', marginBottom: 16,
                 transition: 'border-color 0.2s',
@@ -301,7 +301,7 @@ export default function AdminPreread() {
             )}
 
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: '"DM Sans", sans-serif' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'var(--p360-sans)' }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid #E5E7EB', textAlign: 'left' }}>
                     <th style={{ padding: '10px 12px', color: '#667085', fontWeight: 500 }}>URL</th>

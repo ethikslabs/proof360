@@ -95,7 +95,7 @@ function VendorAvatar({ vendorId, name, size = 38 }) {
       background: `hsl(${hue},45%,92%)`, border: `1px solid hsl(${hue},35%,82%)`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: size * 0.3, fontWeight: 700, color: `hsl(${hue},50%,30%)`,
-      fontFamily: "'DM Sans', sans-serif",
+      fontFamily: "var(--p360-sans)",
     }}>{initials}</div>
   );
 }
@@ -111,7 +111,7 @@ function CompanyLogo({ domain, name, size = 44 }) {
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         flexShrink: 0,
       }}>
-        <span style={{ fontSize: size * 0.33, fontWeight: 700, color: '#9ca3af', fontFamily: "'DM Sans', sans-serif" }}>{initials}</span>
+        <span style={{ fontSize: size * 0.33, fontWeight: 700, color: '#9ca3af', fontFamily: "var(--p360-sans)" }}>{initials}</span>
       </div>
     );
   }
@@ -250,7 +250,7 @@ export default function FounderDashboard() {
   }, {});
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f3f4f6', fontFamily: "'DM Sans', sans-serif", paddingBottom: 70 }}>
+    <div style={{ minHeight: '100vh', background: '#f3f4f6', fontFamily: "var(--p360-sans)", paddingBottom: 70 }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -284,7 +284,7 @@ export default function FounderDashboard() {
             </div>
             <button onClick={logout} style={{
               fontSize: 12, color: 'rgba(255,255,255,0.4)', background: 'none', border: 'none',
-              cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'color 0.15s',
+              cursor: 'pointer', fontFamily: "var(--p360-sans)", transition: 'color 0.15s',
             }}
               onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.8)'}
               onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}
@@ -364,7 +364,7 @@ export default function FounderDashboard() {
                 border: `1.5px solid ${activeStage === stage.key ? stage.color : '#e5e7eb'}`,
                 borderRadius: 10, padding: '14px 12px', cursor: 'pointer',
                 textAlign: 'left', transition: 'all 0.15s',
-                fontFamily: "'DM Sans', sans-serif",
+                fontFamily: "var(--p360-sans)",
               }}
             >
               <div style={{ fontSize: 22, fontWeight: 800, color: stage.color, lineHeight: 1, marginBottom: 4, fontFamily: "'IBM Plex Mono', monospace" }}>
@@ -396,7 +396,7 @@ export default function FounderDashboard() {
               <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 10 }}>No engagements in this stage</p>
               <button onClick={() => setActiveStage('all')} style={{
                 fontSize: 13, color: '#5eead4', background: 'none', border: 'none',
-                cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontWeight: 600,
+                cursor: 'pointer', fontFamily: "var(--p360-sans)", fontWeight: 600,
               }}>Show all →</button>
             </div>
           ) : (
@@ -432,12 +432,12 @@ export default function FounderDashboard() {
                       <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                         <button
                           onClick={() => setOpenThread(isThreadOpen ? null : engKey)}
-                          style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', background: isThreadOpen ? '#0A1628' : '#f3f4f6', border: '1px solid', borderColor: isThreadOpen ? '#0A1628' : '#e5e7eb', borderRadius: 6, fontSize: 11, fontWeight: 600, color: isThreadOpen ? '#fff' : '#6b7280', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}
+                          style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', background: isThreadOpen ? '#0A1628' : '#f3f4f6', border: '1px solid', borderColor: isThreadOpen ? '#0A1628' : '#e5e7eb', borderRadius: 6, fontSize: 11, fontWeight: 600, color: isThreadOpen ? '#fff' : '#6b7280', cursor: 'pointer', fontFamily: "var(--p360-sans)" }}
                         >
                           {unread > 0 && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#5eead4', flexShrink: 0 }} />}
                           {engThread.length > 0 ? `${engThread.length} msg` : 'Message'}
                         </button>
-                        <select value={eng.status} onChange={e => updateStatus(eng.id, e.target.value)} style={{ fontSize: 12, color: '#374151', background: '#f9fafb', border: '1px solid #d1d5db', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+                        <select value={eng.status} onChange={e => updateStatus(eng.id, e.target.value)} style={{ fontSize: 12, color: '#374151', background: '#f9fafb', border: '1px solid #d1d5db', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', fontFamily: "var(--p360-sans)" }}>
                           {PIPELINE_STAGES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
                         </select>
                         <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: "'IBM Plex Mono', monospace", whiteSpace: 'nowrap' }}>{timeAgo(eng.engaged_at)}</span>
@@ -486,9 +486,9 @@ export default function FounderDashboard() {
                             onChange={e => setDrafts(d => ({ ...d, [engKey]: e.target.value }))}
                             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendFounderMessage(engKey)}
                             placeholder="Reply…"
-                            style={{ flex: 1, padding: '8px 11px', border: '1px solid #e5e7eb', borderRadius: 7, fontSize: 13, fontFamily: "'DM Sans', sans-serif", outline: 'none', background: '#fff', color: '#111827' }}
+                            style={{ flex: 1, padding: '8px 11px', border: '1px solid #e5e7eb', borderRadius: 7, fontSize: 13, fontFamily: "var(--p360-sans)", outline: 'none', background: '#fff', color: '#111827' }}
                           />
-                          <button onClick={() => sendFounderMessage(engKey)} disabled={!(drafts[engKey] || '').trim()} style={{ padding: '8px 14px', background: '#0A1628', color: '#fff', border: 'none', borderRadius: 7, fontSize: 13, fontWeight: 600, cursor: (drafts[engKey] || '').trim() ? 'pointer' : 'default', opacity: (drafts[engKey] || '').trim() ? 1 : 0.35, fontFamily: "'DM Sans', sans-serif" }}>Reply</button>
+                          <button onClick={() => sendFounderMessage(engKey)} disabled={!(drafts[engKey] || '').trim()} style={{ padding: '8px 14px', background: '#0A1628', color: '#fff', border: 'none', borderRadius: 7, fontSize: 13, fontWeight: 600, cursor: (drafts[engKey] || '').trim() ? 'pointer' : 'default', opacity: (drafts[engKey] || '').trim() ? 1 : 0.35, fontFamily: "var(--p360-sans)" }}>Reply</button>
                         </div>
                       </div>
                     )}

@@ -248,7 +248,7 @@ export default function PersonaChat({ sessionId, context }) {
   const others = Object.keys(PERSONAS).filter(k => k !== activePersona);
 
   return (
-    <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 200, fontFamily: '"DM Sans", sans-serif' }}>
+    <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 200, fontFamily: 'var(--p360-sans)' }}>
 
       {expanded && (
         <div style={{
@@ -341,7 +341,7 @@ export default function PersonaChat({ sessionId, context }) {
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
                 placeholder={`Ask ${p.label}…`}
                 disabled={streaming}
-                style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: `1px solid ${/@john\b/i.test(draft) ? JOHN.border : p.border}`, borderRadius: 7, padding: '8px 12px', color: /@john\b/i.test(draft) ? JOHN.text : p.text, fontSize: 13, outline: 'none', fontFamily: '"DM Sans", sans-serif', opacity: streaming ? 0.5 : 1, transition: 'border-color 0.2s, color 0.2s' }}
+                style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: `1px solid ${/@john\b/i.test(draft) ? JOHN.border : p.border}`, borderRadius: 7, padding: '8px 12px', color: /@john\b/i.test(draft) ? JOHN.text : p.text, fontSize: 13, outline: 'none', fontFamily: 'var(--p360-sans)', opacity: streaming ? 0.5 : 1, transition: 'border-color 0.2s, color 0.2s' }}
               />
               <button
                 onClick={sendMessage}
@@ -372,7 +372,7 @@ export default function PersonaChat({ sessionId, context }) {
             onChange={e => setDraft(e.target.value)}
             onFocus={() => setExpanded(true)}
             placeholder={`Ask ${p.label}…`}
-            style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: `1px solid ${p.border}`, borderRadius: 7, padding: '7px 12px', color: p.text, fontSize: 13, outline: 'none', fontFamily: '"DM Sans", sans-serif', cursor: 'text' }}
+            style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: `1px solid ${p.border}`, borderRadius: 7, padding: '7px 12px', color: p.text, fontSize: 13, outline: 'none', fontFamily: 'var(--p360-sans)', cursor: 'text' }}
           />
         </div>
       </div>
