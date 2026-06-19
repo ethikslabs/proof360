@@ -97,7 +97,6 @@ jobs:
           PORT=$PORT
           FIRECRAWL_API_KEY=$(get_ssm "/proof360/FIRECRAWL_API_KEY")
           FIRECRAWL_API_URL=$(get_ssm "/proof360/FIRECRAWL_API_URL")
-          ANTHROPIC_API_KEY=$(get_ssm "/ethikslabs/anthropic/api-key")
           ABUSEIPDB_API_KEY=$(get_ssm "/proof360/ABUSEIPDB_API_KEY")
           HIBP_API_KEY=$(get_ssm "/proof360/HIBP_API_KEY")
           VERITAS_URL=$(get_ssm "/proof360/VERITAS_URL")
