@@ -88,3 +88,41 @@ describe('buildProposal', () => {
     expect(p.visibility).toHaveLength(3);
   });
 });
+
+import { FIELD_LENS, firstMissingGate, awaitedCapture } from '../../src/utils/cerPathways.js';
+
+describe('firstMissingGate', () => {
+  const fields = (overrides) => ([
+    { key: 'company', state: 'done' }, { key: 'contact', state: 'done' },
+    { key: 'need', state: 'done' }, { key: 'route', state: 'done' },
+    { key: 'consent', state: 'wait' }, { key: 'visibility', state: 'done' },
+  ].map((f) => ({ ...f, ...(overrides[f.key] ? { state: overrides[f.key] } : {}) })));
+
+  it('returns the company lens entry when company is missing', () => {
+    const g = firstMissingGate(fields({ company: 'wait' }));
+    expect(g.field).toBe('company');
+    expect(g.persona).toBe('sofia');
+    expect(g.prompt).toMatch(/company/i);
+    expect(g.factField).toBe('company_name');
+    expect(g.profileKey).toBe('name');
+  });
+
+  it('prioritises company over contact when both are missing', () => {
+    expect(firstMissingGate(fields({ company: 'wait', contact: 'wait' })).field).toBe('company');
+  });
+
+  it('returns null when all promptable gates are present (consent is not promptable)', () => {
+    expect(firstMissingGate(fields({}))).toBeNull();
+  });
+});
+
+describe('awaitedCapture', () => {
+  it('treats a URL reply as a cold-read handoff, not a literal name', () => {
+    expect(awaitedCapture('company', 'we are at acme.com').kind).toBe('url');
+    expect(awaitedCapture('company', 'https://foo.io').kind).toBe('url');
+  });
+  it('treats plain text as the field value with its fact mapping', () => {
+    const c = awaitedCapture('company', '  Acme Robotics ');
+    expect(c).toMatchObject({ kind: 'value', field: 'company', value: 'Acme Robotics', factField: 'company_name', profileKey: 'name' });
+  });
+});

@@ -116,3 +116,50 @@ export function buildProposal({ route, companyName, need, evidenceRefs = [] }) {
     visibility: visibilityRows(route),
   };
 }
+
+// Which lens owns each promptable gate field, the ask it makes, and how a captured
+// reply maps onto the founder entity. Extensible: add entries to prompt more fields.
+export const FIELD_LENS = {
+  company: {
+    persona: 'sofia',
+    prompt: "Before I set this up — what's the company called? A name, a website, or a deck all work.",
+    factField: 'company_name',
+    profileKey: 'name',
+  },
+  contact: {
+    persona: 'sofia',
+    prompt: 'And who should I put as the contact on this?',
+    factField: null,
+    profileKey: null,
+  },
+  need: {
+    persona: 'edison',
+    prompt: "What's the gap you're trying to close here?",
+    factField: null,
+    profileKey: null,
+  },
+};
+
+// Promptable gates, in ask-priority order. route/visibility are gates but never prompted
+// (system-proposed / derived); consent is the agency card, not a prompt.
+const GATE_PROMPT_PRIORITY = ['company', 'contact', 'need'];
+
+export function firstMissingGate(fields) {
+  const byKey = Object.fromEntries(fields.map((f) => [f.key, f]));
+  for (const key of GATE_PROMPT_PRIORITY) {
+    if (byKey[key] && byKey[key].state !== 'done') {
+      return { field: key, ...FIELD_LENS[key] };
+    }
+  }
+  return null;
+}
+
+const URL_RE = /https?:\/\/|\b[\w-]+\.(?:com|io|ai|co|net|org|dev|app)\b/i;
+
+// Resolve a founder's reply to an awaited-field prompt. A URL means "read this"
+// (hand to the existing cold-read path); otherwise the text is the field's value.
+export function awaitedCapture(field, text) {
+  if (URL_RE.test(text)) return { kind: 'url' };
+  const lens = FIELD_LENS[field] || {};
+  return { kind: 'value', field, value: String(text).trim(), factField: lens.factField || null, profileKey: lens.profileKey || null };
+}
