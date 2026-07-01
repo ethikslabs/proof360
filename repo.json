@@ -90,6 +90,14 @@
       "approved_by": "john-coates",
       "source": "migrated:workspace.state.loose",
       "added": "2026-06-19"
+    },
+    {
+      "id": "PROOF360-LINT-REACT-COMPILER-001",
+      "status": "ready",
+      "boundary": "Refactor (not warn-suppress) the react-compiler lint violations surfaced by the eslint-plugin-react-hooks v7 bump: react-hooks/set-state-in-effect (OperationalField, MachineDrawer, ThinkingStream), react-hooks/refs (TweaksPanel accessing ref.current in render), react-hooks/immutability. These were downgraded to 'warn' in frontend/eslint.config.js (2026-07-01) to green CI; this task does the real fix so they can go back to error. Restructure the offending effects/refs per react.dev guidance.",
+      "approved_by": "john-coates",
+      "source": "edge:standardisation",
+      "added": "2026-07-01"
     }
   ]
 }
