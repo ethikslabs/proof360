@@ -3,6 +3,7 @@ import { tokens } from '../../tokens.js';
 import { SPACE_GLYPHS } from '../../glyphs.jsx';
 import { HIVE_STAGES } from '../../data/mock/hive.js';
 import { AccountButton } from './AccountPanel.jsx';
+import { CerFacet } from './CerFacet.jsx';
 
 const SPACES = [
   { id: 'investor',  label: 'Investor Readiness',   glyphKey: 'investor',  token: 'plum'  },
@@ -163,7 +164,7 @@ function AccordionSection({ title, accent, count, total, open, onToggle, collaps
   );
 }
 
-export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, litTiles, browserTabs = [], onInject, sessionTok, sessionModels, hiveStage: hiveStageFromParent, onHiveStageChange, noLogo, yourCompanyName, onSignIn, t }) {
+export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, litTiles, browserTabs = [], onInject, sessionTok, sessionModels, hiveStage: hiveStageFromParent, onHiveStageChange, noLogo, yourCompanyName, cers = [], onWithdrawCer, onSignIn, t }) {
   const tk = tokens(t.theme);
   const [demoOpen, setDemoOpen]           = useState(true);
   const [hiveStageInternal, setHiveStageInternal] = useState(1);
@@ -399,6 +400,23 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
               ))}
             </AccordionSection>
           ))
+        )}
+
+        {/* ── Your Pathways — created CERs as facets beside the company profile ── */}
+        {!collapsed && cers.length > 0 && (
+          <div style={{ padding: '4px 8px 12px' }}>
+            <div style={{
+              padding: '8px 14px 8px',
+              fontFamily: '"IBM Plex Mono", monospace',
+              fontSize: 9.5, fontWeight: 600, color: tk.inkSoft,
+              letterSpacing: '0.24em', textTransform: 'uppercase',
+            }}>Your Pathways</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {cers.map(c => (
+                <CerFacet key={c.cer_id} cer={c} meter={7} total={7} tk={tk} />
+              ))}
+            </div>
+          </div>
         )}
 
       </div>

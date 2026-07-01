@@ -90,10 +90,12 @@ app.post('/api/v1/profile/current/events', { preHandler: requireAuth }, profileE
 app.post('/api/v1/sessions/:sessionId/profile', { preHandler: requireAuth }, sessionAttachHandler);
 
 // --- CER (Commercial Engagement Record): typed commercial Decisions on the founder-memory log ---
-app.get('/api/v1/profile/current/cers', { preHandler: requireAuth }, cersListHandler);
-app.post('/api/v1/profile/current/cers', { preHandler: requireAuth }, cerCreateHandler);
-app.post('/api/v1/profile/current/cers/:cerId/consent-withdraw', { preHandler: requireAuth }, cerConsentWithdrawHandler);
-app.post('/api/v1/profile/current/cers/:cerId/status', { preHandler: requireAuth }, cerStatusHandler);
+// Same gate as /journey: requireAuth in prod, demoAuth in DEMO_FOUNDER_MODE so the seeded
+// demo founder can drive the CER flow without a token.
+app.get('/api/v1/profile/current/cers', { preHandler: journeyGate }, cersListHandler);
+app.post('/api/v1/profile/current/cers', { preHandler: journeyGate }, cerCreateHandler);
+app.post('/api/v1/profile/current/cers/:cerId/consent-withdraw', { preHandler: journeyGate }, cerConsentWithdrawHandler);
+app.post('/api/v1/profile/current/cers/:cerId/status', { preHandler: journeyGate }, cerStatusHandler);
 
 // --- John relay ---
 app.post('/api/telegram/webhook', telegramWebhookHandler);
