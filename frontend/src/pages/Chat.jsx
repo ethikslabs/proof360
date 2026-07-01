@@ -45,6 +45,12 @@ const CF_TURNSTILE_SITEKEY = import.meta.env.VITE_CF_TURNSTILE_SITEKEY || '1x000
 
 /* ─── Mobile navigation constants ───────────────────────────────────────── */
 const VENDOR_AUTHORITY = 'Vendor Intelligence';
+
+// Demo-founder mode: seed the founder's OWN company so the CER flow can complete
+// end-to-end in the demo. This is the founder's workspace (distinct from the amber
+// Hive & Co example, which stays untouched). Only applies when VITE_DEMO_FOUNDER_MODE.
+const DEMO_FOUNDER = import.meta.env.VITE_DEMO_FOUNDER_MODE === 'true';
+const DEMO_COMPANY = { name: 'Northwind Robotics', stage: 'Seed', industry: 'Robotics' };
 const CHIP_TO_SURFACE_MOBILE = { Chat: 'Chat', Vendors: VENDOR_AUTHORITY, Shortlist: 'Chat' };
 
 async function generatePKCE() {
@@ -1283,7 +1289,10 @@ export default function Chat() {
   const [heroPersonaHover,setHeroPersonaHover]= useState(null);
   const [activeModes,     setActiveModes]     = useState([]);
   const [companyProfile,  setCompanyProfile]  = useState({
-    name: null, stage: null, industry: null, signals: [],
+    name: DEMO_FOUNDER ? DEMO_COMPANY.name : null,
+    stage: DEMO_FOUNDER ? DEMO_COMPANY.stage : null,
+    industry: DEMO_FOUNDER ? DEMO_COMPANY.industry : null,
+    signals: [],
     domains: { identity: null, compliance: null, security: null, financial: null, legal: null, team: null },
   });
   const [logoCard,        setLogoCard]        = useState(null);
@@ -1350,8 +1359,8 @@ export default function Chat() {
   const [justCreatedCer, setJustCreatedCer] = useState(null);
   const cer = useCer({
     companyName: founderProfileName ?? companyProfile.name ?? companyData?.company_name ?? null,
-    contactName: currentUser?.name ?? null,
-    evidenceRefs: [],
+    contactName: currentUser?.name ?? (DEMO_FOUNDER ? 'Demo Founder' : null),
+    evidenceRefs: DEMO_FOUNDER ? ['company_profile', 'cloud_spend'] : [],
     enabled: true,
   });
   const authorityEntity = {

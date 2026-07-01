@@ -16,7 +16,7 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 **Why it matters.** This is the felt difference from a normal intake form: the commercial decision *assembles itself out of the conversation* and stays under the founder's control. Verified live — typing a message makes the CER card build itself in the chat stream, field by field.
 
-**Not done yet.** The seeded demo founder has no company name, so the flow can't yet walk all the way to "created" in the demo (the Company field stays empty). Next change seeds a demo founder rich enough to complete a CER end-to-end.
+**Demo completeness.** The demo founder is now seeded with its own company (Northwind Robotics — the founder's *own* workspace, kept distinct from the amber Hive & Co example) so the flow walks all the way through: forming card → confirm route → agency card → consent → created CER + sidebar facet. Verified live in the browser and via the API (create/list/status/withdraw). Only applies in `DEMO_FOUNDER_MODE`; a real founder's workspace still starts empty and fills as they talk.
 
 ---
 
