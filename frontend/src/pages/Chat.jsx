@@ -34,7 +34,7 @@ import { CerBuildCard }         from '../components/chat/CerBuildCard.jsx';
 import { CerAgencyCard }        from '../components/chat/CerAgencyCard.jsx';
 import { CerProjectionCard }    from '../components/chat/CerProjectionCard.jsx';
 import { useCer }               from '../hooks/useCer.js';
-import { routeFromText, PATHWAYS } from '../utils/cerPathways.js';
+import { routeFromText, PATHWAYS, firstMissingGate, awaitedCapture } from '../utils/cerPathways.js';
 import { EMPTY_TILES, tilesFromProjections } from '../utils/projectionTiles.js';
 
 /* ─── Auth constants ─────────────────────────────────────────────────────── */
@@ -1654,6 +1654,24 @@ export default function Chat() {
     resetAuthorityTurn();
     const text = input.trim();
     if (!text || !inputReady || isProcessing) return;
+
+    // If a lens asked for a missing CER field, this message answers it.
+    if (cer.awaitingField) {
+      const cap = awaitedCapture(cer.awaitingField, text);
+      cer.clearAwaiting();
+      if (cap.kind === 'value') {
+        setInputValue('');
+        setMessages(prev => [...prev, { id: `u-${Date.now()}`, role: 'user', content: text }]);
+        if (cap.profileKey) setCompanyProfile(prev => ({ ...prev, [cap.profileKey]: cap.value }));
+        const memorySessionId = companyData?.session_id ?? sessionStorage.getItem('proof360_session_id') ?? null;
+        persistFounderMemoryEvent('chat', {
+          text, role: 'user', session_id: memorySessionId, occurred_at: new Date().toISOString(),
+        }, 'chat', cap.factField ? [{ field: cap.factField, value: cap.value, source: 'founder' }] : []);
+        return; // captured — don't run pathway detection this turn
+      }
+      // cap.kind === 'url' → fall through so the existing URL cold-read path handles it
+    }
+
     setInputValue('');
     setPulsingQ(null);
     setBriefShown(false);
@@ -1980,6 +1998,21 @@ export default function Chat() {
     ? '"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif'
     : '"Instrument Serif", "Iowan Old Style", Georgia, serif';
   const headingWeight = t.headingFamily === 'sans' ? 500 : 400;
+
+  // Inject a lens's ask into the chat stream (persona bubble), then wait for the reply.
+  const injectPersonaAsk = (persona, content) =>
+    setMessages(prev => [...prev, { id: `cer-ask-${Date.now()}`, role: 'assistant', persona, model: 'proof360', content, sources: [] }]);
+
+  // Route-confirm handler: confirm the route, then if a promptable gate is still
+  // missing, the owning lens asks for it instead of stalling at the build card.
+  const handleConfirmRoute = () => {
+    cer.confirmRoute();
+    const missing = firstMissingGate(cer.fields);
+    if (missing) {
+      cer.awaitField(missing.field);
+      injectPersonaAsk(missing.persona, missing.prompt);
+    }
+  };
 
   return (
     <div style={{
@@ -2507,7 +2540,7 @@ export default function Chat() {
                     title={`${PATHWAYS[cer.forming.route]?.title || 'PATHWAY'} · FORMING`}
                     meter={cer.meter} total={7} fields={cer.fields}
                     sub="A commercial Decision, assembling itself."
-                    onConfirmRoute={cer.forming.routeConfirmed ? undefined : cer.confirmRoute}
+                    onConfirmRoute={cer.forming.routeConfirmed ? undefined : handleConfirmRoute}
                     confirmLabel={`Use the ${PATHWAYS[cer.forming.route]?.short || 'this'} pathway →`}
                     tk={tk}
                   />
