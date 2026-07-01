@@ -21,7 +21,7 @@ export const SPACE_GLYPHS = {
       <rect x="15" y="3"  width="5" height="14" fill={c} opacity="0.85"/>
     </svg>
   ),
-  aws: (_c) => (
+  aws: () => (
     <img src={awsSvgUrl} alt="AWS" style={{ width: 22, height: 13, objectFit: 'contain' }} />
   ),
   posture: (c) => (
@@ -37,7 +37,7 @@ export const SPACE_GLYPHS = {
       <circle cx="14" cy="13" r="1.8" fill={c}/>
     </svg>
   ),
-  microsoft: (_c) => (
+  microsoft: () => (
     <svg viewBox="0 0 22 22" width="14" height="14">
       <rect x="2"  y="2"  width="9" height="9" fill="#F25022"/>
       <rect x="12" y="2"  width="9" height="9" fill="#7FBA00"/>

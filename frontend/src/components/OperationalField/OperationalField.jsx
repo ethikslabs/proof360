@@ -28,7 +28,7 @@ const logoMap = {
 const DURATIONS = { entering: 1200, holding: 3500, exiting: 800 };
 const SCALE = 1.4;
 
-export function OperationalField({ onLogoClick, active = true, rightOffset = 0 }) {
+export function OperationalField({ onLogoClick, active = true }) {
   const [activeIdx, setActiveIdx] = useState(0);
   const [spotPhase, setSpotPhase] = useState('entering');
 

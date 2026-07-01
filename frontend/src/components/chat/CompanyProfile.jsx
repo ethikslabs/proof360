@@ -240,8 +240,8 @@ function DiscoveryView({ tk, onVendorSelect, isDemoMode, rankedVendors }) {
   );
 }
 
-export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onAsk, focusedProgram, onVendorSelect, isDemoMode, activeSignals, rankedVendors, ctaEarned }) {
-  const [blink, setBlink] = useState(true);
+export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onVendorSelect, isDemoMode, activeSignals, rankedVendors }) {
+  const [, setBlink] = useState(true);
 
   useEffect(() => {
     if (!isBuilding) return;

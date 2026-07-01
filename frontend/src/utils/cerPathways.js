@@ -106,7 +106,7 @@ export function visibilityRows(route) {
 }
 
 // The proposal object consumed by CerAgencyCard.
-export function buildProposal({ route, companyName, need, evidenceRefs = [] }) {
+export function buildProposal({ route, need, evidenceRefs = [] }) {
   const cfg = PATHWAYS[route];
   return {
     pathwayLabel: cfg?.label || route,

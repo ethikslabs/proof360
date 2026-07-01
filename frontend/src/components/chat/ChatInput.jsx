@@ -466,7 +466,7 @@ const FOLLOWUP_CHIPS = [
 
 // ── Main component ────────────────────────────────────────────────────────────
 export const ChatInput = forwardRef(function ChatInput(
-  { onSubmit, disabled, messages = [], onContextInject, value: valueProp, onChange: onChangeProp, mode = 'investor', onModeChange, hideChips, hideModelPicker = false, model, onModelChange, activeModes = [], onToggleMode },
+  { onSubmit, disabled, messages = [], onContextInject, value: valueProp, onChange: onChangeProp, hideChips, hideModelPicker = false, model, onModelChange, activeModes = [], onToggleMode },
   ref
 ) {
   const hasExchange = messages.length >= 2;
