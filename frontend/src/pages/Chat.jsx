@@ -34,7 +34,7 @@ import { CerBuildCard }         from '../components/chat/CerBuildCard.jsx';
 import { CerAgencyCard }        from '../components/chat/CerAgencyCard.jsx';
 import { CerProjectionCard }    from '../components/chat/CerProjectionCard.jsx';
 import { useCer }               from '../hooks/useCer.js';
-import { routeFromText, PATHWAYS } from '../utils/cerPathways.js';
+import { routeFromText, PATHWAYS, firstMissingGate, awaitedCapture } from '../utils/cerPathways.js';
 import { EMPTY_TILES, tilesFromProjections } from '../utils/projectionTiles.js';
 
 /* ─── Auth constants ─────────────────────────────────────────────────────── */
@@ -1640,6 +1640,28 @@ export default function Chat() {
     resetAuthorityTurn();
     const text = input.trim();
     if (!text || !inputReady || isProcessing) return;
+
+    // If a lens asked for a missing CER field, this message answers it.
+    if (cer.awaitingField) {
+      // Classify via extractUrl — the same function the cold-read path uses — so a URL reply
+      // always reaches session/start and a non-URL reply is captured as the value (never stranded).
+      const cap = awaitedCapture(cer.awaitingField, text, Boolean(extractUrl(text)));
+      cer.clearAwaiting();
+      if (cap.kind === 'value') {
+        setInputValue('');
+        setPulsingQ(null);
+        setBriefShown(false);
+        setMessages(prev => [...prev, { id: `u-${Date.now()}`, role: 'user', content: text }]);
+        if (cap.profileKey) setCompanyProfile(prev => ({ ...prev, [cap.profileKey]: cap.value }));
+        const memorySessionId = companyData?.session_id ?? sessionStorage.getItem('proof360_session_id') ?? null;
+        persistFounderMemoryEvent('chat', {
+          text, role: 'user', session_id: memorySessionId, occurred_at: new Date().toISOString(),
+        }, 'chat', cap.factField ? [{ field: cap.factField, value: cap.value, source: 'founder' }] : []);
+        return; // captured — don't run pathway detection this turn
+      }
+      // cap.kind === 'url' → fall through so the existing URL cold-read path handles it
+    }
+
     setInputValue('');
     setPulsingQ(null);
     setBriefShown(false);
@@ -1850,7 +1872,7 @@ export default function Chat() {
       setThinkingSteps([]);
       setIsProcessing(false);
     }
-  }, [inputReady, isProcessing, messages, t.returningUser, companyData, analysisProfile, persistFounderMemoryEvent, attachCurrentSessionToProfile]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [inputReady, isProcessing, messages, t.returningUser, companyData, analysisProfile, persistFounderMemoryEvent, attachCurrentSessionToProfile, cer.awaitingField]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectJourney = useCallback(async (choice) => {
     if (choice === 'question') {
@@ -1914,6 +1936,22 @@ export default function Chat() {
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
+  // Inject a lens's ask into the chat stream (persona bubble), then wait for the reply.
+  const injectPersonaAsk = (persona, content) =>
+    setMessages(prev => [...prev, { id: `cer-ask-${Date.now()}`, role: 'assistant', persona, model: 'proof360', content, sources: [] }]);
+
+  // Route-confirm handler: confirm the route, then if a promptable gate is still
+  // missing, the owning lens asks for it instead of stalling at the build card.
+  const handleConfirmRoute = () => {
+    cer.confirmRoute();
+    // Reading cer.fields pre-confirm is safe: promptable gates (company/contact/need) don't
+    // depend on routeConfirmed in cerBuildFields — only the `route` field does, and it's not promptable.
+    const missing = firstMissingGate(cer.fields);
+    if (missing) {
+      cer.awaitField(missing.field);
+      injectPersonaAsk(missing.persona, missing.prompt);
+    }
+  };
   return (
     <div style={{
       position: 'relative', height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
@@ -2440,7 +2478,7 @@ export default function Chat() {
                     title={`${PATHWAYS[cer.forming.route]?.title || 'PATHWAY'} · FORMING`}
                     meter={cer.meter} total={7} fields={cer.fields}
                     sub="A commercial Decision, assembling itself."
-                    onConfirmRoute={cer.forming.routeConfirmed ? undefined : cer.confirmRoute}
+                    onConfirmRoute={cer.forming.routeConfirmed ? undefined : handleConfirmRoute}
                     confirmLabel={`Use the ${PATHWAYS[cer.forming.route]?.short || 'this'} pathway →`}
                     tk={tk}
                   />

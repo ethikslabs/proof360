@@ -11,6 +11,9 @@ export function useCer({ companyName, contactName, evidenceRefs = [], enabled = 
   const [createdCers, setCreatedCers] = useState([]);
   const [agencyOpen, setAgencyOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [awaitingField, setAwaitingField] = useState(null);
+  const awaitField = useCallback((field) => setAwaitingField(field), []);
+  const clearAwaiting = useCallback(() => setAwaitingField(null), []);
 
   const refresh = useCallback(async () => {
     try {
@@ -43,7 +46,7 @@ export function useCer({ companyName, contactName, evidenceRefs = [], enabled = 
   }, []);
 
   const confirmRoute = useCallback(() => setForming((p) => (p ? { ...p, routeConfirmed: true } : p)), []);
-  const dismissForming = useCallback(() => { setForming(null); setAgencyOpen(false); }, []);
+  const dismissForming = useCallback(() => { setForming(null); setAgencyOpen(false); setAwaitingField(null); }, []);
   const openAgency = useCallback(() => setAgencyOpen(true), []);
 
   const fields = useMemo(
@@ -64,6 +67,7 @@ export function useCer({ companyName, contactName, evidenceRefs = [], enabled = 
       await refresh();
       setForming(null);
       setAgencyOpen(false);
+      setAwaitingField(null);
       return res?.cer || null;
     } finally {
       setBusy(false);
@@ -89,6 +93,9 @@ export function useCer({ companyName, contactName, evidenceRefs = [], enabled = 
     proposal,
     createdCers,
     busy,
+    awaitingField,
+    awaitField,
+    clearAwaiting,
     proposeRoute,
     startRoute,
     confirmRoute,
