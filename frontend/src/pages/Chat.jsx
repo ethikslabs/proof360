@@ -30,6 +30,11 @@ import { AuthorityLayer }      from '../components/chat/AuthorityLayer.jsx';
 import { useSurfaceAuthority } from '../hooks/useSurfaceAuthority.js';
 import { AUTH0_AUDIENCE, clearTokens } from '../api/auth.js';
 import { attachSessionToProfile, getProfile, getProjections, postProfileEvent } from '../api/client.js';
+import { CerBuildCard }         from '../components/chat/CerBuildCard.jsx';
+import { CerAgencyCard }        from '../components/chat/CerAgencyCard.jsx';
+import { CerProjectionCard }    from '../components/chat/CerProjectionCard.jsx';
+import { useCer }               from '../hooks/useCer.js';
+import { routeFromText, PATHWAYS } from '../utils/cerPathways.js';
 import { EMPTY_TILES, tilesFromProjections } from '../utils/projectionTiles.js';
 
 /* ─── Auth constants ─────────────────────────────────────────────────────── */
@@ -1338,6 +1343,17 @@ export default function Chat() {
   const isDemoMode = activeStageId === DEFAULT_STAGE_ID;
   const activeStage = DEMO_STAGES.find(s => s.id === activeStageId);
   const founderProfileName = useMemo(() => companyNameFromProfile(founderProfile), [founderProfile]);
+
+  // CER (Commercial Engagement Record) — the pathway a founder decides to pursue,
+  // assembling itself from the conversation and confirmed via consent. Lives inline
+  // in the chat stream (see the CER dock below the messages).
+  const [justCreatedCer, setJustCreatedCer] = useState(null);
+  const cer = useCer({
+    companyName: founderProfileName ?? companyProfile.name ?? companyData?.company_name ?? null,
+    contactName: currentUser?.name ?? null,
+    evidenceRefs: [],
+    enabled: true,
+  });
   const authorityEntity = {
     name:     founderProfileName ?? companyProfile.name ?? activeStage?.company?.name ?? null,
     stage:    companyProfile.stage ?? null,
@@ -1667,6 +1683,11 @@ export default function Chat() {
         };
       });
     }
+
+    // ── CER: a pathway-relevant signal in the founder's message proposes a route ──
+    // (unconfirmed — the founder commits via the build card or the agency card).
+    const cerRoute = routeFromText(text);
+    if (cerRoute) cer.proposeRoute(cerRoute);
 
     // ── URL detection: start cold-read pipeline if no session yet ──
     if (!sessionId) {
@@ -2011,6 +2032,8 @@ export default function Chat() {
           sessionModels={[]}
           onSignIn={() => setLoginOpen(true)}
           yourCompanyName={founderProfileName ?? companyProfile.name ?? (currentUser ? 'Company Profile' : undefined)}
+          cers={cer.createdCers}
+          onWithdrawCer={cer.withdrawCer}
           t={t}
         />
 
@@ -2467,6 +2490,41 @@ export default function Chat() {
                 );
               })}
               {phase === 'journey-setup' && <JourneyConsentCards onSelect={selectJourney} stages={DEMO_STAGES} tk={tk} />}
+
+              {/* ── CER dock: the pathway assembles itself IN the conversation ── */}
+              {cer.forming && !cer.agencyReady && (
+                <div style={{ maxWidth: 460, margin: '12px 0' }}>
+                  <CerBuildCard
+                    title={`${PATHWAYS[cer.forming.route]?.title || 'PATHWAY'} · FORMING`}
+                    meter={cer.meter} total={7} fields={cer.fields}
+                    sub="A commercial Decision, assembling itself."
+                    onConfirmRoute={cer.forming.routeConfirmed ? undefined : cer.confirmRoute}
+                    confirmLabel={`Use the ${PATHWAYS[cer.forming.route]?.short || 'this'} pathway →`}
+                    tk={tk}
+                  />
+                </div>
+              )}
+              {cer.forming && cer.agencyReady && cer.proposal && (
+                <div style={{ margin: '12px 0' }}>
+                  <CerAgencyCard
+                    proposal={cer.proposal} tk={tk} busy={cer.busy}
+                    onEdit={cer.dismissForming}
+                    onConfirm={async () => { const created = await cer.confirmCer(); if (created) setJustCreatedCer(created); }}
+                  />
+                </div>
+              )}
+              {justCreatedCer && (
+                <div style={{ margin: '12px 0' }}>
+                  <CerProjectionCard
+                    cer={justCreatedCer} tk={tk} onBookCall={() => {}}
+                    onWithdraw={async () => {
+                      await cer.withdrawCer(justCreatedCer.cer_id);
+                      setJustCreatedCer(c => (c ? { ...c, consent_state: 'withdrawn', status: 'Closed' } : c));
+                    }}
+                  />
+                </div>
+              )}
+
               {thinkingSteps.length > 0 && <ThinkingStream steps={thinkingSteps} visible t={t} />}
 
               {/* Follow-up suggestions — after last AI response, not while processing */}

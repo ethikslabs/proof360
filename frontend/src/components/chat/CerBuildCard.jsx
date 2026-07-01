@@ -20,7 +20,7 @@ function Tick({ state, tk }) {
   return <span style={{ ...base, background: tk.surface, border: `1.5px solid ${tk.inkGhost}` }} />;
 }
 
-export function CerBuildCard({ title, meter, total = 7, fields = [], sub, tk }) {
+export function CerBuildCard({ title, meter, total = 7, fields = [], sub, onConfirmRoute, confirmLabel, tk }) {
   return (
     <div style={{ width: 280, flexShrink: 0, border: `1.5px solid ${tk.plum}`, borderRadius: 14, background: tk.surfaceLo, padding: 15 }}>
       {/* header */}
@@ -56,6 +56,17 @@ export function CerBuildCard({ title, meter, total = 7, fields = [], sub, tk }) 
           </div>
         ))}
       </div>
+
+      {/* commit-the-proposed-route affordance (the "click" half of the hybrid trigger) */}
+      {onConfirmRoute && (
+        <button
+          type="button"
+          onClick={onConfirmRoute}
+          style={{ marginTop: 12, width: '100%', fontFamily: FONT.sans, fontSize: 12, fontWeight: 600, color: '#fff', background: tk.plum, border: 'none', borderRadius: 9, padding: '8px 12px', cursor: 'pointer' }}
+        >
+          {confirmLabel || 'Use this pathway →'}
+        </button>
+      )}
     </div>
   );
 }

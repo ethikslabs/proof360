@@ -52,13 +52,17 @@ export const getProjections = () => authRequest('GET', '/api/v1/profile/current/
 export const postProfileEvent = (body) => authRequest('POST', '/api/v1/profile/current/events', body);
 export const attachSessionToProfile = (sessionId, body) => authRequest('POST', `/api/v1/sessions/${sessionId}/profile`, body);
 
-// CER (Commercial Engagement Record) — typed commercial Decisions
-export const getCers = () => authRequest('GET', '/api/v1/profile/current/cers');
-export const createCer = (body) => authRequest('POST', '/api/v1/profile/current/cers', body);
+// CER (Commercial Engagement Record) — typed commercial Decisions.
+// In DEMO_FOUNDER mode the backend gate (selectJourneyGate) stands in for auth, so the
+// demo founder can create/list CERs without a token — same pattern as getJourney.
+const cerReq = (method, path, body) =>
+  DEMO_FOUNDER ? request(method, path, body) : authRequest(method, path, body);
+export const getCers = () => cerReq('GET', '/api/v1/profile/current/cers');
+export const createCer = (body) => cerReq('POST', '/api/v1/profile/current/cers', body);
 export const withdrawCerConsent = (cerId, body) =>
-  authRequest('POST', `/api/v1/profile/current/cers/${cerId}/consent-withdraw`, body);
+  cerReq('POST', `/api/v1/profile/current/cers/${cerId}/consent-withdraw`, body);
 export const setCerStatus = (cerId, status) =>
-  authRequest('POST', `/api/v1/profile/current/cers/${cerId}/status`, { status });
+  cerReq('POST', `/api/v1/profile/current/cers/${cerId}/status`, { status });
 
 // Founder Journey (HRR v1)
 export const getJourney = () =>

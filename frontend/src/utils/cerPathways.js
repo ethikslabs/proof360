@@ -1,0 +1,118 @@
+// CER pathway logic for the chat flow — pure functions, no React, no network.
+// Frontend-side mirror of the four routes (display + detection). The backend
+// (api/src/config/cer-routes.js) remains the source of truth for storage/visibility;
+// this is the conversation-facing projection of the same four pathways.
+
+export const PATHWAYS = {
+  ingram_micro_aws: {
+    pathway_type: 'cloud_program',
+    label: 'AWS via Ingram',
+    cta: 'Start AWS pathway',
+    short: 'AWS',
+    partner: 'Ingram Micro',
+    title: 'AWS PATHWAY',
+  },
+  austbrokers_cyberpro: {
+    pathway_type: 'cyber_insurance_referral',
+    label: 'Cyber insurance',
+    cta: 'Check cyber insurance pathway',
+    short: 'cyber insurance',
+    partner: 'Austbrokers CyberPro',
+    title: 'CYBER INSURANCE',
+  },
+  vanta: {
+    pathway_type: 'compliance_security',
+    label: 'Compliance via Vanta',
+    cta: 'Review compliance pathway',
+    short: 'compliance',
+    partner: 'Vanta',
+    title: 'COMPLIANCE',
+  },
+  ingram_micro_cisco: {
+    pathway_type: 'distributor_product',
+    label: 'Cisco via Ingram',
+    cta: 'Request Cisco pathway',
+    short: 'Cisco',
+    partner: 'Ingram Micro',
+    title: 'CISCO PATHWAY',
+  },
+};
+
+// Ordered by specificity — first match wins. Heuristic pathway-intent detection from
+// a founder message; result is a PROPOSED route (the founder still confirms).
+const DETECT = [
+  { route: 'austbrokers_cyberpro', re: /\bcyber\s*(insur|cover|risk|liab)|\binsurance\b/i },
+  { route: 'vanta', re: /\bsoc\s?-?2\b|\biso\s?27001\b|complian|security questionnaire|pen[\s-]?test|audit\b|certif|procurement blocker/i },
+  { route: 'ingram_micro_cisco', re: /\bcisco\b|\bmeraki\b|networking|firewall|\bswitch(es|ing)?\b|collaboration hardware/i },
+  { route: 'ingram_micro_aws', re: /\baws\b|amazon web|\bec2\b|cloud (spend|bill|cost|credit|provider)|cloud infra|burning .*cloud/i },
+];
+
+export function routeFromText(text) {
+  const s = String(text || '');
+  for (const { route, re } of DETECT) {
+    if (re.test(s)) return route;
+  }
+  return null;
+}
+
+// The default "need" phrasing per route, used when the founder's own phrasing isn't
+// captured. Kept short and neutral.
+const DEFAULT_NEED = {
+  ingram_micro_aws: 'growing cloud spend, no committed program',
+  austbrokers_cyberpro: 'cyber insurance cover not in place',
+  vanta: 'compliance / security readiness for buyers',
+  ingram_micro_cisco: 'distributor product / networking need',
+};
+
+// The seven CER fields, in wireframe order, with tick state derived from what's known.
+// route state: 'done' once confirmed, 'live' while merely proposed (renders with a "?").
+export function cerBuildFields({ route, companyName, contactName, need, evidenceRefs = [], routeConfirmed = false, consented = false }) {
+  const evCount = evidenceRefs.length;
+  return [
+    { key: 'company', label: 'Company', value: companyName || '—', state: companyName ? 'done' : 'wait' },
+    { key: 'contact', label: 'Contact', value: contactName || '—', state: contactName ? 'done' : 'wait' },
+    { key: 'need', label: 'Need / gap', value: need || (route ? DEFAULT_NEED[route] : '—'), state: need || route ? 'done' : 'wait' },
+    { key: 'evidence', label: 'Evidence', value: evCount ? `${evCount} ref${evCount === 1 ? '' : 's'}` : '—', state: evCount ? 'done' : 'wait' },
+    { key: 'route', label: 'Route', value: route ? (routeConfirmed ? route : `${route}?`) : '—', state: route ? (routeConfirmed ? 'done' : 'live') : 'wait' },
+    { key: 'consent', label: 'Consent', value: consented ? 'granted' : 'pending', state: consented ? 'done' : 'wait' },
+    { key: 'visibility', label: 'Visibility', value: route ? PATHWAYS[route].partner : '—', state: route ? 'done' : 'wait' },
+  ];
+}
+
+export function cerMeter(fields) {
+  return fields.filter((f) => f.state === 'done').length;
+}
+
+// Ready for the agency (consent) card when everything except consent is settled and the
+// route is confirmed. Consent is the last gate — the founder makes it in the agency card.
+export function agencyReady(fields) {
+  const byKey = Object.fromEntries(fields.map((f) => [f.key, f]));
+  // Evidence is "referenced only" and may legitimately be empty in v1, so it is NOT a gate.
+  // Consent is the final gate (made in the agency card), so it must still be pending.
+  const settled = ['company', 'contact', 'need', 'route', 'visibility'].every((k) => byKey[k]?.state === 'done');
+  return settled && byKey.consent?.state !== 'done';
+}
+
+// The who-sees / who-never rows for a route's visibility summary.
+export function visibilityRows(route) {
+  const cfg = PATHWAYS[route];
+  if (!cfg) return [];
+  const others = [...new Set(Object.values(PATHWAYS).map((p) => p.partner).filter((p) => p !== cfg.partner))];
+  return [
+    { who: 'You + Ethiks360 admin', verdict: '✓ full', tone: 'full' },
+    { who: cfg.partner, verdict: 'later · if permissioned', tone: 'later' },
+    { who: others.join(' · '), verdict: '✕ never', tone: 'never' },
+  ];
+}
+
+// The proposal object consumed by CerAgencyCard.
+export function buildProposal({ route, companyName, need, evidenceRefs = [] }) {
+  const cfg = PATHWAYS[route];
+  return {
+    pathwayLabel: cfg?.label || route,
+    route,
+    need: need || DEFAULT_NEED[route] || '—',
+    evidence: evidenceRefs,
+    visibility: visibilityRows(route),
+  };
+}
