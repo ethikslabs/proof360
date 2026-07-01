@@ -31,6 +31,12 @@ import {
   profileProjectionsHandler,
 } from './handlers/profile.js';
 import { sessionAttachHandler } from './handlers/session-attach.js';
+import {
+  cersListHandler,
+  cerCreateHandler,
+  cerConsentWithdrawHandler,
+  cerStatusHandler,
+} from './handlers/cer.js';
 
 const PORT = parseInt(process.env.PORT || '3002', 10);
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
@@ -82,6 +88,12 @@ const journeyGate = selectJourneyGate();
 app.get('/api/v1/profile/current/journey', { preHandler: journeyGate }, journeyHandler);
 app.post('/api/v1/profile/current/events', { preHandler: requireAuth }, profileEventsHandler);
 app.post('/api/v1/sessions/:sessionId/profile', { preHandler: requireAuth }, sessionAttachHandler);
+
+// --- CER (Commercial Engagement Record): typed commercial Decisions on the founder-memory log ---
+app.get('/api/v1/profile/current/cers', { preHandler: requireAuth }, cersListHandler);
+app.post('/api/v1/profile/current/cers', { preHandler: requireAuth }, cerCreateHandler);
+app.post('/api/v1/profile/current/cers/:cerId/consent-withdraw', { preHandler: requireAuth }, cerConsentWithdrawHandler);
+app.post('/api/v1/profile/current/cers/:cerId/status', { preHandler: requireAuth }, cerStatusHandler);
 
 // --- John relay ---
 app.post('/api/telegram/webhook', telegramWebhookHandler);

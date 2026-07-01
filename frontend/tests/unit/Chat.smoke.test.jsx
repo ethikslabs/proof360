@@ -39,9 +39,11 @@ describe('MessageBubble', () => {
 
 describe('ChatInput', () => {
   it('renders textarea and submit button', () => {
-    render(<ChatInput onSubmit={() => {}} disabled={false} />);
+    const { container } = render(<ChatInput onSubmit={() => {}} disabled={false} />);
     expect(screen.getByRole('textbox')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /^(start|send)$/i })).toBeInTheDocument();
+    // Assert the submit button by type, not its visible label (which the design may
+    // change — e.g. "Send" -> "Analyze"); the test's contract is "a submit button exists".
+    expect(container.querySelector('button[type="submit"]')).toBeInTheDocument();
   });
 });
 

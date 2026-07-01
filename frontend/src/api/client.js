@@ -52,6 +52,14 @@ export const getProjections = () => authRequest('GET', '/api/v1/profile/current/
 export const postProfileEvent = (body) => authRequest('POST', '/api/v1/profile/current/events', body);
 export const attachSessionToProfile = (sessionId, body) => authRequest('POST', `/api/v1/sessions/${sessionId}/profile`, body);
 
+// CER (Commercial Engagement Record) — typed commercial Decisions
+export const getCers = () => authRequest('GET', '/api/v1/profile/current/cers');
+export const createCer = (body) => authRequest('POST', '/api/v1/profile/current/cers', body);
+export const withdrawCerConsent = (cerId, body) =>
+  authRequest('POST', `/api/v1/profile/current/cers/${cerId}/consent-withdraw`, body);
+export const setCerStatus = (cerId, status) =>
+  authRequest('POST', `/api/v1/profile/current/cers/${cerId}/status`, { status });
+
 // Founder Journey (HRR v1)
 export const getJourney = () =>
   DEMO_FOUNDER
