@@ -1657,10 +1657,14 @@ export default function Chat() {
 
     // If a lens asked for a missing CER field, this message answers it.
     if (cer.awaitingField) {
-      const cap = awaitedCapture(cer.awaitingField, text);
+      // Classify via extractUrl — the same function the cold-read path uses — so a URL reply
+      // always reaches session/start and a non-URL reply is captured as the value (never stranded).
+      const cap = awaitedCapture(cer.awaitingField, text, Boolean(extractUrl(text)));
       cer.clearAwaiting();
       if (cap.kind === 'value') {
         setInputValue('');
+        setPulsingQ(null);
+        setBriefShown(false);
         setMessages(prev => [...prev, { id: `u-${Date.now()}`, role: 'user', content: text }]);
         if (cap.profileKey) setCompanyProfile(prev => ({ ...prev, [cap.profileKey]: cap.value }));
         const memorySessionId = companyData?.session_id ?? sessionStorage.getItem('proof360_session_id') ?? null;
@@ -1882,7 +1886,7 @@ export default function Chat() {
       setThinkingSteps([]);
       setIsProcessing(false);
     }
-  }, [inputReady, isProcessing, messages, t.returningUser, companyData, analysisProfile, persistFounderMemoryEvent, attachCurrentSessionToProfile]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [inputReady, isProcessing, messages, t.returningUser, companyData, analysisProfile, persistFounderMemoryEvent, attachCurrentSessionToProfile, cer.awaitingField]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectIntent = useCallback(async (chosen) => {
     const speedMs = t.typeSpeed === 'fast' ? 8 : t.typeSpeed === 'instant' ? 0 : 18;
@@ -2007,6 +2011,8 @@ export default function Chat() {
   // missing, the owning lens asks for it instead of stalling at the build card.
   const handleConfirmRoute = () => {
     cer.confirmRoute();
+    // Reading cer.fields pre-confirm is safe: promptable gates (company/contact/need) don't
+    // depend on routeConfirmed in cerBuildFields — only the `route` field does, and it's not promptable.
     const missing = firstMissingGate(cer.fields);
     if (missing) {
       cer.awaitField(missing.field);

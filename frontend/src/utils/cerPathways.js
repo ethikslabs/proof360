@@ -154,12 +154,11 @@ export function firstMissingGate(fields) {
   return null;
 }
 
-const URL_RE = /https?:\/\/|\b[\w-]+\.(?:com|io|ai|co|net|org|dev|app)\b/i;
-
-// Resolve a founder's reply to an awaited-field prompt. A URL means "read this"
-// (hand to the existing cold-read path); otherwise the text is the field's value.
-export function awaitedCapture(field, text) {
-  if (URL_RE.test(text)) return { kind: 'url' };
+// Resolve a founder's reply to an awaited-field prompt. `isUrl` is decided by the caller
+// using the SAME extractor that will consume it (Chat's extractUrl), so classification and
+// consumption can never disagree — a reply can never strand the founder at the forming card.
+export function awaitedCapture(field, text, isUrl = false) {
+  if (isUrl) return { kind: 'url' };
   const lens = FIELD_LENS[field] || {};
   return { kind: 'value', field, value: String(text).trim(), factField: lens.factField || null, profileKey: lens.profileKey || null };
 }

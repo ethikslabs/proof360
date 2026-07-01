@@ -117,12 +117,12 @@ describe('firstMissingGate', () => {
 });
 
 describe('awaitedCapture', () => {
-  it('treats a URL reply as a cold-read handoff, not a literal name', () => {
-    expect(awaitedCapture('company', 'we are at acme.com').kind).toBe('url');
-    expect(awaitedCapture('company', 'https://foo.io').kind).toBe('url');
+  it('returns a url handoff when the caller flags the reply as a URL', () => {
+    expect(awaitedCapture('company', 'https://foo.io', true).kind).toBe('url');
+    expect(awaitedCapture('company', 'northwind.io', true).kind).toBe('url');
   });
-  it('treats plain text as the field value with its fact mapping', () => {
-    const c = awaitedCapture('company', '  Acme Robotics ');
+  it('treats a non-URL reply as the field value with its fact mapping', () => {
+    const c = awaitedCapture('company', '  Acme Robotics ', false);
     expect(c).toMatchObject({ kind: 'value', field: 'company', value: 'Acme Robotics', factField: 'company_name', profileKey: 'name' });
   });
 });
