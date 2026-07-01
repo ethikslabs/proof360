@@ -66,6 +66,10 @@ describe('agencyReady', () => {
     const done = cerBuildFields({ route: 'ingram_micro_aws', companyName: 'A', contactName: 'B', need: 'n', evidenceRefs: ['e'], routeConfirmed: true, consented: true });
     expect(agencyReady(done)).toBe(false);
   });
+  it('is ready even when contact is missing — contact is context, not a hard gate', () => {
+    const noContact = cerBuildFields({ route: 'ingram_micro_aws', companyName: 'A', contactName: null, need: 'n', evidenceRefs: ['e'], routeConfirmed: true });
+    expect(agencyReady(noContact)).toBe(true);
+  });
 });
 
 describe('visibilityRows — no-leak framing', () => {
@@ -107,8 +111,10 @@ describe('firstMissingGate', () => {
     expect(g.profileKey).toBe('name');
   });
 
-  it('prioritises company over contact when both are missing', () => {
+  it('prompts for company (the only capturable gate), never for contact/need', () => {
     expect(firstMissingGate(fields({ company: 'wait', contact: 'wait' })).field).toBe('company');
+    // contact/need have no capture path, so a contact-only gap must NOT produce a prompt.
+    expect(firstMissingGate(fields({ contact: 'wait' }))).toBeNull();
   });
 
   it('returns null when all promptable gates are present (consent is not promptable)', () => {
