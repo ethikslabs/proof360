@@ -387,20 +387,7 @@ const LIVE_FEED = [
     angle: "startups that started six months ago are closing deals their competitors can't — what do you think Leonardo?" },
 ];
 
-function buildOpening(feed) {
-  return [
-    { id: 'th-0', persona: 'sofia',    model: 'claude-sonnet-4-6',         tok: 188, ms: 920,
-      sources: ['Market intelligence', 'proof360 signals'],
-      content: `Just saw this — "${feed.headline}." ${feed.angle}`,
-      feedUrl: feed.url, feedSource: feed.source },
-    { id: 'th-1', persona: 'leonardo', model: 'nvidia/nemotron-ultra-253b', tok: 162, ms: 1340,
-      sources: ['Market intelligence', 'proof360 signals'],
-      content: "Still reactive, almost universally. Founders know the story they want to tell — but the evidence layer underneath it isn't there. Buyers are forming impressions before the first meeting. The posture is the pitch before the pitch starts." },
-    { id: 'th-2', persona: 'edison',   model: 'claude-sonnet-4-6',         tok: 203, ms: 870, isHandoff: true,
-      sources: ['Market intelligence', 'proof360 signals'],
-      content: "And it shows up in the data room every time. SSL misconfigurations, no access control evidence, breach exposure that's been public for months. All fixable. All avoidable.\n\nYou're here for a reason. What are you trying to solve?" },
-  ];
-}
+
 
 // Ambient exchange — already in progress when the user arrives
 const AMBIENT_EXCHANGE = [
@@ -1264,8 +1251,8 @@ export default function Chat() {
   const t = TWEAK_DEFAULTS;
   const tk = tokens(t.theme);
 
-  const [runId, setRunId]                 = useState(0);
-  const [feed]                            = useState(() => LIVE_FEED[Math.floor(Math.random() * LIVE_FEED.length)]);
+  const [runId]                            = useState(0);
+
   const [messages, setMessages]           = useState([]);
   const [surfaced, setSurfaced]           = useState(0);
   const [inputReady, setInputReady]       = useState(false);
@@ -1282,8 +1269,6 @@ export default function Chat() {
 
   const [activeStageId,   setActiveStageId]   = useState(DEFAULT_STAGE_ID);
   const [companyData,     setCompanyData]     = useState(null);
-  // setInferenceError wired for post-MVP: call when inference polling times out or errors
-  const [inferenceError,  setInferenceError]  = useState(false);
   const [analysisProfile, setAnalysisProfile] = useState('investor');
   const [heroPersonas,    setHeroPersonas]    = useState(() => new Set());
   const [heroPersonaHover,setHeroPersonaHover]= useState(null);
@@ -1589,7 +1574,8 @@ export default function Chat() {
     setThinkingSteps([]);
     setActiveStageId(DEFAULT_STAGE_ID);
     setCompanyData(null);
-  }, [runId, t.returningUser, seedQuery, seedReturning, seedDemo]); // eslint-disable-line react-hooks/exhaustive-deps — t is a module constant, setters are stable
+  // t is a module constant and setters are stable, so they are intentionally omitted here.
+  }, [runId, t.returningUser, seedQuery, seedReturning, seedDemo]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Profile inference — keyword matching on user messages
   function inferProfile(text) {
@@ -1888,54 +1874,6 @@ export default function Chat() {
     }
   }, [inputReady, isProcessing, messages, t.returningUser, companyData, analysisProfile, persistFounderMemoryEvent, attachCurrentSessionToProfile, cer.awaitingField]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const selectIntent = useCallback(async (chosen) => {
-    const speedMs = t.typeSpeed === 'fast' ? 8 : t.typeSpeed === 'instant' ? 0 : 18;
-    setIntent(chosen);
-    if (chosen !== 'browse') setPhase('active');
-
-    if (chosen === 'browse') {
-      // Sophia explains the journey first — consent before demo starts
-      const setupMsg = {
-        id: 'br-setup', persona: 'sofia', model: 'claude-sonnet-4-6', tok: 194, ms: 890,
-        sources: ['Company signals', 'Partner pathways'],
-        content: "Here's what we'll do. We're going to follow a real company — Hive & Co — from two founders selling Manuka honey at King's Cross market on a Saturday morning, through their first Sainsbury's supply contract, into a blockchain provenance play, and finally a serious capital raise. At each moment we'll show you exactly what investors and enterprise buyers see — the gaps, the signals, the language. Four stages. Real gaps. You can jump between them. Want to see how the story unfolds?",
-      };
-      setMessages(prev => [...prev, { ...setupMsg, content: '' }]);
-      if (speedMs === 0) {
-        setMessages(prev => prev.map(m => m.id === setupMsg.id ? { ...m, content: setupMsg.content } : m));
-      } else {
-        for (let i = 1; i <= setupMsg.content.length; i++) {
-          await sleep(speedMs);
-          setMessages(prev => prev.map(m => m.id === setupMsg.id ? { ...m, content: setupMsg.content.slice(0, i) } : m));
-        }
-      }
-      await sleep(350);
-      setPhase('journey-setup');
-      return;
-    }
-
-    const msgs = chosen === 'question' ? QUESTION_OPENING : buildOpening(feed);
-    for (const msg of msgs) {
-      setMessages(prev => [...prev, { ...msg, content: '' }]);
-      if (speedMs === 0) {
-        setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, content: msg.content } : m));
-      } else {
-        for (let i = 1; i <= msg.content.length; i++) {
-          await sleep(speedMs);
-          setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, content: msg.content.slice(0, i) } : m));
-        }
-      }
-      if (msg.isHandoff) {
-        await sleep(450);
-        setInputReady(true);
-        setPulsingQ(Math.floor(Math.random() * FLOATS.length));
-        inputRef.current?.focus();
-      } else {
-        await sleep(620);
-      }
-    }
-  }, [t.typeSpeed, feed]); // eslint-disable-line react-hooks/exhaustive-deps
-
   const selectJourney = useCallback(async (choice) => {
     if (choice === 'question') {
       setIntent('question');
@@ -1998,11 +1936,6 @@ export default function Chat() {
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
-  const headingFamily = t.headingFamily === 'sans'
-    ? '"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif'
-    : '"Instrument Serif", "Iowan Old Style", Georgia, serif';
-  const headingWeight = t.headingFamily === 'sans' ? 500 : 400;
-
   // Inject a lens's ask into the chat stream (persona bubble), then wait for the reply.
   const injectPersonaAsk = (persona, content) =>
     setMessages(prev => [...prev, { id: `cer-ask-${Date.now()}`, role: 'assistant', persona, model: 'proof360', content, sources: [] }]);
@@ -2019,7 +1952,6 @@ export default function Chat() {
       injectPersonaAsk(missing.persona, missing.prompt);
     }
   };
-
   return (
     <div style={{
       position: 'relative', height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden',

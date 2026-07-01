@@ -10,7 +10,7 @@ const PROVIDER_META = {
 
 function approxTokens(ms) { return Math.round((ms || 400) * 0.22); }
 
-function ProviderMark({ provider, t, size = 22, done = false }) {
+function ProviderMark({ provider, t, size = 22 }) {
   const tk = tokens(t.theme);
   const meta = PROVIDER_META[provider] || { mark: '·', token: 'inkSoft' };
   const color = tk[meta.token] || tk.inkMid;
