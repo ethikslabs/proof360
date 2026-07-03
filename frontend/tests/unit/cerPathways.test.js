@@ -66,6 +66,10 @@ describe('agencyReady', () => {
     const done = cerBuildFields({ route: 'ingram_micro_aws', companyName: 'A', contactName: 'B', need: 'n', evidenceRefs: ['e'], routeConfirmed: true, consented: true });
     expect(agencyReady(done)).toBe(false);
   });
+  it('is ready even when contact is missing — contact is context, not a hard gate', () => {
+    const noContact = cerBuildFields({ route: 'ingram_micro_aws', companyName: 'A', contactName: null, need: 'n', evidenceRefs: ['e'], routeConfirmed: true });
+    expect(agencyReady(noContact)).toBe(true);
+  });
 });
 
 describe('visibilityRows — no-leak framing', () => {
@@ -86,5 +90,45 @@ describe('buildProposal', () => {
     expect(p.route).toBe('ingram_micro_aws');
     expect(p.evidence).toEqual(['cloud_invoice.pdf']);
     expect(p.visibility).toHaveLength(3);
+  });
+});
+
+import { FIELD_LENS, firstMissingGate, awaitedCapture } from '../../src/utils/cerPathways.js';
+
+describe('firstMissingGate', () => {
+  const fields = (overrides) => ([
+    { key: 'company', state: 'done' }, { key: 'contact', state: 'done' },
+    { key: 'need', state: 'done' }, { key: 'route', state: 'done' },
+    { key: 'consent', state: 'wait' }, { key: 'visibility', state: 'done' },
+  ].map((f) => ({ ...f, ...(overrides[f.key] ? { state: overrides[f.key] } : {}) })));
+
+  it('returns the company lens entry when company is missing', () => {
+    const g = firstMissingGate(fields({ company: 'wait' }));
+    expect(g.field).toBe('company');
+    expect(g.persona).toBe('sofia');
+    expect(g.prompt).toMatch(/company/i);
+    expect(g.factField).toBe('company_name');
+    expect(g.profileKey).toBe('name');
+  });
+
+  it('prompts for company (the only capturable gate), never for contact/need', () => {
+    expect(firstMissingGate(fields({ company: 'wait', contact: 'wait' })).field).toBe('company');
+    // contact/need have no capture path, so a contact-only gap must NOT produce a prompt.
+    expect(firstMissingGate(fields({ contact: 'wait' }))).toBeNull();
+  });
+
+  it('returns null when all promptable gates are present (consent is not promptable)', () => {
+    expect(firstMissingGate(fields({}))).toBeNull();
+  });
+});
+
+describe('awaitedCapture', () => {
+  it('returns a url handoff when the caller flags the reply as a URL', () => {
+    expect(awaitedCapture('company', 'https://foo.io', true).kind).toBe('url');
+    expect(awaitedCapture('company', 'northwind.io', true).kind).toBe('url');
+  });
+  it('treats a non-URL reply as the field value with its fact mapping', () => {
+    const c = awaitedCapture('company', '  Acme Robotics ', false);
+    expect(c).toMatchObject({ kind: 'value', field: 'company', value: 'Acme Robotics', factField: 'company_name', profileKey: 'name' });
   });
 });

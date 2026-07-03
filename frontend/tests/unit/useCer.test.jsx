@@ -64,3 +64,21 @@ describe('useCer', () => {
     expect(withdrawCerConsent).toHaveBeenCalledWith('new-cer', {});
   });
 });
+
+describe('useCer awaitingField', () => {
+  it('awaitField sets it and clearAwaiting resets it', () => {
+    const { result } = renderHook(() => useCer(CTX));
+    act(() => result.current.awaitField('company'));
+    expect(result.current.awaitingField).toBe('company');
+    act(() => result.current.clearAwaiting());
+    expect(result.current.awaitingField).toBeNull();
+  });
+
+  it('dismissForming clears an awaiting field', () => {
+    const { result } = renderHook(() => useCer(CTX));
+    act(() => result.current.startRoute('vanta'));
+    act(() => result.current.awaitField('company'));
+    act(() => result.current.dismissForming());
+    expect(result.current.awaitingField).toBeNull();
+  });
+});

@@ -87,9 +87,10 @@ export function cerMeter(fields) {
 // route is confirmed. Consent is the last gate — the founder makes it in the agency card.
 export function agencyReady(fields) {
   const byKey = Object.fromEntries(fields.map((f) => [f.key, f]));
-  // Evidence is "referenced only" and may legitimately be empty in v1, so it is NOT a gate.
-  // Consent is the final gate (made in the agency card), so it must still be pending.
-  const settled = ['company', 'contact', 'need', 'route', 'visibility'].every((k) => byKey[k]?.state === 'done');
+  // Evidence is "referenced only" (may be empty in v1) and Contact is implicit context —
+  // the logged-in founder IS the contact — so neither is a hard gate. Consent is the final
+  // gate (made in the agency card), so it must still be pending.
+  const settled = ['company', 'need', 'route', 'visibility'].every((k) => byKey[k]?.state === 'done');
   return settled && byKey.consent?.state !== 'done';
 }
 
@@ -115,4 +116,52 @@ export function buildProposal({ route, need, evidenceRefs = [] }) {
     evidence: evidenceRefs,
     visibility: visibilityRows(route),
   };
+}
+
+// Which lens owns each promptable gate field, the ask it makes, and how a captured
+// reply maps onto the founder entity. Extensible: add entries to prompt more fields.
+export const FIELD_LENS = {
+  company: {
+    persona: 'sofia',
+    prompt: "Before I set this up — what's the company called? A name, a website, or a deck all work.",
+    factField: 'company_name',
+    profileKey: 'name',
+  },
+  contact: {
+    persona: 'sofia',
+    prompt: 'And who should I put as the contact on this?',
+    factField: null,
+    profileKey: null,
+  },
+  need: {
+    persona: 'edison',
+    prompt: "What's the gap you're trying to close here?",
+    factField: null,
+    profileKey: null,
+  },
+};
+
+// Promptable gates: ONLY fields we can actually capture (a factField/profileKey in
+// FIELD_LENS). `company` is the one MVP gate. contact/need stay in FIELD_LENS for the future
+// but are NOT prompted until they're capturable — otherwise we'd ask for something whose
+// reply can't persist and strand the founder. route/visibility are never prompted (system).
+const GATE_PROMPT_PRIORITY = ['company'];
+
+export function firstMissingGate(fields) {
+  const byKey = Object.fromEntries(fields.map((f) => [f.key, f]));
+  for (const key of GATE_PROMPT_PRIORITY) {
+    if (byKey[key] && byKey[key].state !== 'done') {
+      return { field: key, ...FIELD_LENS[key] };
+    }
+  }
+  return null;
+}
+
+// Resolve a founder's reply to an awaited-field prompt. `isUrl` is decided by the caller
+// using the SAME extractor that will consume it (Chat's extractUrl), so classification and
+// consumption can never disagree — a reply can never strand the founder at the forming card.
+export function awaitedCapture(field, text, isUrl = false) {
+  if (isUrl) return { kind: 'url' };
+  const lens = FIELD_LENS[field] || {};
+  return { kind: 'value', field, value: String(text).trim(), factField: lens.factField || null, profileKey: lens.profileKey || null };
 }
