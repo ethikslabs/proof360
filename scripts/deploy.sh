@@ -70,7 +70,9 @@ PERPLEXITY_API_KEY=$(get_ssm "/ethikslabs/perplexity/api-key")
 GEMINI_API_KEY=$(get_ssm "/ethikslabs/gemini/api-key")
 AUTH0_DOMAIN=$(require_ssm "$SSM_PREFIX/AUTH0_DOMAIN")
 AUTH0_AUDIENCE=$(require_ssm "$SSM_PREFIX/AUTH0_AUDIENCE")
+AUTH0_CLIENT_ID=$(require_ssm "/ethikslabs/auth0/client-id")
 TURNSTILE_SECRET=$(require_ssm "$SSM_PREFIX/TURNSTILE_SECRET")
+TURNSTILE_SITEKEY=$(require_ssm "$SSM_PREFIX/TURNSTILE_SITEKEY")
 MEMORY_STORE_DIR="/home/ec2-user/.ethikslabs/proof360/memory"
 mkdir -p "$MEMORY_STORE_DIR"
 # TODO: v3 Postgres handlers (override/recompute/publish/engage) read PG_HOST/
@@ -105,6 +107,12 @@ npm install --production
 echo "==> Building frontend"
 cd $FRONTEND_DIR
 npm install
+# Bake the same public config the GitHub Actions build bakes — without these the
+# built login page renders a config fault and sign-in is disabled by design.
+VITE_AUTH0_DOMAIN="$AUTH0_DOMAIN" \
+VITE_AUTH0_AUDIENCE="$AUTH0_AUDIENCE" \
+VITE_AUTH0_CLIENT_ID="$AUTH0_CLIENT_ID" \
+VITE_CF_TURNSTILE_SITEKEY="$TURNSTILE_SITEKEY" \
 npm run build
 
 echo "==> Restarting API (root daemon /etc/.pm2)"
