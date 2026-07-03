@@ -184,7 +184,7 @@
     },
     {
       "id": "PROOF360-EDGE-AWAITED-URL-DROP-001",
-      "status": "ready",
+      "status": "done",
       "boundary": "[P2] Awaited-URL reply silently dropped \u2014 edge-hunt #10 (single-verdict, spend-limited verification). Chat.jsx: when a cold-read session already exists, an awaited-URL reply is dropped and awaitingField never clears \u2014 founder stuck. Re-verify against the D2 website-reply path (may overlap PROOF360-CER-WEBSITE-REPLY-001, now closed) before fixing.",
       "approved_by": "claude-code",
       "source": "edge-hunt:2026-07-03",

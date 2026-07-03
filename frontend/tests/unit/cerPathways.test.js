@@ -93,7 +93,7 @@ describe('buildProposal', () => {
   });
 });
 
-import { FIELD_LENS, firstMissingGate, awaitedCapture, awaitedColdReadOutcome } from '../../src/utils/cerPathways.js';
+import { FIELD_LENS, firstMissingGate, awaitedCapture, awaitedReplyCapture, awaitedColdReadOutcome } from '../../src/utils/cerPathways.js';
 
 describe('firstMissingGate', () => {
   const fields = (overrides) => ([
@@ -130,6 +130,28 @@ describe('awaitedCapture', () => {
   it('treats a reply with no extracted url as the field value with its fact mapping', () => {
     const c = awaitedCapture('company', '  Acme Robotics ', null);
     expect(c).toMatchObject({ kind: 'value', field: 'company', value: 'Acme Robotics', factField: 'company_name', profileKey: 'name' });
+  });
+});
+
+// AWAITED-URL-DROP-001: a URL reply must only defer to a cold-read while no company is loaded.
+// Once a session exists, re-scanning would clobber loaded state and the URL was historically
+// dropped, leaving the wait armed forever. With a session the reply captures as a value so the
+// wait clears and the founder is never stranded.
+describe('awaitedReplyCapture — session-aware URL handling', () => {
+  it('defers a URL reply to a cold-read only when there is no session yet', () => {
+    expect(awaitedReplyCapture('company', 'https://foo.io', 'https://foo.io', false))
+      .toMatchObject({ kind: 'url', url: 'https://foo.io' });
+  });
+
+  it('captures a URL reply as the field value once a session exists (never strands the founder)', () => {
+    const c = awaitedReplyCapture('company', 'https://foo.io', 'https://foo.io', true);
+    expect(c.kind).toBe('value');
+    expect(c.field).toBe('company');
+  });
+
+  it('is a plain value capture when the reply has no url, regardless of session', () => {
+    expect(awaitedReplyCapture('company', 'Acme', null, false)).toMatchObject({ kind: 'value', value: 'Acme' });
+    expect(awaitedReplyCapture('company', 'Acme', null, true)).toMatchObject({ kind: 'value', value: 'Acme' });
   });
 });
 

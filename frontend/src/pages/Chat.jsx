@@ -34,7 +34,7 @@ import { CerBuildCard }         from '../components/chat/CerBuildCard.jsx';
 import { CerAgencyCard }        from '../components/chat/CerAgencyCard.jsx';
 import { CerProjectionCard }    from '../components/chat/CerProjectionCard.jsx';
 import { useCer }               from '../hooks/useCer.js';
-import { routeFromText, PATHWAYS, firstMissingGate, awaitedCapture, awaitedColdReadOutcome } from '../utils/cerPathways.js';
+import { routeFromText, PATHWAYS, firstMissingGate, awaitedReplyCapture, awaitedColdReadOutcome } from '../utils/cerPathways.js';
 import { extractUrl, extractAwaitedUrl } from '../utils/url.js';
 import { resolveTurnstileSitekey, verifyTurnstileServerSide } from '../utils/turnstile.js';
 import { socialProviderEnabled } from '../utils/social-login.js';
@@ -1665,9 +1665,11 @@ export default function Chat() {
     // A URL reply (extractAwaitedUrl also catches "we're at northwind.io") hands the SAME
     // extracted URL to the cold-read below, and the wait stays ARMED until that cold-read
     // actually fills the company — a failed scan re-prompts instead of stranding the founder.
+    // But that cold-read only runs when no session exists yet; once a company is loaded a URL
+    // reply is captured as the field value instead of being dropped (AWAITED-URL-DROP-001).
     let awaitedUrl = null;
     if (cer.awaitingField) {
-      const cap = awaitedCapture(cer.awaitingField, text, extractAwaitedUrl(text));
+      const cap = awaitedReplyCapture(cer.awaitingField, text, extractAwaitedUrl(text), !!(companyData?.session_id));
       if (cap.kind === 'value') {
         cer.clearAwaiting();
         setInputValue('');

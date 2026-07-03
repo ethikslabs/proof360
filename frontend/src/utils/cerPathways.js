@@ -166,6 +166,15 @@ export function awaitedCapture(field, text, url = null) {
   return { kind: 'value', field, value: String(text).trim(), factField: lens.factField || null, profileKey: lens.profileKey || null };
 }
 
+// Session-aware wrapper (AWAITED-URL-DROP-001). A URL in an awaited reply should launch a
+// cold-read ONLY before a company is loaded. Once a session exists, re-scanning would clobber
+// loaded state and the URL was historically dropped — the wait stayed armed forever and the
+// founder was stranded. With a session, suppress the URL so the reply captures as the field's
+// value and the wait clears.
+export function awaitedReplyCapture(field, text, url, hasSession) {
+  return awaitedCapture(field, text, hasSession ? null : url);
+}
+
 // What to do when a cold-read that was serving an awaited field finishes. Pure decision,
 // executed by Chat.jsx. The founder must never be stranded: success guarantees a company
 // value (analysis name, else the scanned domain); failure re-prompts via the owning lens
