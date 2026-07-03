@@ -10,31 +10,35 @@ function extractDomain(url) {
   }
 }
 
-async function lookupTxt(hostname) {
+// A record that genuinely does not exist (NXDOMAIN / no-data) is a real finding —
+// keep it as an empty result. An infrastructure failure (SERVFAIL / timeout / refused)
+// means we could NOT determine the record; it must surface as 'unknown', never as a
+// false 'missing' that fires a critical gap and corrupts trust_score.
+const ABSENCE_CODES = new Set(['ENOTFOUND', 'ENODATA', 'ENONAME']);
+
+// Each lookup returns { ok, records }: ok:true means we know the answer (records may be
+// empty = genuinely absent); ok:false means the lookup failed and the answer is unknown.
+async function guardedLookup(fn) {
   try {
-    const records = await dns.resolveTxt(hostname);
-    return records.map((r) => r.join(''));
-  } catch {
-    return [];
+    return { ok: true, records: await fn() };
+  } catch (err) {
+    if (ABSENCE_CODES.has(err?.code)) return { ok: true, records: [] };
+    return { ok: false, records: [] };
   }
 }
 
-async function lookupMx(domain) {
-  try {
-    const records = await dns.resolveMx(domain);
-    return records.sort((a, b) => a.priority - b.priority);
-  } catch {
-    return [];
-  }
+async function lookupTxt(resolveTxt, hostname) {
+  const { ok, records } = await guardedLookup(() => resolveTxt(hostname));
+  return { ok, records: records.map((r) => r.join('')) };
 }
 
-async function lookupCaa(domain) {
-  try {
-    const records = await dns.resolveCaa(domain);
-    return records;
-  } catch {
-    return [];
-  }
+async function lookupMx(resolveMx, domain) {
+  const { ok, records } = await guardedLookup(() => resolveMx(domain));
+  return { ok, records: records.sort((a, b) => a.priority - b.priority) };
+}
+
+async function lookupCaa(resolveCaa, domain) {
+  return guardedLookup(() => resolveCaa(domain));
 }
 
 function parseDmarcPolicy(records) {
@@ -64,37 +68,40 @@ function inferMxProvider(mxRecords) {
   return 'custom';
 }
 
-export async function reconDns(url, session_id) {
+export async function reconDns(url, session_id, { resolver } = {}) {
   const domain = extractDomain(url);
   if (!domain) return null;
 
-  const [rootTxt, dmarcTxt, mxRecords, caaRecords] = await Promise.allSettled([
-    lookupTxt(domain),
-    lookupTxt(`_dmarc.${domain}`),
-    lookupMx(domain),
-    lookupCaa(domain),
+  const { resolveTxt, resolveMx, resolveCaa } = resolver || {
+    resolveTxt: (h) => dns.resolveTxt(h),
+    resolveMx: (d) => dns.resolveMx(d),
+    resolveCaa: (d) => dns.resolveCaa(d),
+  };
+
+  const [rootTxt, dmarcTxt, mxRecords, caaRecords] = await Promise.all([
+    lookupTxt(resolveTxt, domain),
+    lookupTxt(resolveTxt, `_dmarc.${domain}`),
+    lookupMx(resolveMx, domain),
+    lookupCaa(resolveCaa, domain),
   ]);
 
-  const root = rootTxt.status === 'fulfilled' ? rootTxt.value : [];
-  const dmarc = dmarcTxt.status === 'fulfilled' ? dmarcTxt.value : [];
-  const mx = mxRecords.status === 'fulfilled' ? mxRecords.value : [];
-  const caa = caaRecords.status === 'fulfilled' ? caaRecords.value : [];
+  // 'unknown' when the lookup failed on infrastructure — NOT 'missing' (which is a real
+  // absent-record finding and fires a gap). Genuine NXDOMAIN keeps records:[] with ok:true.
+  const dmarc_policy = dmarcTxt.ok ? parseDmarcPolicy(dmarcTxt.records) : 'unknown';
+  const spf_policy   = rootTxt.ok  ? parseSpfPolicy(rootTxt.records)   : 'unknown';
+  const mx_provider  = mxRecords.ok ? inferMxProvider(mxRecords.records) : 'unknown';
+  const has_caa      = caaRecords.ok ? caaRecords.records.length > 0 : null;
 
-  const anyFailed = [rootTxt, dmarcTxt, mxRecords, caaRecords].some(r => r.status === 'rejected');
-
+  const anyFailed = [rootTxt, dmarcTxt, mxRecords, caaRecords].some(r => !r.ok);
   recordConsumption({ session_id, source: 'dns', units: 1, unit_type: 'api_calls', success: !anyFailed, error: null });
-
-  const dmarc_policy = parseDmarcPolicy(dmarc);
-  const spf_policy = parseSpfPolicy(root);
-  const mx_provider = inferMxProvider(mx);
-  const has_caa = caa.length > 0;
 
   return {
     domain,
-    dmarc_policy,       // 'missing' | 'none' | 'quarantine' | 'reject'
-    spf_policy,         // 'missing' | 'open' | 'soft' | 'strict' | 'present'
-    mx_provider,        // 'google' | 'microsoft' | 'proton' | 'mimecast' | 'barracuda' | 'custom' | 'none'
-    has_caa,            // boolean — certificate authority authorisation record present
+    dmarc_policy,       // 'missing' | 'none' | 'quarantine' | 'reject' | 'unknown'
+    spf_policy,         // 'missing' | 'open' | 'soft' | 'strict' | 'present' | 'unknown'
+    mx_provider,        // 'google' | 'microsoft' | ... | 'none' | 'unknown'
+    has_caa,            // boolean, or null when the CAA lookup could not be determined
+    dns_resolved: !anyFailed,
     source: 'dns',
   };
 }
