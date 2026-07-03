@@ -5,6 +5,7 @@
 import https from 'https';
 import { URL } from 'url';
 import { record as recordConsumption } from './consumption-emitter.js';
+import { assertPublicHost, SsrfBlockedError } from './ssrf-guard.js';
 
 const TIMEOUT_MS = 8000;
 const MAX_BODY_BYTES = 32768; // 32KB — enough for tech fingerprinting
@@ -97,13 +98,18 @@ function fetchWithCert(url) {
       // Don't fail on self-signed certs — just record the finding
       rejectUnauthorized: false,
     }, (res) => {
-      // Follow one redirect
+      // Follow one redirect — but re-validate the target host. A redirect to
+      // http://169.254.169.254 would otherwise bypass the entry-point SSRF guard.
       if ([301, 302, 307, 308].includes(res.statusCode) && res.headers.location) {
         const loc = res.headers.location;
         if (loc.startsWith('https://')) wasRedirectedToHttps = true;
         res.resume();
         req.destroy();
-        return fetchWithCert(loc.startsWith('http') ? loc : `https://${parsed.hostname}${loc}`)
+        const nextUrl = loc.startsWith('http') ? loc : `https://${parsed.hostname}${loc}`;
+        let nextHost;
+        try { nextHost = new URL(nextUrl).hostname; } catch { return resolve({ headers: {}, status: null, body: '', wasRedirectedToHttps, tls: null }); }
+        return assertPublicHost(nextHost)
+          .then(() => fetchWithCert(nextUrl))
           .then(result => resolve({ ...result, wasRedirectedToHttps }))
           .catch(reject);
       }

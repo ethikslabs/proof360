@@ -23,6 +23,7 @@ import { reconHibp }     from './recon-hibp.js';
 import { reconPorts }    from './recon-ports.js';
 import { reconSslLabs }  from './recon-ssllabs.js';
 import { reconAbuseIpdb } from './recon-abuseipdb.js';
+import { assertPublicHost, SsrfBlockedError } from './ssrf-guard.js';
 
 export async function runReconPipeline(websiteUrl, companyName, options = {}) {
   const {
@@ -33,6 +34,35 @@ export async function runReconPipeline(websiteUrl, companyName, options = {}) {
     session_id       = null,
   } = options;
   const domain = extractDomain(websiteUrl);
+
+  // SSRF guard: the target host is user-supplied on an unauthenticated endpoint.
+  // Reject anything that resolves to a private/loopback/link-local/metadata
+  // address BEFORE any recon source touches the network. Fail closed.
+  try {
+    await assertPublicHost(domain);
+  } catch (err) {
+    if (err instanceof SsrfBlockedError) {
+      console.warn(`[recon] blocked non-public target ${domain}: ${err.message}`);
+      onSourceComplete?.('blocked', `Target is not a public host — recon skipped`);
+      return {
+        dns: { source: 'dns', skipped: true, reason: 'target_not_public' },
+        http: { source: 'http', skipped: true, reason: 'target_not_public' },
+        certs: { source: 'certs', skipped: true, reason: 'target_not_public' },
+        ip: { source: 'ip', skipped: true, reason: 'target_not_public' },
+        github: { source: 'github', skipped: true, reason: 'target_not_public' },
+        jobs: { source: 'jobs', skipped: true, reason: 'target_not_public' },
+        hibp: { source: 'hibp', skipped: true, reason: 'target_not_public' },
+        ports: { source: 'ports', skipped: true, reason: 'target_not_public' },
+        ssllabs: { source: 'ssllabs', skipped: true, reason: 'target_not_public' },
+        abuseipdb: { source: 'abuseipdb', skipped: true, reason: 'target_not_public' },
+        domain,
+        blocked: true,
+        blocked_reason: 'target_not_public',
+        scanned_at: new Date().toISOString(),
+      };
+    }
+    throw err;
+  }
 
   console.log(`[recon] Starting pipeline for ${domain}`);
 
