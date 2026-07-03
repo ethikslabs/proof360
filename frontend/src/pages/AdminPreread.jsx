@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useFeatureFlags } from '../contexts/FeatureFlagContext.jsx';
 import { submitPreread, getPrereadStatus } from '../api/client.js';
-import { buildShareableUrl } from '../utils/shareable-url.js';
 import ConfidenceChip from '../components/ConfidenceChip.jsx';
 import { Proof360Mark } from '../components/Proof360Mark';
 
@@ -39,10 +38,6 @@ function generateMarkdown(reads) {
     lines.push(`## ${r.url}`);
     lines.push(`- **Session ID:** ${r.session_id}`);
     lines.push(`- **Status:** ${r.status}`);
-    if (r.status === 'complete') {
-      const link = buildShareableUrl(r.session_id, r.url);
-      lines.push(`- **Shareable link:** ${window.location.origin}${link}`);
-    }
     if (r.confidence) {
       lines.push(`- **Confidence:** ${r.confidence.overall || r.confidence}`);
     }
@@ -77,7 +72,6 @@ export default function AdminPreread() {
   const [reads, setReads] = useState([]);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [copied, setCopied] = useState(null);
   const pollRef = useRef(null);
 
   /* ── Feature flag gate ─────────────────────────────────────────────── */
@@ -143,15 +137,6 @@ export default function AdminPreread() {
     } finally {
       setSubmitting(false);
     }
-  }
-
-  async function handleCopy(sessionId, url) {
-    const link = `${window.location.origin}${buildShareableUrl(sessionId, url)}`;
-    try {
-      await navigator.clipboard.writeText(link);
-      setCopied(sessionId);
-      setTimeout(() => setCopied(null), 2000);
-    } catch { /* clipboard not available */ }
   }
 
   /* ── Render gate ───────────────────────────────────────────────────── */
@@ -306,15 +291,11 @@ export default function AdminPreread() {
                   <tr style={{ borderBottom: '2px solid #E5E7EB', textAlign: 'left' }}>
                     <th style={{ padding: '10px 12px', color: '#667085', fontWeight: 500 }}>URL</th>
                     <th style={{ padding: '10px 12px', color: '#667085', fontWeight: 500, width: 100 }}>Status</th>
-                    <th style={{ padding: '10px 12px', color: '#667085', fontWeight: 500 }}>Shareable Link</th>
                     <th style={{ padding: '10px 12px', color: '#667085', fontWeight: 500, width: 140 }}>Confidence</th>
                   </tr>
                 </thead>
                 <tbody>
                   {reads.map((r, i) => {
-                    const shareLink = r.status === 'complete'
-                      ? `${window.location.origin}${buildShareableUrl(r.session_id, r.url)}`
-                      : null;
                     const confidenceLevel = r.confidence?.overall || r.confidence;
                     return (
                       <tr key={r.session_id || i} style={{ borderBottom: '1px solid #F3F4F6' }}>
@@ -334,19 +315,6 @@ export default function AdminPreread() {
                             }} />
                             {r.status}
                           </span>
-                        </td>
-                        <td style={{ padding: '10px 12px' }}>
-                          {shareLink ? (
-                            <button
-                              className="btn-secondary"
-                              style={{ padding: '4px 10px', fontSize: 12 }}
-                              onClick={() => handleCopy(r.session_id, r.url)}
-                            >
-                              {copied === r.session_id ? 'Copied!' : 'Copy link'}
-                            </button>
-                          ) : (
-                            <span style={{ color: '#D1D5DB' }}>—</span>
-                          )}
                         </td>
                         <td style={{ padding: '10px 12px' }}>
                           {confidenceLevel && confidenceLevel !== 'high'

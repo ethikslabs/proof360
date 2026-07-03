@@ -176,7 +176,7 @@
     },
     {
       "id": "PROOF360-EDGE-SHAREABLE-URL-001",
-      "status": "ready",
+      "status": "done",
       "boundary": "[P2] Forgeable share link \u2014 edge-hunt #12. frontend/src/utils/shareable-url.js builds an unsigned, forgeable cold-read URL AND targets a route deleted in the 2026-05-29 legacy strip (/audit/cold-read). Either sign the params server-side or remove the dead surface.",
       "approved_by": "claude-code",
       "source": "edge-hunt:2026-07-03",
