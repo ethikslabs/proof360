@@ -282,10 +282,16 @@ export function formatReconLine(source, result) {
   switch (source) {
     case 'dns': {
       const p = result.dmarc_policy;
+      // An undetermined lookup must never read as green "enforced" — that is false
+      // assurance on a resolver failure (the same class this whole fix closes).
+      if (p === 'unknown' || result.dns_resolved === false) {
+        return { type: 'recon', source, text: `${tag(source)}DNS lookup failed · email posture undetermined`, color: 'muted' };
+      }
       if (!p || p === 'missing' || p === 'none') {
         return { type: 'recon', source, text: `${tag(source)}DMARC not enforced · spoofing risk`, color: 'err' };
       }
-      return { type: 'recon', source, text: `${tag(source)}DMARC enforced · SPF ${result.spf_policy || 'present'}`, color: 'ok' };
+      const spf = result.spf_policy && result.spf_policy !== 'unknown' ? result.spf_policy : 'unknown';
+      return { type: 'recon', source, text: `${tag(source)}DMARC enforced · SPF ${spf}`, color: 'ok' };
     }
 
     case 'http': {
