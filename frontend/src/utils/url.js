@@ -23,12 +23,15 @@ export function extractUrl(text) {
 }
 
 // Broader matcher for awaited replies: everything extractUrl accepts, plus a schemeless
-// domain embedded in a sentence. The domain must sit on its own word boundary and end in
-// an alphabetic TLD (2+ chars), so "Pty. Ltd", "v2.0" and "Series A." never match, and
-// trailing punctuation ("…acme.com.au, have a look") is not swallowed.
+// domain embedded in a sentence, with an optional path ("we're at northwind.io/security").
+// The domain must sit on its own word boundary and end in an alphabetic TLD (2+ chars), so
+// "Pty. Ltd", "v2.0" and "Series A." never match, and trailing punctuation on the domain or
+// path ("…acme.com.au, have a look" / "…/docs/start.") is not swallowed.
 export function extractAwaitedUrl(text) {
   const direct = extractUrl(String(text || ''));
   if (direct) return direct;
-  const m = String(text || '').match(/(?:^|[\s(])((?:[a-z0-9][a-z0-9-]*\.)+[a-z]{2,})(?=[\s).,!?;:]|$)/i);
-  return m ? `https://${m[1]}` : null;
+  const m = String(text || '').match(/(?:^|[\s(])((?:[a-z0-9][a-z0-9-]*\.)+[a-z]{2,})(?=[\s).,!?;:/]|$)(\/\S*)?/i);
+  if (!m) return null;
+  const path = (m[2] || '').replace(/[).,!?;:]+$/, '');
+  return `https://${m[1]}${path}`;
 }

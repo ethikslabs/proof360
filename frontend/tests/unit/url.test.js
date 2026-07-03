@@ -36,6 +36,14 @@ describe('extractAwaitedUrl — awaited-reply URL detection', () => {
   it('strips trailing punctuation from the matched domain', () => {
     expect(extractAwaitedUrl('our site is www.acme.com.au, have a look')).toBe('https://www.acme.com.au');
   });
+  it('accepts a path suffix on an embedded schemeless domain', () => {
+    expect(extractAwaitedUrl("we're at northwind.io/security")).toBe('https://northwind.io/security');
+    expect(extractAwaitedUrl('see northwind.io/security, then decide')).toBe('https://northwind.io/security');
+    expect(extractAwaitedUrl('docs live at northwind.io/docs/start.')).toBe('https://northwind.io/docs/start');
+  });
+  it('does not match a domain-like token glued to trailing word characters', () => {
+    expect(extractAwaitedUrl('ticket ref northwind.iox2 for context')).toBeNull();
+  });
   it('returns null for a plain company name', () => {
     expect(extractAwaitedUrl('Northwind Traders')).toBeNull();
   });
