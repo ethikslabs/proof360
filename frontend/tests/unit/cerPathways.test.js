@@ -93,7 +93,7 @@ describe('buildProposal', () => {
   });
 });
 
-import { FIELD_LENS, firstMissingGate, awaitedCapture } from '../../src/utils/cerPathways.js';
+import { FIELD_LENS, firstMissingGate, awaitedCapture, awaitedColdReadOutcome } from '../../src/utils/cerPathways.js';
 
 describe('firstMissingGate', () => {
   const fields = (overrides) => ([
@@ -123,12 +123,39 @@ describe('firstMissingGate', () => {
 });
 
 describe('awaitedCapture', () => {
-  it('returns a url handoff when the caller flags the reply as a URL', () => {
-    expect(awaitedCapture('company', 'https://foo.io', true).kind).toBe('url');
-    expect(awaitedCapture('company', 'northwind.io', true).kind).toBe('url');
+  it('returns a url handoff carrying the SAME extracted url the caller will consume', () => {
+    expect(awaitedCapture('company', 'https://foo.io', 'https://foo.io')).toMatchObject({ kind: 'url', url: 'https://foo.io' });
+    expect(awaitedCapture('company', "we're at northwind.io", 'https://northwind.io')).toMatchObject({ kind: 'url', url: 'https://northwind.io' });
   });
-  it('treats a non-URL reply as the field value with its fact mapping', () => {
-    const c = awaitedCapture('company', '  Acme Robotics ', false);
+  it('treats a reply with no extracted url as the field value with its fact mapping', () => {
+    const c = awaitedCapture('company', '  Acme Robotics ', null);
     expect(c).toMatchObject({ kind: 'value', field: 'company', value: 'Acme Robotics', factField: 'company_name', profileKey: 'name' });
+  });
+});
+
+// The cold-read outcome decision for an awaited company field. Pure: Chat.jsx executes
+// whatever this returns. The founder must never be stranded — a failed cold-read while
+// a field is awaited MUST produce a re-prompt, and success MUST produce a company value
+// (falling back to the scanned domain when the analysis returned no name).
+describe('awaitedColdReadOutcome', () => {
+  it('does nothing when no field was awaited', () => {
+    expect(awaitedColdReadOutcome({ awaitedField: null, success: true, companyName: 'Acme', domain: 'acme.io' }))
+      .toMatchObject({ action: 'none' });
+    expect(awaitedColdReadOutcome({ awaitedField: null, success: false, companyName: null, domain: 'acme.io' }))
+      .toMatchObject({ action: 'none' });
+  });
+  it('captures the analysed company name and clears the wait on success', () => {
+    expect(awaitedColdReadOutcome({ awaitedField: 'company', success: true, companyName: 'Northwind Pty Ltd', domain: 'northwind.io' }))
+      .toMatchObject({ action: 'capture', company: 'Northwind Pty Ltd' });
+  });
+  it('falls back to the scanned domain when the analysis returned no name', () => {
+    expect(awaitedColdReadOutcome({ awaitedField: 'company', success: true, companyName: null, domain: 'northwind.io' }))
+      .toMatchObject({ action: 'capture', company: 'northwind.io' });
+  });
+  it('re-prompts via the owning lens on failure, keeping the wait armed', () => {
+    const o = awaitedColdReadOutcome({ awaitedField: 'company', success: false, companyName: null, domain: 'northwind.io' });
+    expect(o.action).toBe('reprompt');
+    expect(o.persona).toBe('sofia');
+    expect(o.prompt).toMatch(/company name/i);
   });
 });
