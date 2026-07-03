@@ -6,7 +6,7 @@ import { AUTH0_AUDIENCE, clearTokens, storeTokens } from '../api/auth.js';
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 const MS_CLIENT_ID    = import.meta.env.VITE_MS_CLIENT_ID || '';
 const AUTH0_DOMAIN    = import.meta.env.VITE_AUTH0_DOMAIN    || '';
-const AUTH0_CLIENT_ID = import.meta.env.VITE_AUTH0_CLIENT_ID || 'bh2RJb3CO25HFF6rqOVzd9uk2WUKiCGM';
+const AUTH0_CLIENT_ID = import.meta.env.VITE_AUTH0_CLIENT_ID || ''; // no ghost-tenant fallback
 const REDIRECT_URI = typeof window !== 'undefined' ? `${window.location.origin}/portal/callback` : '';
 
 // PKCE helpers
