@@ -160,7 +160,7 @@
     },
     {
       "id": "PROOF360-EDGE-DEAD-SOCIAL-LOGIN-001",
-      "status": "ready",
+      "status": "done",
       "boundary": "[P2] Config-drift \u2014 edge-hunt #9. VITE_GOOGLE_CLIENT_ID and VITE_MS_CLIENT_ID are baked by neither build path, so partner-portal social login is permanently dead in prod (buttons render, redirect is broken). Either bake them from SSM (same pattern as Auth0/Turnstile) or hide the buttons when unset \u2014 do not ship a dead control.",
       "approved_by": "claude-code",
       "source": "edge-hunt:2026-07-03",

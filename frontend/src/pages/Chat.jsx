@@ -37,6 +37,7 @@ import { useCer }               from '../hooks/useCer.js';
 import { routeFromText, PATHWAYS, firstMissingGate, awaitedCapture, awaitedColdReadOutcome } from '../utils/cerPathways.js';
 import { extractUrl, extractAwaitedUrl } from '../utils/url.js';
 import { resolveTurnstileSitekey, verifyTurnstileServerSide } from '../utils/turnstile.js';
+import { socialProviderEnabled } from '../utils/social-login.js';
 import { EMPTY_TILES, tilesFromProjections } from '../utils/projectionTiles.js';
 
 /* ─── Auth constants ─────────────────────────────────────────────────────── */
@@ -307,7 +308,7 @@ function LoginModal({ onClose, onUser }) {
           pointerEvents: ready ? 'auto' : 'none',
         }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {GOOGLE_CLIENT_ID && (
+            {socialProviderEnabled(GOOGLE_CLIENT_ID) && (
               <button onClick={loginGoogle} disabled={!ready} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 padding: '11px 0', borderRadius: 10,
