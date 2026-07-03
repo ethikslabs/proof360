@@ -4,6 +4,8 @@
 
 **Operating law (Round 4):** every decision strengthens AWS alignment or is neutral. AWS hard-code.
 
+**Verification standard:** this doc shares the fact-discipline of `aws-funding-program-mapping.md` — confirmed facts only in the tables; unverified program names/figures are struck, not guessed. AI routing is **Bedrock-direct** (no VECTOR — retired 2026-07-03). Sector/signal detection is the estate recon pipeline (readability + jsdom), **not** Firecrawl (banned).
+
 ---
 
 ## Services AWS actively pushes (in priority order for proof360)
@@ -33,7 +35,7 @@ AWS wants partners selling these because every gap closed with AWS-native = cust
 | Backup | data resilience | `backup`, `recovery` | ✓ `aws_backup` |
 | CloudTrail | audit | `audit_trail`, `compliance` | not in catalog |
 
-**Action:** add the missing AWS-native entries to `vendors.js` with `aws_native: true`, `distributors: ['direct']`, `marketplace_aws: false` (billed through AWS commit, no separate Marketplace listing). Each gap's routing picks AWS-native FIRST when customer is AWS-hosted.
+**Action:** add the missing AWS-native entries to `vendors.js` with `aws_native: true`, `aws_channel: 'direct'` (AWS-native = billed on AWS commit, no separate Marketplace CPPO listing). Each gap's routing picks AWS-native FIRST when customer is AWS-hosted.
 
 ### B. AWS AI stack (generative AI is AWS's #1 push right now)
 
@@ -41,7 +43,7 @@ Highest funding, most AM attention, easiest POC credits.
 
 | Service | Purpose | proof360 use |
 |---|---|---|
-| Bedrock | foundation model API (Claude, Titan, Llama, Mistral) | **VECTOR primary route when customer is AWS-hosted** |
+| Bedrock | foundation model API (Claude, Titan, Llama, Mistral) | **proof360's primary inference route (Bedrock-direct) when customer is AWS-hosted** |
 | Bedrock Knowledge Bases | RAG | sovereign customer VERITAS backing |
 | Bedrock Guardrails | safety rails | AI governance gap vendor |
 | Bedrock Agents | agentic workflows | pentad-in-customer-VPC play |
@@ -49,7 +51,7 @@ Highest funding, most AM attention, easiest POC credits.
 | Amazon Q | enterprise assistant | customer-facing trust assistant |
 | Amazon Q Developer | dev productivity | internal / not routing-relevant |
 
-**Action:** new vendor entry `aws_bedrock` with `closes: ['ai_governance', 'ai_risk']` as AWS-native alternative to CognitiveView for AWS customers. VECTOR narrative says Bedrock-first for AWS-hosted; narrative is already locked, vendor catalog catches up.
+**Action:** new vendor entry `aws_bedrock` with `closes: ['ai_governance', 'ai_risk']` as the AWS-native alternative to CognitiveView for AWS customers. Inference is already Bedrock-direct across the estate; the vendor catalog catches up.
 
 ### C. Migration Acceleration Program (MAP)
 
@@ -58,38 +60,39 @@ Massive $$. AWS funds migrations at scale. Partner-led MAP deals receive funding
 | Motion | proof360 mapping |
 |---|---|
 | MAP Assess (discovery) | proof360 assessment itself counts as MAP Assess input |
-| MAP Migrate (execution) | `migration_to_aws` lead type → routed to MAP-certified partner |
+| MAP Migrate (execution) | `migration_to_aws` lead type → routed to a MAP-qualified partner |
 | MAP Modernize (post-migration) | follow-on motion, re-assess post-migration |
 
-**Action:** in partner register, flag `aws_migration` with MAP certification status. Ingram and AWS Consulting Partners both have MAP-qualified motions. MAP funding is partner-applied, not customer-applied.
+**Action:** in the partner register, flag `aws_migration` with MAP qualification status. **Ingram already runs MAP-qualified motions — route MAP through Ingram rather than building a proof360-solo MAP practice.** MAP funding is partner-applied, not customer-applied.
 
-**Qualification path:** proof360 needs "AWS Select Consulting Partner" tier minimum to drive MAP deals. APN Partner registration is free; tier progression is usage/certification-driven.
+**Qualification path:** driving MAP deals requires a partner on the **Services Path** with MAP qualification (the old "Consulting Partner" tier naming was retired by AWS in 2022). For proof360's own path, APN Software Path registration is free; ISV co-sell requires FTR + Marketplace listing first.
 
-### D. AWS Marketplace CPPO (Channel Partner Private Offers)
+### D. AWS Marketplace CPPO — Ingram is seller-of-record (see channel rule)
 
-Highest-leverage commercial shape. Partner lists vendor products on Marketplace, sells through proof360, customer pays via AWS commit, AWS takes listing fee, everyone wins.
+CPPO (Channel Partner Private Offers) is high-leverage, but **Ingram is a distributor with its own live AWS Marketplace entitlement** (Cloud Account `1200158131`, active Marketplace API — see `ingram-micro-xvantage-field-intel-2026-05.md`). proof360 running CPPO directly reads as routing Marketplace *around* Ingram, which breaks the Ingram ISV gate. The estate rule (also written in `aws-funding-program-mapping.md`):
 
-| CPPO capability | proof360 use |
+| CPPO capability | proof360 use (through Ingram) |
 |---|---|
-| Private offers with custom pricing | proof360 negotiates reseller margin, customer sees their negotiated price |
-| Flexible payment schedules | annual/multi-year with AWS-committed spend |
+| Private offers with custom pricing | **proof360 authors** the offer + reseller margin; customer sees their negotiated price |
+| Seller-of-record + AWS commit billing | **Ingram transacts** on the customer's AWS commit; AWS attribution flows through Ingram's entitlement |
+| Flexible payment schedules | annual/multi-year, AWS-committed spend |
 | Metered billing via MMS | proof360 + Metronome emit usage events |
-| Channel attribution to AWS AMs | AWS seller gets credit → co-sell incentive → AM support |
 
-**Action:** every vendor with `marketplace_aws: true` is a CPPO candidate. Priority order:
-1. Vanta (already listed, 20% off deal)
-2. Drata (already listed, 15% off)
+**Channel rule:** every vendor carries `aws_channel: 'ingram' | 'direct'`, defaulting to **`ingram`**. `direct` only when proof360 holds a direct reseller/CPPO contract with that vendor (contract-evidenced). Candidate CPPO vendors (all default `ingram` unless a direct contract exists):
+
+1. Vanta (listed, 20% off deal)
+2. Drata (listed, 15% off)
 3. Cloudflare (listed)
 4. CrowdStrike (listed)
 5. Okta (listed)
 
-Register proof360 as a **Marketplace seller** (free). Set up CPPO with priority vendors.
+**proof360-solo Marketplace Seller registration is deferred** — not a Phase 1 action. Phase 1 is: author offers, qualify leads, route the transaction to Ingram.
 
 ### E. Well-Architected Review Partner Program
 
-AWS Well-Architected Review = AWS's formal trust/quality assessment. Six pillars: Operational Excellence, Security, Reliability, Performance, Cost Optimisation, Sustainability.
+AWS Well-Architected Framework Review (WAFR) = AWS's formal trust/quality assessment. Six pillars: Operational Excellence, Security, Reliability, Performance, Cost Optimisation, Sustainability.
 
-**Proof360 is already a productised Well-Architected Review for trust posture.** Formalising this = AWS funds each review.
+**Proof360 is already a productised Well-Architected Review for trust posture.** Formalising this lets proof360 deliver partner WAFRs.
 
 | WA pillar | proof360 coverage |
 |---|---|
@@ -100,11 +103,13 @@ AWS Well-Architected Review = AWS's formal trust/quality assessment. Six pillars
 | Performance | not covered |
 | Sustainability | not covered |
 
+**Benefit — stated correctly:** the WAFR remediation credit (historically up to ~$5k) is a **credit to the *customer* for remediation**, delivered through the partner review — **not** a fee paid to proof360. proof360's benefit is the engagement, the co-sell pull, and progress toward Security specialisation.
+
 **Action:**
-- Apply for AWS Well-Architected Partner status
-- Each proof360 full report = qualifies as partner-delivered WA Review (security + cost pillars)
-- AWS funds up to $5k/review for qualified partners delivering to enterprise customers
-- Complements proof360 revenue stream with AWS-funded reviews
+- Apply for Well-Architected Partner status
+- Each proof360 full report maps to a partner-delivered WAFR (Security + Cost pillars)
+- Use WAFRs to pull customers into AWS-native remediation (customer gets the remediation credit)
+- Complements proof360 revenue via the underlying engagement, not review fees
 
 ### F. Industry vertical services
 
@@ -115,13 +120,11 @@ AWS Well-Architected Review = AWS's formal trust/quality assessment. Six pillars
 | Public Sector | GovCloud | `sector: government` OR `geo_market: AU` gov-adjacent | sovereign deploy path |
 | Retail / CPG | Personalize, Forecast, Location Service | `sector: ecommerce` OR retail signals | future |
 | Manufacturing | IoT TwinMaker, Lookout for Equipment | not proof360-aligned yet | future |
-| Media | MediaLive, MediaConvert, Nimble Studio | not proof360-aligned | future |
+| Media | MediaLive, MediaConvert | not proof360-aligned | future |
 
-**Action:** vertical gaps trigger industry-specific AWS service routing. Healthcare and financial are the strongest proof360 fits (sector already detected via Firecrawl).
+**Action:** vertical gaps trigger industry-specific AWS service routing. Healthcare and financial are the strongest proof360 fits (sector detected via the recon pipeline).
 
 ### G. Multi-account governance
-
-AWS's push for enterprise customers to adopt multi-account patterns.
 
 | Service | What it closes |
 |---|---|
@@ -152,43 +155,44 @@ AWS's push for enterprise customers to adopt multi-account patterns.
 
 | Program | Funding shape | Proof360 applicability |
 |---|---|---|
-| **MAP** (Migration Acceleration Program) | $50k-$1M+ per migration deal | direct — `migration_to_aws` |
+| **MAP** (Migration Acceleration Program) | $50k-$1M+ per migration deal | direct — `migration_to_aws`, routed via Ingram |
 | **POC Funding** | AWS credits for customer proof-of-concepts | immediate — every proof360 assessment that leads to AWS-native fix |
-| **MDF** (Marketing Development Funds) | co-marketing dollars | apply once Select tier |
-| **ISV Accelerate** | for partners selling ISV solutions | proof360 itself as ISV eventually |
+| **MDF** (Marketing Development Funds) | co-marketing dollars | apply once tier/specialisation reached |
+| **ISV Accelerate** | co-sell for ISV solutions | conditional — requires FTR + Marketplace listing first |
 | **Solution Provider Program** | reseller tier | direct — proof360 resells vendors |
 | **Service Delivery Program** | specialisation (Security, Migration, etc.) | target Security specialisation |
-| **Well-Architected Partner** | $5k per qualified review | direct — proof360 is a productised WA Review |
+| **Well-Architected Partner** | customer remediation credit per WAFR (not partner fee) | direct — proof360 delivers productised WAFRs |
 | **Public Sector Partner** | GovCloud + public sector | sovereign deploy story |
-| **Marketplace Seller** | zero funding, access to CPPO | free registration |
-| **Co-sell program** | AWS seller brings partner into deals | automatic once in co-sell-ready state |
+| **Marketplace Seller** | zero funding, access to CPPO | deferred — Ingram is seller-of-record |
+| **Co-sell program** | AWS seller brings partner into deals | available once in co-sell-ready state (post-FTR) |
 
 ---
 
 ## Ranking by proof360 commercial fit
 
 **Tier 1 — Activate immediately (zero cost, immediate leverage):**
-1. Marketplace Seller registration → CPPO with Vanta / Drata / Cloudflare / CrowdStrike / Okta
-2. Add missing AWS-native security services to `vendors.js` (GuardDuty, Macie, Shield, Config, Audit Manager, Detective, Network Firewall, ACM, Secrets Manager, CloudTrail)
-3. APN Partner registration → targets Select tier
+1. Add missing AWS-native security services to `vendors.js` (GuardDuty, Macie, Shield, Config, Audit Manager, Detective, Network Firewall, ACM, Secrets Manager, CloudTrail) — `aws_native: true`, `aws_channel: 'direct'`
+2. APN Partner registration (Software Path)
+3. ACE registration; begin FTR preparation (gates ISV Accelerate + Marketplace)
 
 **Tier 2 — Activate within 90 days:**
-4. MAP Assess qualification → `migration_to_aws` lead type converts to MAP-funded deals
+4. MAP Assess qualification via Ingram → `migration_to_aws` converts to MAP-funded deals
 5. Well-Architected Partner application
-6. Bedrock as VECTOR primary route for AWS-hosted customers (narrative already locked; vendor catalog catches up)
+6. `aws_bedrock` vendor entry for AWS-hosted customers (inference already Bedrock-direct)
 7. POC funding applications for first 3-5 qualified customer proof-of-concepts
+8. Complete FTR → CPPO offers authored by proof360, transacted through Ingram
 
 **Tier 3 — Longer horizon:**
-8. Service Delivery Program — Security specialisation
-9. Industry vertical routing (healthcare → HealthLake, financial → FinSpace)
-10. Control Tower multi-account routing
-11. Data Exchange listing for aggregated signals corpus (Track C territory)
+9. Service Delivery Program — Security specialisation
+10. Industry vertical routing (healthcare → HealthLake, financial → FinSpace)
+11. Control Tower multi-account routing
+12. Data Exchange listing for aggregated signals corpus (Track C territory)
 
 ---
 
 ## What this changes in `vendors.js`
 
-Expansion list for Kiro once partner register confirms:
+Expansion list once the partner register confirms:
 
 ```
 aws_guardduty, aws_macie, aws_shield, aws_config, aws_audit_manager,
@@ -197,7 +201,7 @@ aws_acm, aws_secrets_manager, aws_kms, aws_cloudtrail,
 aws_bedrock, aws_control_tower, aws_healthlake, aws_finspace
 ```
 
-All tagged `aws_native: true`, `distributors: ['direct']`, `marketplace_aws: false` (AWS-native = AWS bill, not separate Marketplace listing).
+All tagged `aws_native: true`, `aws_channel: 'direct'` (AWS-native = AWS bill, no separate Marketplace CPPO listing). Third-party CPPO vendors carry `aws_channel: 'ingram'` by default.
 
 ---
 
@@ -209,7 +213,7 @@ Every gap proof360 detects should have **AWS-native as the first routing conside
 2. **Unlocks co-sell** — AWS sellers fund deals when partner routes into AWS-native
 3. **Justifies premium margin** — AWS-native routing = AWS-funded = customer sees no additional cost + partner keeps margin
 
-Current vendor catalog has 4 AWS-native entries. This expansion adds ~15 more. Every major gap gets an AWS-native path + a vendor path. Customer chooses. Partner margin logic handles either.
+Current vendor catalog has 4 AWS-native entries. This expansion adds ~15 more. Every major gap gets an AWS-native path + a vendor path. Customer chooses. Partner margin logic handles either. Third-party transactions route through Ingram per the CPPO channel rule.
 
 ---
 
@@ -217,12 +221,12 @@ Current vendor catalog has 4 AWS-native entries. This expansion adds ~15 more. E
 
 - `signal-source-inventory.md` → signals drive gaps → gaps route to vendors (AWS-native first when `is_cloud_hosted + cloud_provider === 'AWS'`)
 - `brief-track-a.md` → `marketplace_cosell` lead type is first-class routing; this doc explains why
-- `partner-register.md` → AWS services need distributor `[direct]`, agreement_type `aws_native`
-- `brief-signal-pipeline.md` → signals feed triggers for industry vertical routing
+- `partner-register.md` → AWS-native services: distributor `[direct]`, `aws_channel: 'direct'`; third-party CPPO: `aws_channel: 'ingram'`
+- `aws-funding-program-mapping.md` → the CPPO channel rule + verification standard are shared with this doc
 
 ---
 
-*AWS wants to sell: its security services, its AI stack (Bedrock), migrations (MAP), Marketplace CPPO, Well-Architected Reviews, vertical services, multi-account governance. Proof360 aligns against all of them.*
+*AWS wants to sell: its security services, its AI stack (Bedrock), migrations (MAP), Marketplace CPPO, Well-Architected Reviews, vertical services, multi-account governance. Proof360 aligns against all of them — Bedrock-direct for AI, Ingram as seller-of-record for Marketplace.*
 
 ---
 
@@ -311,7 +315,7 @@ Spin up every AWS service that's free or sub-$10/mo and relevant. AWS internal r
 
 | Service | Purpose | Cost |
 |---|---|---|
-| Bedrock | VECTOR primary route for AWS customers | per-token |
+| Bedrock | primary inference route (Bedrock-direct) for AWS customers | per-token |
 | Bedrock Knowledge Bases | RAG for VERITAS sovereign deploy | storage + embeddings |
 | Bedrock Guardrails | AI safety rails | minimal |
 | Amazon Q Developer | dev productivity | free tier |
@@ -321,7 +325,7 @@ Spin up every AWS service that's free or sub-$10/mo and relevant. AWS internal r
 - **Services in use:** jumps from ~3 to ~30+
 - **AWS billing dashboard:** shows diversified workload signal
 - **AM / SA tooling:** auto-flags you as candidate for:
-  - Well-Architected Review (partner-delivered, funded)
+  - Well-Architected Review (partner-delivered)
   - Enterprise Support upgrade conversation
   - Solutions Architect engagement
   - Partner tier progression
@@ -331,9 +335,9 @@ Spin up every AWS service that's free or sub-$10/mo and relevant. AWS internal r
 
 ### WA Review feed
 
-AWS Well-Architected Reviews read directly from the services enabled in the account. Enabling the Security pillar services populates a WA Review with real data. Partner-delivered WA Reviews are funded up to $5k each.
+AWS Well-Architected Reviews read directly from the services enabled in the account. Enabling the Security pillar services populates a WA Review with real data. The WA Tool itself is free.
 
-The WA Tool itself is free. Running a self-WA Review on proof360's own account, documented in the tool, becomes:
+Running a self-WA Review on proof360's own account, documented in the tool, becomes:
 1. Proof of security posture for customer conversations
 2. A reference artefact for the partner tier application
 3. Dogfood for the product (proof360 is a productised trust review — pass the equivalent first)
@@ -352,12 +356,12 @@ Immediate (this week, ~$30-50/mo incremental):
 
 Within 30 days:
 - Run a self-WA Review against proof360 in the WA Tool
-- Apply for APN Partner Network registration
-- Register as AWS Marketplace Seller
+- Apply for APN Partner Network registration (Software Path)
+- Begin FTR preparation
 - Tag every resource with the taxonomy from the cost section
 
 Within 90 days:
 - Apply for Well-Architected Partner status
 - Apply for Service Delivery Program (Security specialisation)
 - First POC funding application
-- First CPPO private offer (Vanta or Drata)
+- Complete FTR → first CPPO private offer authored by proof360, transacted through Ingram (Vanta or Drata)
