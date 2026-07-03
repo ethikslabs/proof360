@@ -134,11 +134,21 @@
     },
     {
       "id": "PROOF360-EDGE-DEPLOY-HARDEN-001",
-      "status": "ready",
+      "status": "done",
       "boundary": "[P1] scripts/deploy.sh (manual path) hardening \u2014 edge-hunt findings #4/#5/#15. (a) Health-check curl races pm2 restart: connection-refused (exit 7) under set -e false-reds a green deploy \u2014 wrap in a retry loop with || true (also present in deploy.yml ec2 script). (b) deploy.sh never writes PG_* to api/.env, so a manual deploy ships a founder-memory surface that hits a ghost localhost Postgres and 500s (no global error handler) \u2014 add require_ssm PG_HOST/PORT/DATABASE/USER/PASSWORD like deploy.yml does. (c) require_ssm on ANTHROPIC_API_KEY hard-fails on a key the Bedrock-direct runtime never reads \u2014 drop it. #4 was previously flagged 'awaiting John ack'; hunt independently confirmed.",
       "approved_by": "claude-code",
       "source": "edge-hunt:2026-07-03",
-      "added": "2026-07-03"
+      "added": "2026-07-03",
+      "completed": "2026-07-04",
+      "resolution": "deploy.sh + deploy.yml hardened: health-check retry loop (non-fatal under set -e, 10x2s), PG_* + PG_MEMORY_DATABASE written from SSM (all 5 /proof360/postgres/* paths verified present), ANTHROPIC_API_KEY require dropped. bash -n + YAML valid. On main."
+    },
+    {
+      "id": "PROOF360-DEPLOY-SH-MIGRATIONS-001",
+      "status": "ready",
+      "boundary": "[P2] scripts/deploy.sh (manual path) does not run the DB + memory migrations that deploy.yml runs (run-migrations.js, run-memory-migrations.js). After DEPLOY-HARDEN-001 gave deploy.sh real PG creds, a manual deploy can now reach Postgres but against a schema it never migrates \u2014 founder-memory / v3 handlers can 500 on missing tables. Mirror deploy.yml: run both migration scripts (non-fatal, || echo skipped) after writing .env and before the pm2 restart. Also reconcile the remaining deploy.sh vs deploy.yml .env divergence (TRUST360_URL, DASHBOARD_API_URL, PROOF360_ADMIN_KEY, SES_*, REPORT_BASE_URL, DEMO_FOUNDER_MODE) \u2014 DEMO_FOUNDER_MODE ties to D3 (kill demo-founder prod posture).",
+      "approved_by": "john",
+      "source": "deploy-harden-adjacent:2026-07-04",
+      "added": "2026-07-04"
     },
     {
       "id": "PROOF360-EDGE-MEMFILE-RACE-001",

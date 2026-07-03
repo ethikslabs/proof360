@@ -57,7 +57,8 @@ require_ssm() {
 PORT=$(get_ssm "$SSM_PREFIX/PORT")
 FIRECRAWL_API_KEY=$(get_ssm "$SSM_PREFIX/FIRECRAWL_API_KEY")
 FIRECRAWL_API_URL=$(get_ssm "$SSM_PREFIX/FIRECRAWL_API_URL")
-ANTHROPIC_API_KEY=$(require_ssm "/ethikslabs/anthropic/api-key")
+# ANTHROPIC_API_KEY intentionally NOT fetched — the runtime is Bedrock-direct and never reads
+# it; a require here hard-failed deploys on a key nothing consumes (edge-hunt #4/DEPLOY-HARDEN-001).
 ABUSEIPDB_API_KEY=$(get_ssm "$SSM_PREFIX/ABUSEIPDB_API_KEY")
 HIBP_API_KEY=$(get_ssm "$SSM_PREFIX/HIBP_API_KEY")
 VERITAS_URL=$(get_ssm "$SSM_PREFIX/VERITAS_URL")
@@ -73,18 +74,23 @@ AUTH0_AUDIENCE=$(require_ssm "$SSM_PREFIX/AUTH0_AUDIENCE")
 AUTH0_CLIENT_ID=$(require_ssm "/ethikslabs/auth0/client-id")
 TURNSTILE_SECRET=$(require_ssm "$SSM_PREFIX/TURNSTILE_SECRET")
 TURNSTILE_SITEKEY=$(require_ssm "$SSM_PREFIX/TURNSTILE_SITEKEY")
+# Founder-memory + v3 Postgres handlers read these. Without them a manual deploy shipped a
+# memory surface pointed at a ghost localhost Postgres and 500'd (edge-hunt #6/DEPLOY-HARDEN-001).
+# require_ssm mirrors deploy.yml, whose get_ssm hard-fails on empty — the /proof360/postgres/*
+# paths are the same ones CI already depends on.
+PG_HOST=$(require_ssm "$SSM_PREFIX/postgres/host")
+PG_PORT=$(require_ssm "$SSM_PREFIX/postgres/port")
+PG_DATABASE=$(require_ssm "$SSM_PREFIX/postgres/database")
+PG_USER=$(require_ssm "$SSM_PREFIX/postgres/user")
+PG_PASSWORD=$(require_ssm "$SSM_PREFIX/postgres/password")
 MEMORY_STORE_DIR="/home/ec2-user/.ethikslabs/proof360/memory"
 mkdir -p "$MEMORY_STORE_DIR"
-# TODO: v3 Postgres handlers (override/recompute/publish/engage) read PG_HOST/
-# PG_PORT/PG_DATABASE/PG_USER/PG_PASSWORD from env but these are NOT fetched here.
-# Add require_ssm fetches once the /proof360/postgres/* SSM paths are confirmed.
 
 # Write .env for pm2 to pick up
 cat > "$API_DIR/.env" <<EOF
 PORT=${PORT:-3002}
 FIRECRAWL_API_KEY=$FIRECRAWL_API_KEY
 FIRECRAWL_API_URL=$FIRECRAWL_API_URL
-ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY
 ABUSEIPDB_API_KEY=$ABUSEIPDB_API_KEY
 HIBP_API_KEY=$HIBP_API_KEY
 VERITAS_URL=$VERITAS_URL
@@ -96,6 +102,12 @@ GEMINI_API_KEY=$GEMINI_API_KEY
 AUTH0_DOMAIN=$AUTH0_DOMAIN
 AUTH0_AUDIENCE=$AUTH0_AUDIENCE
 TURNSTILE_SECRET=$TURNSTILE_SECRET
+PG_HOST=$PG_HOST
+PG_PORT=$PG_PORT
+PG_DATABASE=$PG_DATABASE
+PG_USER=$PG_USER
+PG_PASSWORD=$PG_PASSWORD
+PG_MEMORY_DATABASE=proof360_memory
 MEMORY_STORE_DIR=$MEMORY_STORE_DIR
 LOG_LEVEL=info
 EOF
@@ -132,10 +144,18 @@ echo "==> Done"
 $PM2 status $PM2_NAME
 
 echo "==> Verifying API health"
-sleep 3
-STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${PORT:-3002}/api/health 2>/dev/null)
+# Retry + non-fatal: the curl can race pm2's restart. Under `set -e` a connection-refused
+# (curl exit 7) in the assignment aborts the whole script and false-reds a deploy that
+# actually succeeded — so the substitution is guarded with `|| STATUS=000` and polled
+# (edge-hunt #5/DEPLOY-HARDEN-001).
+STATUS="000"
+for attempt in $(seq 1 10); do
+  STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:${PORT:-3002}/api/health" 2>/dev/null) || STATUS="000"
+  [ "$STATUS" = "200" ] && break
+  sleep 2
+done
 if [ "$STATUS" = "200" ]; then
   echo "API healthy"
 else
-  echo "WARNING: /health returned $STATUS — check pm2 logs $PM2_NAME"
+  echo "WARNING: /api/health returned $STATUS after 10 attempts — check pm2 logs ($PM2 logs $PM2_NAME)"
 fi
