@@ -83,6 +83,16 @@ PG_PORT=$(require_ssm "$SSM_PREFIX/postgres/port")
 PG_DATABASE=$(require_ssm "$SSM_PREFIX/postgres/database")
 PG_USER=$(require_ssm "$SSM_PREFIX/postgres/user")
 PG_PASSWORD=$(require_ssm "$SSM_PREFIX/postgres/password")
+# Optional service config CI already bakes — mirror it so the manual deploy is not a
+# functionally-thinner build (DEPLOY-SH-MIGRATIONS-001). get_ssm: absent → blank + WARN, never fatal.
+# DEMO_FOUNDER_MODE is deliberately NOT mirrored: pushing it into the manual deploy would carry the
+# demo-founder prod posture that D3 exists to kill; unset defaults to the real (non-demo) path.
+TRUST360_URL=$(get_ssm "$SSM_PREFIX/TRUST360_URL")
+DASHBOARD_API_URL=$(get_ssm "$SSM_PREFIX/DASHBOARD_API_URL")
+PROOF360_ADMIN_KEY=$(get_ssm "$SSM_PREFIX/PROOF360_ADMIN_KEY")
+SES_REGION=$(get_ssm "$SSM_PREFIX/SES_REGION")
+SES_FROM_ADDRESS=$(get_ssm "$SSM_PREFIX/SES_FROM_ADDRESS")
+REPORT_BASE_URL=$(get_ssm "$SSM_PREFIX/REPORT_BASE_URL")
 MEMORY_STORE_DIR="/home/ec2-user/.ethikslabs/proof360/memory"
 mkdir -p "$MEMORY_STORE_DIR"
 
@@ -102,6 +112,12 @@ GEMINI_API_KEY=$GEMINI_API_KEY
 AUTH0_DOMAIN=$AUTH0_DOMAIN
 AUTH0_AUDIENCE=$AUTH0_AUDIENCE
 TURNSTILE_SECRET=$TURNSTILE_SECRET
+TRUST360_URL=$TRUST360_URL
+DASHBOARD_API_URL=$DASHBOARD_API_URL
+PROOF360_ADMIN_KEY=$PROOF360_ADMIN_KEY
+SES_REGION=$SES_REGION
+SES_FROM_ADDRESS=$SES_FROM_ADDRESS
+REPORT_BASE_URL=$REPORT_BASE_URL
 PG_HOST=$PG_HOST
 PG_PORT=$PG_PORT
 PG_DATABASE=$PG_DATABASE
@@ -126,6 +142,15 @@ VITE_AUTH0_AUDIENCE="$AUTH0_AUDIENCE" \
 VITE_AUTH0_CLIENT_ID="$AUTH0_CLIENT_ID" \
 VITE_CF_TURNSTILE_SITEKEY="$TURNSTILE_SITEKEY" \
 npm run build
+
+# Run DB + memory-store migrations before restart, mirroring deploy.yml — DEPLOY-HARDEN-001 gave
+# the manual deploy real PG creds, so it must also migrate the schema or founder-memory / v3
+# handlers 500 on missing tables (DEPLOY-SH-MIGRATIONS-001). Non-fatal: an unprovisioned DB skips.
+echo "==> Running database migrations"
+cd $API_DIR
+node --env-file=$API_DIR/.env $API_DIR/scripts/run-migrations.js || echo "Migrations skipped (Postgres not configured)"
+echo "==> Running memory-store migrations (journey atom spine)"
+node --env-file=$API_DIR/.env $API_DIR/scripts/run-memory-migrations.js || echo "Memory migrations skipped (proof360_memory not provisioned)"
 
 echo "==> Restarting API (root daemon /etc/.pm2)"
 if $PM2 describe $PM2_NAME > /dev/null 2>&1; then
