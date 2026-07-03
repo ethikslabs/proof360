@@ -131,6 +131,70 @@
       "approved_by": "john-coates",
       "source": "codex-review:PR#11-P2",
       "added": "2026-07-03"
+    },
+    {
+      "id": "PROOF360-EDGE-DEPLOY-HARDEN-001",
+      "status": "ready",
+      "boundary": "[P1] scripts/deploy.sh (manual path) hardening \u2014 edge-hunt findings #4/#5/#15. (a) Health-check curl races pm2 restart: connection-refused (exit 7) under set -e false-reds a green deploy \u2014 wrap in a retry loop with || true (also present in deploy.yml ec2 script). (b) deploy.sh never writes PG_* to api/.env, so a manual deploy ships a founder-memory surface that hits a ghost localhost Postgres and 500s (no global error handler) \u2014 add require_ssm PG_HOST/PORT/DATABASE/USER/PASSWORD like deploy.yml does. (c) require_ssm on ANTHROPIC_API_KEY hard-fails on a key the Bedrock-direct runtime never reads \u2014 drop it. #4 was previously flagged 'awaiting John ack'; hunt independently confirmed.",
+      "approved_by": "claude-code",
+      "source": "edge-hunt:2026-07-03",
+      "added": "2026-07-03"
+    },
+    {
+      "id": "PROOF360-EDGE-MEMFILE-RACE-001",
+      "status": "ready",
+      "boundary": "[P2] Founder file-kernel concurrency \u2014 edge-hunt #6/#7. memory-store-file.js: concurrent first-touch mints duplicate profiles and loses the loser's transactions (no atomic create-or-get); and a stale lock directory permanently wedges a profile's append path (no lock TTL/steal). Add an atomic profile create + a lock with staleness recovery. Pairs with the DB-side atomicity fix (PR #13).",
+      "approved_by": "claude-code",
+      "source": "edge-hunt:2026-07-03",
+      "added": "2026-07-03"
+    },
+    {
+      "id": "PROOF360-EDGE-DEAD-SOCIAL-LOGIN-001",
+      "status": "ready",
+      "boundary": "[P2] Config-drift \u2014 edge-hunt #9. VITE_GOOGLE_CLIENT_ID and VITE_MS_CLIENT_ID are baked by neither build path, so partner-portal social login is permanently dead in prod (buttons render, redirect is broken). Either bake them from SSM (same pattern as Auth0/Turnstile) or hide the buttons when unset \u2014 do not ship a dead control.",
+      "approved_by": "claude-code",
+      "source": "edge-hunt:2026-07-03",
+      "added": "2026-07-03"
+    },
+    {
+      "id": "PROOF360-EDGE-OAUTH-CSRF-NONCE-001",
+      "status": "ready",
+      "boundary": "[P2] Login CSRF / session fixation \u2014 edge-hunt #11. OAuth `state` is a static constant ('auth0'/'google'), not a per-request anti-CSRF nonce, in Chat.jsx + Portal.jsx. Generate a random state, store it, and verify it in /portal/callback before accepting the code/token. Ties to DOOR-002 (bind the login path).",
+      "approved_by": "claude-code",
+      "source": "edge-hunt:2026-07-03",
+      "added": "2026-07-03"
+    },
+    {
+      "id": "PROOF360-EDGE-SHAREABLE-URL-001",
+      "status": "ready",
+      "boundary": "[P2] Forgeable share link \u2014 edge-hunt #12. frontend/src/utils/shareable-url.js builds an unsigned, forgeable cold-read URL AND targets a route deleted in the 2026-05-29 legacy strip (/audit/cold-read). Either sign the params server-side or remove the dead surface.",
+      "approved_by": "claude-code",
+      "source": "edge-hunt:2026-07-03",
+      "added": "2026-07-03"
+    },
+    {
+      "id": "PROOF360-EDGE-AWAITED-URL-DROP-001",
+      "status": "ready",
+      "boundary": "[P2] Awaited-URL reply silently dropped \u2014 edge-hunt #10 (single-verdict, spend-limited verification). Chat.jsx: when a cold-read session already exists, an awaited-URL reply is dropped and awaitingField never clears \u2014 founder stuck. Re-verify against the D2 website-reply path (may overlap PROOF360-CER-WEBSITE-REPLY-001, now closed) before fixing.",
+      "approved_by": "claude-code",
+      "source": "edge-hunt:2026-07-03",
+      "added": "2026-07-03"
+    },
+    {
+      "id": "PROOF360-EDGE-CER-CONSENT-GATES-001",
+      "status": "ready",
+      "boundary": "[P3] CER state-machine hardening \u2014 edge-hunt #16/#17/#18 (single-verdict, spend-limited). (a) cer-projection folds by wall-clock ts not append sequence \u2014 non-monotonic clock yields wrong status; (b) confirmCer persists + grants consent without asserting the route was confirmed; (c) admin status endpoint allows transitions on a consent-withdrawn CER. Re-verify each against the append-only log semantics before fixing.",
+      "approved_by": "claude-code",
+      "source": "edge-hunt:2026-07-03",
+      "added": "2026-07-03"
+    },
+    {
+      "id": "PROOF360-EDGE-FRONTEND-URL-HARDEN-001",
+      "status": "ready",
+      "boundary": "[P3] Frontend URL/injection hardening \u2014 edge-hunt #19/#20 (single-verdict, spend-limited). Extracted URL reaches the server scrape pipeline with no scheme/host validation (client-side SSRF entry \u2014 server SSRF guard from PR #12 is the real defense, but validate scheme client-side too); BrowserPanel renders arbitrary user URLs in an iframe with no sandbable attribute. Add scheme allowlist + iframe sandbox.",
+      "approved_by": "claude-code",
+      "source": "edge-hunt:2026-07-03",
+      "added": "2026-07-03"
     }
   ]
 }
