@@ -1,5 +1,6 @@
 import memPool from '../memory/db.js';
 import { journey, companyForFounder } from '../memory/journey.js';
+import { resolveOrProjectFounder } from '../memory/resolve.js';
 import { requireAuth } from '../lib/auth.js';
 
 // Map an authenticated user to a person entity via entity.ref (ref == Auth0 sub).
@@ -12,7 +13,9 @@ export async function resolveFounderEntity(authUser, client = memPool) {
 }
 
 export async function journeyHandler(request, reply) {
-  const founder = await resolveFounderEntity(request.authUser);
+  // Lazy real-founder resolution (D3): a known ref returns immediately; a first
+  // authenticated touch projects the founder's file-kernel profile into atoms.
+  const founder = await resolveOrProjectFounder(request.authUser);
   if (!founder) return reply.send({ founder: null, company: null, entries: [] });
 
   const company = await companyForFounder(founder.entity_id);

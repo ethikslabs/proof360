@@ -89,6 +89,18 @@ export default function Journey() {
     [arc]
   );
 
+  // No token = an anonymous visitor, not a fault. Invite them in — never a raw error.
+  if (error && /not authenticated/i.test(error))
+    return (
+      <Shell>
+        <div className="jx-state">
+          <p className="jx-eyebrow">your journey</p>
+          <h2>Sign in to open your trust dossier.</h2>
+          <p className="jx-muted">Your journey is private — it renders from your own record, for your eyes.</p>
+          <a className="jx-cta" href="/account/login">Sign in →</a>
+        </div>
+      </Shell>
+    );
   if (error)
     return (
       <Shell>
@@ -323,6 +335,8 @@ const CSS = `
 .jx-state h2{font-family:var(--serif); font-weight:400; font-size:clamp(30px,5vw,46px); margin:0; line-height:1.05;}
 .jx-muted{color:var(--ink-mid); max-width:48ch; font-size:16px; line-height:1.55; margin:0;}
 .jx-err{font-family:var(--mono); font-size:12px; color:var(--neg); background:rgba(176,69,69,.08); padding:10px 12px; border-radius:4px;}
+.jx-cta{display:inline-block; align-self:flex-start; font-family:var(--mono); font-size:13px; letter-spacing:.08em; color:var(--accent); text-decoration:none; border:1px solid var(--accent); border-radius:4px; padding:10px 18px; margin-top:6px;}
+.jx-cta:hover{background:var(--accent); color:var(--bg);}
 .jx-pulse{width:30px; height:30px; border-radius:50%; background:var(--accent); animation:jxp 1.3s ease-in-out infinite;}
 @keyframes jxp{0%,100%{opacity:1; transform:scale(1);}50%{opacity:.35; transform:scale(.7);}}
 

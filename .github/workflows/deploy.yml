@@ -32,11 +32,9 @@ jobs:
 
       - name: Build frontend
         working-directory: frontend
-        # VITE_DEMO_FOUNDER_MODE: the journey/profile surfaces resolve the seeded
-        # demo founder without a real Auth0 token. Temporary until live founder->atom
-        # resolution lands; remove this flag then.
-        env:
-          VITE_DEMO_FOUNDER_MODE: 'true'
+        # DEMO_FOUNDER_MODE removed 2026-07-03: live founder->atom resolution landed (D3).
+        # Journey/CER surfaces now require a real Auth0 login; the anonymous /chat keeps the
+        # client-side labelled example stage.
         run: |
           npm install
           npm run build
