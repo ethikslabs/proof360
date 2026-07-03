@@ -157,11 +157,26 @@ export function firstMissingGate(fields) {
   return null;
 }
 
-// Resolve a founder's reply to an awaited-field prompt. `isUrl` is decided by the caller
-// using the SAME extractor that will consume it (Chat's extractUrl), so classification and
-// consumption can never disagree — a reply can never strand the founder at the forming card.
-export function awaitedCapture(field, text, isUrl = false) {
-  if (isUrl) return { kind: 'url' };
+// Resolve a founder's reply to an awaited-field prompt. `url` is extracted by the caller
+// (extractAwaitedUrl) and carried through verbatim, so classification and consumption share
+// the SAME value by construction — a reply can never strand the founder at the forming card.
+export function awaitedCapture(field, text, url = null) {
+  if (url) return { kind: 'url', url };
   const lens = FIELD_LENS[field] || {};
   return { kind: 'value', field, value: String(text).trim(), factField: lens.factField || null, profileKey: lens.profileKey || null };
+}
+
+// What to do when a cold-read that was serving an awaited field finishes. Pure decision,
+// executed by Chat.jsx. The founder must never be stranded: success guarantees a company
+// value (analysis name, else the scanned domain); failure re-prompts via the owning lens
+// and the wait stays armed. `success` is gated `=== true` — an absent flag fails closed
+// to the re-prompt path, never to a silent capture.
+export function awaitedColdReadOutcome({ awaitedField, success, companyName, domain }) {
+  if (!awaitedField) return { action: 'none' };
+  if (success === true) return { action: 'capture', company: companyName || domain };
+  return {
+    action: 'reprompt',
+    persona: FIELD_LENS[awaitedField]?.persona || 'sofia',
+    prompt: "That site didn't read — give me another link, or just tell me the company name and we'll keep moving.",
+  };
 }

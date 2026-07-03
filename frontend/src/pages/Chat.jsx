@@ -34,7 +34,8 @@ import { CerBuildCard }         from '../components/chat/CerBuildCard.jsx';
 import { CerAgencyCard }        from '../components/chat/CerAgencyCard.jsx';
 import { CerProjectionCard }    from '../components/chat/CerProjectionCard.jsx';
 import { useCer }               from '../hooks/useCer.js';
-import { routeFromText, PATHWAYS, firstMissingGate, awaitedCapture } from '../utils/cerPathways.js';
+import { routeFromText, PATHWAYS, firstMissingGate, awaitedCapture, awaitedColdReadOutcome } from '../utils/cerPathways.js';
+import { extractUrl, extractAwaitedUrl } from '../utils/url.js';
 import { EMPTY_TILES, tilesFromProjections } from '../utils/projectionTiles.js';
 
 /* ─── Auth constants ─────────────────────────────────────────────────────── */
@@ -429,20 +430,7 @@ const QUESTION_OPENING = [
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// Returns a normalised https:// URL if the message looks like a domain/URL, else null.
-// Matches: "example.com", "https://example.com", "go to acme.io", etc.
-function extractUrl(text) {
-  const t = text.trim();
-  // Bare domain or full URL with no spaces
-  if (!t.includes(' ')) {
-    if (/^https?:\/\//i.test(t)) return t;
-    if (/^[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+/.test(t)) return `https://${t}`;
-  }
-  // URL embedded in longer text
-  const match = t.match(/https?:\/\/[^\s]+/i);
-  if (match) return match[0];
-  return null;
-}
+// extractUrl / extractAwaitedUrl live in ../utils/url.js (pure, unit-tested).
 
 const TAB_SENSE_MSGS = [
   (domain) => `Picked up ${domain}. Before I read it — what's the context? Portfolio company, competitor, or is this yours?`,
@@ -1642,12 +1630,14 @@ export default function Chat() {
     if (!text || !inputReady || isProcessing) return;
 
     // If a lens asked for a missing CER field, this message answers it.
+    // A URL reply (extractAwaitedUrl also catches "we're at northwind.io") hands the SAME
+    // extracted URL to the cold-read below, and the wait stays ARMED until that cold-read
+    // actually fills the company — a failed scan re-prompts instead of stranding the founder.
+    let awaitedUrl = null;
     if (cer.awaitingField) {
-      // Classify via extractUrl — the same function the cold-read path uses — so a URL reply
-      // always reaches session/start and a non-URL reply is captured as the value (never stranded).
-      const cap = awaitedCapture(cer.awaitingField, text, Boolean(extractUrl(text)));
-      cer.clearAwaiting();
+      const cap = awaitedCapture(cer.awaitingField, text, extractAwaitedUrl(text));
       if (cap.kind === 'value') {
+        cer.clearAwaiting();
         setInputValue('');
         setPulsingQ(null);
         setBriefShown(false);
@@ -1659,7 +1649,8 @@ export default function Chat() {
         }, 'chat', cap.factField ? [{ field: cap.factField, value: cap.value, source: 'founder' }] : []);
         return; // captured — don't run pathway detection this turn
       }
-      // cap.kind === 'url' → fall through so the existing URL cold-read path handles it
+      // cap.kind === 'url' → fall through; the cold-read consumes cap.url and the wait stays armed.
+      awaitedUrl = cap.url;
     }
 
     setInputValue('');
@@ -1708,7 +1699,7 @@ export default function Chat() {
 
     // ── URL detection: start cold-read pipeline if no session yet ──
     if (!sessionId) {
-      const detectedUrl = extractUrl(text);
+      const detectedUrl = awaitedUrl ?? extractUrl(text);
       if (detectedUrl) {
         const statusId = `status-${Date.now()}`;
         const domain = detectedUrl.replace(/^https?:\/\//i, '').replace(/\/.*$/, '');
@@ -1764,10 +1755,31 @@ export default function Chat() {
             ...m,
             content: `${analysis.company_name || domain} — trust score ${score}/100, ${gapCount} gap${gapCount !== 1 ? 's' : ''} found. Ask me anything.`,
           } : m));
+
+          // If this cold-read was answering a lens's ask, the company is now guaranteed
+          // to land (analysis name, else the scanned domain) and the wait clears.
+          const okOutcome = awaitedColdReadOutcome({
+            awaitedField: cer.awaitingField, success: true,
+            companyName: analysis.company_name, domain,
+          });
+          if (okOutcome.action === 'capture') {
+            setCompanyProfile(prev => ({ ...prev, name: okOutcome.company }));
+            cer.clearAwaiting();
+          }
         } catch {
           setMessages(prev => prev.map(m => m.id === statusId ? {
             ...m, content: `Couldn't read ${domain}. Check the URL or try a different one.`,
           } : m));
+
+          // A failed cold-read must not strand an awaited field: the owning lens re-asks
+          // and the wait stays armed (clearAwaiting is deliberately NOT called here).
+          const failOutcome = awaitedColdReadOutcome({
+            awaitedField: cer.awaitingField, success: false,
+            companyName: null, domain,
+          });
+          if (failOutcome.action === 'reprompt') {
+            injectPersonaAsk(failOutcome.persona, failOutcome.prompt);
+          }
         }
 
         setThinkingSteps([]);
