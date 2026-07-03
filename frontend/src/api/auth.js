@@ -4,6 +4,27 @@ export const AUTH0_AUDIENCE = import.meta.env.VITE_AUTH0_AUDIENCE ?? 'https://ap
 
 const TOKEN_KEY = 'founder_tokens';
 
+// The retired demo-bypass identity. A founder_auth record carrying it is ghost state from
+// the demo era — it short-circuits the login page into the old mock dashboard. Purged on
+// login-page load in production builds (the bypass itself is dev-only now).
+export const DEMO_FOUNDER_EMAIL = 'demo@startup.com';
+
+export function purgeStaleDemoAuth(storage) {
+  const raw = storage.getItem('founder_auth');
+  if (!raw) return false;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed?.user?.email === DEMO_FOUNDER_EMAIL) {
+      storage.removeItem('founder_auth');
+      return true;
+    }
+    return false;
+  } catch {
+    storage.removeItem('founder_auth');
+    return true;
+  }
+}
+
 function now() {
   return Date.now();
 }

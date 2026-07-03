@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Proof360Mark } from '../components/Proof360Mark';
-import { AUTH0_AUDIENCE, clearTokens } from '../api/auth.js';
+import { AUTH0_AUDIENCE, clearTokens, purgeStaleDemoAuth } from '../api/auth.js';
 
 const AUTH0_DOMAIN    = import.meta.env.VITE_AUTH0_DOMAIN    || '';
 const AUTH0_CLIENT_ID = import.meta.env.VITE_AUTH0_CLIENT_ID || 'bh2RJb3CO25HFF6rqOVzd9uk2WUKiCGM';
 const REDIRECT_URI = typeof window !== 'undefined' ? `${window.location.origin}/portal/callback` : '';
+// Fail LOUD when the build carries no Auth0 domain: an empty domain would send the founder
+// to "https:///authorize" — a broken redirect — instead of a login screen.
+const AUTH_READY = AUTH0_DOMAIN.length > 0;
+// The demo bypass is a dev tool, never a production door.
+const DEMO_BYPASS = import.meta.env.DEV;
 
 async function generatePKCE() {
   const array = new Uint8Array(32);
@@ -37,10 +42,13 @@ export default function FounderAuth() {
   const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
+    // Ghost state from the demo era must never short-circuit a real sign-in.
+    if (!DEMO_BYPASS) purgeStaleDemoAuth(localStorage);
     if (localStorage.getItem('founder_auth')) navigate('/account');
   }, []);
 
   async function login() {
+    if (!AUTH_READY) return;
     setRedirecting(true);
     sessionStorage.setItem('auth0_intent', 'founder');
     const { verifier, challenge } = await generatePKCE();
@@ -129,10 +137,20 @@ export default function FounderAuth() {
             Access your saved reports and remediation pipeline.
           </p>
 
-          {/* Auth0 button */}
+          {/* Auth0 button — or a loud config error, never a silent broken redirect */}
+          {!AUTH_READY && (
+            <div style={{
+              padding: '12px 16px', marginBottom: 12, borderRadius: 10,
+              background: 'rgba(176,69,69,.08)', border: '1px solid rgba(176,69,69,.35)',
+              fontSize: 13, color: '#8a2f2f', lineHeight: 1.6,
+            }}>
+              Sign-in isn’t configured on this build (no Auth0 domain). This is a deploy
+              configuration fault, not yours — please let us know.
+            </div>
+          )}
           <button
             onClick={login}
-            disabled={redirecting}
+            disabled={redirecting || !AUTH_READY}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
               padding: '12px 20px', background: '#0A1628', color: '#ffffff',
@@ -165,29 +183,33 @@ export default function FounderAuth() {
             )}
           </button>
 
-          <div style={{ position: 'relative', margin: '20px 0' }}>
-            <div style={{ height: 1, background: '#e5e7eb' }}/>
-            <span style={{
-              position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
-              background: '#f7f9fc', padding: '0 10px',
-              fontSize: 11, color: '#9ca3af', fontFamily: "'IBM Plex Mono', monospace",
-            }}>or</span>
-          </div>
+          {DEMO_BYPASS && (
+            <>
+              <div style={{ position: 'relative', margin: '20px 0' }}>
+                <div style={{ height: 1, background: '#e5e7eb' }}/>
+                <span style={{
+                  position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+                  background: '#f7f9fc', padding: '0 10px',
+                  fontSize: 11, color: '#9ca3af', fontFamily: "'IBM Plex Mono', monospace",
+                }}>or</span>
+              </div>
 
-          <button
-            onClick={demoLogin}
-            style={{
-              width: '100%', padding: '11px 20px',
-              background: '#ffffff', color: '#374151',
-              border: '1px solid #d1d5db', borderRadius: 10,
-              fontSize: 13, fontWeight: 500, cursor: 'pointer',
-              fontFamily: "var(--p360-sans)", transition: 'border-color 0.15s',
-            }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = '#9ca3af'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = '#d1d5db'}
-          >
-            Skip — explore with demo account
-          </button>
+              <button
+                onClick={demoLogin}
+                style={{
+                  width: '100%', padding: '11px 20px',
+                  background: '#ffffff', color: '#374151',
+                  border: '1px solid #d1d5db', borderRadius: 10,
+                  fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                  fontFamily: "var(--p360-sans)", transition: 'border-color 0.15s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = '#9ca3af'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = '#d1d5db'}
+              >
+                Skip — explore with demo account (dev only)
+              </button>
+            </>
+          )}
 
           <p style={{ fontSize: 11, color: '#9ca3af', marginTop: 24, lineHeight: 1.6, textAlign: 'center' }}>
             By signing in you agree to proof360's terms of service.

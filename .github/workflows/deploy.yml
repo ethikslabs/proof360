@@ -30,11 +30,27 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region:            ${{ env.AWS_REGION }}
 
+      - name: Resolve Auth0 config from SSM
+        # The frontend login page needs the SAME Auth0 domain/audience the API verifies
+        # against, baked at build time. These are public identifiers (they ship in the
+        # bundle either way), not secrets. Fail loud if either is missing — an empty
+        # domain builds a login page whose Sign-in redirect is broken.
+        id: auth0
+        run: |
+          DOMAIN=$(aws ssm get-parameter --name /proof360/AUTH0_DOMAIN --query "Parameter.Value" --output text)
+          AUDIENCE=$(aws ssm get-parameter --name /proof360/AUTH0_AUDIENCE --query "Parameter.Value" --output text)
+          [ -n "$DOMAIN" ] && [ -n "$AUDIENCE" ] || { echo "Auth0 SSM params missing/empty"; exit 1; }
+          echo "domain=$DOMAIN" >> $GITHUB_OUTPUT
+          echo "audience=$AUDIENCE" >> $GITHUB_OUTPUT
+
       - name: Build frontend
         working-directory: frontend
         # DEMO_FOUNDER_MODE removed 2026-07-03: live founder->atom resolution landed (D3).
         # Journey/CER surfaces now require a real Auth0 login; the anonymous /chat keeps the
         # client-side labelled example stage.
+        env:
+          VITE_AUTH0_DOMAIN: ${{ steps.auth0.outputs.domain }}
+          VITE_AUTH0_AUDIENCE: ${{ steps.auth0.outputs.audience }}
         run: |
           npm install
           npm run build
