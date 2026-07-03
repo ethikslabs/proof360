@@ -4,11 +4,12 @@ import { Proof360Mark } from '../components/Proof360Mark';
 import { AUTH0_AUDIENCE, clearTokens, purgeStaleDemoAuth } from '../api/auth.js';
 
 const AUTH0_DOMAIN    = import.meta.env.VITE_AUTH0_DOMAIN    || '';
-const AUTH0_CLIENT_ID = import.meta.env.VITE_AUTH0_CLIENT_ID || 'bh2RJb3CO25HFF6rqOVzd9uk2WUKiCGM';
+const AUTH0_CLIENT_ID = import.meta.env.VITE_AUTH0_CLIENT_ID || '';
 const REDIRECT_URI = typeof window !== 'undefined' ? `${window.location.origin}/portal/callback` : '';
-// Fail LOUD when the build carries no Auth0 domain: an empty domain would send the founder
-// to "https:///authorize" — a broken redirect — instead of a login screen.
-const AUTH_READY = AUTH0_DOMAIN.length > 0;
+// Fail LOUD when the build carries no Auth0 domain or client id: an empty domain would send
+// the founder to "https:///authorize" — a broken redirect — instead of a login screen. The
+// old hardcoded client-id fallback pointed at a tenant that never existed; gone.
+const AUTH_READY = AUTH0_DOMAIN.length > 0 && AUTH0_CLIENT_ID.length > 0;
 // The demo bypass is a dev tool, never a production door.
 const DEMO_BYPASS = import.meta.env.DEV;
 

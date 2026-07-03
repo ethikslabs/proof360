@@ -1,6 +1,10 @@
-const AUTH0_DOMAIN = import.meta.env.VITE_AUTH0_DOMAIN ?? 'dev-ethikslabs.au.auth0.com';
-const AUTH0_CLIENT_ID = import.meta.env.VITE_AUTH0_CLIENT_ID ?? 'bh2RJb3CO25HFF6rqOVzd9uk2WUKiCGM';
-export const AUTH0_AUDIENCE = import.meta.env.VITE_AUTH0_AUDIENCE ?? 'https://api.proof360.au';
+// No hardcoded tenant fallbacks: the old defaults pointed at dev-ethikslabs.au.auth0.com,
+// a tenant that never existed (Auth0 edge answers "Unknown host"). Config comes from the
+// build env (deploy.yml resolves it from SSM); an unset domain renders the login page's
+// loud config-fault state instead of a broken redirect.
+const AUTH0_DOMAIN = import.meta.env.VITE_AUTH0_DOMAIN || '';
+const AUTH0_CLIENT_ID = import.meta.env.VITE_AUTH0_CLIENT_ID || '';
+export const AUTH0_AUDIENCE = import.meta.env.VITE_AUTH0_AUDIENCE || 'https://api.proof360.au';
 
 const TOKEN_KEY = 'founder_tokens';
 

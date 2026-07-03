@@ -39,8 +39,10 @@ import { extractUrl, extractAwaitedUrl } from '../utils/url.js';
 import { EMPTY_TILES, tilesFromProjections } from '../utils/projectionTiles.js';
 
 /* ─── Auth constants ─────────────────────────────────────────────────────── */
-const AUTH0_DOMAIN    = import.meta.env.VITE_AUTH0_DOMAIN    || 'dev-ethikslabs.au.auth0.com';
-const AUTH0_CLIENT_ID = import.meta.env.VITE_AUTH0_CLIENT_ID || 'bh2RJb3CO25HFF6rqOVzd9uk2WUKiCGM';
+// No ghost-tenant fallbacks (dev-ethikslabs.au.auth0.com never existed) — config comes
+// from the build env; deploy.yml resolves it from SSM.
+const AUTH0_DOMAIN    = import.meta.env.VITE_AUTH0_DOMAIN    || '';
+const AUTH0_CLIENT_ID = import.meta.env.VITE_AUTH0_CLIENT_ID || '';
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 const CF_TURNSTILE_SITEKEY = import.meta.env.VITE_CF_TURNSTILE_SITEKEY || '1x00000000000000000000AA';
 
