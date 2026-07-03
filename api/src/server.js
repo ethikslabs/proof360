@@ -23,6 +23,7 @@ import { telegramWebhookHandler } from './handlers/telegram-webhook.js';
 import { johnMessagesHandler } from './handlers/john-messages.js';
 import { corpusStatsHandler } from './handlers/corpus-stats.js';
 import { notifyHandler } from './handlers/notify.js';
+import { createTurnstileVerifyHandler } from './handlers/turnstile.js';
 import { requireAuth } from './lib/auth.js';
 import { journeyHandler, selectJourneyGate } from './handlers/journey.js';
 import {
@@ -96,6 +97,9 @@ app.get('/api/v1/profile/current/cers', { preHandler: journeyGate }, cersListHan
 app.post('/api/v1/profile/current/cers', { preHandler: journeyGate }, cerCreateHandler);
 app.post('/api/v1/profile/current/cers/:cerId/consent-withdraw', { preHandler: journeyGate }, cerConsentWithdrawHandler);
 app.post('/api/v1/profile/current/cers/:cerId/status', { preHandler: journeyGate }, cerStatusHandler);
+
+// --- Turnstile siteverify (server is the verifier; widget token alone proves nothing) ---
+app.post('/api/v1/turnstile/verify', createTurnstileVerifyHandler());
 
 // --- John relay ---
 app.post('/api/telegram/webhook', telegramWebhookHandler);
