@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { reconDns } from '../../src/services/recon-dns.js';
+import { formatReconLine } from '../../src/services/recon-pipeline.js';
 
 // A DNS *infrastructure* failure (SERVFAIL / timeout / refused) must not be reported
 // as a genuinely-absent record. The finder's P1: a resolver hiccup rendered DMARC/SPF
@@ -82,5 +83,23 @@ describe('reconDns honesty — lookup failure ≠ missing record', () => {
       resolver: resolver({ dmarc: dnsError('ESERVFAIL'), root: REAL_SPF }),
     });
     expect(r.dns_resolved).toBe(false);
+  });
+
+  it('does NOT render an undetermined DMARC as green "enforced" (Codex P2)', () => {
+    const line = formatReconLine('dns', { dmarc_policy: 'unknown', spf_policy: 'unknown', dns_resolved: false });
+    expect(line.color).toBe('muted');
+    expect(line.text).not.toMatch(/enforced/i);
+    expect(line.text).toMatch(/undetermined/i);
+  });
+
+  it('still renders a real enforced DMARC as green', () => {
+    const line = formatReconLine('dns', { dmarc_policy: 'reject', spf_policy: 'strict', dns_resolved: true });
+    expect(line.color).toBe('ok');
+    expect(line.text).toMatch(/enforced/i);
+  });
+
+  it('still flags a genuinely-missing DMARC as an error', () => {
+    const line = formatReconLine('dns', { dmarc_policy: 'missing', dns_resolved: true });
+    expect(line.color).toBe('err');
   });
 });
