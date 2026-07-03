@@ -38,6 +38,7 @@ import { routeFromText, PATHWAYS, firstMissingGate, awaitedCapture, awaitedColdR
 import { extractUrl, extractAwaitedUrl } from '../utils/url.js';
 import { resolveTurnstileSitekey, verifyTurnstileServerSide } from '../utils/turnstile.js';
 import { socialProviderEnabled } from '../utils/social-login.js';
+import { makeOAuthState } from '../utils/oauth-state.js';
 import { EMPTY_TILES, tilesFromProjections } from '../utils/projectionTiles.js';
 
 /* ─── Auth constants ─────────────────────────────────────────────────────── */
@@ -210,7 +211,7 @@ function LoginModal({ onClose, onUser }) {
       redirect_uri: `${window.location.origin}/portal/callback`,
       response_type: 'token',
       scope: 'openid email profile',
-      state: 'google',
+      state: makeOAuthState('google', sessionStorage),
     });
     window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
   }
@@ -228,7 +229,7 @@ function LoginModal({ onClose, onUser }) {
       scope: 'openid email profile offline_access',
       code_challenge: challenge,
       code_challenge_method: 'S256',
-      state: 'auth0',
+      state: makeOAuthState('auth0', sessionStorage),
     });
     window.location.href = `https://${AUTH0_DOMAIN}/authorize?${params}`;
   }

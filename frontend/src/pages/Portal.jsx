@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { TENANTS } from '../data/portal-leads';
 import { AUTH0_AUDIENCE, clearTokens, storeTokens } from '../api/auth.js';
 import { socialProviderEnabled } from '../utils/social-login.js';
+import { makeOAuthState, verifyOAuthState } from '../utils/oauth-state.js';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 const MS_CLIENT_ID    = import.meta.env.VITE_MS_CLIENT_ID || '';
@@ -37,29 +38,31 @@ async function exchangeAuth0Code(code, verifier) {
   return res.json();
 }
 
-function buildGoogleUrl() {
+// state is a per-request single-use CSRF nonce (`<provider>.<nonce>`) minted by the caller
+// via makeOAuthState — never a static constant (OAUTH-CSRF-NONCE-001).
+function buildGoogleUrl(state) {
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
     redirect_uri: REDIRECT_URI,
     response_type: 'token',
     scope: 'openid email profile',
-    state: 'google',
+    state,
   });
   return `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
 }
 
-function buildMicrosoftUrl() {
+function buildMicrosoftUrl(state) {
   const params = new URLSearchParams({
     client_id: MS_CLIENT_ID,
     redirect_uri: REDIRECT_URI,
     response_type: 'token',
     scope: 'openid email profile',
-    state: 'microsoft',
+    state,
   });
   return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params}`;
 }
 
-function buildAuth0Url(challenge, withFounderMemory = false) {
+function buildAuth0Url(challenge, withFounderMemory = false, state = '') {
   const params = new URLSearchParams({
     client_id: AUTH0_CLIENT_ID,
     redirect_uri: REDIRECT_URI,
@@ -67,7 +70,7 @@ function buildAuth0Url(challenge, withFounderMemory = false) {
     scope: withFounderMemory ? 'openid email profile offline_access' : 'openid email profile',
     code_challenge: challenge,
     code_challenge_method: 'S256',
-    state: 'auth0',
+    state,
   });
   if (withFounderMemory) params.set('audience', AUTH0_AUDIENCE);
   return `https://${AUTH0_DOMAIN}/authorize?${params}`;
@@ -102,10 +105,19 @@ export default function Portal() {
   const [redirecting, setRedirecting] = useState(null);
 
   useEffect(() => {
-    // Handle callbacks first — before checking existing auth
+    // Handle callbacks first — before checking existing auth.
+    // Every callback must carry the single-use state nonce this tab issued; a mismatch means a
+    // forged/replayed redirect and the token/code is dropped without being trusted
+    // (OAUTH-CSRF-NONCE-001).
     const searchParams = new URLSearchParams(window.location.search);
     const code = searchParams.get('code');
-    if (code && searchParams.get('state') === 'auth0') {
+    if (code) {
+      const v = verifyOAuthState(searchParams.get('state'), sessionStorage);
+      if (!v.ok || v.provider !== 'auth0') {
+        sessionStorage.removeItem('auth0_pkce_verifier'); // drop the stale verifier on a bad state
+        setRedirecting(null);
+        return;
+      }
       const verifier = sessionStorage.getItem('auth0_pkce_verifier');
       sessionStorage.removeItem('auth0_pkce_verifier');
       if (verifier) handleAuth0Callback(code, verifier);
@@ -115,7 +127,9 @@ export default function Portal() {
     const hash = window.location.hash;
     if (hash.includes('access_token')) {
       const params = new URLSearchParams(hash.replace('#', ''));
-      fetchUserFromToken(params.get('access_token'), params.get('state'));
+      const v = verifyOAuthState(params.get('state'), sessionStorage);
+      if (!v.ok) { setRedirecting(null); return; }
+      fetchUserFromToken(params.get('access_token'), v.provider);
       return;
     }
 
@@ -167,7 +181,8 @@ export default function Portal() {
     sessionStorage.setItem('auth0_intent', intent);
     const { verifier, challenge } = await generatePKCE();
     sessionStorage.setItem('auth0_pkce_verifier', verifier);
-    window.location.href = buildAuth0Url(challenge, ['auto', 'founder', 'chat'].includes(intent));
+    const state = makeOAuthState('auth0', sessionStorage);
+    window.location.href = buildAuth0Url(challenge, ['auto', 'founder', 'chat'].includes(intent), state);
   }
 
   async function handleAuth0Callback(code, verifier) {
@@ -300,7 +315,7 @@ export default function Portal() {
               automatically (arm-or-hide; DEAD-SOCIAL-LOGIN-001). */}
           {socialProviderEnabled(GOOGLE_CLIENT_ID) && (
           <button className="auth-btn" disabled={!!redirecting} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, padding: '10px 16px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: 500, cursor: 'pointer', opacity: (redirecting && redirecting !== 'google') ? 0.35 : 1, transition: 'all 0.15s', fontFamily: "var(--p360-sans)" }}
-            onClick={() => { setRedirecting('google'); window.location.href = buildGoogleUrl(); }}>
+            onClick={() => { setRedirecting('google'); window.location.href = buildGoogleUrl(makeOAuthState('google', sessionStorage)); }}>
             {redirecting === 'google' ? <span style={spin}/> : <svg width="16" height="16" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>}
             {redirecting === 'google' ? 'Redirecting…' : 'Sign in with Google'}
           </button>
@@ -308,7 +323,7 @@ export default function Portal() {
 
           {socialProviderEnabled(MS_CLIENT_ID) && (
           <button className="auth-btn" disabled={!!redirecting} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, padding: '10px 16px', borderRadius: 9, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: 500, cursor: 'pointer', opacity: (redirecting && redirecting !== 'microsoft') ? 0.35 : 1, transition: 'all 0.15s', fontFamily: "var(--p360-sans)" }}
-            onClick={() => { setRedirecting('microsoft'); window.location.href = buildMicrosoftUrl(); }}>
+            onClick={() => { setRedirecting('microsoft'); window.location.href = buildMicrosoftUrl(makeOAuthState('microsoft', sessionStorage)); }}>
             {redirecting === 'microsoft' ? <span style={spin}/> : <svg width="16" height="16" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>}
             {redirecting === 'microsoft' ? 'Redirecting…' : 'Sign in with Microsoft'}
           </button>

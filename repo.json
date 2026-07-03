@@ -168,7 +168,7 @@
     },
     {
       "id": "PROOF360-EDGE-OAUTH-CSRF-NONCE-001",
-      "status": "ready",
+      "status": "done",
       "boundary": "[P2] Login CSRF / session fixation \u2014 edge-hunt #11. OAuth `state` is a static constant ('auth0'/'google'), not a per-request anti-CSRF nonce, in Chat.jsx + Portal.jsx. Generate a random state, store it, and verify it in /portal/callback before accepting the code/token. Ties to DOOR-002 (bind the login path).",
       "approved_by": "claude-code",
       "source": "edge-hunt:2026-07-03",
