@@ -5,11 +5,12 @@
   "tasks": [
     {
       "id": "PROOF360-CER-WEBSITE-REPLY-001",
-      "status": "ready",
-      "boundary": "Make the CER gap-prompt's website-reply branch robust (Codex P2s on PR #6). When Sophia asks 'what's the company called? (a name, a website, or a deck all work)' and the founder replies with a website: (1) recognize a domain embedded in a sentence ('we're at northwind.io'), not only bare/scheme'd URLs — extractUrl currently misses embedded domains, so the site is captured as a literal company name and never read; (2) keep cer.awaitingField armed until the cold-read actually fills company_name, and re-prompt on cold-read failure — today awaitingField is cleared before /session/start succeeds, so a failed scan strands the founder with the confirm button gone. Name-reply path is already solid; this is the website/deck branch only. Brainstorm -> spec -> build as its own slice.",
+      "status": "done",
+      "boundary": "DONE 2026-07-03 (PR #7 merged 332f0d9 + Codex P1 fix 6804b0f in PR #7): Make the CER gap-prompt's website-reply branch robust (Codex P2s on PR #6). When Sophia asks 'what's the company called? (a name, a website, or a deck all work)' and the founder re",
       "approved_by": "john-coates",
       "source": "codex-review:pr6",
-      "added": "2026-07-01"
+      "added": "2026-07-01",
+      "completed": "2026-07-03"
     },
     {
       "id": "PROOF360-PERSONA-DUAL-001",
