@@ -37,8 +37,8 @@ jobs:
         # domain builds a login page whose Sign-in redirect is broken.
         id: auth0
         run: |
-          DOMAIN=$(aws ssm get-parameter --name /proof360/AUTH0_DOMAIN --query "Parameter.Value" --output text)
-          AUDIENCE=$(aws ssm get-parameter --name /proof360/AUTH0_AUDIENCE --query "Parameter.Value" --output text)
+          DOMAIN=$(aws ssm get-parameter --name /proof360/AUTH0_DOMAIN --with-decryption --query "Parameter.Value" --output text)
+          AUDIENCE=$(aws ssm get-parameter --name /proof360/AUTH0_AUDIENCE --with-decryption --query "Parameter.Value" --output text)
           [ -n "$DOMAIN" ] && [ -n "$AUDIENCE" ] || { echo "Auth0 SSM params missing/empty"; exit 1; }
           echo "domain=$DOMAIN" >> $GITHUB_OUTPUT
           echo "audience=$AUDIENCE" >> $GITHUB_OUTPUT
