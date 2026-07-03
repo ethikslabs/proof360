@@ -200,7 +200,7 @@
     },
     {
       "id": "PROOF360-EDGE-FRONTEND-URL-HARDEN-001",
-      "status": "ready",
+      "status": "done",
       "boundary": "[P3] Frontend URL/injection hardening \u2014 edge-hunt #19/#20 (single-verdict, spend-limited). Extracted URL reaches the server scrape pipeline with no scheme/host validation (client-side SSRF entry \u2014 server SSRF guard from PR #12 is the real defense, but validate scheme client-side too); BrowserPanel renders arbitrary user URLs in an iframe with no sandbable attribute. Add scheme allowlist + iframe sandbox.",
       "approved_by": "claude-code",
       "source": "edge-hunt:2026-07-03",

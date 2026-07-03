@@ -677,6 +677,10 @@ function BrowserPanel({ seedUrl, onTabsChange, onClose, tk }) {
           key={activeTab?.id}
           src={activeTab?.url}
           title={activeTab?.label}
+          // These preview arbitrary founder-supplied sites — sandbox so a framed page cannot
+          // hijack top-navigation, spawn popups, submit forms, or trigger downloads. Scripts +
+          // same-origin stay on so external sites still render (FRONTEND-URL-HARDEN-001).
+          sandbox="allow-scripts allow-same-origin"
           style={{ flex: 1, border: 'none', minWidth: 0,
             borderRight: (splitTab || tabs.length === 1) ? `1px solid ${tk.hairline}` : 'none' }}
         />
@@ -687,6 +691,7 @@ function BrowserPanel({ seedUrl, onTabsChange, onClose, tk }) {
             key={splitTab.id}
             src={splitTab.url}
             title={splitTab.label}
+            sandbox="allow-scripts allow-same-origin"
             style={{ flex: 1, border: 'none', minWidth: 0 }}
           />
         )}
