@@ -13,8 +13,10 @@ const SAFE = { access_layer: 'authenticated_customer_portal', output_permission:
 const authorityOf = (actor) => (actor === 'founder' ? 'founder' : 'system');
 
 // Replay one v1 reconstructed snapshot (its current_claims) into atoms on a fresh company.
-export async function migrateProfile(snapshot, { founderName, companyName }, client = pool) {
-  const { person, company } = await createFounderAndCompany({ founderName, companyName }, client);
+// founderRef (optional) stamps the external identity (Auth0 sub) onto the person entity so
+// the journey resolver can find it; existing callers pass nothing and get ref = null.
+export async function migrateProfile(snapshot, { founderName, companyName, founderRef = null }, client = pool) {
+  const { person, company } = await createFounderAndCompany({ founderName, companyName, founderRef }, client);
   for (const [field, c] of Object.entries(snapshot.current_claims || {})) {
     await assertClaim({
       entity_id: company.entity_id, subject: field, value: c.value,

@@ -26,8 +26,8 @@ export async function createEntity({ type, name, ref = null, access_layer = null
 // On first login a founder is a PERSON; the startup is a COMPANY. They are distinct nodes from day
 // one, joined by a `founded` edge — even with one user. The merged-looking founder view is a
 // projection, not a schema collapse (no migration when member #2 arrives).
-export async function createFounderAndCompany({ founderName, companyName }, client = pool) {
-  const person = await createEntity({ type: 'person', name: founderName, access_layer: 'authenticated_customer_portal' }, client);
+export async function createFounderAndCompany({ founderName, companyName, founderRef = null }, client = pool) {
+  const person = await createEntity({ type: 'person', name: founderName, ref: founderRef, access_layer: 'authenticated_customer_portal' }, client);
   const company = await createEntity({ type: 'company', name: companyName, access_layer: 'authenticated_customer_portal' }, client);
   const edge = await createEdge({
     from: person.corpus_id, to: company.corpus_id, kind: 'founded',
