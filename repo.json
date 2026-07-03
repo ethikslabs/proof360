@@ -106,6 +106,22 @@
       "approved_by": "john-coates",
       "source": "edge:standardisation",
       "added": "2026-07-01"
+    },
+    {
+      "id": "PROOF360-CAST-LOGINS-001",
+      "status": "ready",
+      "boundary": "Mirror the markerly cast pattern into proof360: seed 2-3 fictional demo customers with real credential logins (shared demo-tier password, admin seat above them) so John/May/partners can hand out logons to walk the customer side and watch the backend accumulate. Markerly reference: MARKERLY/app/scripts/seed-cast.ts (idempotent on completed coverage, admin password from SSM, cast shares the demo password). John approved 2026-07-03 ('will do that with proof360 too').",
+      "approved_by": "john-coates",
+      "source": "edge:task_enhancement",
+      "added": "2026-07-03"
+    },
+    {
+      "id": "PROOF360-TRUST-SIGNAL-DOOR-001",
+      "status": "ready",
+      "boundary": "Make the front door's trust signals REAL and visible (John directive 2026-07-03: 'the subtle logos, sign ons, protections, the little hints mean this is not shopify' — surface the enterprise stack). Slice 1: (a) real Cloudflare Turnstile — create widget for proof360.au, inject sitekey at build (same SSM pattern as Auth0), secret to SSM, server-side siteverify; kill the hardcoded always-pass test key (1x000...AA fallback in Chat.jsx). (b) FounderAuth login: 'Protected by Okta' hint + CF/AWS provenance hints — every hint LIVE-BACKED, never decorative. (c) survey where Vanta trust-report badge/link can surface (free Vanta = real compliance signal). Guardrail: a badge that is not live-backed is the ghost-tenant disease as marketing — estate's edge is that its hints are checkable.",
+      "approved_by": "john-coates",
+      "source": "edge:commercial_signal",
+      "added": "2026-07-03"
     }
   ]
 }
