@@ -36,6 +36,7 @@ import { CerProjectionCard }    from '../components/chat/CerProjectionCard.jsx';
 import { useCer }               from '../hooks/useCer.js';
 import { routeFromText, PATHWAYS, firstMissingGate, awaitedCapture, awaitedColdReadOutcome } from '../utils/cerPathways.js';
 import { extractUrl, extractAwaitedUrl } from '../utils/url.js';
+import { resolveTurnstileSitekey, verifyTurnstileServerSide } from '../utils/turnstile.js';
 import { EMPTY_TILES, tilesFromProjections } from '../utils/projectionTiles.js';
 
 /* ─── Auth constants ─────────────────────────────────────────────────────── */
@@ -44,7 +45,12 @@ import { EMPTY_TILES, tilesFromProjections } from '../utils/projectionTiles.js';
 const AUTH0_DOMAIN    = import.meta.env.VITE_AUTH0_DOMAIN    || '';
 const AUTH0_CLIENT_ID = import.meta.env.VITE_AUTH0_CLIENT_ID || '';
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
-const CF_TURNSTILE_SITEKEY = import.meta.env.VITE_CF_TURNSTILE_SITEKEY || '1x00000000000000000000AA';
+// Real sitekey baked at build from SSM; the CF always-pass TEST key exists in dev only.
+// Empty in prod = config fault: the modal surfaces it and sign-in stays disabled.
+const CF_TURNSTILE_SITEKEY = resolveTurnstileSitekey({
+  key: import.meta.env.VITE_CF_TURNSTILE_SITEKEY,
+  isDev: import.meta.env.DEV,
+});
 
 /* ─── Mobile navigation constants ───────────────────────────────────────── */
 const VENDOR_AUTHORITY = 'Vendor Intelligence';
@@ -160,19 +166,29 @@ function TelegramPreviewModal({ initialMessage, currentUser, onClose }) {
 /* ─── Login modal ────────────────────────────────────────────────────────── */
 function LoginModal({ onClose, onUser }) {
   const [turnstileToken, setTurnstileToken] = useState(null);
+  const [serverVerified, setServerVerified] = useState(false);
   const [tsError, setTsError] = useState(false);
   const tsRef = useRef(null);
   const widgetId = useRef(null);
 
   useLayoutEffect(() => {
+    if (!CF_TURNSTILE_SITEKEY) return; // config fault surfaced in render; nothing to mount
     function mountWidget() {
       if (!window.turnstile || !tsRef.current || widgetId.current) return;
       widgetId.current = window.turnstile.render(tsRef.current, {
         sitekey: CF_TURNSTILE_SITEKEY,
         theme: 'light',
-        callback: (token) => { setTurnstileToken(token); setTsError(false); },
-        'error-callback': () => setTsError(true),
-        'expired-callback': () => setTurnstileToken(null),
+        callback: (token) => {
+          setTurnstileToken(token);
+          setTsError(false);
+          // The widget token is a claim; the API's siteverify is the verdict.
+          verifyTurnstileServerSide(token).then((ok) => {
+            setServerVerified(ok);
+            if (!ok) setTsError(true);
+          });
+        },
+        'error-callback': () => { setTsError(true); setServerVerified(false); },
+        'expired-callback': () => { setTurnstileToken(null); setServerVerified(false); },
       });
     }
     if (window.turnstile) { mountWidget(); return; }
@@ -185,7 +201,7 @@ function LoginModal({ onClose, onUser }) {
   }, []);
 
   async function loginGoogle() {
-    if (!turnstileToken) { setTsError(true); return; }
+    if (!ready) { setTsError(true); return; }
     if (!GOOGLE_CLIENT_ID) return;
     sessionStorage.setItem('auth0_intent', 'chat');
     const params = new URLSearchParams({
@@ -199,7 +215,7 @@ function LoginModal({ onClose, onUser }) {
   }
 
   async function loginAuth0() {
-    if (!turnstileToken) { setTsError(true); return; }
+    if (!ready) { setTsError(true); return; }
     sessionStorage.setItem('auth0_intent', 'chat');
     const { verifier, challenge } = await generatePKCE();
     sessionStorage.setItem('auth0_pkce_verifier', verifier);
@@ -224,7 +240,7 @@ function LoginModal({ onClose, onUser }) {
     onClose();
   }
 
-  const ready = !!turnstileToken;
+  const ready = !!turnstileToken && serverVerified === true;
 
   return (
     <div onClick={onClose} style={{
@@ -253,7 +269,17 @@ function LoginModal({ onClose, onUser }) {
 
         {/* ── Cloudflare verification ────────────────────────────────── */}
         <div style={{ padding: '20px 28px 0' }}>
-          {!ready && (
+          {!CF_TURNSTILE_SITEKEY && (
+            <div style={{
+              padding: '10px 12px', borderRadius: 8,
+              background: '#fff2f0', border: '1px solid #ffd6d1',
+              fontSize: 12, color: '#c0392b', lineHeight: 1.5,
+            }}>
+              Security verification is not configured on this build — sign-in is disabled.
+              (VITE_CF_TURNSTILE_SITEKEY missing.)
+            </div>
+          )}
+          {CF_TURNSTILE_SITEKEY && !ready && (
             <>
               <div ref={tsRef} />
               {tsError && <div style={{ fontSize: 12, color: '#ff3b30', marginTop: 6 }}>Verification failed — please try again.</div>}
@@ -312,15 +338,17 @@ function LoginModal({ onClose, onUser }) {
           </div>
         </div>
 
-        {/* ── Skip ──────────────────────────────────────────────────── */}
-        <div style={{ padding: '14px 28px 0', textAlign: 'center' }}>
-          <button onClick={demoLogin} style={{
-            border: 'none', background: 'transparent',
-            cursor: 'pointer', fontSize: 12, color: '#aeaeb2',
-          }}>
-            skip → demo mode
-          </button>
-        </div>
+        {/* ── Skip (dev only — demo auth never mints on prod, same gate as FounderAuth) ── */}
+        {import.meta.env.DEV && (
+          <div style={{ padding: '14px 28px 0', textAlign: 'center' }}>
+            <button onClick={demoLogin} style={{
+              border: 'none', background: 'transparent',
+              cursor: 'pointer', fontSize: 12, color: '#aeaeb2',
+            }}>
+              skip → demo mode
+            </button>
+          </div>
+        )}
 
         {/* ── Trust strip ───────────────────────────────────────────── */}
         <div style={{

@@ -80,6 +80,14 @@ Optional API env var for dashboard pulse emission:
 DASHBOARD_API_URL=http://localhost:3001   # If omitted, pulse-emitter silently no-ops
 ```
 
+Turnstile in local dev: the frontend falls back to Cloudflare's public always-pass TEST
+sitekey when `VITE_CF_TURNSTILE_SITEKEY` is unset (dev builds only — prod shows a config
+fault instead). For the server-side gate, set the matching public TEST secret in `api/.env`:
+```
+TURNSTILE_SECRET=1x0000000000000000000000000000000AA   # CF documented always-pass test secret
+```
+Production resolves the real pair from SSM (`/proof360/TURNSTILE_SITEKEY` + `/proof360/TURNSTILE_SECRET`).
+
 ## Architecture
 
 Proof360 is a trust readiness diagnostic for founders. A user submits a company URL, the system cold-reads their trust posture, asks follow-up questions, then delivers a scored gap report with vendor recommendations.

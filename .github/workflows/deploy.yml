@@ -30,20 +30,23 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region:            ${{ env.AWS_REGION }}
 
-      - name: Resolve Auth0 config from SSM
+      - name: Resolve Auth0 + Turnstile config from SSM
         # The frontend login page needs the SAME Auth0 domain/audience the API verifies
         # against, baked at build time. These are public identifiers (they ship in the
-        # bundle either way), not secrets. Fail loud if either is missing — an empty
-        # domain builds a login page whose Sign-in redirect is broken.
+        # bundle either way), not secrets. Same for the Turnstile sitekey. Fail loud if
+        # any is missing — an empty value builds a login page that is silently broken.
         id: auth0
         run: |
           DOMAIN=$(aws ssm get-parameter --name /proof360/AUTH0_DOMAIN --with-decryption --query "Parameter.Value" --output text)
           AUDIENCE=$(aws ssm get-parameter --name /proof360/AUTH0_AUDIENCE --with-decryption --query "Parameter.Value" --output text)
           CLIENT_ID=$(aws ssm get-parameter --name /ethikslabs/auth0/client-id --with-decryption --query "Parameter.Value" --output text)
           [ -n "$DOMAIN" ] && [ -n "$AUDIENCE" ] && [ -n "$CLIENT_ID" ] || { echo "Auth0 SSM params missing/empty"; exit 1; }
+          TURNSTILE_SITEKEY=$(aws ssm get-parameter --name /proof360/TURNSTILE_SITEKEY --query "Parameter.Value" --output text)
+          [ -n "$TURNSTILE_SITEKEY" ] || { echo "Turnstile sitekey missing/empty in SSM"; exit 1; }
           echo "domain=$DOMAIN" >> $GITHUB_OUTPUT
           echo "audience=$AUDIENCE" >> $GITHUB_OUTPUT
           echo "client_id=$CLIENT_ID" >> $GITHUB_OUTPUT
+          echo "turnstile_sitekey=$TURNSTILE_SITEKEY" >> $GITHUB_OUTPUT
 
       - name: Build frontend
         working-directory: frontend
@@ -54,6 +57,7 @@ jobs:
           VITE_AUTH0_DOMAIN: ${{ steps.auth0.outputs.domain }}
           VITE_AUTH0_AUDIENCE: ${{ steps.auth0.outputs.audience }}
           VITE_AUTH0_CLIENT_ID: ${{ steps.auth0.outputs.client_id }}
+          VITE_CF_TURNSTILE_SITEKEY: ${{ steps.auth0.outputs.turnstile_sitekey }}
         run: |
           npm install
           npm run build
@@ -133,6 +137,7 @@ jobs:
           PG_PASSWORD=$PG_PASSWORD
           AUTH0_DOMAIN=$AUTH0_DOMAIN
           AUTH0_AUDIENCE=$AUTH0_AUDIENCE
+          TURNSTILE_SECRET=$(get_ssm "/proof360/TURNSTILE_SECRET")
           DEMO_FOUNDER_MODE=$(get_ssm "/proof360/DEMO_FOUNDER_MODE")
           PG_MEMORY_DATABASE=proof360_memory
           MEMORY_STORE_DIR=$MEMORY_STORE_DIR

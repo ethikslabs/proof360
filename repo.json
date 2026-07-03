@@ -15,7 +15,7 @@
     {
       "id": "PROOF360-PERSONA-DUAL-001",
       "status": "ready",
-      "boundary": "Define and wire the dual-jurisdiction founder persona (AU Pty Ltd + SG Pte Ltd) as a distinct proof360 segment. This founder needs cross-jurisdiction program matching — AU grants (R&D Tax, EMDG, NSW MVP) alongside SG grants (BGP, EDG, MRA, Startup SG). CORPUS already has both stacks ingested. Persona should surface automatically when both entity types are detected or self-reported.",
+      "boundary": "Define and wire the dual-jurisdiction founder persona (AU Pty Ltd + SG Pte Ltd) as a distinct proof360 segment. This founder needs cross-jurisdiction program matching \u2014 AU grants (R&D Tax, EMDG, NSW MVP) alongside SG grants (BGP, EDG, MRA, Startup SG). CORPUS already has both stacks ingested. Persona should surface automatically when both entity types are detected or self-reported.",
       "approved_by": "john-coates",
       "source": "edge:commercial_signal",
       "added": "2026-05-24"
@@ -23,7 +23,7 @@
     {
       "id": "PROOF360-QA-ONBOARDING-001",
       "status": "ready",
-      "boundary": "Redesign proof360 onboarding flow as Q&A rather than a gap report presentation. Instead of showing the report, ask the founder questions — business model, cloud provider, team size, compliance posture — and let the scored report emerge from their answers. Each confirmation morphs the recommendations in real time.",
+      "boundary": "Redesign proof360 onboarding flow as Q&A rather than a gap report presentation. Instead of showing the report, ask the founder questions \u2014 business model, cloud provider, team size, compliance posture \u2014 and let the scored report emerge from their answers. Each confirmation morphs the recommendations in real time.",
       "approved_by": "john-coates",
       "source": "edge:commercial_signal",
       "added": "2026-05-08"
@@ -45,7 +45,7 @@
     {
       "id": "PROOF360-GAP-DELTA-001",
       "status": "ready",
-      "boundary": "Before any gap catalog or vendor catalog change ships, explicitly enumerate what is missing and what vendor closes it — do not declare a catalog complete without naming the delta. Codify this as a review step in the gap authoring process.",
+      "boundary": "Before any gap catalog or vendor catalog change ships, explicitly enumerate what is missing and what vendor closes it \u2014 do not declare a catalog complete without naming the delta. Codify this as a review step in the gap authoring process.",
       "approved_by": "john-coates",
       "source": "edge:standardisation",
       "added": "2026-05-09"
@@ -53,7 +53,7 @@
     {
       "id": "PROOF360-CORPUS-CITE-001",
       "status": "ready",
-      "boundary": "Surface CORPUS evidence citations in the proof360 frontend evidence display. The gap API response already includes evidence items with source:'corpus' and a 'Retrieved from [source] · CORPUS' citation string — wire this into the gap evidence UI component so users see the retrieval chain. Do not show it if no corpus evidence is present.",
+      "boundary": "Surface CORPUS evidence citations in the proof360 frontend evidence display. The gap API response already includes evidence items with source:'corpus' and a 'Retrieved from [source] \u00b7 CORPUS' citation string \u2014 wire this into the gap evidence UI component so users see the retrieval chain. Do not show it if no corpus evidence is present.",
       "approved_by": "john-coates",
       "source": "edge:task_enhancement",
       "added": "2026-05-24"
@@ -77,7 +77,7 @@
     {
       "id": "PROOF360-INFERENCE-DIRECT-GUARD-001",
       "status": "ready",
-      "boundary": "Lock the VECTOR kill + finish the design-system master. (1) CI guard that fails the proof360 build if VECTOR_URL or localhost:3003 reappears in code/config — the resurrection pattern must not recur a 21st time. (2) Migrate the ~30 chat-family components off inline hex onto the tokens.js master CSS vars so the design template is enforced, not just available.",
+      "boundary": "Lock the VECTOR kill + finish the design-system master. (1) CI guard that fails the proof360 build if VECTOR_URL or localhost:3003 reappears in code/config \u2014 the resurrection pattern must not recur a 21st time. (2) Migrate the ~30 chat-family components off inline hex onto the tokens.js master CSS vars so the design template is enforced, not just available.",
       "approved_by": "john-coates",
       "source": "edge:standardisation",
       "added": "2026-06-19"
@@ -119,9 +119,17 @@
     {
       "id": "PROOF360-TRUST-SIGNAL-DOOR-001",
       "status": "ready",
-      "boundary": "Make the front door's trust signals REAL and visible (John directive 2026-07-03: 'the subtle logos, sign ons, protections, the little hints mean this is not shopify' — surface the enterprise stack). Slice 1: (a) real Cloudflare Turnstile — create widget for proof360.au, inject sitekey at build (same SSM pattern as Auth0), secret to SSM, server-side siteverify; kill the hardcoded always-pass test key (1x000...AA fallback in Chat.jsx). (b) FounderAuth login: 'Protected by Okta' hint + CF/AWS provenance hints — every hint LIVE-BACKED, never decorative. (c) survey where Vanta trust-report badge/link can surface (free Vanta = real compliance signal). Guardrail: a badge that is not live-backed is the ghost-tenant disease as marketing — estate's edge is that its hints are checkable.",
+      "boundary": "Make the front door's trust signals REAL and visible (John directive 2026-07-03: 'the subtle logos, sign ons, protections, the little hints mean this is not shopify' \u2014 surface the enterprise stack). Slice 1: (a) real Cloudflare Turnstile \u2014 create widget for proof360.au, inject sitekey at build (same SSM pattern as Auth0), secret to SSM, server-side siteverify; kill the hardcoded always-pass test key (1x000...AA fallback in Chat.jsx). (b) FounderAuth login: 'Protected by Okta' hint + CF/AWS provenance hints \u2014 every hint LIVE-BACKED, never decorative. (c) survey where Vanta trust-report badge/link can surface (free Vanta = real compliance signal). Guardrail: a badge that is not live-backed is the ghost-tenant disease as marketing \u2014 estate's edge is that its hints are checkable.",
       "approved_by": "john-coates",
       "source": "edge:commercial_signal",
+      "added": "2026-07-03"
+    },
+    {
+      "id": "PROOF360-TRUST-SIGNAL-DOOR-002",
+      "status": "ready",
+      "boundary": "Bind the Turnstile verdict to the login path itself (Codex P2 on PR #11, parked per CODEX-REVIEW-PREMERGE-STANDARD-001). Today the server-side siteverify arms the modal buttons, but a bot can skip the modal and drive the OAuth URL directly \u2014 /portal/callback mints founder_auth from any successful redirect. Fix is server-side by necessity: /api/v1/turnstile/verify issues a short-lived signed clearance; enforce it at the first authenticated API attach (journey/profile first-touch), NOT client-side \u2014 any sessionStorage/localStorage check is forgeable theater, the exact disease DOOR-001 kills. Scope with slice 1b so the clearance shape serves the Okta/stack hints too.",
+      "approved_by": "john-coates",
+      "source": "codex-review:PR#11-P2",
       "added": "2026-07-03"
     }
   ]
