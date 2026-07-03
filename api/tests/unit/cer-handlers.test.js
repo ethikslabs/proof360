@@ -103,6 +103,28 @@ describe('CER route handlers', () => {
     expect(reply.payload.cer.events.filter((e) => e.type === 'consent-granted')).toHaveLength(1);
   });
 
+  // CER-CONSENT-GATES-001 (c): once the founder withdraws consent, the admin status endpoint
+  // must refuse further transitions — default-deny on consent_state.
+  it('refuses an admin status transition once consent is withdrawn', async () => {
+    const created = await createCer('vanta');
+    const cerId = created.payload.cer.cer_id;
+
+    const w = replyMock();
+    await cer.cerConsentWithdrawHandler({ ...AUTH, params: { cerId }, body: {} }, w);
+    expect(w.payload.cer.consent_state).toBe('withdrawn');
+
+    const s = replyMock();
+    await cer.cerStatusHandler({ ...AUTH, params: { cerId }, body: { status: 'Under review' } }, s);
+    expect(s.statusCode).toBe(409);
+
+    // No status-updated event was appended: the projection still reads Closed / withdrawn.
+    const list = replyMock();
+    await cer.cersListHandler({ ...AUTH }, list);
+    const back = list.payload.cers.find((c) => c.cer_id === cerId);
+    expect(back.status).toBe('Closed');
+    expect(back.events.filter((e) => e.type === 'status-updated')).toHaveLength(0);
+  });
+
   it('404s on consent-withdraw / status for an unknown CER id', async () => {
     const w = replyMock();
     await cer.cerConsentWithdrawHandler({ ...AUTH, params: { cerId: 'nope' }, body: {} }, w);

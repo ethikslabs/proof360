@@ -72,6 +72,26 @@ describe('cerProjection — folding status + consent', () => {
     expect(cer.admin_status).toBe('Booked');
   });
 
+  // CER-CONSENT-GATES-001 (a): the append-only log's order is authoritative, NOT wall-clock ts.
+  // A non-monotonic clock (NTP step, skew) must not reorder the fold.
+  it('folds status by append order, not wall-clock ts', () => {
+    const { cerId, records } = buildCerRecords({ route: 'vanta', person_id: 'p', company_id: 'c' });
+    // Appended Under review -> Booked, but the clock ran BACKWARDS so Booked has an EARLIER ts.
+    records.push({ primitive: 'cer_event', id: 'e1', source: 'ethiks360_admin', cer_id: cerId, type: 'status-updated', from: 'Submitted', to: 'Under review', actor: 'ethiks360_admin', ts: '2026-07-04T10:00:02.000Z' });
+    records.push({ primitive: 'cer_event', id: 'e2', source: 'ethiks360_admin', cer_id: cerId, type: 'status-updated', from: 'Under review', to: 'Booked', actor: 'ethiks360_admin', ts: '2026-07-04T10:00:01.000Z' });
+    const [cer] = cerProjection(snapshotFrom(records));
+    expect(cer.admin_status).toBe('Booked'); // last APPENDED wins, not latest-ts
+  });
+
+  it('folds consent by append order — a withdraw appended after grant wins even with an earlier ts', () => {
+    const { cerId, records } = buildCerRecords({ route: 'vanta', person_id: 'p', company_id: 'c' });
+    // consent-granted was stamped "now" by buildCerRecords; the withdraw is appended AFTER but
+    // carries a far-earlier ts. Append order must still yield withdrawn.
+    records.push({ primitive: 'cer_event', id: 'w1', source: 'founder', cer_id: cerId, type: 'consent-withdrawn', actor: 'founder', ts: '2000-01-01T00:00:00.000Z' });
+    const [cer] = cerProjection(snapshotFrom(records));
+    expect(cer.consent_state).toBe('withdrawn');
+  });
+
   it('consent-withdrawn OVERRIDES admin status at read time, preserving audit', () => {
     const { cerId, records } = buildCerRecords({ route: 'vanta', person_id: 'p', company_id: 'c' });
     records.push(buildStatusUpdatedRecord(cerId, { from: 'Submitted', to: 'Under review' }));

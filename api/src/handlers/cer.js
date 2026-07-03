@@ -96,6 +96,13 @@ export async function cerStatusHandler(request, reply) {
   const existing = findCer(await currentCers(profile.id), cerId);
   if (!existing) return reply.status(404).send({ error: 'cer_not_found' });
 
+  // Default-deny on consent: once the founder withdraws consent the CER is terminal for admin
+  // transitions — no Booking/updating an engagement the founder pulled out of. Require an
+  // explicit granted state; withdrawn (or any non-granted) fails closed (CER-CONSENT-GATES-001).
+  if (existing.consent_state !== 'granted') {
+    return reply.status(409).send({ error: 'consent_withdrawn' });
+  }
+
   let record;
   try {
     // Transition is validated against admin_status (the stored status), not the

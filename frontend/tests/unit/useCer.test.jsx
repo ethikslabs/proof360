@@ -36,6 +36,30 @@ describe('useCer', () => {
     expect(result.current.forming.route).toBe('vanta'); // kept
   });
 
+  // CER-CONSENT-GATES-001 (b): persisting a CER grants consent server-side, so it must be gated
+  // on an EXPLICITLY confirmed route (default-deny) — a merely proposed guess must not persist.
+  it('confirmCer does NOT persist a merely-proposed (unconfirmed) route', async () => {
+    const { result } = renderHook(() => useCer(CTX));
+    await waitFor(() => expect(getCers).toHaveBeenCalled());
+
+    act(() => result.current.proposeRoute('ingram_micro_aws')); // routeConfirmed:false
+    let out;
+    await act(async () => { out = await result.current.confirmCer(); });
+
+    expect(createCer).not.toHaveBeenCalled();
+    expect(out).toBeNull();
+  });
+
+  it('confirmCer persists once the route is explicitly confirmed', async () => {
+    const { result } = renderHook(() => useCer(CTX));
+    await waitFor(() => expect(getCers).toHaveBeenCalled());
+
+    act(() => result.current.startRoute('vanta')); // routeConfirmed:true
+    await act(async () => { await result.current.confirmCer(); });
+
+    expect(createCer).toHaveBeenCalledWith(expect.objectContaining({ route: 'vanta' }));
+  });
+
   it('startRoute confirms immediately and is agency-ready', () => {
     const { result } = renderHook(() => useCer(CTX));
     act(() => result.current.startRoute('vanta'));

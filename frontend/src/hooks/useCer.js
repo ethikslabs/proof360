@@ -60,7 +60,10 @@ export function useCer({ companyName, contactName, evidenceRefs = [], enabled = 
   );
 
   const confirmCer = useCallback(async () => {
-    if (!forming) return null;
+    // Persisting a CER grants consent server-side, so it is gated on an EXPLICITLY confirmed
+    // route (default-deny: absent/false fails closed). A merely proposed guess must not persist
+    // or auto-grant consent (CER-CONSENT-GATES-001).
+    if (!forming || forming.routeConfirmed !== true) return null;
     setBusy(true);
     try {
       const res = await createCer({ route: forming.route, evidence_refs: evidenceRefs });

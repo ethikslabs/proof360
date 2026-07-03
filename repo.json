@@ -192,7 +192,7 @@
     },
     {
       "id": "PROOF360-EDGE-CER-CONSENT-GATES-001",
-      "status": "ready",
+      "status": "done",
       "boundary": "[P3] CER state-machine hardening \u2014 edge-hunt #16/#17/#18 (single-verdict, spend-limited). (a) cer-projection folds by wall-clock ts not append sequence \u2014 non-monotonic clock yields wrong status; (b) confirmCer persists + grants consent without asserting the route was confirmed; (c) admin status endpoint allows transitions on a consent-withdrawn CER. Re-verify each against the append-only log semantics before fixing.",
       "approved_by": "claude-code",
       "source": "edge-hunt:2026-07-03",

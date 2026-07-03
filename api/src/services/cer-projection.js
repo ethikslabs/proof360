@@ -114,11 +114,12 @@ export function buildStatusUpdatedRecord(cerId, { from, to, actor = 'ethiks360_a
   };
 }
 
+// The append-only log's ORDER is authoritative — the snapshot's cer_events are already in
+// append order (reconstruct() walks transactions in sequence). We must NOT re-sort by wall-clock
+// ts: a non-monotonic clock (NTP step, skew, same-ms events) would fold the wrong "latest" event
+// and mis-state consent/status (CER-CONSENT-GATES-001). Filter, preserve order.
 function eventsForCer(events, cerId) {
-  return events
-    .filter((e) => e.cer_id === cerId)
-    .slice()
-    .sort((a, b) => String(a.ts).localeCompare(String(b.ts)));
+  return events.filter((e) => e.cer_id === cerId);
 }
 
 // Fold one CER's decision record + its event log into the live projected view.
