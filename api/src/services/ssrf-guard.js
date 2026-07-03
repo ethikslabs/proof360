@@ -59,20 +59,32 @@ export function isBlockedIp(ip) {
   // Strip an IPv6 zone id (fe80::1%eth0) and brackets.
   addr = addr.replace(/^\[|\]$/g, '').split('%')[0];
 
-  if (addr.includes(':')) {
-    // IPv4-mapped/embedded IPv6 (::ffff:127.0.0.1) — classify the wrapped v4.
-    const v4 = addr.match(/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
-    if (v4 && (addr.startsWith('::ffff:') || addr.startsWith('::'))) {
-      return isBlockedIpv4(v4[1]);
-    }
-    if (addr === '::' || addr === '::1') return true;      // unspecified / loopback
-    if (addr.startsWith('fe80') || addr.startsWith('fe9') ||
-        addr.startsWith('fea') || addr.startsWith('feb')) return true; // link-local fe80::/10
-    if (addr.startsWith('fc') || addr.startsWith('fd')) return true;   // unique-local fc00::/7
-    if (addr.startsWith('ff')) return true;                // multicast
-    return false;
-  }
+  if (addr.includes(':')) return isBlockedIpv6(addr);
   return isBlockedIpv4(addr);
+}
+
+function isBlockedIpv6(addr) {
+  if (addr === '::' || addr === '::1') return true;        // unspecified / loopback
+
+  // IPv4-mapped/embedded IPv6 with a DOTTED tail (::ffff:127.0.0.1, ::127.0.0.1).
+  const dotted = addr.match(/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
+  if (dotted && (addr.startsWith('::ffff:') || addr.startsWith('::'))) {
+    return isBlockedIpv4(dotted[1]);
+  }
+  // Canonical (hex) IPv4-mapped form: ::ffff:a9fe:a9fe  ==  ::ffff:169.254.169.254.
+  const hexMapped = addr.match(/^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
+  if (hexMapped) {
+    const hi = parseInt(hexMapped[1], 16);
+    const lo = parseInt(hexMapped[2], 16);
+    return isBlockedIpv4(`${(hi >> 8) & 0xff}.${hi & 0xff}.${(lo >> 8) & 0xff}.${lo & 0xff}`);
+  }
+
+  // Classify by the first hextet against the real prefix masks.
+  const first = parseInt(addr.split(':')[0] || '0', 16) || 0;
+  if ((first & 0xffc0) === 0xfe80) return true;   // link-local  fe80::/10  (fe80–febf)
+  if ((first & 0xfe00) === 0xfc00) return true;   // unique-local fc00::/7  (fc00–fdff)
+  if ((first & 0xff00) === 0xff00) return true;   // multicast    ff00::/8
+  return false;
 }
 
 // Hostnames that must never resolve outward.

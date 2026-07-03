@@ -33,6 +33,25 @@ describe('isBlockedIp (IP classification — pure)', () => {
       expect(isBlockedIp(ip), ip).toBe(true);
     }
   });
+
+  it('blocks canonical (hex) IPv4-mapped IPv6 — no dotted suffix (Codex P1)', () => {
+    // ::ffff:169.254.169.254 in canonical form is ::ffff:a9fe:a9fe
+    for (const ip of ['::ffff:a9fe:a9fe', '::ffff:7f00:1', '::ffff:0a00:1']) {
+      expect(isBlockedIp(ip), ip).toBe(true);
+    }
+  });
+
+  it('blocks the FULL fe80::/10 link-local range, not just fe80 (Codex P2)', () => {
+    for (const ip of ['fe80::1', 'fe81::1', 'fe8f::1', 'fe90::1', 'fea0::1', 'febf::1']) {
+      expect(isBlockedIp(ip), ip).toBe(true);
+    }
+  });
+
+  it('does not over-block just outside fe80::/10', () => {
+    for (const ip of ['fec0::1', 'fe7f::1']) {
+      expect(isBlockedIp(ip), ip).toBe(false);
+    }
+  });
 });
 
 describe('assertPublicHost (resolve + classify, fail-closed)', () => {

@@ -139,6 +139,11 @@ async function lightFetch(url) {
     const res = await fetch(url, {
       headers: { 'User-Agent': 'proof360-recon/1.0' },
       signal: AbortSignal.timeout(5000),
+      // Never auto-follow: Node's fetch follows redirects by default, so a public
+      // site could 302 /robots.txt or /.well-known/security.txt to
+      // http://169.254.169.254/... and bypass the entry-point SSRF guard. A 3xx
+      // here is simply treated as "no usable body".
+      redirect: 'manual',
     });
     const body = res.ok ? await res.text() : '';
     return { ok: res.ok, status: res.status, body };
