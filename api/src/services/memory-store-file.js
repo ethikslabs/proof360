@@ -16,6 +16,10 @@ import { homedir } from 'node:os';
 const STORE_VERSION = 'founder-memory-file-v1';
 const LOCK_TIMEOUT_MS = 5000;
 const LOCK_RETRY_MS = 25;
+// A lock held longer than this is presumed abandoned by a crashed holder and is stolen, so a
+// process that dies mid-append can no longer wedge a profile's append path forever
+// (MEMFILE-RACE-001). Must exceed the longest legitimate locked operation.
+const LOCK_STALE_MS = 30000;
 
 export const memoryStoreRoot =
   process.env.MEMORY_STORE_DIR ||
@@ -97,6 +101,24 @@ async function readJson(path) {
   return JSON.parse(await readFile(path, 'utf8'));
 }
 
+// If a lock directory is older than LOCK_STALE_MS its holder is presumed crashed; remove it so
+// the next mkdir can acquire. Age comes from owner.json (written by the holder); if that is
+// missing/corrupt — e.g. a half-created lock — fall back to the directory mtime. Best-effort:
+// any error just leaves the lock in place for the timeout to handle.
+async function stealIfStale(lockPath) {
+  let createdMs = null;
+  try {
+    const owner = JSON.parse(await readFile(join(lockPath, 'owner.json'), 'utf8'));
+    createdMs = new Date(owner.created_at).getTime();
+  } catch {
+    createdMs = await stat(lockPath).then((s) => s.mtimeMs).catch(() => null);
+  }
+  if (!Number.isFinite(createdMs)) return;
+  if (Date.now() - createdMs > LOCK_STALE_MS) {
+    await rm(lockPath, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
 async function withLock(lockPath, fn) {
   const started = Date.now();
   await mkdir(dirname(lockPath), { recursive: true });
@@ -111,6 +133,7 @@ async function withLock(lockPath, fn) {
       break;
     } catch (err) {
       if (err.code !== 'EEXIST') throw err;
+      await stealIfStale(lockPath); // self-heal a crashed holder's lock
       if (Date.now() - started > LOCK_TIMEOUT_MS) {
         throw new Error(`memory_lock_timeout:${lockPath}`);
       }
@@ -145,37 +168,45 @@ function normalizeAuthUser(authUser) {
   };
 }
 
+async function touchFounder(path, normalized) {
+  const existing = await readJson(path);
+  const updated = {
+    ...existing,
+    email: normalized.email || existing.email || null,
+    name: normalized.name || existing.name || null,
+    last_seen_at: nowIso(),
+  };
+  await writeJsonAtomic(path, updated);
+  return updated;
+}
+
 export async function getOrCreateFounder(authUser) {
   const normalized = normalizeAuthUser(authUser);
   const hash = founderHash(normalized.auth0_sub);
   const dir = founderDir(hash);
   const path = join(dir, 'founder.json');
 
-  if (existsSync(path)) {
-    const existing = await readJson(path);
-    const updated = {
-      ...existing,
-      email: normalized.email || existing.email || null,
-      name: normalized.name || existing.name || null,
+  if (existsSync(path)) return touchFounder(path, normalized);
+
+  // First-touch create is serialized so concurrent requests for the same auth0 sub cannot each
+  // mint a distinct founder id (MEMFILE-RACE-001). The loser re-checks inside the lock and
+  // returns the winner's record.
+  return withLock(join(dir, 'locks', 'founder.lock'), async () => {
+    if (existsSync(path)) return touchFounder(path, normalized);
+    await mkdir(dir, { recursive: true });
+    const founder = {
+      store_version: STORE_VERSION,
+      id: randomUUID(),
+      founder_hash: hash,
+      auth0_sub: normalized.auth0_sub,
+      email: normalized.email,
+      name: normalized.name,
+      created_at: nowIso(),
       last_seen_at: nowIso(),
     };
-    await writeJsonAtomic(path, updated);
-    return updated;
-  }
-
-  await mkdir(dir, { recursive: true });
-  const founder = {
-    store_version: STORE_VERSION,
-    id: randomUUID(),
-    founder_hash: hash,
-    auth0_sub: normalized.auth0_sub,
-    email: normalized.email,
-    name: normalized.name,
-    created_at: nowIso(),
-    last_seen_at: nowIso(),
-  };
-  await writeJsonAtomic(path, founder);
-  return founder;
+    await writeJsonAtomic(path, founder);
+    return founder;
+  });
 }
 
 export async function getOrCreateActiveProfile(founder) {
@@ -185,22 +216,29 @@ export async function getOrCreateActiveProfile(founder) {
     return readJson(path);
   }
 
-  const profileId = randomUUID();
-  const base = await ensureProfileDirs(hash, profileId);
-  const profile = {
-    store_version: STORE_VERSION,
-    id: profileId,
-    founder_id: founder.id,
-    founder_hash: hash,
-    name: null,
-    status: 'active',
-    created_at: nowIso(),
-    updated_at: nowIso(),
-  };
+  // Serialize first-touch so concurrent requests cannot each mint a distinct profile id (which
+  // orphaned the loser's profile dir and lost any transactions written to it) — MEMFILE-RACE-001.
+  // The loser re-checks inside the lock and returns the winner's active profile.
+  return withLock(join(founderDir(hash), 'locks', 'active-profile.lock'), async () => {
+    if (existsSync(path)) return readJson(path);
 
-  await writeJsonAtomic(join(base, 'manifest.json'), profile);
-  await writeJsonAtomic(path, profile);
-  return profile;
+    const profileId = randomUUID();
+    const base = await ensureProfileDirs(hash, profileId);
+    const profile = {
+      store_version: STORE_VERSION,
+      id: profileId,
+      founder_id: founder.id,
+      founder_hash: hash,
+      name: null,
+      status: 'active',
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    };
+
+    await writeJsonAtomic(join(base, 'manifest.json'), profile);
+    await writeJsonAtomic(path, profile);
+    return profile;
+  });
 }
 
 async function resolveProfile(profileId) {

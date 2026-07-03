@@ -152,7 +152,7 @@
     },
     {
       "id": "PROOF360-EDGE-MEMFILE-RACE-001",
-      "status": "ready",
+      "status": "done",
       "boundary": "[P2] Founder file-kernel concurrency \u2014 edge-hunt #6/#7. memory-store-file.js: concurrent first-touch mints duplicate profiles and loses the loser's transactions (no atomic create-or-get); and a stale lock directory permanently wedges a profile's append path (no lock TTL/steal). Add an atomic profile create + a lock with staleness recovery. Pairs with the DB-side atomicity fix (PR #13).",
       "approved_by": "claude-code",
       "source": "edge-hunt:2026-07-03",

@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -89,5 +89,37 @@ describe('file-backed founder memory store', () => {
     await expect(store.claimSessionForProfile(other, 'session-1')).rejects.toMatchObject({
       code: 'SESSION_ALREADY_ATTACHED',
     });
+  });
+
+  // MEMFILE-RACE-001 (a): concurrent first-touch must not mint duplicate profiles/founders.
+  it('mints exactly one profile under concurrent first-touch', async () => {
+    const founder = await store.getOrCreateFounder({ sub: 'auth0|race-profile' });
+    const results = await Promise.all(
+      Array.from({ length: 5 }, () => store.getOrCreateActiveProfile(founder))
+    );
+    expect(new Set(results.map((p) => p.id)).size).toBe(1);
+
+    // Only one profile directory should exist — no orphaned loser dirs holding lost txns.
+    const profilesDir = join(root, 'founders', founder.founder_hash, 'profiles');
+    expect(await readdir(profilesDir)).toHaveLength(1);
+  });
+
+  it('mints exactly one founder under concurrent first-touch (same auth0 sub)', async () => {
+    const results = await Promise.all(
+      Array.from({ length: 5 }, () => store.getOrCreateFounder({ sub: 'auth0|race-founder' }))
+    );
+    expect(new Set(results.map((f) => f.id)).size).toBe(1);
+  });
+
+  // MEMFILE-RACE-001 (b): a crashed holder's lock must self-heal, not wedge the profile forever.
+  it('steals a stale lock instead of wedging the profile permanently', async () => {
+    const lockPath = join(root, 'wedge-test', 'profile.lock');
+    await mkdir(lockPath, { recursive: true });
+    await writeFile(join(lockPath, 'owner.json'), JSON.stringify({
+      pid: 999999,
+      created_at: new Date(Date.now() - 3600_000).toISOString(), // crashed an hour ago
+    }));
+
+    await expect(store._internals.withLock(lockPath, async () => 'recovered')).resolves.toBe('recovered');
   });
 });
