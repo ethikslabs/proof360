@@ -3,7 +3,7 @@ import {
   getOrCreateActiveProfile,
   getOrCreateFounder,
   replayProfile,
-} from '../services/memory-store-file.js';
+} from '../services/memory-store.js';
 import { buildProfileEventRecords } from '../services/memory-derive.js';
 import { buildProfileProjections } from '../services/profile-projections.js';
 
