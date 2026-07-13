@@ -234,38 +234,50 @@
         <h3>Moves you can run today.</h3>
         <p>Each is a Decision you control &mdash; pre-filled from your posture, yours to withdraw.</p>
       </div>
+      <!-- WIRING SPEC (for the /chat React fold) — each Move is a CER.
+           On click: confirmCer(route) via frontend/src/hooks/useCer.js → client.createCer
+           (POST /api/v1/profile/current/cers). Routes are the 4 live pathways in
+           frontend/src/utils/cerPathways.js / api/src/config/cer-routes.js.
+           data-cer-route = exact pathway key; data-cer-cta = the pathway's internal cta_label
+           (kept OFF the visible button — the human copy below is better HX and stays on top).
+           GAPS, honestly marked:
+             • free_action (IR policy): NOT a CER — a zero-spend readiness action, no route.
+             • aws_activate: the $10k credit APPLICATION is an external deep-link that does not
+               exist yet (CerProjectionCard onBookCall is a no-op). The AWS *CER* route
+               (ingram_micro_aws) is the Ingram/Marketplace co-sell, a different motion.
+             • ingram_micro_cisco (4th live route) is not yet surfaced as a Move. -->
       <div class="movelist">
-        <div class="move">
+        <div class="move" data-move="free_action" data-cer-route="none">
           <div class="mtag free">Free &middot; $0</div>
           <div>
             <p class="mtitle">Publish an incident-response policy</p>
             <p class="mwhy">Clears the first enterprise checklist item and lifts readiness <b>+3</b> &mdash; no vendor spend. The template&rsquo;s already written.</p>
           </div>
-          <a class="mcta" href="#">Use the template &rarr;</a>
+          <a class="mcta" href="#free-ir-policy">Use the template &rarr;</a>
         </div>
-        <div class="move">
+        <div class="move" data-cer-route="ingram_micro_aws" data-cer-cta="Start AWS pathway" data-external-gap="aws_activate_application">
           <div class="mtag apply">Apply</div>
           <div>
             <p class="mtitle"><svg class="movemark" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 14c4.5 3.2 11.5 3.2 16 0"/><path d="M15.5 12.5 20 14l-1.4 4.3"/></svg>AWS Activate &mdash; $10k in credits</p>
             <p class="mwhy">The application is <b>pre-filled from your posture</b>. Under review in one click; credits land on EC2, S3 and RDS on approval.</p>
           </div>
-          <a class="mcta" href="#">Apply &rarr;</a>
+          <a class="mcta" href="#cer-ingram_micro_aws">Apply &rarr;</a>
         </div>
-        <div class="move hot">
+        <div class="move hot" data-cer-route="vanta" data-cer-cta="Review compliance pathway">
           <div class="mtag buy">AWS Marketplace</div>
           <div>
             <p class="mtitle"><svg class="movemark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4" stroke-width="1.7"/></svg>Close SOC&nbsp;2 with Vanta</p>
             <p class="mwhy">Buy it <b>through AWS Marketplace</b> &mdash; it draws down your AWS commitment, and Ingram is seller-of-record. One private offer, your posture attached.</p>
           </div>
-          <a class="mcta solid" href="#">Start the offer &rarr;</a>
+          <a class="mcta solid" href="#cer-vanta">Start the offer &rarr;</a>
         </div>
-        <div class="move">
+        <div class="move" data-cer-route="austbrokers_cyberpro" data-cer-cta="Check cyber insurance pathway">
           <div class="mtag when">When you&rsquo;re ready</div>
           <div>
             <p class="mtitle">Cyber cover &mdash; CyberPro</p>
             <p class="mwhy">A quote, not a commitment. Your posture <em>is</em> the application. It sits here quietly &mdash; engage it the day a deal needs it, not before.</p>
           </div>
-          <a class="mcta" href="#">Get covered &rarr;</a>
+          <a class="mcta" href="#cer-austbrokers_cyberpro">Get covered &rarr;</a>
         </div>
       </div>
     </div>
