@@ -14,17 +14,20 @@
 import { BedrockRuntimeClient, ConverseCommand, ConverseStreamCommand } from '@aws-sdk/client-bedrock-runtime';
 import * as meter from './meter.mjs';
 
-const REGION = process.env.BEDROCK_REGION || process.env.AWS_REGION || 'ap-southeast-2';
+// us-east-1 is the estate default (John ruling 2026-07-14, CONTROL/models.catalog.json):
+// AU capacity is limited; Bedrock burns AWS credits in us-east-1. The au. residency
+// lane is dormant/re-armable in the catalog, not wired here.
+const REGION = process.env.BEDROCK_REGION || process.env.AWS_REGION || 'us-east-1';
 const client = new BedrockRuntimeClient({ region: REGION });
 
-// Logical model name -> Bedrock inference-profile id. On-demand Claude in
-// ap-southeast-2 requires the `au.` cross-region inference profile.
+// Logical model name -> Bedrock inference-profile id. us.* profiles require the
+// full dated id (short forms throw ValidationException) and MUST pair with a US region.
 const MODEL_MAP = {
-  'claude-haiku-4-5-20251001': 'au.anthropic.claude-haiku-4-5-20251001-v1:0',
-  'haiku':                     'au.anthropic.claude-haiku-4-5-20251001-v1:0',
-  'claude-sonnet-4-6':         'au.anthropic.claude-sonnet-4-6',
+  'claude-haiku-4-5-20251001': 'us.anthropic.claude-haiku-4-5-20251001-v1:0',
+  'haiku':                     'us.anthropic.claude-haiku-4-5-20251001-v1:0',
+  'claude-sonnet-4-6':         'us.anthropic.claude-sonnet-4-6',
 };
-const DEFAULT_MODEL = 'au.anthropic.claude-haiku-4-5-20251001-v1:0';
+const DEFAULT_MODEL = 'us.anthropic.claude-haiku-4-5-20251001-v1:0';
 
 function resolveBedrockId(model) {
   if (!model) return DEFAULT_MODEL;

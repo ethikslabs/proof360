@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // proof360/scripts/enrich-vendors.mjs
 // Enriches vendor catalog with structured positioning data — Bedrock + Perplexity, direct.
-// Chain: Perplexity (live web intel) → Nova Lite (structured extraction)
+// Chain: Perplexity (live web intel) → Claude Haiku (structured extraction — EXTRACT_MODEL below)
 // Output: runs/vendor-matrix.json
 //
 // Usage:
@@ -148,7 +148,7 @@ async function enrichVendor(vendor, matrix) {
     process.stdout.write(`${C.cyan}perplexity${C.reset}...`);
     const intel = await fetchPerplexityIntel(vendor);
 
-    process.stdout.write(` ${C.cyan}nova-lite${C.reset}...`);
+    process.stdout.write(` ${C.cyan}haiku${C.reset}...`);
     const structured = await extractStructuredFields(vendor, intel);
 
     matrix[id] = {
@@ -171,7 +171,7 @@ async function enrichVendor(vendor, matrix) {
 
 async function main() {
   console.log(`${C.bold}proof360 vendor enrichment${C.reset}`);
-  console.log(`${C.dim}chain: Perplexity (live intel) → Nova Lite (structured extraction)${C.reset}`);
+  console.log(`${C.dim}chain: Perplexity (live intel) → Claude Haiku (structured extraction)${C.reset}`);
   console.log(`${C.dim}output: runs/vendor-matrix.json${C.reset}\n`);
 
   // Inference is direct (Bedrock instance role + Perplexity key) — no carrier to health-check.
