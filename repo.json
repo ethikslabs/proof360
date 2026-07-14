@@ -205,6 +205,11 @@
       "approved_by": "claude-code",
       "source": "edge-hunt:2026-07-03",
       "added": "2026-07-03"
+    },
+    {
+      "id": "PROOF360-FIRECRAWL-EXIT-001",
+      "status": "ready",
+      "boundary": "Migrate the live Firecrawl scrape lane (api/src/services/signal-extractor.js FirecrawlApp import + cli.mjs traceFirecrawl + /proof360/FIRECRAWL_* SSM env) to the estate readability+jsdom fetch doctrine. Firecrawl is banned estate-wide; proof360 is the last runtime survivor. Real migration with parity checks on the 5-page cold-read scrape, not a deletion. Remove SSM keys + deploy env lines once parity proven. Ratified D1 of working/2026-07-14-model-rationalisation.md (John approve 2026-07-14)."
     }
   ]
 }
