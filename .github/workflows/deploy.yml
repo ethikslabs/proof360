@@ -116,6 +116,7 @@ jobs:
           mkdir -p "$MEMORY_STORE_DIR"
           cat > $API_DIR/.env << EOF
           PORT=$PORT
+          BEDROCK_REGION=us-east-1
           FIRECRAWL_API_KEY=$(get_ssm "/proof360/FIRECRAWL_API_KEY")
           FIRECRAWL_API_URL=$(get_ssm "/proof360/FIRECRAWL_API_URL")
           ABUSEIPDB_API_KEY=$(get_ssm "/proof360/ABUSEIPDB_API_KEY")

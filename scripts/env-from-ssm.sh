@@ -12,8 +12,8 @@
 #
 # PREREQUISITES (one-time):
 #   1. AWS CLI installed and logged in:  aws sts get-caller-identity   (must succeed)
-#   2. IAM permission to read /proof360/* and /ethikslabs/anthropic/* and to
-#      KMS-decrypt them (ssm:GetParameter + kms:Decrypt).
+#   2. IAM permission to read /proof360/* and /ethikslabs/{perplexity,gemini}/* and
+#      to KMS-decrypt them (ssm:GetParameter + kms:Decrypt).
 #
 # USAGE:
 #   bash scripts/env-from-ssm.sh           # writes api/.env (backs up any existing one)
@@ -66,9 +66,9 @@ fi
 # --- write api/.env (mapping mirrors deploy.yml) ---------------------------
 cat > "$ENV_FILE" << EOF
 PORT=$(get_ssm "/proof360/PORT")
+BEDROCK_REGION=us-east-1
 FIRECRAWL_API_KEY=$(get_ssm "/proof360/FIRECRAWL_API_KEY")
 FIRECRAWL_API_URL=$(get_ssm "/proof360/FIRECRAWL_API_URL")
-ANTHROPIC_API_KEY=$(get_ssm "/ethikslabs/anthropic/api-key")
 PERPLEXITY_API_KEY=$(get_ssm "/ethikslabs/perplexity/api-key")
 GEMINI_API_KEY=$(get_ssm "/ethikslabs/gemini/api-key")
 ABUSEIPDB_API_KEY=$(get_ssm "/proof360/ABUSEIPDB_API_KEY")
