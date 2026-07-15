@@ -35,6 +35,8 @@ import { CerAgencyCard }        from '../components/chat/CerAgencyCard.jsx';
 import { CerProjectionCard }    from '../components/chat/CerProjectionCard.jsx';
 import { useCer }               from '../hooks/useCer.js';
 import { routeFromText, PATHWAYS, firstMissingGate, awaitedReplyCapture, awaitedColdReadOutcome } from '../utils/cerPathways.js';
+import { advisoryFromText, advisoryThinkingSteps } from '../utils/advisory.js';
+import { AdvisoryCard } from '../components/chat/AdvisoryCard.jsx';
 import { extractUrl, extractAwaitedUrl } from '../utils/url.js';
 import { resolveTurnstileSitekey, verifyTurnstileServerSide } from '../utils/turnstile.js';
 import { socialProviderEnabled } from '../utils/social-login.js';
@@ -1661,6 +1663,37 @@ export default function Chat() {
     fast:       'sophia',
   };
 
+  // ── Register advisory (PROOF360-REGISTER-ADVISORY-JOIN-001) ──
+  // The four Guide laws (John 2026-07-15): the advisory speaks ONLY here in the
+  // conversation; the retrieval is watchable (thinking lines cite register totals +
+  // derivation date); the honest zero arrives as an answer; free sorts first from
+  // the register field; the paid rail renders below in the customer's billing frame.
+  const runRegisterAdvisory = useCallback(async (query) => {
+    setThinkingSteps([
+      { id: 'reg-models', label: 'Checking the model register', provider: 'internal', model: 'model register', status: 'running' },
+      { id: 'reg-data', label: 'Checking the data register', provider: 'internal', model: 'data register', status: 'running' },
+    ]);
+    try {
+      const res = await fetch(`/api/v1/advisory/registers?q=${encodeURIComponent(query)}`);
+      if (!res.ok) throw new Error('advisory failed');
+      const advisory = await res.json();
+      // Law 1 made literal: the completed retrieval lines cite what was searched.
+      setThinkingSteps(advisoryThinkingSteps(advisory));
+      await sleep(600);
+      setMessages(prev => [...prev, {
+        id: `adv-${Date.now()}`, role: 'assistant', persona: 'edison', advisory,
+      }]);
+    } catch {
+      setMessages(prev => [...prev, {
+        id: `adv-${Date.now()}`, role: 'assistant', persona: 'edison',
+        content: "Couldn't reach the registers just now — ask again in a moment.",
+      }]);
+    } finally {
+      setThinkingSteps([]);
+      setIsProcessing(false);
+    }
+  }, []);
+
   const submit = useCallback(async (input) => {
     resetAuthorityTurn();
     const text = input.trim();
@@ -1825,6 +1858,14 @@ export default function Chat() {
         setIsProcessing(false);
         return;
       }
+    }
+
+    // ── Register advisory: an ASK about models/datasets answers from the registers,
+    // in-stream, before the persona reply path (advisory law 1). The founder's industry
+    // joins the query so the register read is about THEIR domain.
+    if (advisoryFromText(text)) {
+      await runRegisterAdvisory([text, companyProfile?.industry].filter(Boolean).join(' '));
+      return;
     }
 
     if (sessionId) {
@@ -2197,6 +2238,11 @@ export default function Chat() {
                 {hasMessages && (
                   <div style={{ marginBottom: 20 }}>
                     {messages.map((m, i) => (
+                      m.advisory ? (
+                        <div key={m.id} style={{ margin: '12px 0' }}>
+                          <AdvisoryCard advisory={m.advisory} tk={tk} />
+                        </div>
+                      ) : (
                       <Bubble
                         key={m.id} msg={m} t={t}
                         isLatest={i === messages.length - 1 && m.role !== 'user'}
@@ -2206,6 +2252,7 @@ export default function Chat() {
                         }}
                         onProgramFocus={setFocusedProgram}
                       />
+                      )
                     ))}
                     {thinkingSteps.length > 0 && <ThinkingStream steps={thinkingSteps} visible t={t} />}
                   </div>
@@ -2508,6 +2555,13 @@ export default function Chat() {
               )}
 
               {messages.map((m, i) => {
+                if (m.advisory) {
+                  return (
+                    <div key={m.id} style={{ margin: '12px 0' }}>
+                      <AdvisoryCard advisory={m.advisory} tk={tk} />
+                    </div>
+                  );
+                }
                 const isLatest = i === messages.length - 1 && m.role !== 'user';
                 return (
                   <Bubble

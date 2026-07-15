@@ -1,0 +1,6726 @@
+{
+  "_meta": {
+    "derived": true,
+    "hand_edits_forbidden": true,
+    "generator": "CONTROL/scripts/derive-model-register.mjs",
+    "generated_at": "2026-07-14T06:25:45.751Z",
+    "bedrock_region": "us-east-1",
+    "total_entries": 631,
+    "counts": {
+      "bedrock-serverless": 99,
+      "bedrock-inference-profiles": 61,
+      "bedrock-marketplace": 152,
+      "anthropic-direct": 10,
+      "openai-direct": 123,
+      "gemini": 54,
+      "xai": 10,
+      "azure-foundry": 118,
+      "perplexity": 4
+    },
+    "source_errors": {},
+    "authored_counterpart": "CONTROL/models.catalog.json (what the estate USES; this file is what is AVAILABLE)"
+  },
+  "bedrock-serverless": [
+    {
+      "source": "bedrock-serverless",
+      "model_id": "nvidia.nemotron-nano-12b-v2",
+      "name": "NVIDIA Nemotron Nano 12B v2 VL BF16",
+      "provider": "NVIDIA",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "qwen.qwen3-coder-next",
+      "name": "Qwen3 Coder Next",
+      "provider": "Qwen",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "anthropic.claude-haiku-4-5-20251001-v1:0",
+      "name": "Claude Haiku 4.5",
+      "provider": "Anthropic",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "moonshotai.kimi-k2.5",
+      "name": "Kimi K2.5",
+      "provider": "Moonshot AI",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "openai.gpt-oss-120b-1:0",
+      "name": "gpt-oss-120b",
+      "provider": "OpenAI",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "stability.stable-creative-upscale-v1:0",
+      "name": "Stable Image Creative Upscale",
+      "provider": "Stability AI",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "IMAGE"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "qwen.qwen3-next-80b-a3b",
+      "name": "Qwen3 Next 80B A3B",
+      "provider": "Qwen",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "anthropic.claude-fable-5",
+      "name": "Claude Fable 5",
+      "provider": "Anthropic",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "deepseek.v3.2",
+      "name": "DeepSeek V3.2",
+      "provider": "DeepSeek",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "amazon.nova-2-multimodal-embeddings-v1:0",
+      "name": "Amazon Nova Multimodal Embeddings",
+      "provider": "Amazon",
+      "input": [
+        "TEXT",
+        "IMAGE",
+        "AUDIO",
+        "VIDEO"
+      ],
+      "output": [
+        "EMBEDDING"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "nvidia.nemotron-nano-3-30b",
+      "name": "Nemotron Nano 3 30B",
+      "provider": "NVIDIA",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "anthropic.claude-sonnet-4-6",
+      "name": "Claude Sonnet 4.6",
+      "provider": "Anthropic",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "minimax.minimax-m2",
+      "name": "MiniMax M2",
+      "provider": "MiniMax",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "zai.glm-4.7-flash",
+      "name": "GLM 4.7 Flash",
+      "provider": "Z.AI",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "mistral.voxtral-mini-3b-2507",
+      "name": "Voxtral Mini 3B 2507",
+      "provider": "Mistral AI",
+      "input": [
+        "SPEECH",
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "amazon.nova-pro-v1:0",
+      "name": "Nova Pro",
+      "provider": "Amazon",
+      "input": [
+        "TEXT",
+        "IMAGE",
+        "VIDEO"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND",
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "amazon.nova-pro-v1:0:24k",
+      "name": "Nova Pro",
+      "provider": "Amazon",
+      "input": [
+        "TEXT",
+        "IMAGE",
+        "VIDEO"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "PROVISIONED"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "amazon.nova-pro-v1:0:300k",
+      "name": "Nova Pro",
+      "provider": "Amazon",
+      "input": [
+        "TEXT",
+        "IMAGE",
+        "VIDEO"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "PROVISIONED"
+      ],
+      "customizations": [
+        "FINE_TUNING",
+        "DISTILLATION",
+        "PREFERENCE_FINE_TUNING"
+      ]
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "stability.stable-image-remove-background-v1:0",
+      "name": "Stable Image Remove Background",
+      "provider": "Stability AI",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "IMAGE"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "stability.stable-image-control-sketch-v1:0",
+      "name": "Stable Image Control Sketch",
+      "provider": "Stability AI",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "IMAGE"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "amazon.nova-2-lite-v1:0",
+      "name": "Nova 2 Lite",
+      "provider": "Amazon",
+      "input": [
+        "TEXT",
+        "IMAGE",
+        "VIDEO"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "amazon.nova-2-lite-v1:0:256k",
+      "name": "Nova 2 Lite",
+      "provider": "Amazon",
+      "input": [
+        "TEXT",
+        "IMAGE",
+        "VIDEO"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "PROVISIONED"
+      ],
+      "customizations": [
+        "FINE_TUNING"
+      ]
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "stability.stable-conservative-upscale-v1:0",
+      "name": "Stable Image Conservative Upscale",
+      "provider": "Stability AI",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "IMAGE"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "minimax.minimax-m2.5",
+      "name": "MiniMax M2.5",
+      "provider": "MiniMax",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "google.gemma-3-12b-it",
+      "name": "Gemma 3 12B IT",
+      "provider": "Google",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "stability.stable-image-search-recolor-v1:0",
+      "name": "Stable Image Search and Recolor",
+      "provider": "Stability AI",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "IMAGE"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "moonshot.kimi-k2-thinking",
+      "name": "Kimi K2 Thinking",
+      "provider": "Moonshot AI",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "mistral.mistral-large-3-675b-instruct",
+      "name": "Mistral Large 3",
+      "provider": "Mistral AI",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "twelvelabs.pegasus-1-2-v1:0",
+      "name": "Pegasus v1.2",
+      "provider": "TwelveLabs",
+      "input": [
+        "TEXT",
+        "VIDEO"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "INFERENCE_PROFILE",
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "amazon.nova-2-sonic-v1:0",
+      "name": "Nova 2 Sonic",
+      "provider": "Amazon",
+      "input": [
+        "SPEECH"
+      ],
+      "output": [
+        "SPEECH",
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "mistral.devstral-2-123b",
+      "name": "Devstral 2 123B",
+      "provider": "Mistral AI",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "minimax.minimax-m2.1",
+      "name": "MiniMax M2.1",
+      "provider": "MiniMax",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "nvidia.nemotron-super-3-120b",
+      "name": "NVIDIA Nemotron 3 Super 120B A12B",
+      "provider": "NVIDIA",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "qwen.qwen3-32b-v1:0",
+      "name": "Qwen3 32B (dense)",
+      "provider": "Qwen",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "mistral.ministral-3-14b-instruct",
+      "name": "Ministral 14B 3.0",
+      "provider": "Mistral AI",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "anthropic.claude-opus-4-6-v1",
+      "name": "Claude Opus 4.6",
+      "provider": "Anthropic",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "writer.palmyra-x5-v1:0",
+      "name": "Palmyra X5",
+      "provider": "Writer",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "nvidia.nemotron-nano-9b-v2",
+      "name": "NVIDIA Nemotron Nano 9B v2",
+      "provider": "NVIDIA",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "mistral.ministral-3-8b-instruct",
+      "name": "Ministral 3 8B",
+      "provider": "Mistral AI",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "mistral.voxtral-small-24b-2507",
+      "name": "Voxtral Small 24B 2507",
+      "provider": "Mistral AI",
+      "input": [
+        "SPEECH",
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "zai.glm-5",
+      "name": "GLM 5",
+      "provider": "Z.AI",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "openai.gpt-oss-20b-1:0",
+      "name": "gpt-oss-20b",
+      "provider": "OpenAI",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "google.gemma-3-4b-it",
+      "name": "Gemma 3 4B IT",
+      "provider": "Google",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "stability.stable-fast-upscale-v1:0",
+      "name": "Stable Image Fast Upscale",
+      "provider": "Stability AI",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "IMAGE"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "anthropic.claude-opus-4-8",
+      "name": "Claude Opus 4.8",
+      "provider": "Anthropic",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "anthropic.claude-opus-4-7",
+      "name": "Claude Opus 4.7",
+      "provider": "Anthropic",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "stability.stable-image-erase-object-v1:0",
+      "name": "Stable Image Erase Object",
+      "provider": "Stability AI",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "IMAGE"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "openai.gpt-oss-safeguard-120b",
+      "name": "GPT OSS Safeguard 120B",
+      "provider": "OpenAI",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "google.gemma-3-27b-it",
+      "name": "Gemma 3 27B PT",
+      "provider": "Google",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "stability.stable-image-control-structure-v1:0",
+      "name": "Stable Image Control Structure",
+      "provider": "Stability AI",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "IMAGE"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "twelvelabs.marengo-embed-3-0-v1:0",
+      "name": "Marengo Embed 3.0",
+      "provider": "TwelveLabs",
+      "input": [
+        "TEXT",
+        "IMAGE",
+        "SPEECH",
+        "VIDEO"
+      ],
+      "output": [
+        "EMBEDDING"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "INFERENCE_PROFILE",
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "writer.palmyra-x4-v1:0",
+      "name": "Palmyra X4",
+      "provider": "Writer",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "name": "Claude Sonnet 4.5",
+      "provider": "Anthropic",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "qwen.qwen3-vl-235b-a22b",
+      "name": "Qwen3 VL 235B A22B",
+      "provider": "Qwen",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "zai.glm-4.7",
+      "name": "GLM 4.7",
+      "provider": "Z.AI",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "writer.palmyra-vision-7b",
+      "name": "Writer Palmyra Vision 7B",
+      "provider": "Writer",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "stability.stable-outpaint-v1:0",
+      "name": "Stable Image Outpaint",
+      "provider": "Stability AI",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "IMAGE"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "anthropic.claude-sonnet-5",
+      "name": "Claude Sonnet 5",
+      "provider": "Anthropic",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "stability.stable-image-inpaint-v1:0",
+      "name": "Stable Image Inpaint",
+      "provider": "Stability AI",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "IMAGE"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "stability.stable-image-style-guide-v1:0",
+      "name": "Stable Image Style Guide",
+      "provider": "Stability AI",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "IMAGE"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "mistral.magistral-small-2509",
+      "name": "Magistral Small 2509",
+      "provider": "Mistral AI",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "stability.stable-style-transfer-v1:0",
+      "name": "Stable Image Style Transfer",
+      "provider": "Stability AI",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "IMAGE"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "cohere.embed-v4:0",
+      "name": "Embed v4",
+      "provider": "Cohere",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "EMBEDDING"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "ON_DEMAND",
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "mistral.ministral-3-3b-instruct",
+      "name": "Ministral 3B",
+      "provider": "Mistral AI",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "anthropic.claude-opus-4-5-20251101-v1:0",
+      "name": "Claude Opus 4.5",
+      "provider": "Anthropic",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "stability.stable-image-search-replace-v1:0",
+      "name": "Stable Image Search and Replace",
+      "provider": "Stability AI",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "IMAGE"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "qwen.qwen3-coder-30b-a3b-v1:0",
+      "name": "Qwen3-Coder-30B-A3B-Instruct",
+      "provider": "Qwen",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "openai.gpt-oss-safeguard-20b",
+      "name": "GPT OSS Safeguard 20B",
+      "provider": "OpenAI",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "amazon.nova-lite-v1:0:24k",
+      "name": "Nova Lite",
+      "provider": "Amazon",
+      "input": [
+        "TEXT",
+        "IMAGE",
+        "VIDEO"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "PROVISIONED"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "amazon.nova-lite-v1:0:300k",
+      "name": "Nova Lite",
+      "provider": "Amazon",
+      "input": [
+        "TEXT",
+        "IMAGE",
+        "VIDEO"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "PROVISIONED"
+      ],
+      "customizations": [
+        "FINE_TUNING",
+        "DISTILLATION"
+      ]
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "amazon.nova-lite-v1:0",
+      "name": "Nova Lite",
+      "provider": "Amazon",
+      "input": [
+        "TEXT",
+        "IMAGE",
+        "VIDEO"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND",
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "amazon.nova-micro-v1:0:24k",
+      "name": "Nova Micro",
+      "provider": "Amazon",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "PROVISIONED"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "amazon.nova-micro-v1:0:128k",
+      "name": "Nova Micro",
+      "provider": "Amazon",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "PROVISIONED"
+      ],
+      "customizations": [
+        "FINE_TUNING",
+        "DISTILLATION"
+      ]
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "amazon.nova-micro-v1:0",
+      "name": "Nova Micro",
+      "provider": "Amazon",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND",
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "amazon.titan-embed-g1-text-02",
+      "name": "Titan Text Embeddings v2",
+      "provider": "Amazon",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "EMBEDDING"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "amazon.titan-embed-text-v1:2:8k",
+      "name": "Titan Embeddings G1 - Text",
+      "provider": "Amazon",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "EMBEDDING"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "PROVISIONED"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "amazon.titan-embed-text-v1",
+      "name": "Titan Embeddings G1 - Text",
+      "provider": "Amazon",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "EMBEDDING"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "amazon.titan-embed-text-v2:0:8k",
+      "name": "Titan Text Embeddings V2",
+      "provider": "Amazon",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "EMBEDDING"
+      ],
+      "streaming": false,
+      "inference_types": [],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "amazon.titan-embed-text-v2:0",
+      "name": "Titan Text Embeddings V2",
+      "provider": "Amazon",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "EMBEDDING"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "amazon.titan-embed-image-v1:0",
+      "name": "Titan Multimodal Embeddings G1",
+      "provider": "Amazon",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "EMBEDDING"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "PROVISIONED"
+      ],
+      "customizations": [
+        "FINE_TUNING"
+      ]
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "amazon.titan-embed-image-v1",
+      "name": "Titan Multimodal Embeddings G1",
+      "provider": "Amazon",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "EMBEDDING"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "cohere.embed-english-v3:0:512",
+      "name": "Embed English",
+      "provider": "Cohere",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "EMBEDDING"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "PROVISIONED"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "cohere.embed-english-v3",
+      "name": "Embed English",
+      "provider": "Cohere",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "EMBEDDING"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "cohere.embed-multilingual-v3:0:512",
+      "name": "Embed Multilingual",
+      "provider": "Cohere",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "EMBEDDING"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "PROVISIONED"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "cohere.embed-multilingual-v3",
+      "name": "Embed Multilingual",
+      "provider": "Cohere",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "EMBEDDING"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "cohere.rerank-v3-5:0",
+      "name": "Rerank 3.5",
+      "provider": "Cohere",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": false,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "deepseek.r1-v1:0",
+      "name": "DeepSeek-R1",
+      "provider": "DeepSeek",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "meta.llama3-8b-instruct-v1:0",
+      "name": "Llama 3 8B Instruct",
+      "provider": "Meta",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "meta.llama3-70b-instruct-v1:0",
+      "name": "Llama 3 70B Instruct",
+      "provider": "Meta",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "meta.llama3-1-8b-instruct-v1:0",
+      "name": "Llama 3.1 8B Instruct",
+      "provider": "Meta",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "meta.llama3-1-70b-instruct-v1:0",
+      "name": "Llama 3.1 70B Instruct",
+      "provider": "Meta",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "meta.llama3-3-70b-instruct-v1:0",
+      "name": "Llama 3.3 70B Instruct",
+      "provider": "Meta",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "meta.llama4-scout-17b-instruct-v1:0",
+      "name": "Llama 4 Scout 17B Instruct",
+      "provider": "Meta",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "meta.llama4-maverick-17b-instruct-v1:0",
+      "name": "Llama 4 Maverick 17B Instruct",
+      "provider": "Meta",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "mistral.mistral-7b-instruct-v0:2",
+      "name": "Mistral 7B Instruct",
+      "provider": "Mistral AI",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "mistral.mixtral-8x7b-instruct-v0:1",
+      "name": "Mixtral 8x7B Instruct",
+      "provider": "Mistral AI",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "mistral.mistral-large-2402-v1:0",
+      "name": "Mistral Large (24.02)",
+      "provider": "Mistral AI",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "mistral.mistral-small-2402-v1:0",
+      "name": "Mistral Small (24.02)",
+      "provider": "Mistral AI",
+      "input": [
+        "TEXT"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "ON_DEMAND"
+      ],
+      "customizations": []
+    },
+    {
+      "source": "bedrock-serverless",
+      "model_id": "mistral.pixtral-large-2502-v1:0",
+      "name": "Pixtral Large (25.02)",
+      "provider": "Mistral AI",
+      "input": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "output": [
+        "TEXT"
+      ],
+      "streaming": true,
+      "inference_types": [
+        "INFERENCE_PROFILE"
+      ],
+      "customizations": []
+    }
+  ],
+  "bedrock-inference-profiles": [
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.anthropic.claude-3-sonnet-20240229-v1:0",
+      "name": "US Anthropic Claude 3 Sonnet",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "anthropic.claude-3-sonnet-20240229-v1:0",
+        "anthropic.claude-3-sonnet-20240229-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.anthropic.claude-3-haiku-20240307-v1:0",
+      "name": "US Anthropic Claude 3 Haiku",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "anthropic.claude-3-haiku-20240307-v1:0",
+        "anthropic.claude-3-haiku-20240307-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.meta.llama3-2-11b-instruct-v1:0",
+      "name": "US Meta Llama 3.2 11B Instruct",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "meta.llama3-2-11b-instruct-v1:0",
+        "meta.llama3-2-11b-instruct-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.meta.llama3-2-3b-instruct-v1:0",
+      "name": "US Meta Llama 3.2 3B Instruct",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "meta.llama3-2-3b-instruct-v1:0",
+        "meta.llama3-2-3b-instruct-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.meta.llama3-2-90b-instruct-v1:0",
+      "name": "US Meta Llama 3.2 90B Instruct",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "meta.llama3-2-90b-instruct-v1:0",
+        "meta.llama3-2-90b-instruct-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.meta.llama3-2-1b-instruct-v1:0",
+      "name": "US Meta Llama 3.2 1B Instruct",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "meta.llama3-2-1b-instruct-v1:0",
+        "meta.llama3-2-1b-instruct-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.meta.llama3-1-8b-instruct-v1:0",
+      "name": "US Meta Llama 3.1 8B Instruct",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "meta.llama3-1-8b-instruct-v1:0",
+        "meta.llama3-1-8b-instruct-v1:0",
+        "meta.llama3-1-8b-instruct-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.meta.llama3-1-70b-instruct-v1:0",
+      "name": "US Meta Llama 3.1 70B Instruct",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "meta.llama3-1-70b-instruct-v1:0",
+        "meta.llama3-1-70b-instruct-v1:0",
+        "meta.llama3-1-70b-instruct-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.meta.llama3-3-70b-instruct-v1:0",
+      "name": "US Meta Llama 3.3 70B Instruct",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "meta.llama3-3-70b-instruct-v1:0",
+        "meta.llama3-3-70b-instruct-v1:0",
+        "meta.llama3-3-70b-instruct-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.deepseek.r1-v1:0",
+      "name": "US DeepSeek-R1",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "deepseek.r1-v1:0",
+        "deepseek.r1-v1:0",
+        "deepseek.r1-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.mistral.pixtral-large-2502-v1:0",
+      "name": "US Mistral Pixtral Large 25.02",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "mistral.pixtral-large-2502-v1:0",
+        "mistral.pixtral-large-2502-v1:0",
+        "mistral.pixtral-large-2502-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.amazon.nova-premier-v1:0",
+      "name": "US Nova Premier",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "amazon.nova-premier-v1:0",
+        "amazon.nova-premier-v1:0",
+        "amazon.nova-premier-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.twelvelabs.pegasus-1-2-v1:0",
+      "name": "US Pegasus v1.2",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "twelvelabs.pegasus-1-2-v1:0",
+        "twelvelabs.pegasus-1-2-v1:0",
+        "twelvelabs.pegasus-1-2-v1:0",
+        "twelvelabs.pegasus-1-2-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.stability.stable-conservative-upscale-v1:0",
+      "name": "US Stable Image Conservative Upscale",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "stability.stable-conservative-upscale-v1:0",
+        "stability.stable-conservative-upscale-v1:0",
+        "stability.stable-conservative-upscale-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.twelvelabs.marengo-embed-2-7-v1:0",
+      "name": "US TwelveLabs Marengo Embed v2.7",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "twelvelabs.marengo-embed-2-7-v1:0",
+        "twelvelabs.marengo-embed-2-7-v1:0",
+        "twelvelabs.marengo-embed-2-7-v1:0",
+        "twelvelabs.marengo-embed-2-7-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.stability.stable-creative-upscale-v1:0",
+      "name": "US Stable Image Creative Upscale",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "stability.stable-creative-upscale-v1:0",
+        "stability.stable-creative-upscale-v1:0",
+        "stability.stable-creative-upscale-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.stability.stable-fast-upscale-v1:0",
+      "name": "US Stable Image Fast Upscale",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "stability.stable-fast-upscale-v1:0",
+        "stability.stable-fast-upscale-v1:0",
+        "stability.stable-fast-upscale-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.stability.stable-image-control-sketch-v1:0",
+      "name": "US Stable Image Control Sketch",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "stability.stable-image-control-sketch-v1:0",
+        "stability.stable-image-control-sketch-v1:0",
+        "stability.stable-image-control-sketch-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.stability.stable-image-control-structure-v1:0",
+      "name": "US Stable Image Control Structure",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "stability.stable-image-control-structure-v1:0",
+        "stability.stable-image-control-structure-v1:0",
+        "stability.stable-image-control-structure-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.stability.stable-image-erase-object-v1:0",
+      "name": "US Stable Image Erase Object",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "stability.stable-image-erase-object-v1:0",
+        "stability.stable-image-erase-object-v1:0",
+        "stability.stable-image-erase-object-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.stability.stable-image-inpaint-v1:0",
+      "name": "US Stable Image Inpaint",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "stability.stable-image-inpaint-v1:0",
+        "stability.stable-image-inpaint-v1:0",
+        "stability.stable-image-inpaint-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.stability.stable-image-remove-background-v1:0",
+      "name": "US Stable Image Remove Background",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "stability.stable-image-remove-background-v1:0",
+        "stability.stable-image-remove-background-v1:0",
+        "stability.stable-image-remove-background-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.stability.stable-image-search-replace-v1:0",
+      "name": "US Stable Image Search and Replace",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "stability.stable-image-search-replace-v1:0",
+        "stability.stable-image-search-replace-v1:0",
+        "stability.stable-image-search-replace-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.stability.stable-image-search-recolor-v1:0",
+      "name": "US Stable Image Search and Recolor",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "stability.stable-image-search-recolor-v1:0",
+        "stability.stable-image-search-recolor-v1:0",
+        "stability.stable-image-search-recolor-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.stability.stable-image-style-guide-v1:0",
+      "name": "US Stable Image Style Guide",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "stability.stable-image-style-guide-v1:0",
+        "stability.stable-image-style-guide-v1:0",
+        "stability.stable-image-style-guide-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.stability.stable-outpaint-v1:0",
+      "name": "US Stable Image Outpaint",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "stability.stable-outpaint-v1:0",
+        "stability.stable-outpaint-v1:0",
+        "stability.stable-outpaint-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.stability.stable-style-transfer-v1:0",
+      "name": "US Stable Image Style Transfer",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "stability.stable-style-transfer-v1:0",
+        "stability.stable-style-transfer-v1:0",
+        "stability.stable-style-transfer-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.cohere.embed-v4:0",
+      "name": "US Cohere Embed v4",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "cohere.embed-v4:0",
+        "cohere.embed-v4:0",
+        "cohere.embed-v4:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "global.cohere.embed-v4:0",
+      "name": "Global Cohere Embed v4",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "cohere.embed-v4:0",
+        "cohere.embed-v4:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.twelvelabs.marengo-embed-3-0-v1:0",
+      "name": "US TwelveLabs Marengo Embed 3.0",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "twelvelabs.marengo-embed-3-0-v1:0",
+        "twelvelabs.marengo-embed-3-0-v1:0",
+        "twelvelabs.marengo-embed-3-0-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "global.twelvelabs.pegasus-1-2-v1:0",
+      "name": "GLOBAL TwelveLabs Pegasus v1.2",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "twelvelabs.pegasus-1-2-v1:0",
+        "twelvelabs.pegasus-1-2-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.writer.palmyra-x4-v1:0",
+      "name": "US Writer Palmyra X4",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "writer.palmyra-x4-v1:0",
+        "writer.palmyra-x4-v1:0",
+        "writer.palmyra-x4-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.writer.palmyra-x5-v1:0",
+      "name": "US Writer Palmyra X5",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "writer.palmyra-x5-v1:0",
+        "writer.palmyra-x5-v1:0",
+        "writer.palmyra-x5-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "global.amazon.nova-2-lite-v1:0",
+      "name": "GLOBAL Amazon Nova 2 Lite",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "amazon.nova-2-lite-v1:0",
+        "amazon.nova-2-lite-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.anthropic.claude-opus-4-1-20250805-v1:0",
+      "name": "US Claude Opus 4.1",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "anthropic.claude-opus-4-1-20250805-v1:0",
+        "anthropic.claude-opus-4-1-20250805-v1:0",
+        "anthropic.claude-opus-4-1-20250805-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.anthropic.claude-sonnet-4-6",
+      "name": "US Anthropic Claude Sonnet 4.6",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "anthropic.claude-sonnet-4-6",
+        "anthropic.claude-sonnet-4-6",
+        "anthropic.claude-sonnet-4-6"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.anthropic.claude-opus-4-5-20251101-v1:0",
+      "name": "US Anthropic Claude Opus 4.5",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "anthropic.claude-opus-4-5-20251101-v1:0",
+        "anthropic.claude-opus-4-5-20251101-v1:0",
+        "anthropic.claude-opus-4-5-20251101-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.anthropic.claude-opus-4-7",
+      "name": "US Anthropic Claude Opus 4.7",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "anthropic.claude-opus-4-7",
+        "anthropic.claude-opus-4-7",
+        "anthropic.claude-opus-4-7"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "name": "US Anthropic Claude Sonnet 4.5",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "anthropic.claude-sonnet-4-5-20250929-v1:0",
+        "anthropic.claude-sonnet-4-5-20250929-v1:0",
+        "anthropic.claude-sonnet-4-5-20250929-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.anthropic.claude-opus-4-6-v1",
+      "name": "US Anthropic Claude Opus 4.6",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "anthropic.claude-opus-4-6-v1",
+        "anthropic.claude-opus-4-6-v1",
+        "anthropic.claude-opus-4-6-v1"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
+      "name": "Global Anthropic Claude Haiku 4.5",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "anthropic.claude-haiku-4-5-20251001-v1:0",
+        "anthropic.claude-haiku-4-5-20251001-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "global.anthropic.claude-opus-4-6-v1",
+      "name": "Global Anthropic Claude Opus 4.6",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "anthropic.claude-opus-4-6-v1",
+        "anthropic.claude-opus-4-6-v1"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.amazon.nova-micro-v1:0",
+      "name": "US Nova Micro",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "amazon.nova-micro-v1:0",
+        "amazon.nova-micro-v1:0",
+        "amazon.nova-micro-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "global.anthropic.claude-sonnet-4-6",
+      "name": "Global Anthropic Claude Sonnet 4.6",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "anthropic.claude-sonnet-4-6",
+        "anthropic.claude-sonnet-4-6"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.anthropic.claude-sonnet-4-20250514-v1:0",
+      "name": "US Claude Sonnet 4",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "anthropic.claude-sonnet-4-20250514-v1:0",
+        "anthropic.claude-sonnet-4-20250514-v1:0",
+        "anthropic.claude-sonnet-4-20250514-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "global.anthropic.claude-sonnet-4-20250514-v1:0",
+      "name": "Global Claude Sonnet 4",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "anthropic.claude-sonnet-4-20250514-v1:0",
+        "anthropic.claude-sonnet-4-20250514-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "global.anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "name": "Global Claude Sonnet 4.5",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "anthropic.claude-sonnet-4-5-20250929-v1:0",
+        "anthropic.claude-sonnet-4-5-20250929-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "global.anthropic.claude-opus-4-5-20251101-v1:0",
+      "name": "GLOBAL Anthropic Claude Opus 4.5",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "anthropic.claude-opus-4-5-20251101-v1:0",
+        "anthropic.claude-opus-4-5-20251101-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.meta.llama4-maverick-17b-instruct-v1:0",
+      "name": "US Llama 4 Maverick 17B Instruct",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "meta.llama4-maverick-17b-instruct-v1:0",
+        "meta.llama4-maverick-17b-instruct-v1:0",
+        "meta.llama4-maverick-17b-instruct-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.meta.llama4-scout-17b-instruct-v1:0",
+      "name": "US Llama 4 Scout 17B Instruct",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "meta.llama4-scout-17b-instruct-v1:0",
+        "meta.llama4-scout-17b-instruct-v1:0",
+        "meta.llama4-scout-17b-instruct-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "global.anthropic.claude-opus-4-7",
+      "name": "Global Anthropic Claude Opus 4.7",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "anthropic.claude-opus-4-7",
+        "anthropic.claude-opus-4-7"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.amazon.nova-lite-v1:0",
+      "name": "US Nova Lite",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "amazon.nova-lite-v1:0",
+        "amazon.nova-lite-v1:0",
+        "amazon.nova-lite-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.anthropic.claude-opus-4-8",
+      "name": "US Anthropic Claude Opus 4.8",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "anthropic.claude-opus-4-8",
+        "anthropic.claude-opus-4-8",
+        "anthropic.claude-opus-4-8"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "global.anthropic.claude-opus-4-8",
+      "name": "Global Anthropic Claude Opus 4.8",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "anthropic.claude-opus-4-8",
+        "anthropic.claude-opus-4-8"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+      "name": "US Anthropic Claude Haiku 4.5",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "anthropic.claude-haiku-4-5-20251001-v1:0",
+        "anthropic.claude-haiku-4-5-20251001-v1:0",
+        "anthropic.claude-haiku-4-5-20251001-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.amazon.nova-2-lite-v1:0",
+      "name": "US Amazon Nova 2 Lite",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "amazon.nova-2-lite-v1:0",
+        "amazon.nova-2-lite-v1:0",
+        "amazon.nova-2-lite-v1:0"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.anthropic.claude-fable-5",
+      "name": "US Anthropic Claude Fable 5",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "anthropic.claude-fable-5",
+        "anthropic.claude-fable-5",
+        "anthropic.claude-fable-5"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "global.anthropic.claude-fable-5",
+      "name": "Global Anthropic Claude Fable 5",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "anthropic.claude-fable-5",
+        "anthropic.claude-fable-5"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.anthropic.claude-sonnet-5",
+      "name": "US Anthropic Claude Sonnet 5",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "anthropic.claude-sonnet-5",
+        "anthropic.claude-sonnet-5",
+        "anthropic.claude-sonnet-5"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "global.anthropic.claude-sonnet-5",
+      "name": "Global Anthropic Claude Sonnet 5",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "anthropic.claude-sonnet-5",
+        "anthropic.claude-sonnet-5"
+      ]
+    },
+    {
+      "source": "bedrock-inference-profile",
+      "model_id": "us.amazon.nova-pro-v1:0",
+      "name": "US Nova Pro",
+      "status": "ACTIVE",
+      "type": "SYSTEM_DEFINED",
+      "models": [
+        "amazon.nova-pro-v1:0",
+        "amazon.nova-pro-v1:0",
+        "amazon.nova-pro-v1:0"
+      ]
+    }
+  ],
+  "bedrock-marketplace": [
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "writer-palmyra-med-70b-32k",
+      "name": "Writer Palmyra-Med-70B-32K",
+      "description": "Palmyra-Med, a powerful LLM designed for healthcare",
+      "tasks": [
+        "text generation",
+        "generation-text",
+        "natural language processing",
+        "summarization-text"
+      ],
+      "framework": "writer",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "writer-palmyra-fin-70b-32k",
+      "name": "Writer Palmyra-Fin-70B-32K",
+      "description": "Palmyra-Fin, a powerful LLM designed for Finance",
+      "tasks": [
+        "text generation",
+        "generation-text",
+        "natural language processing",
+        "summarization-text"
+      ],
+      "framework": "writer",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "widn-tower-sugarloaf",
+      "name": "Widn Tower Sugarloaf",
+      "description": "Tower Sugarloaf by Widn is a powerful multilingual LLM designed for advanced translation tasks across multiple languages and domains.",
+      "tasks": [
+        "translation",
+        "translation",
+        "generative ai",
+        "natural language processing"
+      ],
+      "framework": "widn.ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "widn-tower-anthill",
+      "name": "Widn Tower Anthill",
+      "description": "Tower Anthill by Widn is a powerful multilingual LLM designed for advanced translation tasks across multiple languages and domains.",
+      "tasks": [
+        "translation",
+        "translation",
+        "generative ai",
+        "natural language processing"
+      ],
+      "framework": "widn.ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "widn-llama3-tower-vesuvius",
+      "name": "Widn Tower Vesuvius",
+      "description": "Tower Vesuvius by Widn is a powerful multilingual LLM designed for advanced translation tasks across multiple languages and domains.",
+      "tasks": [
+        "translation",
+        "translation",
+        "generative ai",
+        "natural language processing"
+      ],
+      "framework": "widn.ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "voyage-3-embedding",
+      "name": "voyage-3 Embedding Model",
+      "description": "Text embedding model optimized for general-purpose (including multilingual) retrieval/search and AI applications. 32K context length.",
+      "tasks": [
+        "text embedding",
+        "embeddings",
+        "natural language processing",
+        "classification-text"
+      ],
+      "framework": "voyage ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "upstage-solar-pro",
+      "name": "Solar Pro 2",
+      "description": "Advanced reasoning, tool use, and multilingual support",
+      "tasks": [
+        "text generation",
+        "natural language processing",
+        "generative ai",
+        "generation-text"
+      ],
+      "framework": "upstage",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "upstage-solar-pro-quantized",
+      "name": "Solar Pro - Quant",
+      "description": "The most intelligent LLM on a single GPU",
+      "tasks": [
+        "text generation",
+        "natural language processing",
+        "generative ai",
+        "generation-text"
+      ],
+      "framework": "upstage",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "upstage-solar-mini-chat-quant",
+      "name": "Solar Mini - Quant",
+      "description": "Compact, yet powerful LLM by Upstage",
+      "tasks": [
+        "text generation",
+        "natural language processing",
+        "generative ai",
+        "generation-text"
+      ],
+      "framework": "upstage",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "stockmark-llm-13b",
+      "name": "Stockmark-LLM-13b",
+      "description": "LLM for Japanese Business",
+      "tasks": [
+        "text generation",
+        "generative ai",
+        "generation-text",
+        "summarization-text"
+      ],
+      "framework": "stockmark inc.",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "stabilityai-stable-diffusion-3-5-large",
+      "name": "Stable Diffusion 3.5 Large",
+      "description": "One of the most customizable and accessible image models available, maintaining top-tier performance in prompt adherence and image quality.",
+      "tasks": [
+        "text to image",
+        "generation-image",
+        "generative ai",
+        "image"
+      ],
+      "framework": "stability ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "protopia-llama-3-1-8b-instruct",
+      "name": "Llama-3.1-8B-Instruct with Stained Glass Transform Support",
+      "description": "Llama-3.1-8B-Instruct with Stained Glass Transform Support, enabled via prompt-embeds support in vLLM.",
+      "tasks": [
+        "text generation",
+        "generative ai",
+        "masking/tokenization",
+        "ml solutions"
+      ],
+      "framework": "protopia ai, inc.",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "preferred-networks-plamo-api",
+      "name": "PLaMo Private Deployment",
+      "description": "Deploy PLaMo API server to your environment",
+      "tasks": [
+        "text generation",
+        "generative ai",
+        "generation-text",
+        "content creation"
+      ],
+      "framework": "preferred networks, inc.",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "nvidia-nemotron-super-49b-nim",
+      "name": "Llama 3.3 Nemotron Super 49B V1",
+      "description": "Llama 3.3 Nemotron Super 49B V1 is a large language model (LLM) which is a derivative of Meta Llama-3.3-70B-Instruct with reasoning capabilities.",
+      "tasks": [
+        "text generation",
+        "generation-text",
+        "natural language processing",
+        "generative ai"
+      ],
+      "framework": "nvidia",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "nvidia-nemotron-nano-8b-nim",
+      "name": "Llama 3.1 Nemotron Nano 8B V1",
+      "description": "Llama 3.1 Nemotron Nano 8B V1 is a large language model (LLM) which is a derivative of Meta Llama-3.1-8B-Instruct with reasoning capabilities.",
+      "tasks": [
+        "text generation",
+        "generation-text",
+        "generative ai",
+        "natural language processing"
+      ],
+      "framework": "nvidia",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "nvidia-nemotron-4-15b-nim",
+      "name": "NVIDIA Nemotron-4 15B NIM Microservice",
+      "description": "NVIDIA Nemotron-4 15B NIM is a 15-billion-parameter large multilingual language model trained on 8T tokens of multilingual, and coding tasks",
+      "tasks": [
+        "text generation",
+        "generative ai",
+        "natural language processing",
+        "generation-text"
+      ],
+      "framework": "nvidia",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "ncsoft-llama-3-varco-offsetbias-8b",
+      "name": "Llama-3-Varco-Offsetbias-8B",
+      "description": "Llama-3-Varco-Offsetbias-8B is NCSOFT's generative judge model that performs pairwise preference evaluation task.",
+      "tasks": [
+        "text generation",
+        "text"
+      ],
+      "framework": "ncsoft",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "ncsoft-ko-13b-ist",
+      "name": "VARCO LLM KO/EN-13B-IST",
+      "description": "Build advanced NLP-based AI services using our VARCO-LLM. VARCO-LLM is a high-performance large language model trained by NCSOFT.",
+      "tasks": [
+        "text generation",
+        "text",
+        "generation-text",
+        "natural language processing"
+      ],
+      "framework": "ncsoft",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "liquid-lfm-7b-l40s",
+      "name": "Liquid LFM 7B (L40S)",
+      "description": "Liquid LFM 7B is designed to handle complex tasks, offering an optimal balance between size and output quality.",
+      "tasks": [
+        "text generation",
+        "natural language processing",
+        "generation-text",
+        "summarization-text"
+      ],
+      "framework": "liquid ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "liquid-lfm-40b-l40s",
+      "name": "Liquid LFM 40B (L40S)",
+      "description": "Liquid LFM 40B is designed to handle complex tasks, offering an optimal balance between size and output quality.",
+      "tasks": [
+        "text generation",
+        "natural language processing",
+        "generation-text",
+        "summarization-text"
+      ],
+      "framework": "liquid ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "liquid-lfm-40b-h100",
+      "name": "Liquid LFM 40B (H100)",
+      "description": "Liquid LFM 40B is designed to handle complex tasks, offering an optimal balance between size and output quality.",
+      "tasks": [
+        "text generation",
+        "natural language processing",
+        "generation-text",
+        "summarization-text"
+      ],
+      "framework": "liquid ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "liquid-lfm-40b-a100",
+      "name": "Liquid LFM 40B (A100)",
+      "description": "Liquid LFM 40B is designed to handle complex tasks, offering an optimal balance between size and output quality.",
+      "tasks": [
+        "text generation",
+        "natural language processing",
+        "generation-text",
+        "summarization-text"
+      ],
+      "framework": "liquid ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "lg-ixi-gen",
+      "name": "ixi-GEN-Fin-7.8B",
+      "description": "ixi-GEN-Fin-7.8B is an sLLM of  LG Uplus specifically instruction-tuned in the financial domain.",
+      "tasks": [
+        "text generation",
+        "natural language processing",
+        "generative ai",
+        "text"
+      ],
+      "framework": "lg u+",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "karakuri-lm-8x7b-instruct",
+      "name": "KARAKURI LM 8x7b instruct",
+      "description": "mixture of experts (MoE) architecture that supports multiple languages, primarily English and Japanese",
+      "tasks": [
+        "text generation",
+        "ml solutions",
+        "natural language processing",
+        "generative ai"
+      ],
+      "framework": "karakuri, inc.",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "john-snow-labs-summarization-qa",
+      "name": "Medical LLM - Small",
+      "description": "This multimodal medical model delivers advanced clinical reasoning across both text and medical imagery in a highly efficient footprint. Trained on diverse medical thinking and patient-centered datasets, it understands complex clinical narratives while accurately interpreting X-rays, MRIs, CT scans, pathology slides, charts, diagrams, and structured medical records.",
+      "tasks": [
+        "text summarization",
+        "generative ai",
+        "summarization-text",
+        "healthcare & life sciences"
+      ],
+      "framework": "john snow labs",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "john-snow-labs-medical-translation-en-es",
+      "name": "Medical Text Translation (EN-ES)",
+      "description": "Cutting-edge English - Spanish medical translation model.",
+      "tasks": [
+        "translation",
+        "natural language processing",
+        "translation",
+        "healthcare & life sciences"
+      ],
+      "framework": "john snow labs",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "john-snow-labs-medical-summarization-qa-8b",
+      "name": "Medical LLM - Medium",
+      "description": "Model with advanced clinical decision-support system built for structured medical reasoning rather than simple knowledge retrieval.  It analyzes symptoms, diagnostics, and longitudinal patient histories to guide complex diagnostic and treatment decisions in line with established clinical guidelines.  With multimodal vision capabilities, it can also interpret medical images and visual documents alongside text, broadening the range of clinical inputs.",
+      "tasks": [
+        "text summarization",
+        "ml solutions",
+        "summarization-text",
+        "healthcare & life sciences"
+      ],
+      "framework": "john snow labs",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "jbai-mellum-python",
+      "name": "JetBrains AI Mellum Python",
+      "description": "Mellum Python is JetBrains' large language model (LLM) optimized for code completion in python.",
+      "tasks": [
+        "text2text generation",
+        "ml solutions",
+        "software development",
+        "generative ai"
+      ],
+      "framework": "jetbrains s.r.o.",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "jbai-mellum-kotlin",
+      "name": "JetBrains AI Mellum Kotlin",
+      "description": "Mellum Kotlin is JetBrains' large language model (LLM) optimized for code completion in Kotlin and Java languages.",
+      "tasks": [
+        "text2text generation",
+        "ml solutions",
+        "software development",
+        "generative ai"
+      ],
+      "framework": "jetbrains s.r.o.",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "jbai-mellum-all",
+      "name": "JetBrains AI Mellum All",
+      "description": "Mellum All is JetBrains' large language model (LLM) optimized for code completion in all languages.",
+      "tasks": [
+        "text2text generation",
+        "ml solutions",
+        "software development",
+        "generative ai"
+      ],
+      "framework": "jetbrains s.r.o.",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "inception-mercury",
+      "name": "Mercury",
+      "description": "Mercury is the first diffusion large language model (dLLM). Applying a breakthrough discrete diffusion approach, the model runs 5-10x faster than even speed optimized models like Claude 3.5 Haiku and GPT-4o Mini while matching their performance. Mercury's speed means that developers can stay in the flow while coding, enjoying rapid chat-based iteration and responsive code completion suggestions.",
+      "tasks": [
+        "text generation",
+        "software development",
+        "audio",
+        "generation-text"
+      ],
+      "framework": "inception",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "inception-mercury-coder",
+      "name": "Mercury Coder",
+      "description": "Mercury Coder is the first diffusion large language model (dLLM). Applying a breakthrough discrete diffusion approach, the model runs 5-10x faster than even speed optimized models like Claude 3.5 Haiku and GPT-4o Mini while matching their performance. Mercury Coder Small's speed means that developers can stay in the flow while coding, enjoying rapid chat-based iteration and responsive code completion suggestions. On Copilot Arena, Mercury Coder ranks 1st in speed and ties for 2nd in quality. Read more in the blog https://www.inceptionlabs.ai/introducing-mercury.",
+      "tasks": [
+        "text generation",
+        "software development",
+        "generation-text",
+        "audio"
+      ],
+      "framework": "inception",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "ibm-granite-8b-code-instruct-128k",
+      "name": "IBM Granite 8B Code Instruct - 128K",
+      "description": "IBM Granite 8B Code Instruct 128K is a model fine-tuned to solve long-context problems while maintaining short-context performance.",
+      "tasks": [
+        "text generation",
+        "generative ai",
+        "natural language processing",
+        "ml solutions"
+      ],
+      "framework": "ibm data and ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "ibm-granite-3b-code-instruct-128k",
+      "name": "IBM Granite 3B Code Instruct - 128K",
+      "description": "IBM Granite 3B Code Instruct 128K is a model fine-tuned to solve long-context problems while maintaining short-context performance.",
+      "tasks": [
+        "text generation",
+        "generative ai",
+        "natural language processing",
+        "ml solutions"
+      ],
+      "framework": "ibm data and ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "ibm-granite-34b-code-instruct-8k",
+      "name": "IBM Granite 34B Code Instruct - 8K",
+      "description": "IBM Granite 34B Code Instruct 8K is a model fine-tuned to enhance instruction following, logical reasoning, and problem-solving skills.",
+      "tasks": [
+        "text generation",
+        "generative ai",
+        "natural language processing",
+        "ml solutions"
+      ],
+      "framework": "ibm data and ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "ibm-granite-3-2-8b-instruct",
+      "name": "IBM Granite 3.2 Instruct 8B",
+      "description": "IBM Granite 3.2 Instruct is an open-source model with controllable reasoning, offering strong performance and enhanced complex thinking.",
+      "tasks": [
+        "text generation",
+        "generative ai",
+        "natural language processing",
+        "ml solutions"
+      ],
+      "framework": "ibm data and ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "ibm-granite-3-2-2b-instruct",
+      "name": "IBM Granite 3.2 Instruct 2B",
+      "description": "IBM Granite 3.2 Instruct is an open-source model with controllable reasoning, offering strong performance and enhanced complex thinking.",
+      "tasks": [
+        "text generation",
+        "generative ai",
+        "natural language processing",
+        "ml solutions"
+      ],
+      "framework": "ibm data and ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "ibm-granite-20b-code-instruct-8k",
+      "name": "IBM Granite 20B Code Instruct - 8K",
+      "description": "IBM Granite 20B Code Instruct 8K is a model fine-tuned to enhance instruction following, logical reasoning, and problem-solving skills.",
+      "tasks": [
+        "text generation",
+        "generative ai",
+        "natural language processing",
+        "ml solutions"
+      ],
+      "framework": "ibm data and ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-vlm-mistral-small-3-2-24b-instruct-2506",
+      "name": "Mistral-Small-3.2-24B-Instruct-2506",
+      "description": "Name: Mistral-Small-3.2-24B-Instruct-2506 | Provider: mistralai | DataType: Multimodal | ProblemType: Image-Text-to-Text",
+      "tasks": [
+        "image-text-to-text"
+      ],
+      "framework": "mistral",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-vlm-mistral-small-3-1-24b-base-2503",
+      "name": "Mistral-Small-3.1-24B-Base-2503",
+      "description": "Name: Mistral-Small-3.1-24B-Base-2503 | Provider: mistralai | DataType: Multimodal | ProblemType: Image-Text-to-Text",
+      "tasks": [
+        "image-text-to-text"
+      ],
+      "framework": "mistral",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-vlm-mistral-pixtral-12b-2409",
+      "name": "Mistral Pixtral-12B-2409",
+      "description": "Name: Mistral Pixtral-12B-2409 | Provider: mistralai | DataType: Multimodal | ProblemType: Image-Text-to-Text",
+      "tasks": [
+        "image-text-to-text"
+      ],
+      "framework": "mistral",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-vlm-gemma-3-4b-instruct",
+      "name": "Gemma 3 4B Instruct",
+      "description": "Name: Gemma 3 4B Instruct | Provider: google | DataType: Multimodal | ProblemType: Image-Text-to-Text",
+      "tasks": [
+        "image-text-to-text"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-vlm-gemma-3-27b-instruct",
+      "name": "Gemma 3 27B Instruct",
+      "description": "Name: Gemma 3 27B Instruct | Provider: google | DataType: Multimodal | ProblemType: Image-Text-to-Text",
+      "tasks": [
+        "image-text-to-text"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-textgeneration2-gpt-neox-20b-fp16",
+      "name": "gpt-neox-20b",
+      "description": "Name: gpt-neox-20b | Provider: EleutherAI | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-textgeneration1-mpt-7b-instruct-bf16",
+      "name": "MPT 7B Instruct BF16",
+      "description": "Name: MPT 7B Instruct BF16 | Provider: mosaicml | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-textgeneration1-mpt-7b-bf16",
+      "name": "MPT 7B BF16",
+      "description": "Name: MPT 7B BF16 | Provider: mosaicml | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-textgeneration1-gpt-neo-125m",
+      "name": "GPT-Neo 125M",
+      "description": "Name: GPT-Neo 125M | Provider: EleutherAI | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-textgeneration1-gpt-j-6b",
+      "name": "GPT-J 6B",
+      "description": "Name: GPT-J 6B | Provider: EleutherAI | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-textgeneration1-gpt-2-xl",
+      "name": "GPT-2 XL",
+      "description": "Name: GPT-2 XL | Provider: openai-community | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-textgeneration1-bloomz-7b1-fp16",
+      "name": "BloomZ 7B1 FP16",
+      "description": "Name: BloomZ 7B1 FP16 | Provider: bigscience | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-textgeneration1-bloom-7b1",
+      "name": "Bloom 7B1",
+      "description": "Name: Bloom 7B1 | Provider: bigscience | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-textgeneration1-bloom-3b",
+      "name": "Bloom 3B",
+      "description": "Name: Bloom 3B | Provider: bigscience | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-textgeneration-gpt2",
+      "name": "GPT 2",
+      "description": "Name: GPT 2 | Provider: openai-community | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-textgeneration-dolly-v2-3b-bf16",
+      "name": "Dolly V2 3b BF16",
+      "description": "Name: Dolly V2 3b BF16 | Provider: databricks | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-textgeneration-dolly-v2-12b-bf16",
+      "name": "Dolly V2 12b BF16",
+      "description": "Name: Dolly V2 12b BF16 | Provider: databricks | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-textgeneration-distilgpt2",
+      "name": "DistilGPT 2",
+      "description": "Name: DistilGPT 2 | Provider: distilbert | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-textgeneration-bloomz-1b7",
+      "name": "Bloomz 1b7",
+      "description": "Name: Bloomz 1b7 | Provider: bigscience | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-textgeneration-bloom-1b1",
+      "name": "Bloom 1b1",
+      "description": "Name: Bloom 1b1 | Provider: bigscience | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-text2text-flan-t5-small",
+      "name": "Flan-T5 Small",
+      "description": "Name: Flan-T5 Small | Provider: google | DataType: text | ProblemType: Text2Text Generation",
+      "tasks": [
+        "text2text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-text2text-flan-t5-large",
+      "name": "Flan-T5 Large",
+      "description": "Name: Flan-T5 Large | Provider: google | DataType: text | ProblemType: Text2Text Generation",
+      "tasks": [
+        "text2text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-text2text-flan-t5-base",
+      "name": "Flan-T5 Base",
+      "description": "Name: Flan-T5 Base | Provider: google | DataType: text | ProblemType: Text2Text Generation",
+      "tasks": [
+        "text2text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-text2text-flan-t5-base-samsum",
+      "name": "Flan-T5 Base Model Fine-tuned on the Samsum Dataset",
+      "description": "Name: Flan-T5 Base Model Fine-tuned on the Samsum Dataset | Provider: philschmid | DataType: text | ProblemType: Text2Text Generation",
+      "tasks": [
+        "text2text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-summarization-distilbart-xsum-1-1",
+      "name": "Text Summarization",
+      "description": "Name: Text Summarization | Provider: sshleifer | DataType: text | ProblemType: Text Summarization",
+      "tasks": [
+        "text summarization"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-summarization-distilbart-cnn-6-6",
+      "name": "Distilbart CNN 6-6",
+      "description": "Name: Distilbart CNN 6-6 | Provider: sshleifer | DataType: text | ProblemType: Text Summarization",
+      "tasks": [
+        "text summarization"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-summarization-distilbart-cnn-12-6",
+      "name": "Distilbart CNN 12-6",
+      "description": "Name: Distilbart CNN 12-6 | Provider: sshleifer | DataType: text | ProblemType: Text Summarization",
+      "tasks": [
+        "text summarization"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-summarization-bart-large-cnn-samsum",
+      "name": "Bart Large CNN samsum",
+      "description": "Name: Bart Large CNN samsum | Provider: philschmid | DataType: text | ProblemType: Text Summarization",
+      "tasks": [
+        "text summarization"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-reasoning-qwen3-8b",
+      "name": "Qwen3-8B",
+      "description": "Name: Qwen3-8B | Provider: Qwen | DataType: text | ProblemType: Reasoning",
+      "tasks": [
+        "reasoning"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-reasoning-qwen3-4b",
+      "name": "Qwen3-4B",
+      "description": "Name: Qwen3-4B | Provider: Qwen | DataType: text | ProblemType: Reasoning",
+      "tasks": [
+        "reasoning"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-reasoning-qwen3-32b",
+      "name": "Qwen3-32B",
+      "description": "Name: Qwen3-32B | Provider: Qwen | DataType: text | ProblemType: Reasoning",
+      "tasks": [
+        "reasoning"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-reasoning-qwen3-06b",
+      "name": "Qwen3-0.6B",
+      "description": "Name: Qwen3-0.6B | Provider: Qwen | DataType: text | ProblemType: Reasoning",
+      "tasks": [
+        "reasoning"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-yi-1-5-9b",
+      "name": "Yi-1.5-9B",
+      "description": "Name: Yi-1.5-9B | Provider: 01-ai | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-yi-1-5-34b",
+      "name": "Yi-1.5-34B",
+      "description": "Name: Yi-1.5-34B | Provider: 01-ai | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-writer-palmyra-small",
+      "name": "Writer Palmyra Small",
+      "description": "128 million parameter model trained on largely English text | Name: Writer Palmyra Small | Provider: Writer | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-tiiuae-falcon-rw-1b",
+      "name": "Falcon RW 1B",
+      "description": "1 billion causal decoder-only model trained on 350B tokens of RefinedWeb | Name: Falcon RW 1B | Provider: tiiuae | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-thebloke-mistral-7b-openorca-awq",
+      "name": "Mistral 7B OpenOrca AWQ",
+      "description": "Fine-tuned version of Mistral 7B on OpenOrca dataset and further quantized as per AWQ technique | Name: Mistral 7B OpenOrca AWQ | Provider: TheBloke | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-snowflake-arctic-instruct-vllm",
+      "name": "Snowflake Arctic Instruct Vllm",
+      "description": "Name: Snowflake Arctic Instruct Vllm | Provider: Snowflake | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-qwen2-5-coder-7b-instruct",
+      "name": "Qwen2.5 Coder 7B Instruct",
+      "description": "Name: Qwen2.5 Coder 7B Instruct | Provider: Qwen | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-qwen2-5-coder-32b-instruct",
+      "name": "Qwen2.5 Coder 32B Instruct",
+      "description": "Name: Qwen2.5 Coder 32B Instruct | Provider: Qwen | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-qwen2-5-7b-instruct",
+      "name": "Qwen2.5-7B-Instruct",
+      "description": "Name: Qwen2.5-7B-Instruct | Provider: Qwen | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-qwen2-5-72b-instruct",
+      "name": "Qwen2.5-72B-Instruct",
+      "description": "Name: Qwen2.5-72B-Instruct | Provider: Qwen | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-qwen2-5-32b-instruct",
+      "name": "Qwen2.5 32B Instruct",
+      "description": "Name: Qwen2.5 32B Instruct | Provider: Qwen | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-qwen2-5-14b-instruct",
+      "name": "Qwen2.5 14B Instruct",
+      "description": "Name: Qwen2.5 14B Instruct | Provider: Qwen | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-phi-3-mini-4k-instruct",
+      "name": "Phi-3-mini-4k-instruct",
+      "description": "Name: Phi-3-mini-4k-instruct | Provider: microsoft | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-phi-3-mini-128k-instruct",
+      "name": "Phi-3-Mini-128K-Instruct",
+      "description": "Name: Phi-3-Mini-128K-Instruct | Provider: microsoft | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-phi-3-5-mini-instruct",
+      "name": "Phi-3.5-mini-instruct",
+      "description": "Name: Phi-3.5-mini-instruct | Provider: microsoft | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-phi-2",
+      "name": "Phi-2",
+      "description": "Name: Phi-2 | Provider: microsoft | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-mistral-small-24B-Instruct-2501",
+      "name": "Mistral-Small-24B-Instruct-2501",
+      "description": "Name: Mistral-Small-24B-Instruct-2501 | Provider: mistralai | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "mistral",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-mistral-nemo-instruct-2407",
+      "name": "Mistral Nemo Instruct 2407",
+      "description": "Name: Mistral Nemo Instruct 2407 | Provider: mistralai | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "mistral",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-mistral-nemo-base-2407",
+      "name": "Mistral Nemo Base 2407",
+      "description": "Name: Mistral Nemo Base 2407 | Provider: mistralai | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "mistral",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-mistral-7b-openorca-gptq",
+      "name": "Mistral 7B OpenOrca GPTQ",
+      "description": "Name: Mistral 7B OpenOrca GPTQ | Provider: TheBloke | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-llama3-8b-sealionv21-instruct",
+      "name": "Llama3 8B SEA-Lion v2.1 Instruct",
+      "description": "Name: Llama3 8B SEA-Lion v2.1 Instruct | Provider: aisingapore | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-huggingfaceh4-zephyr-7b-beta",
+      "name": "Zephyr 7B Beta",
+      "description": "Fine-tuned version of Mistral 7B, on a mix of publicly available and synthetic datasets using Direct Preference Optimization | Name: Zephyr 7B Beta | Provider: HuggingFaceH4 | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-gemma-7b",
+      "name": "gemma-7b",
+      "description": "Name: gemma-7b | Provider: google | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-gemma-7b-instruct",
+      "name": "gemma-7b-it",
+      "description": "Name: gemma-7b-it | Provider: google | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-gemma-3-1b-instruct",
+      "name": "Gemma 3 1B Instruct",
+      "description": "Name: Gemma 3 1B Instruct | Provider: google | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-gemma-2b",
+      "name": "gemma-2b",
+      "description": "Name: gemma-2b | Provider: google | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-gemma-2b-instruct",
+      "name": "gemma-2b-it",
+      "description": "Name: gemma-2b-it | Provider: google | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-gemma-2-9b",
+      "name": "Gemma 2 9B",
+      "description": "Name: Gemma 2 9B | Provider: google | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-gemma-2-9b-instruct",
+      "name": "Gemma 2 9B Instruct",
+      "description": "Name: Gemma 2 9B Instruct | Provider: google | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-gemma-2-2b",
+      "name": "Gemma 2 2B",
+      "description": "Name: Gemma 2 2B | Provider: google | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-gemma-2-2b-instruct",
+      "name": "Gemma 2 2B Instruct",
+      "description": "Name: Gemma 2 2B Instruct | Provider: google | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-gemma-2-27b",
+      "name": "Gemma 2 27B",
+      "description": "Name: Gemma 2 27B | Provider: google | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-gemma-2-27b-instruct",
+      "name": "Gemma 2 27B Instruct",
+      "description": "Name: Gemma 2 27B Instruct | Provider: google | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-falcon-h1-7b-instruct",
+      "name": "Falcon-H1-7B-Instruct",
+      "description": "Name: Falcon-H1-7B-Instruct | Provider: tiiuae | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-falcon-h1-3b-instruct",
+      "name": "Falcon-H1-3B-Instruct",
+      "description": "Name: Falcon-H1-3B-Instruct | Provider: tiiuae | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-falcon-h1-34b-instruct",
+      "name": "Falcon-H1-34B-Instruct",
+      "description": "Name: Falcon-H1-34B-Instruct | Provider: tiiuae | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-falcon-h1-1-5b-instruct",
+      "name": "Falcon-H1-1.5B-Instruct",
+      "description": "Name: Falcon-H1-1.5B-Instruct | Provider: tiiuae | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-falcon-h1-1-5b-deep-instruct",
+      "name": "Falcon-H1-1.5B-Deep-Instruct",
+      "description": "Name: Falcon-H1-1.5B-Deep-Instruct | Provider: tiiuae | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-falcon-h1-0-5b-instruct",
+      "name": "Falcon-H1-0.5B-Instruct",
+      "description": "Name: Falcon-H1-0.5B-Instruct | Provider: tiiuae | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-falcon-40b-bf16",
+      "name": "Falcon 40B BF16",
+      "description": "Name: Falcon 40B BF16 | Provider: tiiuae | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-falcon-3-7B-base",
+      "name": "Falcon3-7B-Base",
+      "description": "Name: Falcon3-7B-Base | Provider: tiiuae | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-falcon-3-7B-Instruct",
+      "name": "Falcon3-7B-Instruct",
+      "description": "Name: Falcon3-7B-Instruct | Provider: tiiuae | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-falcon-3-3B-base",
+      "name": "Falcon3-3B-Base",
+      "description": "Name: Falcon3-3B-Base | Provider: tiiuae | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-falcon-3-3B-Instruct",
+      "name": "Falcon3-3B-Instruct",
+      "description": "Name: Falcon3-3B-Instruct | Provider: tiiuae | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-falcon-3-1B-Instruct",
+      "name": "Falcon3-1B-Instruct",
+      "description": "Name: Falcon3-1B-Instruct | Provider: tiiuae | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-falcon-3-10B-base",
+      "name": "Falcon3-10B-Base",
+      "description": "Name: Falcon3-10B-Base | Provider: tiiuae | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-falcon-3-10B-Instruct",
+      "name": "Falcon3-10B-Instruct",
+      "description": "Name: Falcon3-10B-Instruct | Provider: tiiuae | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-falcon-180b-bf16",
+      "name": "Falcon 180B BF16",
+      "description": "Name: Falcon 180B BF16 | Provider: tiiuae | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-dolphin-2-5-mixtral-8x7b",
+      "name": "Dolphin 2.5 Mixtral 8 7B",
+      "description": "Fine-tuned version of Mixtral 7 7B on coding data with 16k context length | Name: Dolphin 2.5 Mixtral 8 7B | Provider: cognitivecomputations | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-dolphin-2-2-1-mistral-7b",
+      "name": "Dolphin 2.2.1 Mistral 7B",
+      "description": "Fine-tuned version of Mistral 7B model on Dolphin dataset | Name: Dolphin 2.2.1 Mistral 7B | Provider: cognitivecomputations | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-dbrx-instruct",
+      "name": "DBRX Instruct",
+      "description": "Name: DBRX Instruct | Provider: databricks | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-dbrx-base",
+      "name": "DBRX Base",
+      "description": "Name: DBRX Base | Provider: databricks | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-aya-101",
+      "name": "Aya 101",
+      "description": "Name: Aya 101 | Provider: CohereForAI | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-apertus-8b-instruct-2509",
+      "name": "Apertus 8B Instruct 2509",
+      "description": "Name: Apertus 8B Instruct 2509 | Provider: swiss-ai | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-apertus-70b-instruct-2509",
+      "name": "Apertus 70B Instruct 2509",
+      "description": "Name: Apertus 70B Instruct 2509 | Provider: swiss-ai | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-amazon-mistrallite",
+      "name": "Mistral Lite",
+      "description": "Fine-tuned to handle long context (up to 32K tokens | Name: Mistral Lite | Provider: amazon | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-amazon-falconlite",
+      "name": "Falcon Lite",
+      "description": "Falcon 40B model extended via 4-bit GPT quantization and dynamic NTK ROPE scaling | Name: Falcon Lite | Provider: amazon | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-amazon-falconlite2",
+      "name": "Falcon Lite 2",
+      "description": "Fine-tuned and quantized Falcon 40B language model, capable of processing long (up to 24K tokens) input sequences | Name: Falcon Lite 2 | Provider: amazon | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-llm-ai-forever-mgpt",
+      "name": "Multilingual GPT",
+      "description": "1.3 billion parameter model trained on 61 languages from 25 languages | Name: Multilingual GPT | Provider: ai-forever | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "huggingface-asr-whisper-large-v3-turbo",
+      "name": "Whisper Large V3 Turbo",
+      "description": "Name: Whisper Large V3 Turbo | Provider: openai | DataType: audio | ProblemType: Automatic Speech Recognition",
+      "tasks": [
+        "automatic speech recognition"
+      ],
+      "framework": "huggingface",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "gretel-navigator-tabular",
+      "name": "Gretel Navigator Tabular",
+      "description": "Generate synthetic datasets with the same characteristics as real data, so you can improve AI models without compromising on privacy.",
+      "tasks": [
+        "text generation",
+        "generative ai",
+        "generation-text"
+      ],
+      "framework": "gretel",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "granite-3-0-8b-instruct",
+      "name": "IBM Granite 3.0 8B Instruct",
+      "description": "IBM's Granite 3.0 8B Instruct is an 8B-parameter AI model for enterprise use, excelling in multilingual and code tasks; Apache 2.0 licensed.",
+      "tasks": [
+        "text generation",
+        "generative ai",
+        "natural language processing",
+        "ml solutions"
+      ],
+      "framework": "ibm data and ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "granite-3-0-2b-instruct",
+      "name": "IBM Granite 3.0 2B Instruct",
+      "description": "IBM's Granite 3.0 2B Instruct is a 2B-parameter AI model for enterprise use, excelling in multilingual and code tasks; Apache 2.0 licensed.",
+      "tasks": [
+        "text generation",
+        "generative ai",
+        "natural language processing",
+        "ml solutions"
+      ],
+      "framework": "ibm data and ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "evolutionary-scale-esm3",
+      "name": "ESM3-open",
+      "description": "The open version of ESM3; a frontier multimodal generative model that reasons over the sequences, structures, and functions of proteins",
+      "tasks": [
+        "multimodal generation",
+        "generative ai"
+      ],
+      "framework": "evolutionaryscale, pbc",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "deepseek-llm-r1",
+      "name": "DeepSeek-R1",
+      "description": "Name: DeepSeek-R1 | Provider: deepseek-ai | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "deepseek",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "deepseek-llm-r1-distill-qwen-7b",
+      "name": "DeepSeek-R1-Distill-Qwen-7B",
+      "description": "Name: DeepSeek-R1-Distill-Qwen-7B | Provider: deepseek-ai | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "deepseek",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "deepseek-llm-r1-distill-qwen-32b",
+      "name": "DeepSeek-R1-Distill-Qwen-32B",
+      "description": "Name: DeepSeek-R1-Distill-Qwen-32B | Provider: deepseek-ai | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "deepseek",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "deepseek-llm-r1-distill-qwen-14b",
+      "name": "DeepSeek-R1-Distill-Qwen-14B",
+      "description": "Name: DeepSeek-R1-Distill-Qwen-14B | Provider: deepseek-ai | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "deepseek",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "deepseek-llm-r1-distill-qwen-1-5b",
+      "name": "DeepSeek-R1-Distill-Qwen-1.5B",
+      "description": "Name: DeepSeek-R1-Distill-Qwen-1.5B | Provider: deepseek-ai | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "deepseek",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "deepseek-llm-r1-distill-llama-8b",
+      "name": "DeepSeek-R1-Distill-Llama-8B",
+      "description": "Name: DeepSeek-R1-Distill-Llama-8B | Provider: deepseek-ai | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "deepseek",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "deepseek-llm-r1-distill-llama-70b",
+      "name": "DeepSeek-R1-Distill-Llama-70B",
+      "description": "Name: DeepSeek-R1-Distill-Llama-70B | Provider: deepseek-ai | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "deepseek",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "deepseek-llm-r1-0528",
+      "name": "DeepSeek-R1-0528",
+      "description": "Name: DeepSeek-R1-0528 | Provider: deepseek-ai | DataType: text | ProblemType: Text Generation",
+      "tasks": [
+        "text generation"
+      ],
+      "framework": "deepseek",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "cambai-mars6",
+      "name": "MARS6",
+      "description": "Hyper-realistic, multilingual speech synthesis in English and Japanese",
+      "tasks": [
+        "text to audio",
+        "generative ai",
+        "media & entertainment",
+        "education & research"
+      ],
+      "framework": "camb.ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "bria-ai-2-3-fast-commercial",
+      "name": "Bria 2.3Fast Commercial Text-to-image",
+      "description": "Image generation model trained exclusively on licensed dataset, safe for commercial use with full legal liability coverage",
+      "tasks": [
+        "rerank",
+        "generative ai",
+        "edit/processing-image",
+        "generation-image"
+      ],
+      "framework": "bria ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "bria-ai-2-3-commercial",
+      "name": "Bria 2.3 Commercial Text-to-image",
+      "description": "Image generation model trained exclusively on licensed dataset, safe for commercial use with full legal liability coverage",
+      "tasks": [
+        "rerank",
+        "generation-image",
+        "edit/processing-image",
+        "generative ai"
+      ],
+      "framework": "bria ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "bria-ai-2-2-hd-commercial",
+      "name": "Bria 2.2HD Commercial Text-to-image",
+      "description": "High-definition image generation model trained exclusively on licensed dataset, safe for commercial use with full legal liability coverage",
+      "tasks": [
+        "rerank",
+        "generative ai",
+        "generation-image",
+        "edit/processing-image"
+      ],
+      "framework": "bria ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "autogluon-forecasting-chronos-bolt-base",
+      "name": "Chronos-Bolt (Base)",
+      "description": "Name: Chronos-Bolt (Base) | Provider: autogluon | DataType: tabular | ProblemType: Time Series Forecasting",
+      "tasks": [
+        "time series forecasting"
+      ],
+      "framework": "autogluon",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "arcee-virtuoso-small",
+      "name": "Arcee Virtuoso Small",
+      "description": "Virtuoso Small is a general-purpose, 14-billion parameter model developed by Arcee AI.",
+      "tasks": [
+        "text generation",
+        "generative ai",
+        "ml solutions",
+        "natural language processing"
+      ],
+      "framework": "arcee ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "arcee-supernova",
+      "name": "Arcee SuperNova",
+      "description": "Enterprise-grade LLM offering deep customization, seamless integration, and top-tier security & compliance for businesses.",
+      "tasks": [
+        "text generation",
+        "generative ai",
+        "ml solutions",
+        "natural language processing"
+      ],
+      "framework": "arcee ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "arcee-llama-spark",
+      "name": "Llama Spark",
+      "description": "Llama-Spark is a conversational model developed by Arcee.ai. It excels at engaging in natural and informative conversations.",
+      "tasks": [
+        "text generation",
+        "generative ai",
+        "natural language processing",
+        "ml solutions"
+      ],
+      "framework": "arcee ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "arcee-llama-3-1-supernova-lite",
+      "name": "Llama 3.1 SuperNova Lite",
+      "description": "Llama-3.1-SuperNova-Lite is an 8B parameter model developed by Arcee.ai.",
+      "tasks": [
+        "text generation",
+        "generative ai",
+        "ml solutions",
+        "natural language processing"
+      ],
+      "framework": "arcee ai",
+      "deployment": "endpoint (not serverless)"
+    },
+    {
+      "source": "bedrock-marketplace",
+      "model_id": "arcee-lite",
+      "name": "Arcee Lite",
+      "description": "Arcee-Lite is a compact yet powerful 1.5B parameter language model developed by Arcee.ai.",
+      "tasks": [
+        "text generation",
+        "generative ai",
+        "natural language processing",
+        "ml solutions"
+      ],
+      "framework": "arcee ai",
+      "deployment": "endpoint (not serverless)"
+    }
+  ],
+  "anthropic-direct": [
+    {
+      "source": "anthropic-direct",
+      "model_id": "claude-sonnet-5",
+      "name": "Claude Sonnet 5"
+    },
+    {
+      "source": "anthropic-direct",
+      "model_id": "claude-fable-5",
+      "name": "Claude Fable 5"
+    },
+    {
+      "source": "anthropic-direct",
+      "model_id": "claude-opus-4-8",
+      "name": "Claude Opus 4.8"
+    },
+    {
+      "source": "anthropic-direct",
+      "model_id": "claude-opus-4-7",
+      "name": "Claude Opus 4.7"
+    },
+    {
+      "source": "anthropic-direct",
+      "model_id": "claude-sonnet-4-6",
+      "name": "Claude Sonnet 4.6"
+    },
+    {
+      "source": "anthropic-direct",
+      "model_id": "claude-opus-4-6",
+      "name": "Claude Opus 4.6"
+    },
+    {
+      "source": "anthropic-direct",
+      "model_id": "claude-opus-4-5-20251101",
+      "name": "Claude Opus 4.5"
+    },
+    {
+      "source": "anthropic-direct",
+      "model_id": "claude-haiku-4-5-20251001",
+      "name": "Claude Haiku 4.5"
+    },
+    {
+      "source": "anthropic-direct",
+      "model_id": "claude-sonnet-4-5-20250929",
+      "name": "Claude Sonnet 4.5"
+    },
+    {
+      "source": "anthropic-direct",
+      "model_id": "claude-opus-4-1-20250805",
+      "name": "Claude Opus 4.1"
+    }
+  ],
+  "openai-direct": [
+    {
+      "source": "openai-direct",
+      "model_id": "text-embedding-ada-002",
+      "owned_by": "openai-internal"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "whisper-1",
+      "owned_by": "openai-internal"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-3.5-turbo",
+      "owned_by": "openai"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "tts-1",
+      "owned_by": "openai-internal"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-3.5-turbo-16k",
+      "owned_by": "openai-internal"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4-0613",
+      "owned_by": "openai"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4",
+      "owned_by": "openai"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "davinci-002",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "babbage-002",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-3.5-turbo-instruct",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-3.5-turbo-instruct-0914",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-3.5-turbo-1106",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "tts-1-hd",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "tts-1-1106",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "tts-1-hd-1106",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "text-embedding-3-small",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "text-embedding-3-large",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-3.5-turbo-0125",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4-turbo",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4-turbo-2024-04-09",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4o",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4o-2024-05-13",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4o-mini-2024-07-18",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4o-mini",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4o-2024-08-06",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "omni-moderation-latest",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "omni-moderation-2024-09-26",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "o1-2024-12-17",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "o1",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "o3-mini",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "o3-mini-2025-01-31",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4o-2024-11-20",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4o-mini-search-preview-2025-03-11",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4o-mini-search-preview",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4o-transcribe",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4o-mini-transcribe",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "o1-pro-2025-03-19",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "o1-pro",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4o-mini-tts",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "o3-2025-04-16",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "o4-mini-2025-04-16",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "o3",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "o4-mini",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4.1-2025-04-14",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4.1",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4.1-mini-2025-04-14",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4.1-mini",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4.1-nano",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-image-1",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4o-transcribe-diarize",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5-chat-latest",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5-2025-08-07",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5-mini-2025-08-07",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5-mini",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5-nano-2025-08-07",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5-nano",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-audio-2025-08-28",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-realtime",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-realtime-2025-08-28",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-audio",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5-codex",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-image-1-mini",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5-pro-2025-10-06",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5-pro",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-audio-mini",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-audio-mini-2025-10-06",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5-search-api",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-realtime-mini",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-realtime-mini-2025-10-06",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "sora-2",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "sora-2-pro",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5-search-api-2025-10-14",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.1-chat-latest",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.1-2025-11-13",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.1",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.1-codex",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.1-codex-mini",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.1-codex-max",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-image-1.5",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.2-2025-12-11",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.2",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.2-pro-2025-12-11",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.2-pro",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.2-chat-latest",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4o-mini-transcribe-2025-12-15",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4o-mini-transcribe-2025-03-20",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4o-mini-tts-2025-03-20",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4o-mini-tts-2025-12-15",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-realtime-mini-2025-12-15",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-audio-mini-2025-12-15",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "chatgpt-image-latest",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.2-codex",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.3-codex",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-realtime-1.5",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-audio-1.5",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4o-search-preview",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-4o-search-preview-2025-03-11",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.3-chat-latest",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.4-2026-03-05",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.4-pro",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.4-pro-2026-03-05",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.4",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.4-nano-2026-03-17",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.4-nano",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.4-mini",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-image-2",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-image-2-2026-04-21",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.5",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.5-2026-04-23",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.5-pro",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.5-pro-2026-04-23",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "chat-latest",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-realtime-translate",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-realtime-2",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-realtime-whisper",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.6-sol",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.6-terra",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-5.6-luna",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-realtime-2.1",
+      "owned_by": "system"
+    },
+    {
+      "source": "openai-direct",
+      "model_id": "gpt-realtime-2.1-mini",
+      "owned_by": "system"
+    }
+  ],
+  "gemini": [
+    {
+      "source": "gemini",
+      "model_id": "gemini-2.5-flash",
+      "name": "Gemini 2.5 Flash",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-2.5-pro",
+      "name": "Gemini 2.5 Pro",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-2.0-flash",
+      "name": "Gemini 2.0 Flash",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-2.0-flash-001",
+      "name": "Gemini 2.0 Flash 001",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-2.0-flash-lite-001",
+      "name": "Gemini 2.0 Flash-Lite 001",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-2.0-flash-lite",
+      "name": "Gemini 2.0 Flash-Lite",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-2.5-flash-preview-tts",
+      "name": "Gemini 2.5 Flash Preview TTS",
+      "methods": [
+        "countTokens",
+        "generateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-2.5-pro-preview-tts",
+      "name": "Gemini 2.5 Pro Preview TTS",
+      "methods": [
+        "countTokens",
+        "generateContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemma-4-26b-a4b-it",
+      "name": "Gemma 4 26B A4B IT",
+      "methods": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemma-4-31b-it",
+      "name": "Gemma 4 31B IT",
+      "methods": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-flash-latest",
+      "name": "Gemini Flash Latest",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-flash-lite-latest",
+      "name": "Gemini Flash-Lite Latest",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-pro-latest",
+      "name": "Gemini Pro Latest",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-2.5-flash-lite",
+      "name": "Gemini 2.5 Flash-Lite",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-2.5-flash-image",
+      "name": "Nano Banana",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-3-pro-preview",
+      "name": "Gemini 3 Pro Preview",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-3-flash-preview",
+      "name": "Gemini 3 Flash Preview",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-3.1-pro-preview",
+      "name": "Gemini 3.1 Pro Preview",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-3.1-pro-preview-customtools",
+      "name": "Gemini 3.1 Pro Preview Custom Tools",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-3.1-flash-lite-preview",
+      "name": "Gemini 3.1 Flash Lite Preview",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-3.1-flash-lite",
+      "name": "Gemini 3.1 Flash Lite",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-3-pro-image-preview",
+      "name": "Nano Banana Pro",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-3-pro-image",
+      "name": "Nano Banana Pro",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "nano-banana-pro-preview",
+      "name": "Nano Banana Pro",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-3.1-flash-image-preview",
+      "name": "Nano Banana 2",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-3.1-flash-image",
+      "name": "Nano Banana 2",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-3.1-flash-lite-image",
+      "name": "Nano Banana 2 Lite",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-3.5-flash",
+      "name": "Gemini 3.5 Flash",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-omni-flash-preview",
+      "name": "Gemini Omni Flash Preview",
+      "methods": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "lyria-3-clip-preview",
+      "name": "Lyria 3 Clip Preview",
+      "methods": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "lyria-3-pro-preview",
+      "name": "Lyria 3 Pro Preview",
+      "methods": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-3.1-flash-tts-preview",
+      "name": "Gemini 3.1 Flash TTS Preview",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-robotics-er-1.5-preview",
+      "name": "Gemini Robotics-ER 1.5 Preview",
+      "methods": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-robotics-er-1.6-preview",
+      "name": "Gemini Robotics-ER 1.6 Preview",
+      "methods": [
+        "generateContent",
+        "countTokens",
+        "createCachedContent",
+        "batchGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-2.5-computer-use-preview-10-2025",
+      "name": "Gemini 2.5 Computer Use Preview 10-2025",
+      "methods": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "antigravity-preview-05-2026",
+      "name": "Antigravity Agent Preview",
+      "methods": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "deep-research-max-preview-04-2026",
+      "name": "Deep Research Max Preview (Apr-21-2026)",
+      "methods": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "deep-research-preview-04-2026",
+      "name": "Deep Research Preview (Apr-21-2026)",
+      "methods": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "deep-research-pro-preview-12-2025",
+      "name": "Deep Research Pro Preview (Dec-12-2025)",
+      "methods": [
+        "generateContent",
+        "countTokens"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-embedding-001",
+      "name": "Gemini Embedding 001",
+      "methods": [
+        "embedContent",
+        "countTextTokens",
+        "countTokens",
+        "asyncBatchEmbedContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-embedding-2-preview",
+      "name": "Gemini Embedding 2 Preview",
+      "methods": [
+        "embedContent",
+        "countTextTokens",
+        "countTokens",
+        "asyncBatchEmbedContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-embedding-2",
+      "name": "Gemini Embedding 2",
+      "methods": [
+        "embedContent",
+        "countTextTokens",
+        "countTokens",
+        "asyncBatchEmbedContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "aqa",
+      "name": "Model that performs Attributed Question Answering.",
+      "methods": [
+        "generateAnswer"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "imagen-4.0-generate-001",
+      "name": "Imagen 4",
+      "methods": [
+        "predict"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "imagen-4.0-ultra-generate-001",
+      "name": "Imagen 4 Ultra",
+      "methods": [
+        "predict"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "imagen-4.0-fast-generate-001",
+      "name": "Imagen 4 Fast",
+      "methods": [
+        "predict"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "veo-3.1-generate-preview",
+      "name": "Veo 3.1",
+      "methods": [
+        "predictLongRunning"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "veo-3.1-fast-generate-preview",
+      "name": "Veo 3.1 fast",
+      "methods": [
+        "predictLongRunning"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "veo-3.1-lite-generate-preview",
+      "name": "Veo 3.1 lite",
+      "methods": [
+        "predictLongRunning"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-2.5-flash-native-audio-latest",
+      "name": "Gemini 2.5 Flash Native Audio Latest",
+      "methods": [
+        "countTokens",
+        "bidiGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-2.5-flash-native-audio-preview-09-2025",
+      "name": "Gemini 2.5 Flash Native Audio Preview 09-2025",
+      "methods": [
+        "countTokens",
+        "bidiGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-2.5-flash-native-audio-preview-12-2025",
+      "name": "Gemini 2.5 Flash Native Audio Preview 12-2025",
+      "methods": [
+        "countTokens",
+        "bidiGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-3.1-flash-live-preview",
+      "name": "Gemini 3.1 Flash Live Preview",
+      "methods": [
+        "bidiGenerateContent"
+      ]
+    },
+    {
+      "source": "gemini",
+      "model_id": "gemini-3.5-live-translate-preview",
+      "name": "Gemini 3.5 Live Translate Preview",
+      "methods": [
+        "bidiGenerateContent"
+      ]
+    }
+  ],
+  "xai": [
+    {
+      "source": "xai",
+      "model_id": "grok-4.20-0309-non-reasoning"
+    },
+    {
+      "source": "xai",
+      "model_id": "grok-4.20-0309-reasoning"
+    },
+    {
+      "source": "xai",
+      "model_id": "grok-4.20-multi-agent-0309"
+    },
+    {
+      "source": "xai",
+      "model_id": "grok-4.3"
+    },
+    {
+      "source": "xai",
+      "model_id": "grok-4.5"
+    },
+    {
+      "source": "xai",
+      "model_id": "grok-build-0.1"
+    },
+    {
+      "source": "xai",
+      "model_id": "grok-imagine-image"
+    },
+    {
+      "source": "xai",
+      "model_id": "grok-imagine-image-quality"
+    },
+    {
+      "source": "xai",
+      "model_id": "grok-imagine-video"
+    },
+    {
+      "source": "xai",
+      "model_id": "grok-imagine-video-1.5"
+    }
+  ],
+  "azure-foundry": [
+    {
+      "source": "azure-foundry",
+      "model_id": "whisper",
+      "version": "001",
+      "format": "OpenAI",
+      "skus": []
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-4o",
+      "version": "2024-05-13",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard",
+        "ProvisionedManaged",
+        "GlobalBatch",
+        "GlobalProvisionedManaged"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-4o",
+      "version": "2024-08-06",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard",
+        "ProvisionedManaged",
+        "GlobalProvisionedManaged",
+        "GlobalBatch"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-4o-mini",
+      "version": "2024-07-18",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard",
+        "GlobalBatch",
+        "ProvisionedManaged",
+        "GlobalProvisionedManaged"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-4o",
+      "version": "2024-11-20",
+      "format": "OpenAI",
+      "skus": [
+        "Standard",
+        "ProvisionedManaged",
+        "GlobalStandard",
+        "GlobalBatch",
+        "GlobalProvisionedManaged"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "text-embedding-ada-002",
+      "version": "2",
+      "format": "OpenAI",
+      "skus": [
+        "Standard",
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "text-embedding-3-small",
+      "version": "1",
+      "format": "OpenAI",
+      "skus": [
+        "Standard",
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "text-embedding-3-large",
+      "version": "1",
+      "format": "OpenAI",
+      "skus": [
+        "Standard",
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "o1",
+      "version": "2024-12-17",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard",
+        "GlobalProvisionedManaged"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "o3-mini",
+      "version": "2025-01-31",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard",
+        "ProvisionedManaged",
+        "GlobalBatch",
+        "GlobalProvisionedManaged"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "o3",
+      "version": "2025-04-16",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard",
+        "ProvisionedManaged",
+        "GlobalProvisionedManaged",
+        "GlobalBatch"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "model-router",
+      "version": "2025-05-19",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard",
+        "DataZoneStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "model-router",
+      "version": "2025-08-07",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard",
+        "DataZoneStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "model-router",
+      "version": "2025-11-18",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard",
+        "DataZoneStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "o4-mini",
+      "version": "2025-04-16",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard",
+        "DeveloperTier",
+        "GlobalProvisionedManaged",
+        "GlobalBatch"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-4.1",
+      "version": "2025-04-14",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard",
+        "ProvisionedManaged",
+        "GlobalProvisionedManaged",
+        "DeveloperTier",
+        "GlobalBatch"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-4.1-mini",
+      "version": "2025-04-14",
+      "format": "OpenAI",
+      "skus": [
+        "Standard",
+        "GlobalStandard",
+        "DeveloperTier",
+        "GlobalProvisionedManaged",
+        "ProvisionedManaged",
+        "GlobalBatch"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-4.1-nano",
+      "version": "2025-04-14",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard",
+        "DeveloperTier",
+        "GlobalProvisionedManaged",
+        "GlobalBatch"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5",
+      "version": "2025-08-07",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard",
+        "ProvisionedManaged",
+        "GlobalProvisionedManaged",
+        "GlobalBatch"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5-mini",
+      "version": "2025-08-07",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard",
+        "ProvisionedManaged",
+        "GlobalProvisionedManaged"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5-chat",
+      "version": "2025-08-07",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5-nano",
+      "version": "2025-08-07",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5-codex",
+      "version": "2025-09-15",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5-chat",
+      "version": "2025-10-03",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5-pro",
+      "version": "2025-10-06",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5.1",
+      "version": "2025-11-13",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard",
+        "ProvisionedManaged",
+        "GlobalProvisionedManaged",
+        "GlobalBatch"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5.1-chat",
+      "version": "2025-11-13",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5.1-codex-mini",
+      "version": "2025-11-13",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5.1-codex",
+      "version": "2025-11-13",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard",
+        "GlobalProvisionedManaged"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5.2",
+      "version": "2025-12-11",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard",
+        "DataZoneStandard",
+        "ProvisionedManaged",
+        "GlobalProvisionedManaged"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5.2-chat",
+      "version": "2025-12-11",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5.2-codex",
+      "version": "2026-01-14",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard",
+        "GlobalProvisionedManaged"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5.2-chat",
+      "version": "2026-02-10",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5.3-codex",
+      "version": "2026-02-24",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard",
+        "DataZoneStandard",
+        "GlobalProvisionedManaged"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5.4",
+      "version": "2026-03-05",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard",
+        "ProvisionedManaged",
+        "GlobalProvisionedManaged",
+        "GlobalBatch"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5.3-chat",
+      "version": "2026-03-03",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5.4-pro",
+      "version": "2026-03-05",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5.4-mini",
+      "version": "2026-03-17",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard",
+        "DataZoneStandard",
+        "ProvisionedManaged",
+        "GlobalProvisionedManaged",
+        "GlobalBatch"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5.4-nano",
+      "version": "2026-03-17",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5.5",
+      "version": "2026-04-24",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard",
+        "GlobalProvisionedManaged"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-chat-latest",
+      "version": "2026-05-05",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5.6-terra",
+      "version": "2026-07-09",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5.6-luna",
+      "version": "2026-07-09",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-5.6-sol",
+      "version": "2026-07-09",
+      "format": "OpenAI",
+      "skus": [
+        "GlobalStandard",
+        "GlobalProvisionedManaged"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "qwen3-32b",
+      "version": "1",
+      "format": "Alibaba",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Codestral-2501",
+      "version": "2",
+      "format": "Mistral AI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "cohere-command-a",
+      "version": "1",
+      "format": "Cohere",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Cohere-command-r-08-2024",
+      "version": "1",
+      "format": "Cohere",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Cohere-command-r-plus-08-2024",
+      "version": "1",
+      "format": "Cohere",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Cohere-embed-v3-english",
+      "version": "1",
+      "format": "Cohere",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Cohere-embed-v3-multilingual",
+      "version": "1",
+      "format": "Cohere",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "DeepSeek-R1",
+      "version": "1",
+      "format": "DeepSeek",
+      "skus": [
+        "GlobalStandard",
+        "GlobalProvisionedManaged"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "DeepSeek-R1-0528",
+      "version": "1",
+      "format": "DeepSeek",
+      "skus": [
+        "GlobalStandard",
+        "GlobalProvisionedManaged"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "DeepSeek-V3-0324",
+      "version": "1",
+      "format": "DeepSeek",
+      "skus": [
+        "GlobalStandard",
+        "GlobalProvisionedManaged"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "DeepSeek-V3.1",
+      "version": "1",
+      "format": "DeepSeek",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "embed-v-4-0",
+      "version": "1",
+      "format": "Cohere",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Llama-3.2-11B-Vision-Instruct",
+      "version": "1",
+      "format": "Meta",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Llama-3.2-11B-Vision-Instruct",
+      "version": "2",
+      "format": "Meta",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Llama-3.2-90B-Vision-Instruct",
+      "version": "1",
+      "format": "Meta",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Llama-3.2-90B-Vision-Instruct",
+      "version": "2",
+      "format": "Meta",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Llama-3.2-90B-Vision-Instruct",
+      "version": "3",
+      "format": "Meta",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Llama-3.3-70B-Instruct",
+      "version": "1",
+      "format": "Meta",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Llama-3.3-70B-Instruct",
+      "version": "2",
+      "format": "Meta",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Llama-3.3-70B-Instruct",
+      "version": "3",
+      "format": "Meta",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Llama-3.3-70B-Instruct",
+      "version": "4",
+      "format": "Meta",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Llama-3.3-70B-Instruct",
+      "version": "5",
+      "format": "Meta",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Llama-3.3-70B-Instruct",
+      "version": "9",
+      "format": "Meta",
+      "skus": [
+        "GlobalStandard",
+        "GlobalProvisionedManaged"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Meta-Llama-3.1-405B-Instruct",
+      "version": "1",
+      "format": "Meta",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Meta-Llama-3.1-8B-Instruct",
+      "version": "1",
+      "format": "Meta",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Meta-Llama-3.1-8B-Instruct",
+      "version": "2",
+      "format": "Meta",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Meta-Llama-3.1-8B-Instruct",
+      "version": "3",
+      "format": "Meta",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Meta-Llama-3.1-8B-Instruct",
+      "version": "4",
+      "format": "Meta",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Meta-Llama-3.1-8B-Instruct",
+      "version": "5",
+      "format": "Meta",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Ministral-3B",
+      "version": "1",
+      "format": "Mistral AI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Mistral-large",
+      "version": "1",
+      "format": "Mistral AI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "mistral-small-2503",
+      "version": "1",
+      "format": "Mistral AI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Mistral-Large-3",
+      "version": "1",
+      "format": "Mistral AI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Phi-4",
+      "version": "2",
+      "format": "Microsoft",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Phi-4",
+      "version": "3",
+      "format": "Microsoft",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Phi-4",
+      "version": "4",
+      "format": "Microsoft",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Phi-4",
+      "version": "5",
+      "format": "Microsoft",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Phi-4",
+      "version": "6",
+      "format": "Microsoft",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Phi-4",
+      "version": "7",
+      "format": "Microsoft",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Phi-4-mini-instruct",
+      "version": "1",
+      "format": "Microsoft",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Phi-4-multimodal-instruct",
+      "version": "1",
+      "format": "Microsoft",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Phi-4-reasoning",
+      "version": "1",
+      "format": "Microsoft",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Phi-4-mini-reasoning",
+      "version": "1",
+      "format": "Microsoft",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Llama-4-Maverick-17B-128E-Instruct-FP8",
+      "version": "1",
+      "format": "Meta",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Llama-4-Scout-17B-16E-Instruct",
+      "version": "1",
+      "format": "Meta",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "mistral-medium-2505",
+      "version": "1",
+      "format": "Mistral AI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "mistral-document-ai-2505",
+      "version": "1",
+      "format": "Mistral AI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "grok-3",
+      "version": "1",
+      "format": "xAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "grok-3-mini",
+      "version": "1",
+      "format": "xAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "FLUX-1.1-pro",
+      "version": "1",
+      "format": "Black Forest Labs",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "FLUX.1-Kontext-pro",
+      "version": "1",
+      "format": "Black Forest Labs",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "grok-4-fast-reasoning",
+      "version": "1",
+      "format": "xAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "grok-4-fast-non-reasoning",
+      "version": "1",
+      "format": "xAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-oss-120b",
+      "version": "1",
+      "format": "OpenAI-OSS",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "gpt-oss-20b",
+      "version": "11",
+      "format": "OpenAI-OSS",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Cohere-rerank-v4.0-pro",
+      "version": "1",
+      "format": "Cohere",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Cohere-rerank-v4.0-fast",
+      "version": "1",
+      "format": "Cohere",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "DeepSeek-V3.2",
+      "version": "1",
+      "format": "DeepSeek",
+      "skus": [
+        "GlobalStandard",
+        "GlobalProvisionedManaged"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "DeepSeek-V3.2-Speciale",
+      "version": "1",
+      "format": "DeepSeek",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "FLUX.2-pro",
+      "version": "1",
+      "format": "Black Forest Labs",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Kimi-K2.5",
+      "version": "1",
+      "format": "MoonshotAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "mistral-document-ai-2512",
+      "version": "1",
+      "format": "Mistral AI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "grok-4-1-fast-reasoning",
+      "version": "1",
+      "format": "xAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "grok-4-1-fast-non-reasoning",
+      "version": "1",
+      "format": "xAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "grok-4-20-non-reasoning",
+      "version": "1",
+      "format": "xAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "grok-4-20-reasoning",
+      "version": "1",
+      "format": "xAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Kimi-K2.6",
+      "version": "2026-04-20",
+      "format": "MoonshotAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "DeepSeek-V4-Flash",
+      "version": "2026-04-23",
+      "format": "DeepSeek",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "grok-4.3",
+      "version": "1",
+      "format": "xAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "DeepSeek-V4-Pro",
+      "version": "2026-04-23",
+      "format": "DeepSeek",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "mistral-ocr-4-0",
+      "version": "1",
+      "format": "Mistral AI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "mistral-medium-3-5",
+      "version": "1",
+      "format": "Mistral AI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Cohere-command-a-plus-05-2026",
+      "version": "1",
+      "format": "Cohere",
+      "skus": [
+        "GlobalStandard"
+      ]
+    },
+    {
+      "source": "azure-foundry",
+      "model_id": "Kimi-K2.7-Code",
+      "version": "2026-06-12",
+      "format": "MoonshotAI",
+      "skus": [
+        "GlobalStandard"
+      ]
+    }
+  ],
+  "perplexity": [
+    {
+      "source": "perplexity",
+      "model_id": "sonar",
+      "note": "no list API — known family, verify at perplexity.ai/docs"
+    },
+    {
+      "source": "perplexity",
+      "model_id": "sonar-pro",
+      "note": "no list API — known family, verify at perplexity.ai/docs"
+    },
+    {
+      "source": "perplexity",
+      "model_id": "sonar-reasoning",
+      "note": "no list API — known family, verify at perplexity.ai/docs"
+    },
+    {
+      "source": "perplexity",
+      "model_id": "sonar-deep-research",
+      "note": "no list API — known family, verify at perplexity.ai/docs"
+    }
+  ]
+}
