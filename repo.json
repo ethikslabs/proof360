@@ -15,7 +15,7 @@
     {
       "id": "PROOF360-PERSONA-DUAL-001",
       "status": "ready",
-      "boundary": "Define and wire the dual-jurisdiction founder persona (AU Pty Ltd + SG Pte Ltd) as a distinct proof360 segment. This founder needs cross-jurisdiction program matching \u2014 AU grants (R&D Tax, EMDG, NSW MVP) alongside SG grants (BGP, EDG, MRA, Startup SG). CORPUS already has both stacks ingested. Persona should surface automatically when both entity types are detected or self-reported.",
+      "boundary": "Define and wire the dual-jurisdiction founder persona (AU Pty Ltd + SG Pte Ltd) as a distinct proof360 segment. This founder needs cross-jurisdiction program matching — AU grants (R&D Tax, EMDG, NSW MVP) alongside SG grants (BGP, EDG, MRA, Startup SG). CORPUS already has both stacks ingested. Persona should surface automatically when both entity types are detected or self-reported.",
       "approved_by": "john-coates",
       "source": "edge:commercial_signal",
       "added": "2026-05-24"
@@ -23,7 +23,7 @@
     {
       "id": "PROOF360-QA-ONBOARDING-001",
       "status": "ready",
-      "boundary": "Redesign proof360 onboarding flow as Q&A rather than a gap report presentation. Instead of showing the report, ask the founder questions \u2014 business model, cloud provider, team size, compliance posture \u2014 and let the scored report emerge from their answers. Each confirmation morphs the recommendations in real time.",
+      "boundary": "Redesign proof360 onboarding flow as Q&A rather than a gap report presentation. Instead of showing the report, ask the founder questions — business model, cloud provider, team size, compliance posture — and let the scored report emerge from their answers. Each confirmation morphs the recommendations in real time.",
       "approved_by": "john-coates",
       "source": "edge:commercial_signal",
       "added": "2026-05-08"
@@ -45,7 +45,7 @@
     {
       "id": "PROOF360-GAP-DELTA-001",
       "status": "ready",
-      "boundary": "Before any gap catalog or vendor catalog change ships, explicitly enumerate what is missing and what vendor closes it \u2014 do not declare a catalog complete without naming the delta. Codify this as a review step in the gap authoring process.",
+      "boundary": "Before any gap catalog or vendor catalog change ships, explicitly enumerate what is missing and what vendor closes it — do not declare a catalog complete without naming the delta. Codify this as a review step in the gap authoring process.",
       "approved_by": "john-coates",
       "source": "edge:standardisation",
       "added": "2026-05-09"
@@ -53,7 +53,7 @@
     {
       "id": "PROOF360-CORPUS-CITE-001",
       "status": "ready",
-      "boundary": "Surface CORPUS evidence citations in the proof360 frontend evidence display. The gap API response already includes evidence items with source:'corpus' and a 'Retrieved from [source] \u00b7 CORPUS' citation string \u2014 wire this into the gap evidence UI component so users see the retrieval chain. Do not show it if no corpus evidence is present.",
+      "boundary": "Surface CORPUS evidence citations in the proof360 frontend evidence display. The gap API response already includes evidence items with source:'corpus' and a 'Retrieved from [source] · CORPUS' citation string — wire this into the gap evidence UI component so users see the retrieval chain. Do not show it if no corpus evidence is present.",
       "approved_by": "john-coates",
       "source": "edge:task_enhancement",
       "added": "2026-05-24"
@@ -77,7 +77,7 @@
     {
       "id": "PROOF360-INFERENCE-DIRECT-GUARD-001",
       "status": "ready",
-      "boundary": "Lock the VECTOR kill + finish the design-system master. (1) CI guard that fails the proof360 build if VECTOR_URL or localhost:3003 reappears in code/config \u2014 the resurrection pattern must not recur a 21st time. (2) Migrate the ~30 chat-family components off inline hex onto the tokens.js master CSS vars so the design template is enforced, not just available.",
+      "boundary": "Lock the VECTOR kill + finish the design-system master. (1) CI guard that fails the proof360 build if VECTOR_URL or localhost:3003 reappears in code/config — the resurrection pattern must not recur a 21st time. (2) Migrate the ~30 chat-family components off inline hex onto the tokens.js master CSS vars so the design template is enforced, not just available.",
       "approved_by": "john-coates",
       "source": "edge:standardisation",
       "added": "2026-06-19"
@@ -119,7 +119,7 @@
     {
       "id": "PROOF360-TRUST-SIGNAL-DOOR-001",
       "status": "ready",
-      "boundary": "Make the front door's trust signals REAL and visible (John directive 2026-07-03: 'the subtle logos, sign ons, protections, the little hints mean this is not shopify' \u2014 surface the enterprise stack). Slice 1: (a) real Cloudflare Turnstile \u2014 create widget for proof360.au, inject sitekey at build (same SSM pattern as Auth0), secret to SSM, server-side siteverify; kill the hardcoded always-pass test key (1x000...AA fallback in Chat.jsx). (b) FounderAuth login: 'Protected by Okta' hint + CF/AWS provenance hints \u2014 every hint LIVE-BACKED, never decorative. (c) survey where Vanta trust-report badge/link can surface (free Vanta = real compliance signal). Guardrail: a badge that is not live-backed is the ghost-tenant disease as marketing \u2014 estate's edge is that its hints are checkable.",
+      "boundary": "Make the front door's trust signals REAL and visible (John directive 2026-07-03: 'the subtle logos, sign ons, protections, the little hints mean this is not shopify' — surface the enterprise stack). Slice 1: (a) real Cloudflare Turnstile — create widget for proof360.au, inject sitekey at build (same SSM pattern as Auth0), secret to SSM, server-side siteverify; kill the hardcoded always-pass test key (1x000...AA fallback in Chat.jsx). (b) FounderAuth login: 'Protected by Okta' hint + CF/AWS provenance hints — every hint LIVE-BACKED, never decorative. (c) survey where Vanta trust-report badge/link can surface (free Vanta = real compliance signal). Guardrail: a badge that is not live-backed is the ghost-tenant disease as marketing — estate's edge is that its hints are checkable.",
       "approved_by": "john-coates",
       "source": "edge:commercial_signal",
       "added": "2026-07-03"
@@ -127,7 +127,7 @@
     {
       "id": "PROOF360-TRUST-SIGNAL-DOOR-002",
       "status": "ready",
-      "boundary": "Bind the Turnstile verdict to the login path itself (Codex P2 on PR #11, parked per CODEX-REVIEW-PREMERGE-STANDARD-001). Today the server-side siteverify arms the modal buttons, but a bot can skip the modal and drive the OAuth URL directly \u2014 /portal/callback mints founder_auth from any successful redirect. Fix is server-side by necessity: /api/v1/turnstile/verify issues a short-lived signed clearance; enforce it at the first authenticated API attach (journey/profile first-touch), NOT client-side \u2014 any sessionStorage/localStorage check is forgeable theater, the exact disease DOOR-001 kills. Scope with slice 1b so the clearance shape serves the Okta/stack hints too.",
+      "boundary": "Bind the Turnstile verdict to the login path itself (Codex P2 on PR #11, parked per CODEX-REVIEW-PREMERGE-STANDARD-001). Today the server-side siteverify arms the modal buttons, but a bot can skip the modal and drive the OAuth URL directly — /portal/callback mints founder_auth from any successful redirect. Fix is server-side by necessity: /api/v1/turnstile/verify issues a short-lived signed clearance; enforce it at the first authenticated API attach (journey/profile first-touch), NOT client-side — any sessionStorage/localStorage check is forgeable theater, the exact disease DOOR-001 kills. Scope with slice 1b so the clearance shape serves the Okta/stack hints too.",
       "approved_by": "john-coates",
       "source": "codex-review:PR#11-P2",
       "added": "2026-07-03"
@@ -135,7 +135,7 @@
     {
       "id": "PROOF360-EDGE-DEPLOY-HARDEN-001",
       "status": "done",
-      "boundary": "[P1] scripts/deploy.sh (manual path) hardening \u2014 edge-hunt findings #4/#5/#15. (a) Health-check curl races pm2 restart: connection-refused (exit 7) under set -e false-reds a green deploy \u2014 wrap in a retry loop with || true (also present in deploy.yml ec2 script). (b) deploy.sh never writes PG_* to api/.env, so a manual deploy ships a founder-memory surface that hits a ghost localhost Postgres and 500s (no global error handler) \u2014 add require_ssm PG_HOST/PORT/DATABASE/USER/PASSWORD like deploy.yml does. (c) require_ssm on ANTHROPIC_API_KEY hard-fails on a key the Bedrock-direct runtime never reads \u2014 drop it. #4 was previously flagged 'awaiting John ack'; hunt independently confirmed.",
+      "boundary": "[P1] scripts/deploy.sh (manual path) hardening — edge-hunt findings #4/#5/#15. (a) Health-check curl races pm2 restart: connection-refused (exit 7) under set -e false-reds a green deploy — wrap in a retry loop with || true (also present in deploy.yml ec2 script). (b) deploy.sh never writes PG_* to api/.env, so a manual deploy ships a founder-memory surface that hits a ghost localhost Postgres and 500s (no global error handler) — add require_ssm PG_HOST/PORT/DATABASE/USER/PASSWORD like deploy.yml does. (c) require_ssm on ANTHROPIC_API_KEY hard-fails on a key the Bedrock-direct runtime never reads — drop it. #4 was previously flagged 'awaiting John ack'; hunt independently confirmed.",
       "approved_by": "claude-code",
       "source": "edge-hunt:2026-07-03",
       "added": "2026-07-03",
@@ -145,7 +145,7 @@
     {
       "id": "PROOF360-DEPLOY-SH-MIGRATIONS-001",
       "status": "done",
-      "boundary": "[P2] scripts/deploy.sh (manual path) does not run the DB + memory migrations that deploy.yml runs (run-migrations.js, run-memory-migrations.js). After DEPLOY-HARDEN-001 gave deploy.sh real PG creds, a manual deploy can now reach Postgres but against a schema it never migrates \u2014 founder-memory / v3 handlers can 500 on missing tables. Mirror deploy.yml: run both migration scripts (non-fatal, || echo skipped) after writing .env and before the pm2 restart. Also reconcile the remaining deploy.sh vs deploy.yml .env divergence (TRUST360_URL, DASHBOARD_API_URL, PROOF360_ADMIN_KEY, SES_*, REPORT_BASE_URL, DEMO_FOUNDER_MODE) \u2014 DEMO_FOUNDER_MODE ties to D3 (kill demo-founder prod posture).",
+      "boundary": "[P2] scripts/deploy.sh (manual path) does not run the DB + memory migrations that deploy.yml runs (run-migrations.js, run-memory-migrations.js). After DEPLOY-HARDEN-001 gave deploy.sh real PG creds, a manual deploy can now reach Postgres but against a schema it never migrates — founder-memory / v3 handlers can 500 on missing tables. Mirror deploy.yml: run both migration scripts (non-fatal, || echo skipped) after writing .env and before the pm2 restart. Also reconcile the remaining deploy.sh vs deploy.yml .env divergence (TRUST360_URL, DASHBOARD_API_URL, PROOF360_ADMIN_KEY, SES_*, REPORT_BASE_URL, DEMO_FOUNDER_MODE) — DEMO_FOUNDER_MODE ties to D3 (kill demo-founder prod posture).",
       "approved_by": "john",
       "source": "deploy-harden-adjacent:2026-07-04",
       "added": "2026-07-04"
@@ -153,7 +153,7 @@
     {
       "id": "PROOF360-EDGE-MEMFILE-RACE-001",
       "status": "done",
-      "boundary": "[P2] Founder file-kernel concurrency \u2014 edge-hunt #6/#7. memory-store-file.js: concurrent first-touch mints duplicate profiles and loses the loser's transactions (no atomic create-or-get); and a stale lock directory permanently wedges a profile's append path (no lock TTL/steal). Add an atomic profile create + a lock with staleness recovery. Pairs with the DB-side atomicity fix (PR #13).",
+      "boundary": "[P2] Founder file-kernel concurrency — edge-hunt #6/#7. memory-store-file.js: concurrent first-touch mints duplicate profiles and loses the loser's transactions (no atomic create-or-get); and a stale lock directory permanently wedges a profile's append path (no lock TTL/steal). Add an atomic profile create + a lock with staleness recovery. Pairs with the DB-side atomicity fix (PR #13).",
       "approved_by": "claude-code",
       "source": "edge-hunt:2026-07-03",
       "added": "2026-07-03"
@@ -161,7 +161,7 @@
     {
       "id": "PROOF360-EDGE-DEAD-SOCIAL-LOGIN-001",
       "status": "done",
-      "boundary": "[P2] Config-drift \u2014 edge-hunt #9. VITE_GOOGLE_CLIENT_ID and VITE_MS_CLIENT_ID are baked by neither build path, so partner-portal social login is permanently dead in prod (buttons render, redirect is broken). Either bake them from SSM (same pattern as Auth0/Turnstile) or hide the buttons when unset \u2014 do not ship a dead control.",
+      "boundary": "[P2] Config-drift — edge-hunt #9. VITE_GOOGLE_CLIENT_ID and VITE_MS_CLIENT_ID are baked by neither build path, so partner-portal social login is permanently dead in prod (buttons render, redirect is broken). Either bake them from SSM (same pattern as Auth0/Turnstile) or hide the buttons when unset — do not ship a dead control.",
       "approved_by": "claude-code",
       "source": "edge-hunt:2026-07-03",
       "added": "2026-07-03"
@@ -169,7 +169,7 @@
     {
       "id": "PROOF360-EDGE-OAUTH-CSRF-NONCE-001",
       "status": "done",
-      "boundary": "[P2] Login CSRF / session fixation \u2014 edge-hunt #11. OAuth `state` is a static constant ('auth0'/'google'), not a per-request anti-CSRF nonce, in Chat.jsx + Portal.jsx. Generate a random state, store it, and verify it in /portal/callback before accepting the code/token. Ties to DOOR-002 (bind the login path).",
+      "boundary": "[P2] Login CSRF / session fixation — edge-hunt #11. OAuth `state` is a static constant ('auth0'/'google'), not a per-request anti-CSRF nonce, in Chat.jsx + Portal.jsx. Generate a random state, store it, and verify it in /portal/callback before accepting the code/token. Ties to DOOR-002 (bind the login path).",
       "approved_by": "claude-code",
       "source": "edge-hunt:2026-07-03",
       "added": "2026-07-03"
@@ -177,7 +177,7 @@
     {
       "id": "PROOF360-EDGE-SHAREABLE-URL-001",
       "status": "done",
-      "boundary": "[P2] Forgeable share link \u2014 edge-hunt #12. frontend/src/utils/shareable-url.js builds an unsigned, forgeable cold-read URL AND targets a route deleted in the 2026-05-29 legacy strip (/audit/cold-read). Either sign the params server-side or remove the dead surface.",
+      "boundary": "[P2] Forgeable share link — edge-hunt #12. frontend/src/utils/shareable-url.js builds an unsigned, forgeable cold-read URL AND targets a route deleted in the 2026-05-29 legacy strip (/audit/cold-read). Either sign the params server-side or remove the dead surface.",
       "approved_by": "claude-code",
       "source": "edge-hunt:2026-07-03",
       "added": "2026-07-03"
@@ -185,7 +185,7 @@
     {
       "id": "PROOF360-EDGE-AWAITED-URL-DROP-001",
       "status": "done",
-      "boundary": "[P2] Awaited-URL reply silently dropped \u2014 edge-hunt #10 (single-verdict, spend-limited verification). Chat.jsx: when a cold-read session already exists, an awaited-URL reply is dropped and awaitingField never clears \u2014 founder stuck. Re-verify against the D2 website-reply path (may overlap PROOF360-CER-WEBSITE-REPLY-001, now closed) before fixing.",
+      "boundary": "[P2] Awaited-URL reply silently dropped — edge-hunt #10 (single-verdict, spend-limited verification). Chat.jsx: when a cold-read session already exists, an awaited-URL reply is dropped and awaitingField never clears — founder stuck. Re-verify against the D2 website-reply path (may overlap PROOF360-CER-WEBSITE-REPLY-001, now closed) before fixing.",
       "approved_by": "claude-code",
       "source": "edge-hunt:2026-07-03",
       "added": "2026-07-03"
@@ -193,7 +193,7 @@
     {
       "id": "PROOF360-EDGE-CER-CONSENT-GATES-001",
       "status": "done",
-      "boundary": "[P3] CER state-machine hardening \u2014 edge-hunt #16/#17/#18 (single-verdict, spend-limited). (a) cer-projection folds by wall-clock ts not append sequence \u2014 non-monotonic clock yields wrong status; (b) confirmCer persists + grants consent without asserting the route was confirmed; (c) admin status endpoint allows transitions on a consent-withdrawn CER. Re-verify each against the append-only log semantics before fixing.",
+      "boundary": "[P3] CER state-machine hardening — edge-hunt #16/#17/#18 (single-verdict, spend-limited). (a) cer-projection folds by wall-clock ts not append sequence — non-monotonic clock yields wrong status; (b) confirmCer persists + grants consent without asserting the route was confirmed; (c) admin status endpoint allows transitions on a consent-withdrawn CER. Re-verify each against the append-only log semantics before fixing.",
       "approved_by": "claude-code",
       "source": "edge-hunt:2026-07-03",
       "added": "2026-07-03"
@@ -201,7 +201,7 @@
     {
       "id": "PROOF360-EDGE-FRONTEND-URL-HARDEN-001",
       "status": "done",
-      "boundary": "[P3] Frontend URL/injection hardening \u2014 edge-hunt #19/#20 (single-verdict, spend-limited). Extracted URL reaches the server scrape pipeline with no scheme/host validation (client-side SSRF entry \u2014 server SSRF guard from PR #12 is the real defense, but validate scheme client-side too); BrowserPanel renders arbitrary user URLs in an iframe with no sandbable attribute. Add scheme allowlist + iframe sandbox.",
+      "boundary": "[P3] Frontend URL/injection hardening — edge-hunt #19/#20 (single-verdict, spend-limited). Extracted URL reaches the server scrape pipeline with no scheme/host validation (client-side SSRF entry — server SSRF guard from PR #12 is the real defense, but validate scheme client-side too); BrowserPanel renders arbitrary user URLs in an iframe with no sandbable attribute. Add scheme allowlist + iframe sandbox.",
       "approved_by": "claude-code",
       "source": "edge-hunt:2026-07-03",
       "added": "2026-07-03"
@@ -219,7 +219,7 @@
     {
       "id": "PROOF360-REGISTER-ADVISORY-JOIN-001",
       "status": "ready",
-      "boundary": "Wire the register join into the proof360 cold-read/lab under the four ratified advisory laws (John 'Guide' ruling 2026-07-15, artifact 0d8fec09): (1) advisory speaks only inside the conversation (retrieval the customer can watch \u2014 thinking-stream lines citing the register + derivation date), never a banner/module; (2) honest zero rendered as a confident answer with provenance chips (n models / n sources / derived date), never an apology; (3) free sorts first \u2014 commercial:free|paid comes from the register field, never persuasion; (4) paid lane (Data Exchange via FORUM rail) only below the free answer, customer's own AWS billing frame, margin disclosed at quote. Registers: CONTROL/models.register.derived.json (631) + data.register.derived.json (1,172). Contract test: honest-zero-plus-shopping-list must pass the soil-in-Africa fixture without bluffing. Reference render: the ratified feel-pass artifact. Unblocks after: none \u2014 gate cleared.",
+      "boundary": "Wire the register join into the proof360 cold-read/lab under the four ratified advisory laws (John 'Guide' ruling 2026-07-15, artifact 0d8fec09): (1) advisory speaks only inside the conversation (retrieval the customer can watch — thinking-stream lines citing the register + derivation date), never a banner/module; (2) honest zero rendered as a confident answer with provenance chips (n models / n sources / derived date), never an apology; (3) free sorts first — commercial:free|paid comes from the register field, never persuasion; (4) paid lane (Data Exchange via FORUM rail) only below the free answer, customer's own AWS billing frame, margin disclosed at quote. Registers: CONTROL/models.register.derived.json (631) + data.register.derived.json (1,172). Contract test: honest-zero-plus-shopping-list must pass the soil-in-Africa fixture without bluffing. Reference render: the ratified feel-pass artifact. Unblocks after: none — gate cleared.",
       "approved_by": "john-coates",
       "source": "design-pass:2026-07-15-advisory-feel",
       "added": "2026-07-15"
@@ -238,7 +238,7 @@
       "source": "ratify:2026-07-15-ingram-boardroom",
       "added": "2026-07-15",
       "status": "ready",
-      "boundary": "Build the estimated-savings layer on the cold-read: gap -> $ risk/savings figure \u2014 the boardroom number the room reacts to (ratified John 2026-07-15). Derivation must be checkable (show-the-work: each $ line traces to a gap + severity + source), never a made-up big number \u2014 same checkability law as the advisory ruling. Feeds the Ingram walk-in flow and the MOU metrics section."
+      "boundary": "Build the estimated-savings layer on the cold-read: gap -> $ risk/savings figure — the boardroom number the room reacts to (ratified John 2026-07-15). Derivation must be checkable (show-the-work: each $ line traces to a gap + severity + source), never a made-up big number — same checkability law as the advisory ruling. Feeds the Ingram walk-in flow and the MOU metrics section."
     },
     {
       "id": "PROOF360-INGRAM-LENS-READ-001",
@@ -246,7 +246,7 @@
       "source": "ratify:2026-07-15-ingram-boardroom",
       "added": "2026-07-15",
       "status": "ready",
-      "boundary": "Wire read.proof360.au (live, 200) into the proof360 Ingram-partner lens under ingram-boardroom/ so Asha's ISV-routing view and the boardroom demo share one surface (ratified John 2026-07-15). RULING FOLDED IN (John 2026-07-15, 'gate the front door'): The Room = this lens = the Ingram play's front door, GATED \u2014 publicly addressed, access by granted invitation/credential only (never open self-serve); gate must be live-backed per PROOF360-TRUST-SIGNAL-DOOR-001 doctrine, and the reveal stays controlled until PROOF360-SAVINGS-LAYER-001 makes the $ number checkable."
+      "boundary": "Wire read.proof360.au (live, 200) into the proof360 Ingram-partner lens under ingram-boardroom/ so Asha's ISV-routing view and the boardroom demo share one surface (ratified John 2026-07-15). RULING FOLDED IN (John 2026-07-15, 'gate the front door'): The Room = this lens = the Ingram play's front door, GATED — publicly addressed, access by granted invitation/credential only (never open self-serve); gate must be live-backed per PROOF360-TRUST-SIGNAL-DOOR-001 doctrine, and the reveal stays controlled until PROOF360-SAVINGS-LAYER-001 makes the $ number checkable."
     },
     {
       "id": "PROOF360-MOU-TEMPLATE-001",
@@ -254,7 +254,7 @@
       "source": "ratify:2026-07-15-ingram-boardroom",
       "added": "2026-07-15",
       "status": "ready",
-      "boundary": "Draft the predefined Ingram MOU template (ratified John 2026-07-15): terms, timeframes, metrics, Ingram give-on-goal-hit clause. Metrics section stays open until Sunny answers the comp-metric question (consumption $ vs ISV logos) and CPPO is confirmed with Asha (Ingram seller-of-record, proof360 authors offers). Draft only \u2014 nothing external until John sends it."
+      "boundary": "Draft the predefined Ingram MOU template (ratified John 2026-07-15): terms, timeframes, metrics, Ingram give-on-goal-hit clause. Metrics section stays open until Sunny answers the comp-metric question (consumption $ vs ISV logos) and CPPO is confirmed with Asha (Ingram seller-of-record, proof360 authors offers). Draft only — nothing external until John sends it."
     },
     {
       "id": "PROOF360-GOOGLE-SSO-WIRE-001",
@@ -262,7 +262,15 @@
       "approved_by": "john-coates",
       "source": "awaiting-sweep:2026-07-15-item-10",
       "added": "2026-07-15",
-      "boundary": "Wire Google light SSO end-to-end now the OAuth client exists (proof360-web in research360-492400, created 2026-07-15; redirect https://proof360.au/portal/callback registered): (1) inject VITE_GOOGLE_CLIENT_ID from SSM /proof360/GOOGLE_CLIENT_ID into the frontend build in scripts/deploy.sh (build-time env, same pattern as Turnstile sitekey); (2) verify Portal Google login end-to-end on proof360.au. GOTCHA: the OAuth consent screen is in Testing mode \u2014 only listed test users can log in until the app is pushed to In production (basic scopes openid/email/profile need no verification review); add John + May as test users OR publish before the live check. Client secret staged at /proof360/GOOGLE_CLIENT_SECRET (SecureString) but unused by browser flows."
+      "boundary": "Wire Google light SSO end-to-end now the OAuth client exists (proof360-web in research360-492400, created 2026-07-15; redirect https://proof360.au/portal/callback registered): (1) inject VITE_GOOGLE_CLIENT_ID from SSM /proof360/GOOGLE_CLIENT_ID into the frontend build in scripts/deploy.sh (build-time env, same pattern as Turnstile sitekey); (2) verify Portal Google login end-to-end on proof360.au. GOTCHA: the OAuth consent screen is in Testing mode — only listed test users can log in until the app is pushed to In production (basic scopes openid/email/profile need no verification review); add John + May as test users OR publish before the live check. Client secret staged at /proof360/GOOGLE_CLIENT_SECRET (SecureString) but unused by browser flows."
+    },
+    {
+      "id": "PROOF360-VENDOR-SEAT-ARCTIC-WOLF-001",
+      "status": "ready",
+      "approved_by": "john-coates",
+      "source": "conversation:2026-07-15-got-an-api-flip",
+      "added": "2026-07-15",
+      "boundary": "Add Arctic Wolf as the SECOND vendor on the rails — and prove the paved vendor-onboarding path doing it (John 2026-07-15: 'that will be the test of adding another vendor'). Seat = (1) vendors.js catalog entry closing detection/response gaps (MDR), (2) CER pathway + Move if they rate a rail, (3) partner tenant in portal-leads.js so they see THEIR consented-lead view. Then write the path down as the repeatable 'you could plug in here' walk — the meet-more-vendors pitch is the onboarding doc. Frame (the 'Got an API?' flip): vendors used to pitch John 'show me what you can do — got an API?'; proof360 inverts it — the vendor plugs into OUR rails, leads arrive pre-consented and evidence-scoped per the CER consent gate. Vendor-on-the-rails, NOT a custos360 delivery partner (that lane stays HELD)."
     }
   ]
 }
