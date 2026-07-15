@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { useCer } from '../hooks/useCer.js';
 import { PATHWAYS } from '../utils/cerPathways.js';
+import { CerAgencyCard } from '../components/chat/CerAgencyCard.jsx';
+import { tokens } from '../tokens.js';
 
 // proof360 — the accumulating "lab" home (Hive & Co reference founder).
 // ADDITIVE FIRST CUT (design/hiveandco-lab): a real routed surface at /lab, folded from
@@ -12,10 +14,13 @@ import { PATHWAYS } from '../utils/cerPathways.js';
 // near-invisible on this honey ground. A light-on-dark official-asset swap is a separate task.
 //
 // Moves: each is a CER. A Move with a `route` calls the LIVE CER spine (useCer.startRoute →
-// confirmCer → POST /api/v1/profile/current/cers). In DEMO_FOUNDER mode this persists without a
-// token; otherwise it degrades to a sign-in prompt. The external next-step (external_action on
-// the pathway — "extend CER") is revealed once the record exists; the handler that fires it lives
-// in the /chat fold (CerProjectionCard onBookCall is a no-op today — the one real remaining build).
+// CerAgencyCard consent review → confirmCer → POST /api/v1/profile/current/cers). Persisting a
+// CER grants consent server-side, so the click alone NEVER creates it — the same agency/consent
+// card the chat flow uses docks under the Move first (CER-CONSENT-GATES-001). In DEMO_FOUNDER
+// mode the confirmed record persists without a token; otherwise it degrades to a sign-in prompt.
+// The external next-step (external_action on the pathway — "extend CER") is revealed once the
+// record exists; the handler that fires it lives in the /chat fold (CerProjectionCard onBookCall
+// is a no-op today — the one real remaining build).
 
 // --- dark-safe brand glyphs (currentColor; brand colour only on hover via --bc) -------------
 const G = {
@@ -85,6 +90,11 @@ const MOVES = [
   },
 ];
 
+// The consent card renders on the chat's pearl tokens DELIBERATELY: it is the same
+// agency/consent component the chat flow mounts — a paper record-moment on the honey
+// ground — not a lab-styled variant that could drift from the real consent step.
+const CONSENT_TK = tokens('pearl');
+
 function Brand({ bc, glyph, children }) {
   return (
     <a className="brand" style={bc ? { '--bc': bc } : undefined} href="#!">
@@ -105,6 +115,7 @@ export default function Lab() {
     const c = hexRef.current;
     if (!c) return;
     const x = c.getContext('2d');
+    if (!x) return; // non-canvas environments (jsdom) — atmosphere only, never load-bearing
     const hex = (cx, cy, r) => {
       x.beginPath();
       for (let i = 0; i < 6; i++) {
@@ -128,8 +139,10 @@ export default function Lab() {
     return () => window.removeEventListener('resize', draw);
   }, []);
 
-  // Move click → start the (confirmed) route, then persist it. Two-step because confirmCer reads
-  // `forming` from its own closure; the effect fires once startRoute has set it.
+  // Move click → start the (confirmed) route. Persisting is NOT automatic: the agency/consent
+  // card docks under the Move and only its explicit Confirm (consent checkbox ticked) calls
+  // confirmCer. Persisting a CER grants consent server-side, so a one-click Move must never
+  // create a partner-shareable Decision on its own (CER-CONSENT-GATES-001).
   const runMove = (m) => {
     if (!m.route) { setOpened((o) => ({ ...o, [m.key]: true })); return; }
     if (running || opened[m.key]) return;
@@ -138,20 +151,26 @@ export default function Lab() {
     cer.startRoute(m.route);
   };
 
-  useEffect(() => {
-    if (!running) return;
-    if (cer.forming?.route === running && cer.forming?.routeConfirmed) {
-      cer.confirmCer()
-        .then((created) => { if (created) setOpened((o) => ({ ...o, [running]: true })); else setSignin(true); })
-        .catch(() => setSignin(true))
-        .finally(() => setRunning(null));
+  const cancelMove = () => {
+    cer.dismissForming();
+    setRunning(null);
+  };
+
+  const confirmMove = async (m) => {
+    try {
+      const created = await cer.confirmCer();
+      if (created) setOpened((o) => ({ ...o, [m.key]: true }));
+      else setSignin(true);
+    } catch {
+      setSignin(true);
+    } finally {
+      setRunning(null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [running, cer.forming]);
+  };
 
   const moveState = (m) => {
-    if (m.route && opened[m.route]) return { label: m.done, done: true };
-    if (running === m.route) return { label: 'Opening…', busy: true };
+    if (opened[m.key]) return { label: m.done, done: true };
+    if (m.route && running === m.route) return { label: 'Reviewing…', busy: true };
     return { label: m.cta, done: false };
   };
 
@@ -234,22 +253,37 @@ export default function Lab() {
               {MOVES.map((m) => {
                 const st = moveState(m);
                 const pathway = m.route ? PATHWAYS[m.route] : null;
+                const reviewing = m.route && running === m.route
+                  && cer.forming?.route === m.route && cer.agencyReady && cer.proposal;
                 return (
-                  <div key={m.key} className={`move${m.hot ? ' hot' : ''}`} data-cer-route={m.route || 'none'}>
-                    <div className={`mtag ${m.tagClass}`}>{m.tag}</div>
-                    <div>
-                      <p className="mtitle">{m.mark ? <span className="movemark">{m.mark}</span> : null}{m.title}</p>
-                      <p className="mwhy">{m.why}</p>
-                      {pathway && st.done ? <p className="mnext">Pathway open · <a href="#!">{pathway.partner} — next step →</a></p> : null}
+                  <Fragment key={m.key}>
+                    <div className={`move${m.hot ? ' hot' : ''}`} data-cer-route={m.route || 'none'}>
+                      <div className={`mtag ${m.tagClass}`}>{m.tag}</div>
+                      <div>
+                        <p className="mtitle">{m.mark ? <span className="movemark">{m.mark}</span> : null}{m.title}</p>
+                        <p className="mwhy">{m.why}</p>
+                        {pathway && st.done ? <p className="mnext">Pathway open · <a href="#!">{pathway.partner} — next step →</a></p> : null}
+                      </div>
+                      <button
+                        className={`mcta${m.ctaClass ? ' ' + m.ctaClass : ''}`}
+                        disabled={st.busy || st.done}
+                        onClick={() => runMove(m)}
+                      >
+                        {st.label}{st.done ? ' ✓' : ' →'}
+                      </button>
                     </div>
-                    <button
-                      className={`mcta${m.ctaClass ? ' ' + m.ctaClass : ''}`}
-                      disabled={st.busy || st.done}
-                      onClick={() => runMove(m)}
-                    >
-                      {st.label}{st.done ? ' ✓' : ' →'}
-                    </button>
-                  </div>
+                    {reviewing ? (
+                      <div className="consentdock">
+                        <CerAgencyCard
+                          proposal={cer.proposal}
+                          tk={CONSENT_TK}
+                          busy={cer.busy}
+                          onEdit={cancelMove}
+                          onConfirm={() => confirmMove(m)}
+                        />
+                      </div>
+                    ) : null}
+                  </Fragment>
                 );
               })}
             </div>
@@ -404,6 +438,7 @@ const LAB_CSS = `
 .p360lab-root .mcta:disabled{cursor:default;opacity:.85}
 .p360lab-root .mcta.solid{background:linear-gradient(160deg,var(--honey),var(--amber));color:#241a10;border:none;font-weight:700;box-shadow:0 6px 20px -8px rgba(230,169,74,.55)}
 .p360lab-root .mcta.solid:hover:not(:disabled){filter:brightness(1.06);color:#241a10}
+.p360lab-root .consentdock{display:flex;justify-content:center;padding:8px 0 4px}
 .p360lab-root .signin{margin:14px 2px 0;font-size:14px;color:var(--warn)}
 .p360lab-root .signin a{color:var(--honey)}
 .p360lab-root .ask{margin:30px 0;border:1px solid var(--hairHi);border-radius:18px;padding:28px 30px;background:linear-gradient(135deg,rgba(230,169,74,.13),rgba(193,125,48,.05) 60%,transparent);display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
