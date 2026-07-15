@@ -49,11 +49,16 @@ function loadRegisters() {
 }
 
 // Terms: lowercase words minus stopwords. Short function words never match register text.
+// Ask-shape and register-generic words are stopped too — "find open data" must not
+// match OpenAI/OpenOrca on "open"; the ask words describe the ASK, not the domain.
 const STOP = new Set([
   'a', 'an', 'the', 'and', 'or', 'for', 'of', 'in', 'on', 'to', 'with', 'about',
   'what', 'which', 'is', 'are', 'there', 'any', 'do', 'does', 'we', 'our', 'my',
   'i', 'you', 'can', 'could', 'should', 'me', 'us', 'that', 'this', 'need', 'want',
   'data', 'dataset', 'datasets', 'model', 'models', 'ai', 'ml', 'help', 'have',
+  'use', 'used', 'using', 'open', 'public', 'available', 'free', 'paid',
+  'find', 'recommend', 'suggest', 'look', 'looking', 'search', 'source', 'sources',
+  'best', 'good', 'new', 'get', 'give', 'show', 'set', 'sets', 'train', 'training',
 ]);
 
 export function extractTerms(query) {
@@ -104,7 +109,7 @@ function capabilityScore(terms, entry) {
 export function adviseModels(query, { limit = 5 } = {}) {
   const { models } = loadRegisters();
   const terms = extractTerms(query);
-  const matches = terms.length
+  const scored = terms.length
     ? models.entries
         .map((e) => ({
           e,
@@ -112,21 +117,21 @@ export function adviseModels(query, { limit = 5 } = {}) {
         }))
         .filter((x) => x.s > 0)
         .sort((a, b) => b.s - a.s)
-        .slice(0, limit)
-        .map(({ e }) => ({
-          source: e.source,
-          model_id: e.model_id,
-          // Sparse register rows (e.g. openai-direct tts-1/whisper-1) carry only an id —
-          // fall back so the card never renders an undefined name or dangling provider.
-          name: e.name || e.model_id,
-          provider: e.provider || e.source,
-          input: e.input,
-          output: e.output,
-        }))
     : [];
+  const matches = scored.slice(0, limit).map(({ e }) => ({
+    source: e.source,
+    model_id: e.model_id,
+    // Sparse register rows (e.g. openai-direct tts-1/whisper-1) carry only an id —
+    // fall back so the card never renders an undefined name or dangling provider.
+    name: e.name || e.model_id,
+    provider: e.provider || e.source,
+    input: e.input,
+    output: e.output,
+  }));
   return {
     matches,
-    match_count: matches.length,
+    // Honest count: TOTAL hits, not the display page — "5 fit" when 150 do is a lie.
+    match_count: scored.length,
     total: models.meta.total_entries ?? models.entries.length,
     sources: models.sources.length,
     derived_at: models.meta.generated_at || null,
@@ -150,7 +155,8 @@ export function adviseData(query, { limit = 5 } = {}) {
     return freeA - freeB || b.s - a.s;
   });
 
-  const matches = scored.slice(0, limit).map(({ e }) => ({
+  const page = scored.slice(0, limit);
+  const matches = page.map(({ e }) => ({
     dataset_id: e.dataset_id,
     name: e.name,
     commercial: e.commercial,
@@ -165,7 +171,8 @@ export function adviseData(query, { limit = 5 } = {}) {
   const rail = data.paidRail || {};
   return {
     matches,
-    match_count: matches.length,
+    // Honest count: TOTAL hits, not the display page (matches carries the top slice).
+    match_count: scored.length,
     total: data.meta.counts?.['aws-open-data'] ?? data.entries.length,
     derived_at: data.meta.generated_at || null,
     paid_rail: {

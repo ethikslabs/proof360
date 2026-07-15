@@ -115,4 +115,19 @@ describe('mechanics', () => {
     expect(a.data.match_count).toBe(0);
     expect(a.data.paid_rail).toBeTruthy();
   });
+
+  // Ask-shape words describe the ASK, not the domain — "find open data" must not
+  // match OpenAI/OpenOrca on "open" (Codex P2, PR #18 round 3).
+  it('ask-only queries zero instead of matching on ask words', () => {
+    expect(extractTerms('find open data available for use')).toEqual([]);
+    const m = adviseModels('find open data');
+    expect(m.match_count).toBe(0);
+  });
+
+  // match_count is TOTAL hits, never the display page size (Codex P2, PR #18 round 3).
+  it('match_count reports total hits while matches carries the top page', () => {
+    const d = adviseData('agriculture');
+    expect(d.matches.length).toBeLessThanOrEqual(5);
+    expect(d.match_count).toBeGreaterThan(d.matches.length);
+  });
 });

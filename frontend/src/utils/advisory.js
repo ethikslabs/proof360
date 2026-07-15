@@ -44,12 +44,17 @@ export function advisoryThinkingSteps(advisory) {
 
 // The honest zero rendered as an ANSWER (law 2): a confident sentence that says what
 // was searched and what that means — never an apology, never a bluffed match.
+// match_count is TOTAL hits; matches carries only the top page — when they differ,
+// the copy says so ("top 5 of 150"), because a count that silently means "page size"
+// would be its own quiet bluff.
 export function modelAnswerLine(models) {
   if (!models) return '';
   if (models.match_count === 0) {
     return `No specialised model claims this domain — checked all ${models.total} models across ${models.sources} sources. That's the register talking, not a guess: your general reasoning stack already covers it, and nothing on the market would do it better today.`;
   }
-  return `${models.match_count} match${models.match_count === 1 ? '' : 'es'} from ${models.total} models across ${models.sources} sources:`;
+  const shown = models.matches?.length ?? 0;
+  const head = shown < models.match_count ? `top ${shown} of ${models.match_count} matches` : `${models.match_count} match${models.match_count === 1 ? '' : 'es'}`;
+  return `${head} from ${models.total} models across ${models.sources} sources:`;
 }
 
 export function dataAnswerLine(data) {
@@ -57,5 +62,7 @@ export function dataAnswerLine(data) {
   if (data.match_count === 0) {
     return `Nothing in the ${data.total} free public datasets matches this — an honest zero from the register.`;
   }
-  return `${data.match_count} of ${data.total} free public datasets fit — free first, straight from the register:`;
+  const shown = data.matches?.length ?? 0;
+  const head = shown < data.match_count ? `${data.match_count} of ${data.total} free public datasets fit — the top ${shown}` : `${data.match_count} of ${data.total} free public datasets fit`;
+  return `${head}, free first, straight from the register:`;
 }
