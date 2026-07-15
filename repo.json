@@ -218,11 +218,12 @@
     },
     {
       "id": "PROOF360-REGISTER-ADVISORY-JOIN-001",
-      "status": "ready",
+      "status": "done",
       "boundary": "Wire the register join into the proof360 cold-read/lab under the four ratified advisory laws (John 'Guide' ruling 2026-07-15, artifact 0d8fec09): (1) advisory speaks only inside the conversation (retrieval the customer can watch — thinking-stream lines citing the register + derivation date), never a banner/module; (2) honest zero rendered as a confident answer with provenance chips (n models / n sources / derived date), never an apology; (3) free sorts first — commercial:free|paid comes from the register field, never persuasion; (4) paid lane (Data Exchange via FORUM rail) only below the free answer, customer's own AWS billing frame, margin disclosed at quote. Registers: CONTROL/models.register.derived.json (631) + data.register.derived.json (1,172). Contract test: honest-zero-plus-shopping-list must pass the soil-in-Africa fixture without bluffing. Reference render: the ratified feel-pass artifact. Unblocks after: none — gate cleared.",
       "approved_by": "john-coates",
       "source": "design-pass:2026-07-15-advisory-feel",
-      "added": "2026-07-15"
+      "added": "2026-07-15",
+      "delivered": "2026-07-15: PR #18 squash-merged 396e17b. Register advisory live at proof360.au — GET /api/v1/advisory/registers, AdvisoryCard in-stream both chat phases, watchable retrieval thinking lines. Four laws encoded in the response shape. Contract test api/tests/unit/register-advisory.test.js (honest-zero-plus-shopping-list, soil-in-Africa fixture) — edge-verified live: models 0/631 honest zero + AfSIS first, free, provenance-linked. Codex: 6 P2s over 3 rounds, all fixed with tests. API 156/156 · frontend 129/129."
     },
     {
       "id": "PROOF360-INGRAM-BOARDROOM-FLOW-001",
