@@ -4,6 +4,22 @@
   "state": "live",
   "tasks": [
     {
+      "id": "PROOF360-CER-ONBOOKCALL-MONEY-SEAM-001",
+      "status": "ready",
+      "boundary": "Wire CerProjectionCard onBookCall (Chat.jsx:2550, currently a no-op) to fire the confirmed CER's external_action — the point where a Decision becomes a REAL external commercial action (the money seam). The external_action data spine already ships on all 4 pathways (frontend/src/utils/cerPathways.js + api/src/config/cer-routes.js, commit 78f178c): {kind: marketplace_offer|referral_form|distributor_quote, target:null}. The handler resolves target per-deal at engage time (a CPPO private-offer link minted per customer; a referral form per founder) — never hardcoded. Touches shared /chat: do on design/hiveandco-lab AFTER the parked feat/memory-store-facade branch settles (one-agent-per-repo). Ratified from task_enhancement edge 2026-07-14 (John 'approve suggestions'). See memory project_proof360_lab_pattern.",
+      "approved_by": "john-coates",
+      "source": "edge:task_enhancement",
+      "added": "2026-07-14"
+    },
+    {
+      "id": "PROOF360-LAB-MOUNT-CHAT-HOME-001",
+      "status": "ready",
+      "boundary": "Mount the additive /lab surface (frontend/src/pages/Lab.jsx, commit 78f178c) as the /chat home so the accumulating lab becomes the conversion surface: each confirmed CER -> proof360 (lead) -> FORUM (AWS Marketplace/CPPO margin, project_aws_cppo_channel_rule) -> CyberPro (20% cede). Fold Lab into Chat.jsx main pane + add a Sidebar SPACES entry; reuse the live useCer spine. Touches shared /chat — needs the parked feat branch settled first (one-agent-per-repo). Pairs with PROOF360-CER-ONBOOKCALL-MONEY-SEAM-001. Ratified from commercial_signal edge 2026-07-14 (John 'approve suggestions').",
+      "approved_by": "john-coates",
+      "source": "edge:commercial_signal",
+      "added": "2026-07-14"
+    },
+    {
       "id": "PROOF360-CER-WEBSITE-REPLY-001",
       "status": "done",
       "boundary": "DONE 2026-07-03 (PR #7 merged 332f0d9 + Codex P1 fix 6804b0f in PR #7): Make the CER gap-prompt's website-reply branch robust (Codex P2s on PR #6). When Sophia asks 'what's the company called? (a name, a website, or a deck all work)' and the founder re",
