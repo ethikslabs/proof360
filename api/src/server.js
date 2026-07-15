@@ -22,6 +22,7 @@ import { engageHandler } from './handlers/engage.js';
 import { telegramWebhookHandler } from './handlers/telegram-webhook.js';
 import { johnMessagesHandler } from './handlers/john-messages.js';
 import { corpusStatsHandler } from './handlers/corpus-stats.js';
+import { advisoryRegistersHandler } from './handlers/advisory.js';
 import { notifyHandler } from './handlers/notify.js';
 import { createTurnstileVerifyHandler } from './handlers/turnstile.js';
 import { requireAuth } from './lib/auth.js';
@@ -108,6 +109,7 @@ app.post('/api/v1/notify', notifyHandler);
 
 // --- CORPUS ---
 app.get('/api/v1/corpus/stats', corpusStatsHandler);
+app.get('/api/v1/advisory/registers', advisoryRegistersHandler);
 
 // --- Health ---
 app.get('/health', healthHandler);
