@@ -16,8 +16,9 @@ import { tokens } from '../tokens.js';
 // Moves: each is a CER. A Move with a `route` calls the LIVE CER spine (useCer.startRoute →
 // CerAgencyCard consent review → confirmCer → POST /api/v1/profile/current/cers). Persisting a
 // CER grants consent server-side, so the click alone NEVER creates it — the same agency/consent
-// card the chat flow uses docks under the Move first (CER-CONSENT-GATES-001). In DEMO_FOUNDER
-// mode the confirmed record persists without a token; otherwise it degrades to a sign-in prompt.
+// card the chat flow uses docks under the Move first (CER-CONSENT-GATES-001). ONLY the
+// DEMO_FOUNDER build persists (tokenless, demo profile); a non-demo build never writes this
+// reference lab's Moves to a real founder's record — it points at starting their own lab.
 // The external next-step (external_action on the pathway — "extend CER") is revealed once the
 // record exists; the handler that fires it lives in the /chat fold (CerProjectionCard onBookCall
 // is a no-op today — the one real remaining build).
@@ -106,9 +107,9 @@ function Brand({ bc, glyph, children }) {
 export default function Lab() {
   const hexRef = useRef(null);
   const cer = useCer({ companyName: 'Hive & Co', enabled: true });
-  const [running, setRunning] = useState(null);   // route currently persisting
-  const [opened, setOpened] = useState({});        // route -> true once its CER exists
-  const [signin, setSignin] = useState(false);     // persist failed (no session)
+  const [running, setRunning] = useState(null);   // route currently in consent review
+  const [opened, setOpened] = useState({});        // move key -> true once run this visit
+  const [notice, setNotice] = useState(null);      // 'signin' | 'reference'
 
   // Faint honeycomb ground — atmosphere, not decoration (ported from the prototype canvas).
   useEffect(() => {
@@ -143,10 +144,15 @@ export default function Lab() {
   // card docks under the Move and only its explicit Confirm (consent checkbox ticked) calls
   // confirmCer. Persisting a CER grants consent server-side, so a one-click Move must never
   // create a partner-shareable Decision on its own (CER-CONSENT-GATES-001).
+  //
+  // Trust boundary: this is Hive & Co's REFERENCE lab. Only the demo founder build persists
+  // Moves — in a real (non-demo) build a signed-in founder must never accrue Hive-framed CERs
+  // on their own record from here; they get pointed at starting their own lab instead.
   const runMove = (m) => {
     if (!m.route) { setOpened((o) => ({ ...o, [m.key]: true })); return; }
     if (running || opened[m.key]) return;
-    setSignin(false);
+    if (import.meta.env.VITE_DEMO_FOUNDER_MODE !== 'true') { setNotice('reference'); return; }
+    setNotice(null);
     setRunning(m.route);
     cer.startRoute(m.route);
   };
@@ -160,16 +166,19 @@ export default function Lab() {
     try {
       const created = await cer.confirmCer();
       if (created) setOpened((o) => ({ ...o, [m.key]: true }));
-      else setSignin(true);
+      else setNotice('signin');
     } catch {
-      setSignin(true);
+      setNotice('signin');
     } finally {
       setRunning(null);
     }
   };
 
   const moveState = (m) => {
-    if (opened[m.key]) return { label: m.done, done: true };
+    // A route with a live (non-withdrawn) CER on record counts as run — survives reload,
+    // prevents a second confirmation posting a duplicate Decision.
+    const onRecord = m.route && cer.createdCers.some((c) => c.route === m.route && c.consent_state !== 'withdrawn');
+    if (onRecord || opened[m.key]) return { label: m.done, done: true };
     if (m.route && running === m.route) return { label: 'Reviewing…', busy: true };
     return { label: m.cta, done: false };
   };
@@ -287,7 +296,8 @@ export default function Lab() {
                 );
               })}
             </div>
-            {signin ? <p className="signin">Sign in to run a Move — it becomes a Decision on your record. <a href="/account/login">Sign in →</a></p> : null}
+            {notice === 'reference' ? <p className="signin">This is Hive &amp; Co&rsquo;s reference lab — Moves here are a walkthrough, not your record. <a href="/account/login">Start your own lab →</a></p> : null}
+            {notice === 'signin' ? <p className="signin">Sign in to run a Move — it becomes a Decision on your record. <a href="/account/login">Sign in →</a></p> : null}
           </div>
 
           <div className="ask">
