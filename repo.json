@@ -4,22 +4,6 @@
   "state": "live",
   "tasks": [
     {
-      "id": "PROOF360-CER-ONBOOKCALL-MONEY-SEAM-001",
-      "status": "ready",
-      "boundary": "Wire CerProjectionCard onBookCall (Chat.jsx:2550, currently a no-op) to fire the confirmed CER's external_action — the point where a Decision becomes a REAL external commercial action (the money seam). The external_action data spine already ships on all 4 pathways (frontend/src/utils/cerPathways.js + api/src/config/cer-routes.js, commit 78f178c): {kind: marketplace_offer|referral_form|distributor_quote, target:null}. The handler resolves target per-deal at engage time (a CPPO private-offer link minted per customer; a referral form per founder) — never hardcoded. Touches shared /chat: do on design/hiveandco-lab AFTER the parked feat/memory-store-facade branch settles (one-agent-per-repo). Ratified from task_enhancement edge 2026-07-14 (John 'approve suggestions'). See memory project_proof360_lab_pattern.",
-      "approved_by": "john-coates",
-      "source": "edge:task_enhancement",
-      "added": "2026-07-14"
-    },
-    {
-      "id": "PROOF360-LAB-MOUNT-CHAT-HOME-001",
-      "status": "ready",
-      "boundary": "Mount the additive /lab surface (frontend/src/pages/Lab.jsx, commit 78f178c) as the /chat home so the accumulating lab becomes the conversion surface: each confirmed CER -> proof360 (lead) -> FORUM (AWS Marketplace/CPPO margin, project_aws_cppo_channel_rule) -> CyberPro (20% cede). Fold Lab into Chat.jsx main pane + add a Sidebar SPACES entry; reuse the live useCer spine. Touches shared /chat — needs the parked feat branch settled first (one-agent-per-repo). Pairs with PROOF360-CER-ONBOOKCALL-MONEY-SEAM-001. Ratified from commercial_signal edge 2026-07-14 (John 'approve suggestions').",
-      "approved_by": "john-coates",
-      "source": "edge:commercial_signal",
-      "added": "2026-07-14"
-    },
-    {
       "id": "PROOF360-CER-WEBSITE-REPLY-001",
       "status": "done",
       "boundary": "DONE 2026-07-03 (PR #7 merged 332f0d9 + Codex P1 fix 6804b0f in PR #7): Make the CER gap-prompt's website-reply branch robust (Codex P2s on PR #6). When Sophia asks 'what's the company called? (a name, a website, or a deck all work)' and the founder re",
@@ -230,7 +214,55 @@
     {
       "id": "PROOF360-ADVISORY-DEMO-FIXTURE-001",
       "status": "ready",
-      "boundary": "Stage the soil-in-Africa walkthrough as proof360's model/data-advisory demo fixture beside Hive & Co: fictional agritech founder cold-read -> industry inferred -> model register returns an HONEST ZERO -> data register returns AfSIS Soil Chemistry + africa-field-boundary-labels (free, on S3, provenance-linked) -> paid Data Exchange lane shown as the FORUM rail. The honest zero followed by a named free dataset is the guide-not-grade proof a buyer can feel. Gated on the advisory feel design pass (John). Registers: CONTROL/models.register.derived.json + data.register.derived.json. Ratified from commercial_signal edge 2026-07-14 (John 'approve all')."
+      "boundary": "Stage the soil-in-Africa walkthrough as proof360's model/data-advisory demo fixture beside Hive & Co: fictional agritech founder cold-read -> industry inferred -> model register returns an HONEST ZERO -> data register returns AfSIS Soil Chemistry + africa-field-boundary-labels (free, on S3, provenance-linked) -> paid Data Exchange lane shown as the FORUM rail. The honest zero followed by a named free dataset is the guide-not-grade proof a buyer can feel. GATE CLEARED 2026-07-15: feel pass ratified by John ('Guide') on the walkable artifact; four advisory laws recorded in memory project_model_catalog_ruling. Registers: CONTROL/models.register.derived.json + data.register.derived.json. Ratified from commercial_signal edge 2026-07-14 (John 'approve all')."
+    },
+    {
+      "id": "PROOF360-REGISTER-ADVISORY-JOIN-001",
+      "status": "ready",
+      "boundary": "Wire the register join into the proof360 cold-read/lab under the four ratified advisory laws (John 'Guide' ruling 2026-07-15, artifact 0d8fec09): (1) advisory speaks only inside the conversation (retrieval the customer can watch \u2014 thinking-stream lines citing the register + derivation date), never a banner/module; (2) honest zero rendered as a confident answer with provenance chips (n models / n sources / derived date), never an apology; (3) free sorts first \u2014 commercial:free|paid comes from the register field, never persuasion; (4) paid lane (Data Exchange via FORUM rail) only below the free answer, customer's own AWS billing frame, margin disclosed at quote. Registers: CONTROL/models.register.derived.json (631) + data.register.derived.json (1,172). Contract test: honest-zero-plus-shopping-list must pass the soil-in-Africa fixture without bluffing. Reference render: the ratified feel-pass artifact. Unblocks after: none \u2014 gate cleared.",
+      "approved_by": "john-coates",
+      "source": "design-pass:2026-07-15-advisory-feel",
+      "added": "2026-07-15"
+    },
+    {
+      "id": "PROOF360-INGRAM-BOARDROOM-FLOW-001",
+      "approved_by": "john-coates",
+      "source": "ratify:2026-07-15-ingram-boardroom",
+      "added": "2026-07-15",
+      "status": "ready",
+      "boundary": "Define the Ingram boardroom walk-in flow (ratified John 2026-07-15): live cold-read of a real ISV in the room -> quantified $ savings/risk number on screen -> MOU on the table same meeting. Output: a walk-through doc + demo script under proof360/ingram-boardroom/ tying the existing isv_ingestion_engine.html + read.proof360.au surfaces into one rehearsable flow. Gates PROOF360-SAVINGS-LAYER-001 (the number) and PROOF360-INGRAM-LENS-READ-001 (the surface)."
+    },
+    {
+      "id": "PROOF360-SAVINGS-LAYER-001",
+      "approved_by": "john-coates",
+      "source": "ratify:2026-07-15-ingram-boardroom",
+      "added": "2026-07-15",
+      "status": "ready",
+      "boundary": "Build the estimated-savings layer on the cold-read: gap -> $ risk/savings figure \u2014 the boardroom number the room reacts to (ratified John 2026-07-15). Derivation must be checkable (show-the-work: each $ line traces to a gap + severity + source), never a made-up big number \u2014 same checkability law as the advisory ruling. Feeds the Ingram walk-in flow and the MOU metrics section."
+    },
+    {
+      "id": "PROOF360-INGRAM-LENS-READ-001",
+      "approved_by": "john-coates",
+      "source": "ratify:2026-07-15-ingram-boardroom",
+      "added": "2026-07-15",
+      "status": "ready",
+      "boundary": "Wire read.proof360.au (live, 200) into the proof360 Ingram-partner lens under ingram-boardroom/ so Asha's ISV-routing view and the boardroom demo share one surface (ratified John 2026-07-15). RULING FOLDED IN (John 2026-07-15, 'gate the front door'): The Room = this lens = the Ingram play's front door, GATED \u2014 publicly addressed, access by granted invitation/credential only (never open self-serve); gate must be live-backed per PROOF360-TRUST-SIGNAL-DOOR-001 doctrine, and the reveal stays controlled until PROOF360-SAVINGS-LAYER-001 makes the $ number checkable."
+    },
+    {
+      "id": "PROOF360-MOU-TEMPLATE-001",
+      "approved_by": "john-coates",
+      "source": "ratify:2026-07-15-ingram-boardroom",
+      "added": "2026-07-15",
+      "status": "ready",
+      "boundary": "Draft the predefined Ingram MOU template (ratified John 2026-07-15): terms, timeframes, metrics, Ingram give-on-goal-hit clause. Metrics section stays open until Sunny answers the comp-metric question (consumption $ vs ISV logos) and CPPO is confirmed with Asha (Ingram seller-of-record, proof360 authors offers). Draft only \u2014 nothing external until John sends it."
+    },
+    {
+      "id": "PROOF360-GOOGLE-SSO-WIRE-001",
+      "status": "ready",
+      "approved_by": "john-coates",
+      "source": "awaiting-sweep:2026-07-15-item-10",
+      "added": "2026-07-15",
+      "boundary": "Wire Google light SSO end-to-end now the OAuth client exists (proof360-web in research360-492400, created 2026-07-15; redirect https://proof360.au/portal/callback registered): (1) inject VITE_GOOGLE_CLIENT_ID from SSM /proof360/GOOGLE_CLIENT_ID into the frontend build in scripts/deploy.sh (build-time env, same pattern as Turnstile sitekey); (2) verify Portal Google login end-to-end on proof360.au. GOTCHA: the OAuth consent screen is in Testing mode \u2014 only listed test users can log in until the app is pushed to In production (basic scopes openid/email/profile need no verification review); add John + May as test users OR publish before the live check. Client secret staged at /proof360/GOOGLE_CLIENT_SECRET (SecureString) but unused by browser flows."
     }
   ]
 }
