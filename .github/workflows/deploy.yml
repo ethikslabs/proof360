@@ -47,6 +47,11 @@ jobs:
           echo "audience=$AUDIENCE" >> $GITHUB_OUTPUT
           echo "client_id=$CLIENT_ID" >> $GITHUB_OUTPUT
           echo "turnstile_sitekey=$TURNSTILE_SITEKEY" >> $GITHUB_OUTPUT
+          # Google light SSO client id — public identifier, optional lane: WARN when
+          # absent (frontend falls back to demo mode), never fail the deploy on it.
+          GOOGLE_CLIENT_ID=$(aws ssm get-parameter --name /proof360/GOOGLE_CLIENT_ID --query "Parameter.Value" --output text 2>/dev/null || echo "")
+          [ -n "$GOOGLE_CLIENT_ID" ] || echo "::warning::/proof360/GOOGLE_CLIENT_ID missing/empty — Google login builds in demo-fallback mode"
+          echo "google_client_id=$GOOGLE_CLIENT_ID" >> $GITHUB_OUTPUT
 
       - name: Build frontend
         working-directory: frontend
@@ -58,6 +63,7 @@ jobs:
           VITE_AUTH0_AUDIENCE: ${{ steps.auth0.outputs.audience }}
           VITE_AUTH0_CLIENT_ID: ${{ steps.auth0.outputs.client_id }}
           VITE_CF_TURNSTILE_SITEKEY: ${{ steps.auth0.outputs.turnstile_sitekey }}
+          VITE_GOOGLE_CLIENT_ID: ${{ steps.auth0.outputs.google_client_id }}
         run: |
           npm install
           npm run build

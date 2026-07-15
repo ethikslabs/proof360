@@ -74,6 +74,10 @@ AUTH0_AUDIENCE=$(require_ssm "$SSM_PREFIX/AUTH0_AUDIENCE")
 AUTH0_CLIENT_ID=$(require_ssm "/ethikslabs/auth0/client-id")
 TURNSTILE_SECRET=$(require_ssm "$SSM_PREFIX/TURNSTILE_SECRET")
 TURNSTILE_SITEKEY=$(require_ssm "$SSM_PREFIX/TURNSTILE_SITEKEY")
+# Google light SSO (PROOF360-GOOGLE-SSO-WIRE-001): public client id, ships in the
+# bundle. get_ssm (WARN) not require_ssm — the frontend has an explicit demo-mode
+# fallback when unset, and the Google lane must not gate deploys the way Auth0 does.
+GOOGLE_CLIENT_ID=$(get_ssm "$SSM_PREFIX/GOOGLE_CLIENT_ID")
 # Founder-memory + v3 Postgres handlers read these. Without them a manual deploy shipped a
 # memory surface pointed at a ghost localhost Postgres and 500'd (edge-hunt #6/DEPLOY-HARDEN-001).
 # require_ssm mirrors deploy.yml, whose get_ssm hard-fails on empty — the /proof360/postgres/*
@@ -142,6 +146,7 @@ VITE_AUTH0_DOMAIN="$AUTH0_DOMAIN" \
 VITE_AUTH0_AUDIENCE="$AUTH0_AUDIENCE" \
 VITE_AUTH0_CLIENT_ID="$AUTH0_CLIENT_ID" \
 VITE_CF_TURNSTILE_SITEKEY="$TURNSTILE_SITEKEY" \
+VITE_GOOGLE_CLIENT_ID="$GOOGLE_CLIENT_ID" \
 npm run build
 
 # Run DB + memory-store migrations before restart, mirroring deploy.yml — DEPLOY-HARDEN-001 gave
