@@ -86,6 +86,29 @@ describe('mechanics', () => {
     expect(m.matches[0]).toHaveProperty('source');
   });
 
+  // The honest-zero law forbids FALSE zeros too: capability words live in the
+  // register's input/output modalities and must match (Codex P2, PR #18).
+  it('a capability query matches modalities — never a false zero', () => {
+    const m = adviseModels('which models can process images');
+    expect(m.match_count).toBeGreaterThan(0);
+    for (const match of m.matches) {
+      const mods = [...(match.input || []), ...(match.output || [])].map((x) => String(x).toUpperCase());
+      expect(mods).toContain('IMAGE');
+    }
+    expect(adviseModels('models for audio transcription').match_count).toBeGreaterThan(0);
+  });
+
+  // Sparse rows (openai-direct tts-1 / whisper-1) carry only an id — the response
+  // must never surface undefined name/provider (Codex P2, PR #18).
+  it('id-only register rows get name/provider fallbacks', () => {
+    const m = adviseModels('whisper');
+    expect(m.match_count).toBeGreaterThan(0);
+    for (const match of m.matches) {
+      expect(match.name).toBeTruthy();
+      expect(match.provider).toBeTruthy();
+    }
+  });
+
   it('empty query returns zeros with provenance, no throw', () => {
     const a = registerAdvisory('');
     expect(a.models.match_count).toBe(0);

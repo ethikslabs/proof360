@@ -78,20 +78,48 @@ function scoreText(terms, ...fields) {
 // ── models ─────────────────────────────────────────────────────────────────────
 // Model entries carry no industry/domain tags, so domain queries ("soil", "vineyard")
 // honestly zero — that is the register telling the truth, not a search failure.
+//
+// Capability words DO live in the register (input/output modalities), so an ask like
+// "which models can process images" must match them — a zero there would be a FALSE
+// zero, which the honest-zero law forbids in both directions: never bluff a match,
+// never bluff a miss.
+const CAPABILITY_TERMS = {
+  image: 'IMAGE', images: 'IMAGE', vision: 'IMAGE', visual: 'IMAGE', multimodal: 'IMAGE',
+  photo: 'IMAGE', photos: 'IMAGE',
+  audio: 'AUDIO', speech: 'AUDIO', voice: 'AUDIO', transcribe: 'AUDIO', transcription: 'AUDIO',
+  video: 'VIDEO', videos: 'VIDEO',
+  embedding: 'EMBEDDING', embeddings: 'EMBEDDING',
+};
+
+function capabilityScore(terms, entry) {
+  const modalities = new Set([...(entry.input || []), ...(entry.output || [])].map((m) => String(m).toUpperCase()));
+  let score = 0;
+  for (const t of terms) {
+    const cap = CAPABILITY_TERMS[t];
+    if (cap && modalities.has(cap)) score += 3;
+  }
+  return score;
+}
+
 export function adviseModels(query, { limit = 5 } = {}) {
   const { models } = loadRegisters();
   const terms = extractTerms(query);
   const matches = terms.length
     ? models.entries
-        .map((e) => ({ e, s: scoreText(terms, [2, e.name], [2, e.provider], [1, e.model_id]) }))
+        .map((e) => ({
+          e,
+          s: scoreText(terms, [2, e.name], [2, e.provider], [1, e.model_id]) + capabilityScore(terms, e),
+        }))
         .filter((x) => x.s > 0)
         .sort((a, b) => b.s - a.s)
         .slice(0, limit)
         .map(({ e }) => ({
           source: e.source,
           model_id: e.model_id,
-          name: e.name,
-          provider: e.provider,
+          // Sparse register rows (e.g. openai-direct tts-1/whisper-1) carry only an id —
+          // fall back so the card never renders an undefined name or dangling provider.
+          name: e.name || e.model_id,
+          provider: e.provider || e.source,
           input: e.input,
           output: e.output,
         }))
