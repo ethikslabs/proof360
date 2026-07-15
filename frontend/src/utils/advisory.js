@@ -4,9 +4,13 @@
 // (advisory law 1 — the advisory speaks only inside the conversation).
 
 // A register noun alone must not fire ("our customer data is encrypted" is a trust
-// statement, not an ask). Fire only when an ask-shape meets a register noun.
+// statement, not an ask). Fire only when an ask-shape meets a register noun — and the
+// ask-shape must be a REAL question or request: a '?', an interrogative opening, or a
+// request verb. Bare 'any'/'available' are NOT ask-shapes ("we do not use any training
+// data" / "our training data is available in S3" are statements the personas should
+// answer, not register lookups).
 const REGISTER_NOUN = /\b(model|models|llm|llms|foundation models?|dataset|datasets|data ?sets?|open data|public data|training data|data (?:source|sources|we could use))\b/i;
-const ASK_SHAPE = /\b(is there|are there|any|which|what|find|recommend|suggest|available|look(?:ing)? for|could (?:we|i) use|should (?:we|i) use|help (?:us|me) (?:with|find))\b/i;
+const ASK_SHAPE = /\?|\b(is there|are there|do we have|what|which|find|recommend|suggest|look(?:ing)? for|could (?:we|i) use|should (?:we|i) use|help (?:us|me) (?:with|find))\b/i;
 
 export function advisoryFromText(text) {
   const s = String(text || '');

@@ -18,6 +18,17 @@ describe('advisoryFromText — ask-shape + register-noun, never a noun alone', (
     expect(advisoryFromText('we run our threat model quarterly')).toBe(false);
     expect(advisoryFromText('tell me about SOC 2')).toBe(false);
   });
+
+  // Bare 'any'/'available' are statements, not asks (Codex P2, PR #18 round 3) —
+  // these must reach the personas, not the register.
+  it('does NOT fire on statements containing any/available', () => {
+    expect(advisoryFromText('we do not use any training data')).toBe(false);
+    expect(advisoryFromText('our training data is available in S3')).toBe(false);
+  });
+
+  it('still fires on question-marked asks without a request verb', () => {
+    expect(advisoryFromText('any datasets on soil health?')).toBe(true);
+  });
 });
 
 describe('the watchable retrieval (law 1)', () => {
