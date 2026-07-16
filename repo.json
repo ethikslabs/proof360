@@ -272,6 +272,38 @@
       "source": "conversation:2026-07-15-got-an-api-flip",
       "added": "2026-07-15",
       "boundary": "Add Arctic Wolf as the SECOND vendor on the rails — and prove the paved vendor-onboarding path doing it (John 2026-07-15: 'that will be the test of adding another vendor'). Seat = (1) vendors.js catalog entry closing detection/response gaps (MDR), (2) CER pathway + Move if they rate a rail, (3) partner tenant in portal-leads.js so they see THEIR consented-lead view. Then write the path down as the repeatable 'you could plug in here' walk — the meet-more-vendors pitch is the onboarding doc. Frame (the 'Got an API?' flip): vendors used to pitch John 'show me what you can do — got an API?'; proof360 inverts it — the vendor plugs into OUR rails, leads arrive pre-consented and evidence-scoped per the CER consent gate. Vendor-on-the-rails, NOT a custos360 delivery partner (that lane stays HELD)."
+    },
+    {
+      "id": "PROOF360-CER-ROUTES-AS-DATA-001",
+      "status": "ready",
+      "approved_by": "john-coates",
+      "source": "edge:2026-07-16-close-cer-cluster",
+      "added": "2026-07-16",
+      "boundary": "Gap 1 of the CER core-value->core-asset cluster (memory project_cer_core_value_model): externalize the 4 hardcoded CER routes (frontend/src/utils/cerPathways.js PATHWAYS + api/src/config/cer-routes.js) into config/data so a vendor seat is a data add, not a code change. Backend stays source of truth for storage/visibility; frontend projection derives. Proves itself on PROOF360-VENDOR-SEAT-ARCTIC-WOLF-001 — Arctic Wolf becomes route #5 without touching cerPathways.js. Ring-fencing (routes never see each other's records) must survive the externalization — contract-test it."
+    },
+    {
+      "id": "PROOF360-CER-ATTESTATION-MINT-001",
+      "status": "ready",
+      "approved_by": "john-coates",
+      "source": "edge:2026-07-16-close-cer-cluster",
+      "added": "2026-07-16",
+      "boundary": "Gap 2 of the CER cluster: VERITAS signs the CER at creation (mint). Today CERs are unsigned rows — a CER should be believed without believing us (tetrad: CORPUS declares -> VERITAS attests -> proof360 renders). Scope: attestation call in the create path with honest degradation when VERITAS is unreachable (CER still mints, attestation queued — never a silent fake signature), attestation ref carried on the record + rendered on the projection card. The vendor-deck 'reconcilable' claim gains its cryptographic leg here."
+    },
+    {
+      "id": "PROOF360-CER-PARTNER-API-001",
+      "status": "ready",
+      "approved_by": "john-coates",
+      "source": "edge:2026-07-16-close-cer-cluster",
+      "added": "2026-07-16",
+      "boundary": "Gap 3 of the CER cluster: the partner-side CER consumption surface — the portal shows LIVE CERs (consented, evidence-scoped, withdrawal-aware), not portal-leads.js demo rows. This is what makes the vendor deck's promise ('you receive records, not leads') literally true, and it is the artifact FORUM later federates (FORUM-CER-INSTRUMENT-FEDERATION-001). Consent gate is load-bearing: a partner sees exactly the CER's declared visibility, nothing else; withdrawn CERs show closed with audit preserved. Gated behind The Room access model (gate-the-front-door ruling)."
+    },
+    {
+      "id": "PROOF360-THESIS-LINE-ADOPT-001",
+      "status": "ready",
+      "approved_by": "john-coates",
+      "source": "edge:2026-07-16-close-cer-cluster",
+      "added": "2026-07-16",
+      "boundary": "Adopt 'One vehicle · two markets · contracts & capital' as the standing thesis line across proof360 surfaces — decks carry it already (vendor deck close, CD model slide); extend to The Room lens close and the /lab footer where the current line is 'live rail, not a badge' (keep both: rail line = provenance claim, thesis line = model claim). Noun discipline rides along: COMMERCIAL Engagement Record everywhere (code: commercial_engagement)."
     }
   ]
 }
