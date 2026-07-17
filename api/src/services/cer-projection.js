@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { CER_ROUTES, visibilityPolicyForRoute } from '../config/cer-routes.js';
 
-// A CER (Commercial Engagement Record) is a typed commercial Decision a founder makes
+// A CER (Customer Engagement Record — renamed from Commercial 2026-07-16; the stored
+// decision_type 'commercial_engagement' stays as accepted residue) is a typed commercial Decision a founder makes
 // inside the strategy room. It is NOT a new kernel primitive and NOT a new store: it
 // rides the existing append-only founder-memory transaction log as two record kinds —
 //   `decision`  : the CER base record (immutable; carries the initial status)

@@ -52,7 +52,7 @@ export const getProjections = () => authRequest('GET', '/api/v1/profile/current/
 export const postProfileEvent = (body) => authRequest('POST', '/api/v1/profile/current/events', body);
 export const attachSessionToProfile = (sessionId, body) => authRequest('POST', `/api/v1/sessions/${sessionId}/profile`, body);
 
-// CER (Commercial Engagement Record) — typed commercial Decisions.
+// CER (Customer Engagement Record) — typed commercial Decisions.
 // In DEMO_FOUNDER mode the backend gate (selectJourneyGate) stands in for auth, so the
 // demo founder can create/list CERs without a token — same pattern as getJourney.
 const cerReq = (method, path, body) =>

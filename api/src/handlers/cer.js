@@ -1,4 +1,4 @@
-// cer.js — the founder-side CER (Commercial Engagement Record) endpoints.
+// cer.js — the founder-side CER (Customer Engagement Record) endpoints.
 // All operate on the caller's OWN profile ("current"); CERs are appended to the same
 // founder-memory transaction log as facts, and read back through cerProjection(). No
 // mutation-in-place: create, consent-withdraw, and status changes are all appends.

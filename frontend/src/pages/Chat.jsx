@@ -1365,7 +1365,7 @@ export default function Chat() {
   const activeStage = DEMO_STAGES.find(s => s.id === activeStageId);
   const founderProfileName = useMemo(() => companyNameFromProfile(founderProfile), [founderProfile]);
 
-  // CER (Commercial Engagement Record) — the pathway a founder decides to pursue,
+  // CER (Customer Engagement Record) — the pathway a founder decides to pursue,
   // assembling itself from the conversation and confirmed via consent. Lives inline
   // in the chat stream (see the CER dock below the messages).
   const [justCreatedCer, setJustCreatedCer] = useState(null);

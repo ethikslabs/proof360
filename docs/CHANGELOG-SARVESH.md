@@ -4,6 +4,10 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-07-17 · CER noun: "Commercial" → "Customer" Engagement Record (sweep)
+
+**What:** every comment, doc, and UI string now says **Customer** Engagement Record. **Why:** John ruled 2026-07-16 that the record belongs to the customer — the noun should say whose it is, not what kind of deal it is. **What did NOT change:** the stored `decision_type: 'commercial_engagement'` enum stays as accepted residue — renaming stored data would mean a migration for zero behaviour change. If you build against the API, nothing breaks; if you write prose, it's Customer.
+
 ## 2026-07-03 · Real founders — the demo stand-in retires from production (D3)
 
 **Problem.** Production ran in "demo founder" mode: every visitor to the journey page saw the same seeded demo record, and a *real* login would have seen an empty journey forever — nothing ever connected a real person's login identity to their data in the memory database. This flag was always marked temporary ("remove this flag when live founder→atom resolution lands").
@@ -54,7 +58,7 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
-## 2026-07-01 · CER (Commercial Engagement Record) — engine, API, and cards
+## 2026-07-01 · CER (Customer Engagement Record) — engine, API, and cards
 
 **What a CER is (one line):** when a founder decides to pursue a commercial pathway (AWS credits via Ingram, cyber insurance via Austbrokers, compliance via Vanta, Cisco via Ingram), proof360 creates a **living, permissioned, evidence-backed record** of that decision — with consent, route, visibility, and status — instead of just firing a form.
 

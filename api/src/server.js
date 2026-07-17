@@ -91,7 +91,7 @@ app.get('/api/v1/profile/current/journey', { preHandler: journeyGate }, journeyH
 app.post('/api/v1/profile/current/events', { preHandler: requireAuth }, profileEventsHandler);
 app.post('/api/v1/sessions/:sessionId/profile', { preHandler: requireAuth }, sessionAttachHandler);
 
-// --- CER (Commercial Engagement Record): typed commercial Decisions on the founder-memory log ---
+// --- CER (Customer Engagement Record): typed commercial Decisions on the founder-memory log ---
 // Same gate as /journey: requireAuth in prod, demoAuth in DEMO_FOUNDER_MODE so the seeded
 // demo founder can drive the CER flow without a token.
 app.get('/api/v1/profile/current/cers', { preHandler: journeyGate }, cersListHandler);
