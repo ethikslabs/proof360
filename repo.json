@@ -336,6 +336,14 @@
       "source": "ruling:2026-07-17-partner-portal-plan",
       "added": "2026-07-17",
       "boundary": "PARKED until PROOF360-PARTNER-PORTAL-DEMO-001 has walls (John: 'not a requirement yet'). ~12 fictional customers with varied verticals/stages/journeys so portal reporting has shape (bite rates by category, posture distribution, funnel mix). Soil-in-Africa advisory fixture (PROOF360-ADVISORY-DEMO-FIXTURE-001) becomes one of the twelve. Portal is built reading a FLEET even while the fleet is only Mel."
+    },
+    {
+      "id": "PROOF360-REPLAY-META-PRODUCT-001",
+      "status": "parked",
+      "approved_by": "john-coates",
+      "source": "edge:2026-07-17-close-commercial-signal",
+      "added": "2026-07-17",
+      "boundary": "PARKED BY DESIGN — the name-claim, not a build. The Mel journey player pattern (replayable customer conversation timeline + click-bang mid-conversation entry + organic 'have a look around' landing) is itself a productizable acquisition surface: proof360 runs it first (PROOF360-MEL-RAIL-001 builds the instance); at graduation it becomes an ethiks360 platform feature (insert-yourself-into-a-customer's-timeline, learn by walking a real record). Named here so the factory (process = fifth product) can claim it later; unpark only on John's word."
     }
   ]
 }
