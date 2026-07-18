@@ -9,6 +9,9 @@
 
 ---
 
+> **ERA NOTE (rinse-2, John 'A approve' 2026-07-19):** This dossier is v3-era in places — VECTOR (dead, retracted 2026-07-03; inference is Bedrock-direct via the EC2 instance role), IMPERIUM (archived 2026-07-14, doctrine-only; live surfaces = operator-panel + workspace-control) and trust360 (retired) appear below as the architecture stood when written. The sharpest live-claims are corrected inline; the full document refresh is boarded as PROOF360-AUDIT-DISPOSITION-001. Current truth: repo.json + CLAUDE.md + README.md.
+
+
 ## Visual Identity
 
 | Field | Value |
@@ -35,14 +38,14 @@ It is the front door to the 360 stack and the first product to render the doctri
 ## Role in the 360 Stack
 
 ```
-IMPERIUM (control plane)
+IMPERIUM (control plane — ARCHIVED 2026-07-14, doctrine-only)
 └── proof360 (entity onramp — live v1, v3 build pending)
-    ├── inference   → VECTOR (claude-haiku, NIM nemotron, embeddings)
+    ├── inference   → Bedrock-direct (was VECTOR — dead 2026-07-03)
     ├── attestation → VERITAS (Tier-2 publish gates vendor matrix)
     ├── metering    → PULSUS (dual ledger: VECTOR tokens + proof360 consumption)
     ├── monitoring  → ARGUS (/api/health endpoint registered)
     ├── alerts      → SIGNUM stub (3-line wrapper for portal Telegram)
-    └── pulse       → IMPERIUM (fire-and-forget, fallback no-op)
+    └── pulse       → retired with IMPERIUM (was fire-and-forget no-op; liveness = PULSUS/ARGUS)
 ```
 
 ---
@@ -153,7 +156,7 @@ v1 trust score: `100 − Σ(severity weights of triggered gaps)`. Severity weigh
 - **Frontend:** React 19 + Vite 8 + Tailwind 3, no state management library
 - **Auth:** Auth0 PKCE (founder), Google/Microsoft OAuth + Auth0 PKCE (partner portal). Production tenant required pre-v3.0 launch.
 - **Database (v3):** Postgres on RDS, ap-southeast-2, six tables + three append-only event tables
-- **Inference:** All routed through VECTOR at `http://localhost:3003/v1` (Claude Haiku, NIM Nemotron, OpenAI embeddings)
+- **Inference:** Bedrock-direct (EC2 instance role, us-east-1); VECTOR routing is dead (2026-07-03)
 - **External scans:** Firecrawl, HIBP, AbuseIPDB, GitHub, SSL Labs, crt.sh, ipapi.co, public port scan, jobs page
 - **Metering:** Dual ledger — VECTOR `data/metering.ndjson` (LLM tokens) + proof360 `data/consumption.ndjson` (external scans). PULSUS aggregates by `session_id`.
 - **Attestation (v3):** VERITAS via `~200 LOC veritas-adapter.js` — replaces trust360 in fallback slot
@@ -219,9 +222,9 @@ v1 trust score: `100 − Σ(severity weights of triggered gaps)`. Severity weigh
 - `proof360/docs/kiro-build-brief-v3.md` — Kiro execution input
 - `proof360/docs/veritas-adapter-spec.md` — adapter component spec
 - `VERITAS/DOSSIER.md` — governed truth substrate (claim attestation authority)
-- `VECTOR/DOSSIER.md` — inference carrier (all proof360 inference routed here)
+- ~~VECTOR~~ — dead (2026-07-03); inference is Bedrock-direct
 - `PULSUS/DOSSIER.md` — cost signal plane (consumes both ledgers)
-- `IMPERIUM/DOSSIER.md` — control plane (pulse consumer)
+- ~~IMPERIUM~~ — archived (2026-07-14, doctrine-only); operator surface = operator-panel
 - `ARGUS/DOSSIER.md` — monitoring sentry (`/api/health` registered)
 - `WHY.md` — origin story and Ethiks360 context
 
@@ -283,7 +286,7 @@ Per doctrine: every MCP caller is just another renderer + writer of the same con
 | Capital path | revenue |
 | Revenue model | Reseller embed fees + vendor partner lead routing commission (three-branch attribution: john / distributor / vendor) |
 | IP boundary | Assessment UX, override contract shape, deterministic recompute kernel, tier boundary enforcement, engagement router, signals_object dataset moat (now persistent in Postgres) |
-| Stack dependency | VECTOR (inference, locked contract), VERITAS (Tier-2 attestation), PULSUS (metering), ARGUS (monitoring), IMPERIUM (pulse target) |
+| Stack dependency | Bedrock-direct inference, VERITAS (Tier-2 attestation), PULSUS (metering), ARGUS (monitoring) |
 | First customer | external: proof360.au (live v1, public) |
 | Forcing functions for v3.0 | Ingram MD presentation (partner portal live), AWS commercial motions, Austbrokers underwriting model |
 

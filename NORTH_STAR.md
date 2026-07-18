@@ -67,7 +67,7 @@ The report was the qualification. The gap was the sales motion. The EDP was the 
 
 ## Boundary
 
-proof360 calls: CORPUS (vendor intelligence), trust360 (gap confirmation), VECTOR (inference)  
+proof360 calls: CORPUS (evidence + vendor intelligence); inference is Bedrock-direct (EC2 instance role, keys in SSM). trust360 is retired — gap evaluation lives inside proof360.  
 proof360 writes: `api/leads.ndjson` (append-only)  
 proof360 is called by: no upstream — it is the entry point  
 
