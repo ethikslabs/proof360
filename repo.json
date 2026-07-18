@@ -344,6 +344,46 @@
       "source": "edge:2026-07-17-close-commercial-signal",
       "added": "2026-07-17",
       "boundary": "PARKED BY DESIGN — the name-claim, not a build. The Mel journey player pattern (replayable customer conversation timeline + click-bang mid-conversation entry + organic 'have a look around' landing) is itself a productizable acquisition surface: proof360 runs it first (PROOF360-MEL-RAIL-001 builds the instance); at graduation it becomes an ethiks360 platform feature (insert-yourself-into-a-customer's-timeline, learn by walking a real record). Named here so the factory (process = fifth product) can claim it later; unpark only on John's word."
+    },
+    {
+      "id": "PROOF360-TRUST-READ-TIERS-001",
+      "status": "ready",
+      "boundary": "Retrofit the recon fleet to a source-descriptor shape (tier T1-T4 | proof360 gate | credential SSM-path-or-none | cer_disposition raw-evidence|derived-verdict|advisory-only | subject_consent_required) per ETHL-WRK-SPEC-007. The credential-gate pattern already exists (recon-* returns {skipped:true,reason:'no API key'} fail-open); generalise it so every source self-declares its legal tier and CER disposition. Foundation task — gates the T3 fleet + CER evidence lane.",
+      "approved_by": "john-coates",
+      "source": "ETHL-WRK-SPEC-007 (trust-read legal tiers, John PoC ruling 2026-07-19)",
+      "added": "2026-07-19"
+    },
+    {
+      "id": "PROOF360-TRUST-READ-T3-FLEET-001",
+      "status": "ready",
+      "boundary": "Add the Tier-3 licensed sources credential-gated, each lighting up when its /proof360/<PROVIDER>_API_KEY lands in SSM (John PoC ruling 2026-07-19: prove value first, pay on commercialisation; read only where a licence/trial/key is held). First in: Crunchbase (startup plan on offer $417/mo) + HIBP (key already in SSM). Then D&B, Shodan, Censys, PitchBook, SecurityTrails as keys arrive. A source with NO credential renders as a NAMED GAP ('commercial-diligence: not yet read - source: D&B, available on connect') - the value-discovery surface that ranks what to license next (honest-zero / guide-not-grade). Consult CORPUS/seeds/proof360-sources/ for per-company source selection. Depends on TRUST-READ-TIERS-001.",
+      "approved_by": "john-coates",
+      "source": "ETHL-WRK-SPEC-007 (trust-read legal tiers, John PoC ruling 2026-07-19)",
+      "added": "2026-07-19"
+    },
+    {
+      "id": "PROOF360-CER-EVIDENCE-LANE-001",
+      "status": "ready",
+      "boundary": "Land T1/T2 (+ T3-about-the-consenting-subject) read outputs IN the CER as dated, sourced, VERITAS-attestable evidence variables - the trust read stops evaporating into a gap and becomes record. Proof target: at least one T1 identity source (ABR - free/api, AU) + RDAP domain-registration-age land as raw CER evidence on a real cold read. Advisory lane (T3 third-party, T4) stays a NAMED verbal verdict, never raw. No-leak contract test: a partner projection shows derived-verdict+named-source for any T3 variable, never the raw payload. This is the CER's founding promise ('the read that justified the routing travels with it') applied to the trust layer. Depends on TRUST-READ-TIERS-001.",
+      "approved_by": "john-coates",
+      "source": "ETHL-WRK-SPEC-007 (trust-read legal tiers, John PoC ruling 2026-07-19)",
+      "added": "2026-07-19"
+    },
+    {
+      "id": "PROOF360-RECON-DNS-AGE-001",
+      "status": "ready",
+      "boundary": "Add WHOIS/RDAP domain-registration-age to recon-dns.js - the true ghost (in the original conception + John's memory, never built; recon-dns reads records but no creation-date). Clean T1/T2 variable (RDAP = open standard, free, no auth). The first new evidence-lane variable per SPEC-007 acceptance #3. Domain age is a real trust signal (a 3-week-old domain behind an enterprise pitch is a flag; a 12-year domain is provenance).",
+      "approved_by": "john-coates",
+      "source": "ETHL-WRK-SPEC-007 (trust-read legal tiers, John PoC ruling 2026-07-19)",
+      "added": "2026-07-19"
+    },
+    {
+      "id": "PROOF360-THIRD-PARTY-READ-CONSENT-001",
+      "status": "ready",
+      "boundary": "OPEN QUESTION owed a John ruling (SPEC-007): the Mel-flow (subject consents to their own read) is legally clean, but reading a THIRD PARTY the customer named (a target/vendor, not the customer) has a different consent basis. T1/T2 (registry/passive-public) about any company is fine; T3 about a non-consenting third party needs a ruling. Proposed default until ruled: T1/T2 for third parties; T3 third-party reads gated internal/advisory-only (surfaced to John only), never into a shipped CER. Present evidence + options; John rules.",
+      "approved_by": "john-coates",
+      "source": "ETHL-WRK-SPEC-007 (trust-read legal tiers, John PoC ruling 2026-07-19)",
+      "added": "2026-07-19"
     }
   ]
 }
