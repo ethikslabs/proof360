@@ -195,10 +195,10 @@ Nginx config: `scripts/nginx-proof360.conf`. Domain: `proof360.au`.
 
 ## Spec documents
 
-Architecture decisions and acceptance criteria live in `docs/` and `.kiro/specs/`. Read before changing pipeline behaviour:
+The v3-era specs formerly listed here (architecture.md, brief-api.md, brief-frontend.md, .kiro v3 dirs) described the dead VECTOR/trust360 architecture and were archived to `docs/archive/fossils-2026-07-18/` (John audit ruling 2026-07-18). Live truth:
 
-- `docs/architecture.md` — cold read model, no auth, email gate rationale
-- `docs/brief-api.md` — 9 endpoint contracts, signals object spec (non-negotiable)
-- `docs/brief-frontend.md` — 6 routes, UX flow, Layer 1/2 gating
-- `.kiro/specs/proof360-api-cold-read/` — 21 acceptance criteria
-- `.kiro/specs/firecrawl-signal-extraction/` — scraping + extraction requirements
+- `repo.json` — the work board (tasks, boundaries, rulings)
+- `docs/plans/` — dated implementation plans (newest wins)
+- `docs/specs/` + `docs/design/` — current specs and design docs
+- `CONTROL/state.json` — per-SPV operating state (written by /makethebed only)
+- Inference is Bedrock-direct (EC2 instance role) — never VECTOR, never localhost:3003
