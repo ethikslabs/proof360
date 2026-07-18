@@ -392,6 +392,14 @@
       "approved_by": "john-coates",
       "source": "ETHL-WRK-SPEC-007 (fictional-subject demo fixture, John ruling 2026-07-19)",
       "added": "2026-07-19"
+    },
+    {
+      "id": "PROOF360-WEB-CONTEXT-READ-001",
+      "status": "ready",
+      "boundary": "Wire recon-company.js (Perplexity sonar primary + Gemini 2.5 Flash fallback, model-catalog sense-web role) INTO the recon pipeline — it is built but not fanned out today, the richest context source on the bench (John 2026-07-19: 'the perplexity adds a fuck load of context, and maybe gemini'). It is the 5th source class per SPEC-008: web-synthesis. Land its output in the CER two-lane — the SYNTHESIS as derived-understanding (CER §4 Layer 2: narrative/who-they-are), the CITATIONS as evidence_refs (public web, T2). cer_disposition=derived-verdict: a synthesized claim always travels with its cited source (show-the-work); a claim whose citation can't be resurfaced is dropped, not asserted. This is what makes the recommendation smart (can't route AWS/Cloudflare/Vanta without understanding the business) AND fills the CER narrative layer. Fires on every new read; metered (usage-event.v1); Turnstile-gated on public endpoints (hiveandco.au/read open-credit-burn lesson already learned). Depends on TRUST-READ-TIERS-001 + CER-EVIDENCE-LANE-001.",
+      "approved_by": "john-coates",
+      "source": "ETHL-WRK-SPEC-008 (web-synthesis source class, John ruling 2026-07-19)",
+      "added": "2026-07-19"
     }
   ]
 }
