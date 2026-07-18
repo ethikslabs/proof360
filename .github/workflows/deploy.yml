@@ -172,6 +172,17 @@ jobs:
           done
           [ "$STATUS" = "200" ] && echo "API healthy" || echo "WARNING: /api/health returned $STATUS after 10 attempts"
 
+          echo "=== State checkpoint (continuity-state, fail-soft) ==="
+          # CK-REF-REPO-REG-001: every deploy writes proof360:last-deploy into the state
+          # engine. Deliberately NOT get_ssm (it exits 1) — a missing engine token or a
+          # down engine must never fail a deploy.
+          CS_TOKEN=$(aws ssm get-parameter --region $REGION --name /ethikslabs/continuity-state/internal-token --with-decryption --query Parameter.Value --output text 2>/dev/null || true)
+          if [ -n "$CS_TOKEN" ]; then
+            curl -s -m 5 -X PUT localhost:8420/state/proof360:last-deploy \
+              -H "Authorization: Bearer $CS_TOKEN" -H "content-type: application/json" \
+              -d "{\"value\":{\"health\":\"$STATUS\",\"ts\":\"$(date -u +%FT%TZ)\",\"via\":\"deploy.yml\"},\"actor\":\"deploy:proof360\"}" > /dev/null 2>&1 || true
+          fi
+
           echo "=== Registering Telegram webhook ==="
           curl -s "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook?url=https://proof360.au/api/telegram/webhook" | grep -o '"ok":[^,}]*'
 
