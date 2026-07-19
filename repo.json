@@ -464,6 +464,14 @@
       "approved_by": "john-coates",
       "source": "ETHL-WRK-REVIEW-001 (cross-vendor adversarial review, John 7 rulings 2026-07-19)",
       "added": "2026-07-19"
+    },
+    {
+      "id": "PROOF360-LIVE-DEALROOM-SNAPSHOT-001",
+      "status": "ready",
+      "boundary": "Approved build-focus edge (John 'approve suggestions' 2026-07-19; ratified post-review disposition 7). After CER channel-routing to Booked, build the LIVE deck/deal-room pair with snapshot_hash — the pairing the cross-vendor review said is stronger than either alone. Live-until-presented, frozen-when-relied-upon: the deck/deal-room renders live from the vehicle (financials via OAuth at open, posture from the read) UNTIL a counterparty is shown it, at which point snapshot_hash freezes exactly what was presented (provable later). Resolves the review's one real tension (M&A wants frozen-auditable, fundraising wants live). snapshot_hash is the §5.1 PROPOSED extension + §7 open question — this makes it the mechanism that reconciles the two. Gated behind CER-routing-to-Booked (the Booked state is what triggers a freeze).",
+      "approved_by": "john-coates",
+      "source": "edge:task_enhancement (makethebed 20260718073640-b0c0, John 'approve suggestions' 2026-07-19)",
+      "added": "2026-07-19"
     }
   ]
 }
