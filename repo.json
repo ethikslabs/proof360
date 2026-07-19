@@ -356,7 +356,7 @@
     {
       "id": "PROOF360-TRUST-READ-T3-FLEET-001",
       "status": "ready",
-      "boundary": "Add the Tier-3 licensed sources credential-gated, each lighting up when its /proof360/<PROVIDER>_API_KEY lands in SSM (John PoC ruling 2026-07-19: prove value first, pay on commercialisation; read only where a licence/trial/key is held). First in: Crunchbase (startup plan on offer $417/mo) + HIBP (key already in SSM). Then D&B, Shodan, Censys, PitchBook, SecurityTrails as keys arrive. A source with NO credential renders as a NAMED GAP ('commercial-diligence: not yet read - source: D&B, available on connect') - the value-discovery surface that ranks what to license next (honest-zero / guide-not-grade). Consult CORPUS/seeds/proof360-sources/ for per-company source selection. Depends on TRUST-READ-TIERS-001.",
+      "boundary": "Add the Tier-3 licensed sources credential-gated, each lighting up when its /proof360/<PROVIDER>_API_KEY lands in SSM (John PoC ruling 2026-07-19: prove value first, pay on commercialisation; read only where a licence/trial/key is held). First in: Crunchbase (startup plan on offer $417/mo) + HIBP (key already in SSM). Then D&B, Shodan, Censys, PitchBook, SecurityTrails as keys arrive. A source with NO credential renders as a NAMED GAP ('commercial-diligence: not yet read - source: D&B, available on connect') - the value-discovery surface that ranks what to license next (honest-zero / guide-not-grade). Consult CORPUS/seeds/proof360-sources/ for per-company source selection. Depends on TRUST-READ-TIERS-001. GATE RELOCATED by ETHL-WRK-REVIEW-001 (cross-vendor adversarial review, John 7 rulings 2026-07-19) (disposition 2, John 'boil the ocean then pull back' + airgap): capture T3 freely in the airgapped PoC (nobody exposed); the per-vendor written legal sign-off gate lives at the EXPOSURE boundary (before any real third party sees any T3-derived output) — never reached in PoC. Licence check (PitchBook/HIBP/Crunchbase/D&B/Shodan): even a derived verdict may exceed the read licence — so T3 behaves as advisory-only at any exposure boundary until per-vendor sign-off. T1/T2 is the defensible 'Evidenced' core.",
       "approved_by": "john-coates",
       "source": "ETHL-WRK-SPEC-007 (trust-read legal tiers, John PoC ruling 2026-07-19)",
       "added": "2026-07-19"
@@ -403,42 +403,66 @@
     },
     {
       "id": "PROOF360-CER-INSURABILITY-BLOCK-001",
-      "status": "ready",
-      "boundary": "Add the `insurability` Vehicle block (CER schema v1.5 §5.6) — the fields a cyber underwriter needs to RATE and SIZE, which the record lacks: control_coverage as RATIOS not booleans (mfa_enforced_pct, edr_deployed_pct, pam_coverage_pct, staff_trained_pct, patch_sla_days), records_at_risk (PII/PHI count = exposure basis for the limit), loss_history (prior_incidents[]/prior_claims[] — the loss run, the #1 underwriting input), backup_posture (immutable/last_tested_restore/rpo_hours/offline), bi_exposure, requested_cover (limit/retention/ransomware_sublimit). Feeds the CyberPro route (CER-D3A1) and unlocks the insurer lens. The gap it closes: today the read says 'EDR present', an underwriter needs 'EDR on 94% of endpoints + no prior claims'.",
+      "status": "blocked",
+      "boundary": "⛔ FROZEN by ETHL-WRK-REVIEW-001 (cross-vendor adversarial review, John 7 rulings 2026-07-19) (disposition 1). Field taxonomy VERIFIED GOOD (matches Emergence cyber proposal form) but BUILD NOTHING: honeypot (aggregating loss/breach/debt of many cos = attacker's dream), staleness (abstain-doctrine empties it), consumer-doesn't-consume (insurer needs signed warranty; record pre-fills never replaces). UNFREEZE only when a NAMED insurer/lender/auditor validates fields against a live prospect. Design note lives at CER schema §5.6. --- ORIG: Add the `insurability` Vehicle block (CER schema v1.5 §5.6) — the fields a cyber underwriter needs to RATE and SIZE, which the record lacks: control_coverage as RATIOS not booleans (mfa_enforced_pct, edr_deployed_pct, pam_coverage_pct, staff_trained_pct, patch_sla_days), records_at_risk (PII/PHI count = exposure basis for the limit), loss_history (prior_incidents[]/prior_claims[] — the loss run, the #1 underwriting input), backup_posture (immutable/last_tested_restore/rpo_hours/offline), bi_exposure, requested_cover (limit/retention/ransomware_sublimit). Feeds the CyberPro route (CER-D3A1) and unlocks the insurer lens. The gap it closes: today the read says 'EDR present', an underwriter needs 'EDR on 94% of endpoints + no prior claims'.",
       "approved_by": "john-coates",
       "source": "ETHL-WRK-SPEC/CER v1.5 §5.6 (insurer/lender/regulator field delta, John 2026-07-19)",
       "added": "2026-07-19"
     },
     {
       "id": "PROOF360-CER-CREDITWORTHINESS-BLOCK-001",
-      "status": "ready",
-      "boundary": "Add the `creditworthiness` Vehicle block (v1.5 §5.6) — the LENDER's cut (downside/repayment), distinct from the VC's cap-table/ARR: ar_aging (invoices by bucket + DSO + debtor concentration — for AR finance the receivables ARE the collateral), debt_stack (existing_facilities + PPSR security_interests + covenants), repayment_capacity (DSCR, FCF, runway_vs_term), revenue_quality (contracted_vs_pipeline, recurring_pct, churn, contract_assignability), credit_profile (D&B/Creditsafe rating, payment_behaviour, defaults, trade_references), collateral (assets, director_guarantees). Unlocks the lender lens. Note: pulls from the same Xero/Stripe OAuth as the VC financials but a different projection.",
+      "status": "blocked",
+      "boundary": "⛔ FROZEN by ETHL-WRK-REVIEW-001 (cross-vendor adversarial review, John 7 rulings 2026-07-19) (disposition 1). Field taxonomy VERIFIED GOOD (matches Emergence cyber proposal form) but BUILD NOTHING: honeypot (aggregating loss/breach/debt of many cos = attacker's dream), staleness (abstain-doctrine empties it), consumer-doesn't-consume (insurer needs signed warranty; record pre-fills never replaces). UNFREEZE only when a NAMED insurer/lender/auditor validates fields against a live prospect. Design note lives at CER schema §5.6. --- ORIG: Add the `creditworthiness` Vehicle block (v1.5 §5.6) — the LENDER's cut (downside/repayment), distinct from the VC's cap-table/ARR: ar_aging (invoices by bucket + DSO + debtor concentration — for AR finance the receivables ARE the collateral), debt_stack (existing_facilities + PPSR security_interests + covenants), repayment_capacity (DSCR, FCF, runway_vs_term), revenue_quality (contracted_vs_pipeline, recurring_pct, churn, contract_assignability), credit_profile (D&B/Creditsafe rating, payment_behaviour, defaults, trade_references), collateral (assets, director_guarantees). Unlocks the lender lens. Note: pulls from the same Xero/Stripe OAuth as the VC financials but a different projection.",
       "approved_by": "john-coates",
       "source": "ETHL-WRK-SPEC/CER v1.5 §5.6 (insurer/lender/regulator field delta, John 2026-07-19)",
       "added": "2026-07-19"
     },
     {
       "id": "PROOF360-CER-ASSURANCE-BLOCK-001",
-      "status": "ready",
-      "boundary": "Add the `assurance` Vehicle block (v1.5 §5.6) — the REGULATOR/AUDITOR's needs (over-time, provable, complete): control_effectiveness as TIME-SERIES per control (operating-effectiveness-over-a-period = SOC 2 Type II shape, not a Type I snapshot), evidence_chain (chain-of-custody + tamper-evidence via hash-chain / DLT anchor per evidence item — THIS is DLT's real job, not supply-chain-on-chain), attestation_lineage (who/when/authority/scope/validity-window), obligations_register (Privacy Act/CPS 234/FSANZ/GDPR × per-obligation compliance state), breach_register (incidents + notifications made), ropa (records of processing), exceptions_register (findings + mgmt response + remediation). Unlocks the regulator/auditor lens and is where VERITAS attestation + the DLT hook earn their keep.",
+      "status": "blocked",
+      "boundary": "⛔ FROZEN by ETHL-WRK-REVIEW-001 (cross-vendor adversarial review, John 7 rulings 2026-07-19) (disposition 1). Field taxonomy VERIFIED GOOD (matches Emergence cyber proposal form) but BUILD NOTHING: honeypot (aggregating loss/breach/debt of many cos = attacker's dream), staleness (abstain-doctrine empties it), consumer-doesn't-consume (insurer needs signed warranty; record pre-fills never replaces). UNFREEZE only when a NAMED insurer/lender/auditor validates fields against a live prospect. Design note lives at CER schema §5.6. --- ORIG: Add the `assurance` Vehicle block (v1.5 §5.6) — the REGULATOR/AUDITOR's needs (over-time, provable, complete): control_effectiveness as TIME-SERIES per control (operating-effectiveness-over-a-period = SOC 2 Type II shape, not a Type I snapshot), evidence_chain (chain-of-custody + tamper-evidence via hash-chain / DLT anchor per evidence item — THIS is DLT's real job, not supply-chain-on-chain), attestation_lineage (who/when/authority/scope/validity-window), obligations_register (Privacy Act/CPS 234/FSANZ/GDPR × per-obligation compliance state), breach_register (incidents + notifications made), ropa (records of processing), exceptions_register (findings + mgmt response + remediation). Unlocks the regulator/auditor lens and is where VERITAS attestation + the DLT hook earn their keep.",
       "approved_by": "john-coates",
       "source": "ETHL-WRK-SPEC/CER v1.5 §5.6 (insurer/lender/regulator field delta, John 2026-07-19)",
       "added": "2026-07-19"
     },
     {
       "id": "PROOF360-CER-TYPEDFACT-QUANT-TEMPORAL-001",
-      "status": "ready",
-      "boundary": "Extend the TypedFact leaf (v1.5 §5.6) so ANY evidence fact can serve the capital-adjacent/regulatory lenses: add `quantity` (the ratio/count where today there's only a value — enables coverage-% and records-at-risk), `as_of`/`period` (point-in-time vs over-a-window — enables control-effectiveness-over-period and loss/payment history), `chain_ref` (the tamper-evidence anchor — enables audit chain-of-custody). Foundation for the three new blocks; mind the reconstruct() whitelist landmine when new primitives touch the fold.",
+      "status": "blocked",
+      "boundary": "⛔ FROZEN by ETHL-WRK-REVIEW-001 (cross-vendor adversarial review, John 7 rulings 2026-07-19) (disposition 1). Field taxonomy VERIFIED GOOD (matches Emergence cyber proposal form) but BUILD NOTHING: honeypot (aggregating loss/breach/debt of many cos = attacker's dream), staleness (abstain-doctrine empties it), consumer-doesn't-consume (insurer needs signed warranty; record pre-fills never replaces). UNFREEZE only when a NAMED insurer/lender/auditor validates fields against a live prospect. Design note lives at CER schema §5.6. --- ORIG: Extend the TypedFact leaf (v1.5 §5.6) so ANY evidence fact can serve the capital-adjacent/regulatory lenses: add `quantity` (the ratio/count where today there's only a value — enables coverage-% and records-at-risk), `as_of`/`period` (point-in-time vs over-a-window — enables control-effectiveness-over-period and loss/payment history), `chain_ref` (the tamper-evidence anchor — enables audit chain-of-custody). Foundation for the three new blocks; mind the reconstruct() whitelist landmine when new primitives touch the fold.",
       "approved_by": "john-coates",
       "source": "ETHL-WRK-SPEC/CER v1.5 §5.6 (insurer/lender/regulator field delta, John 2026-07-19)",
       "added": "2026-07-19"
     },
     {
-      "id": "PROOF360-CER-REGULATOR-ACCESS-TIER-001",
+      "id": "PROOF360-CER-CONSENT-CLAWBACK-001",
       "status": "ready",
-      "boundary": "Add the `regulator_scoped` access grade to the visibility model (v1.5 §5.6) — COMPEL-GRADE, deeper than partner no-leak: a regulator/auditor under a lawful basis (audit engagement / regulatory request) can be shown raw evidence a partner never can. Sits ABOVE partner:* in allowed_audiences; invoked only under a recorded lawful basis; logged as its own cer_event. Extends the no-leak law (§3) with a new tier rather than breaking it — the access is scoped, time-bound, and audited.",
+      "boundary": "Rewrite consent semantics to the airgap reality (CER schema §1a/§3, v1.6; ETHL-WRK-REVIEW-001 (cross-vendor adversarial review, John 7 rulings 2026-07-19) disposition 3). Standalone system, no CRM push: `consent-withdrawn` FULLY claws back — removes the CER from every projection; no orphaned downstream row (nothing was ever pushed). 'Reconcilable' = carries IDs for a partner PULL, never a push. Add the partner-contract deletion clause to the Ingram/AustBrokers template as a FUTURE-integration-only provision (no effect in the airgapped PoC). Kills the review's A1 'consent theatre' finding.",
       "approved_by": "john-coates",
-      "source": "ETHL-WRK-SPEC/CER v1.5 §5.6 (insurer/lender/regulator field delta, John 2026-07-19)",
+      "source": "ETHL-WRK-REVIEW-001 (cross-vendor adversarial review, John 7 rulings 2026-07-19)",
+      "added": "2026-07-19"
+    },
+    {
+      "id": "PROOF360-MARKET-TWO-AFSL-GATE-001",
+      "status": "ready",
+      "boundary": "Market Two (capital) needs the licensed-partner / authorised-rep structure from the FIRST curated introduction, not the exchange phase (ETHL-WRK-REVIEW-001 (cross-vendor adversarial review, John 7 rulings 2026-07-19) disposition 5). The bare referrer exemption (Corps reg 7.6.01) covers only 'a licensee exists + contact details'; readiness-derived + deal-room curation + trust-posture-shaped routing + success-linked terms = arranging/inducing = licensable. NEEDS-LAWYER before any Market Two commercial terms are signed; fee terms to counsel first. Boundary sentence ('introduced, never advised') survives — the licence sits behind it. Aligns with the already-ruled marketplace-phase licensed-partner architecture, applied earlier.",
+      "approved_by": "john-coates",
+      "source": "ETHL-WRK-REVIEW-001 (cross-vendor adversarial review, John 7 rulings 2026-07-19)",
+      "added": "2026-07-19"
+    },
+    {
+      "id": "PROOF360-CER-ENGINEERING-HARDENING-001",
+      "status": "ready",
+      "boundary": "Cheap-now build-lane items from the review (ETHL-WRK-REVIEW-001 (cross-vendor adversarial review, John 7 rulings 2026-07-19) disposition 6, all on the existing object): (1) monotonic per-vehicle SEQUENCE NUMBER — 'order authoritative, never re-sorted' is ambiguous once OAuth/meter/conversation write concurrently; the §4a fold can pick wrong survivors. (2) VERSION every event type from day one (append-only = folds handle every future field forever; TypedFact took 6 fields in 4 days). (3) periodic FOLD SNAPSHOT — re-derive is O(all events) per read on JSON; the growth rule is also the perf-decay rule. (4) ILLUSTRATIVE POISONS THE PROJECTION — any illustrative leaf forces a visible watermark at the shared projector boundary, not per-render (one forgotten label ships seeded-as-live = the banned outcome, today guarded by one boolean). (5) canon-vs-evidence DELTAS OWNER-SCOPED ONLY — projecting 'you say enterprise-ready; posture shows 3 gaps' to a partner = the vehicle publishing a contradiction of its owner to a counterparty (defamation/dispute + withdrawal trigger).",
+      "approved_by": "john-coates",
+      "source": "ETHL-WRK-REVIEW-001 (cross-vendor adversarial review, John 7 rulings 2026-07-19)",
+      "added": "2026-07-19"
+    },
+    {
+      "id": "PROOF360-CRYPTO-ERASURE-LAWYER-001",
+      "status": "ready",
+      "boundary": "NEEDS-LAWYER (ETHL-WRK-REVIEW-001 (cross-vendor adversarial review, John 7 rulings 2026-07-19) disposition 4): the AU crypto-erasure position. §7.5 rules crypto-shredding (key-destruction) as erasure; GDPR acceptance is real-but-contested, AU precedent is thinner (APP 11.2 = 'destroy or de-identify'; OAIC has not blessed key-destruction as equivalent). DLT anchoring already cut (contradicts erasure). Get the AU erasure position ruled by counsel before the retention/erasure control pass is evidenced under Vanta. Not a PoC build gate; a legal gate on the formalisation step.",
+      "approved_by": "john-coates",
+      "source": "ETHL-WRK-REVIEW-001 (cross-vendor adversarial review, John 7 rulings 2026-07-19)",
       "added": "2026-07-19"
     }
   ]
