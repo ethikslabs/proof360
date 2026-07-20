@@ -9,6 +9,7 @@ import FounderAuth from './pages/FounderAuth';
 import FounderDashboard from './pages/FounderDashboard';
 import Chat from './pages/Chat';
 import Journey from './pages/Journey';
+import Mel from './pages/Mel';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -76,6 +77,8 @@ export default function App() {
             <Route path="/admin/preread" element={<AdminPreread />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/journey" element={<Journey />} />
+            <Route path="/mel/:beatId" element={<Mel />} />
+            <Route path="/mel" element={<Mel />} />
             {/* Catch-all: legacy/deleted paths (/audit, /home, /report, /processing) and any
                 typo redirect to the single entry point rather than rendering a blank SPA shell
                 (CATCHALL-ROUTE-001). */}
