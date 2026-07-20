@@ -7,7 +7,7 @@ import {
   getOrCreateActiveProfile,
   getOrCreateFounder,
   replayProfile,
-} from '../services/memory-store-file.js';
+} from '../services/memory-store.js';
 import {
   buildCerRecords,
   buildConsentWithdrawnRecord,
