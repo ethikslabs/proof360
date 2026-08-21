@@ -5,6 +5,7 @@ import AdminPreread from './pages/AdminPreread';
 import Portal from './pages/Portal';
 import PortalDashboard from './pages/PortalDashboard';
 import PortalLeadDetail from './pages/PortalLeadDetail';
+import PortalRecordDetail from './pages/PortalRecordDetail.jsx';
 import FounderAuth from './pages/FounderAuth';
 import FounderDashboard from './pages/FounderDashboard';
 import Chat from './pages/Chat';
@@ -72,6 +73,7 @@ export default function App() {
             <Route path="/portal/callback" element={<Portal />} />
             <Route path="/portal/dashboard" element={<PortalDashboard />} />
             <Route path="/portal/leads/:leadId" element={<PortalLeadDetail />} />
+            <Route path="/portal/records/:cerId" element={<PortalRecordDetail />} />
             <Route path="/account/login" element={<FounderAuth />} />
             <Route path="/account" element={<FounderDashboard />} />
             <Route path="/admin/preread" element={<AdminPreread />} />

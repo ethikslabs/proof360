@@ -38,6 +38,7 @@ import {
   cerConsentWithdrawHandler,
   cerStatusHandler,
 } from './handlers/cer.js';
+import { partnerCersListHandler, partnerCerDetailHandler } from './handlers/partner-cers.js';
 
 const PORT = parseInt(process.env.PORT || '3002', 10);
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
@@ -90,13 +91,19 @@ app.get('/api/v1/profile/current/journey', { preHandler: journeyGate }, journeyH
 app.post('/api/v1/profile/current/events', { preHandler: requireAuth }, profileEventsHandler);
 app.post('/api/v1/sessions/:sessionId/profile', { preHandler: requireAuth }, sessionAttachHandler);
 
-// --- CER (Commercial Engagement Record): typed commercial Decisions on the founder-memory log ---
+// --- CER (Customer Engagement Record): typed commercial Decisions on the founder-memory log ---
 // Same gate as /journey: requireAuth in prod, demoAuth in DEMO_FOUNDER_MODE so the seeded
 // demo founder can drive the CER flow without a token.
 app.get('/api/v1/profile/current/cers', { preHandler: journeyGate }, cersListHandler);
 app.post('/api/v1/profile/current/cers', { preHandler: journeyGate }, cerCreateHandler);
 app.post('/api/v1/profile/current/cers/:cerId/consent-withdraw', { preHandler: journeyGate }, cerConsentWithdrawHandler);
 app.post('/api/v1/profile/current/cers/:cerId/status', { preHandler: journeyGate }, cerStatusHandler);
+
+// --- Partner window (DEMO-GRADE): no-leak projection of the demo founder's CERs ---
+// Hard-gated inside the handler: 404 unless DEMO_FOUNDER_MODE === 'true'. Productized
+// partner read is PROOF360-CER-PARTNER-API-001 — it replaces this, never extends it.
+app.get('/api/v1/partner/:partner/cers', partnerCersListHandler);
+app.get('/api/v1/partner/:partner/cers/:cerId', partnerCerDetailHandler);
 
 // --- Turnstile siteverify (server is the verifier; widget token alone proves nothing) ---
 app.post('/api/v1/turnstile/verify', createTurnstileVerifyHandler());

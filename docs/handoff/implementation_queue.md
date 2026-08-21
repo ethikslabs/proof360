@@ -4,6 +4,7 @@ This queue is the handoff view, not the project tracker.
 
 ## Immediate
 
+- Sarvesh local review: run `bash scripts/env-from-ssm.sh` to generate `api/.env` from AWS SSM (mirrors `.github/workflows/deploy.yml`, so local == production). Prereq: logged into AWS (`aws sts get-caller-identity` succeeds). Caveats: the `AUTH0_DOMAIN`/`AUTH0_AUDIENCE` pair is optional until those SSM params exist; `PG_*` are the server DB — point `PG_HOST` at a local Postgres (then `npm run migrate`) for a full local run, or run without a DB and cold-read degrades. Then `cd api && npm install && npm run dev`.
 - Review and commit JSON-first Founder Memory V1 changes.
 - Confirm Auth0 API audience and SSM parameters. SSM means AWS Systems Manager Parameter Store, the AWS service used here to inject runtime configuration.
 - Deploy to proof360.au.

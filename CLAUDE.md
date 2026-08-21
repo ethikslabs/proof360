@@ -2,6 +2,27 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Current authority override (2026-07-03)
+
+This file still contains useful route and command notes, but several older
+architecture claims below are stale. Before changing behaviour, verify against
+`repo.json`, `api/src/server.js`, and the live source files.
+
+- Do not reintroduce VECTOR, `VECTOR_URL`, or `localhost:3003`. Inference and
+  supporting calls are direct provider/service integrations in `api/`.
+- Treat CORPUS (`CORPUS_SEARCH_URL`, default local `:3009`) as the evidence and
+  citation dependency. CORPUS failures must be honest degradation, not silent
+  invented evidence.
+- Treat PULSUS as downstream of `usage-event.v1` meter emission. If a provider
+  call is not metered, PULSUS cannot see it.
+- Treat FORUM as the future catalog/price dependency for distributor/vendor
+  routing. Do not hardcode live SKU or price truth inside proof360.
+- The auth sections below describe demo/client-side history. Do not extend
+  localStorage demo auth as production security.
+- The open work is already named in `repo.json`: signal extraction gaps,
+  CORPUS citation surfacing, inference-direct guardrails, and dead frontend
+  branch cleanup.
+
 ## Current direction (2026-05-15) — supersedes all previous direction blocks
 
 **Surface:** `frontend/` — chat-first conversational trust layer. This is the active build surface.  
@@ -11,7 +32,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Atelier:** deferred — chat UI is built in the existing React/Vite frontend first.
 
 **Active plan:** `docs/plans/2026-05-15-conversational-trust-layer-mvp.md`  
-Phase 0 is the immediate build: mock shell, no backend, honey demo runs end-to-end. Read the plan before touching any file.
+Historical Phase 0 described a mock shell. That is no longer the whole repo
+truth: the API has real Fastify routes, Postgres-backed modules, direct Bedrock
+inference, Turnstile, CER, CORPUS evidence hooks, and memory/engagement paths.
+Read the plan for UX intent, but verify implementation against code and
+`repo.json`.
 
 **Design constraint (frontend/):** Before touching any file in `frontend/`, read `docs/design/landing-emotional-contract.md`. The landing emotional contract governs every surface decision. The plan describes mechanics; the contract describes intent. If they conflict, the contract wins.
 
@@ -59,9 +84,12 @@ cd frontend && npm run preview
 
 `api/.env` is not committed. Required vars:
 ```
-ANTHROPIC_API_KEY=...      # Claude Haiku for signal extraction
 FIRECRAWL_API_KEY=...      # Web scraping
-TRUST360_URL=...           # Defaults to http://localhost:3000 if omitted
+AWS_REGION=ap-southeast-2  # Direct Bedrock inference default
+BEDROCK_REGION=...         # Optional override for Bedrock
+CORPUS_SEARCH_URL=...      # Optional; defaults to http://localhost:3009/search
+PERPLEXITY_API_KEY=...     # Optional recon-company enrichment
+GEMINI_API_KEY=...         # Optional recon-company enrichment
 PORT=3002                  # Optional (default: 3002)
 ```
 
@@ -102,7 +130,7 @@ GET  /api/session/infer-status   (poll until complete)
 GET  /api/session/inferences     (cold read: inferences + corrections + follow-ups)
 
 POST /api/session/submit         (founder corrections + follow-up answers)
-  → gap-mapper.js               (triggers gaps, calls Trust360 in parallel, writes signals_object)
+  → gap-mapper.js               (triggers gaps, computes score, enriches from CORPUS when available)
 
 GET  /api/session/status         (poll until analysis complete)
 GET  /api/session/report         (full report: Layer 1 always, Layer 2 after email)
@@ -118,9 +146,10 @@ GET  /api/session/early-signal   (estimated score pre-report)
 | `api/src/services/session-store.js` | In-memory Map, 24h TTL, 90s stale timeout per pipeline stage |
 | `api/src/services/signal-extractor.js` | Firecrawl → Claude → raw signals (product_type, data_sensitivity, compliance_status, etc.) |
 | `api/src/services/inference-builder.js` | Raw signals → cold read object (inferences[], correctable_fields[], followup_questions[]) |
-| `api/src/services/gap-mapper.js` | Gap trigger evaluation → Trust360 calls (parallel) → trust_score → signals_object |
+| `api/src/services/gap-mapper.js` | Gap trigger evaluation → trust_score → CORPUS evidence/vendor hints → signals_object |
 | `api/src/services/context-normalizer.js` | Merges founder corrections + followup_answers → NormalizedContext for gap evaluation |
-| `api/src/services/trust-client.js` | POST /trust adapter for Trust360 (parallel, 20s timeout); fallback confirms all triggered gaps if unavailable |
+| `api/src/lib/inference.js` | Direct Bedrock wrapper; emits meter usage events |
+| `api/src/services/trust-client.js` | Legacy Trust360 adapter. Do not expand without a current task; prefer deterministic/VERITAS-backed paths. |
 | `api/src/services/vendor-selector.js` | Matches vendors to confirmed gaps via closes_gaps[]; assigns priority (start_here / recommended / optional) |
 | `api/src/services/vendor-intelligence-builder.js` | Builds per-gap quadrant matrix, picks best vendor by context, adds partner disclosure |
 | `api/src/config/gaps.js` | Gap definitions: id, severity, triggerCondition fn, claimTemplate fn. Severity weights: critical=20, high=10, medium=5, low=2 |
@@ -156,16 +185,18 @@ Two independent auth flows, both storing state in localStorage:
 
 ### Trust score
 
-`trust_score = 100 − Σ(severity weights of triggered gaps)`. Computed in `gap-mapper.js` after Trust360 confirms each gap.
+`trust_score = 100 − Σ(severity weights of triggered gaps)`. Computed in `gap-mapper.js` from triggered gaps and deterministic severity weights.
 
 ### Reporting layers
 
 - **Layer 1** — score, gaps, evidence. Always visible.
 - **Layer 2** — vendor intelligence (quadrant matrix, picks per gap). Unlocked after email capture via `POST /api/session/capture-email`.
 
-### No database
+### Persistence note
 
-Sessions live in-memory only. There is no persistence between restarts. The `signals_object` written at analysis completion is the dataset moat — it accumulates per-session structured data about real companies.
+Older cold-read sessions lived in-memory only. Current code also has Postgres
+modules for proof360 data and memory paths. Do not make a storage claim without
+checking the specific route/module being changed.
 
 Lead capture writes to `api/leads.ndjson` (appended per email submission). Non-fatal: file write failures are swallowed.
 
@@ -173,12 +204,13 @@ Lead capture writes to `api/leads.ndjson` (appended per email submission). Non-f
 
 - **Fire-and-forget:** `session-start` handler kicks off extraction without awaiting — returns `session_id` immediately
 - **Polling:** Frontend polls `infer-status` then `status` until complete
-- **Parallel execution:** Firecrawl scrapes 5 pages via `Promise.allSettled`; Trust360 claims via `Promise.all`
+- **Parallel execution:** Firecrawl scrapes 5 pages via `Promise.allSettled`; CORPUS evidence lookup is bounded by timeout and degrades if unavailable
 - **Stale timeout:** 90s per pipeline stage, checked on a 30s interval; 24h session TTL
 
 ## Deployment
 
-**Secrets** stored in AWS SSM under `/proof360/*` (FIRECRAWL_API_KEY, ANTHROPIC_API_KEY, PORT).
+**Secrets** stored in AWS SSM under `/proof360/*` (Firecrawl, Bedrock/AWS env,
+Postgres, Turnstile, SES, auth, and provider-specific optional keys as needed).
 
 **Deploy:**
 ```bash

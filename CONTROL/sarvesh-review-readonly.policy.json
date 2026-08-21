@@ -1,0 +1,31 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadProof360ReviewParams",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:GetParameter",
+        "ssm:GetParameters",
+        "ssm:GetParametersByPath"
+      ],
+      "Resource": [
+        "arn:aws:ssm:ap-southeast-2:905418067035:parameter/proof360/*",
+        "arn:aws:ssm:ap-southeast-2:905418067035:parameter/ethikslabs/anthropic/*",
+        "arn:aws:ssm:ap-southeast-2:905418067035:parameter/ethikslabs/perplexity/*",
+        "arn:aws:ssm:ap-southeast-2:905418067035:parameter/ethikslabs/gemini/*"
+      ]
+    },
+    {
+      "Sid": "DecryptSecureStringsViaSsmOnly",
+      "Effect": "Allow",
+      "Action": "kms:Decrypt",
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "kms:ViaService": "ssm.ap-southeast-2.amazonaws.com"
+        }
+      }
+    }
+  ]
+}

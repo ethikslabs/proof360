@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Proof360 — The ISV Ingestion Engine</title>
+<style>
+  :root{
+    --ink:#0F1B2D; --ink2:#1B2C44; --paper:#F7F9FC; --line:#E2E8F0;
+    --grey:#64748B; --amber:#FF9900; --teal:#14B8A6; --tealD:#0E8C7F; --white:#fff;
+    --good:#16A34A;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--paper);line-height:1.5}
+  .wrap{max-width:1080px;margin:0 auto;padding:34px 22px 60px}
+  .eyebrow{font-size:12px;letter-spacing:2px;font-weight:700;color:var(--tealD);text-transform:uppercase}
+  h1{font-size:38px;line-height:1.1;margin:8px 0 6px;letter-spacing:-.5px}
+  h1 .hl{color:var(--teal)}
+  .sub{font-size:18px;color:var(--grey);max-width:760px}
+  .meta{margin-top:10px;font-size:12.5px;color:var(--grey);letter-spacing:.3px}
+  .runbar{display:flex;align-items:center;gap:14px;margin:26px 0 8px;flex-wrap:wrap}
+  .btn{background:var(--teal);color:#fff;border:0;border-radius:10px;padding:12px 20px;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:.3px}
+  .btn:hover{background:var(--tealD)}
+  .btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .hint{font-size:13px;color:var(--grey)}
+  /* pipeline */
+  .pipe{display:flex;align-items:stretch;gap:0;margin:22px 0 8px;position:relative;overflow-x:auto;padding-bottom:6px}
+  .node{flex:1;min-width:120px;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:14px 12px;cursor:pointer;transition:.18s;position:relative;text-align:center}
+  .node:not(:last-child){margin-right:26px}
+  .node:not(:last-child):after{content:"";position:absolute;right:-26px;top:50%;width:26px;height:2px;background:var(--line)}
+  .node .n{font-size:11px;color:var(--grey);font-weight:700}
+  .node .t{font-size:14px;font-weight:700;margin-top:4px;letter-spacing:-.2px}
+  .node .tag{font-size:11px;color:var(--grey);margin-top:3px}
+  .node:hover{border-color:var(--teal);transform:translateY(-2px)}
+  .node.active{border-color:var(--teal);box-shadow:0 6px 18px rgba(20,184,166,.18)}
+  .node.lit{border-color:var(--good);background:#F0FDF4}
+  .node.lit .n{color:var(--good)}
+  .dot{position:absolute;top:-9px;left:0;width:18px;height:18px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 4px rgba(255,153,0,.2);opacity:0;transition:left .5s ease,opacity .3s}
+  /* detail */
+  .detail{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-top:16px;min-height:120px}
+  .detail h3{margin:0 0 4px;font-size:18px}
+  .detail .pain{display:inline-block;font-size:12px;background:#FEF3C7;color:#92400E;border-radius:20px;padding:3px 10px;margin:6px 0 10px;font-weight:600}
+  .detail p{margin:6px 0;font-size:15px}
+  .detail .who{font-size:13px;color:var(--grey);margin-top:8px}
+  /* value */
+  .vwrap{margin-top:30px}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap}
+  .tab{border:1px solid var(--line);background:#fff;border-radius:9px;padding:9px 14px;font-size:14px;font-weight:600;cursor:pointer;color:var(--ink)}
+  .tab.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .vbody{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-top:12px}
+  .vbody li{margin:7px 0;font-size:15px}
+  /* ask */
+  .ask{margin-top:30px;background:linear-gradient(135deg,var(--ink),var(--ink2));color:#fff;border-radius:16px;padding:26px 26px}
+  .ask .eyebrow{color:var(--amber)}
+  .ask h2{margin:6px 0 8px;font-size:24px}
+  .ask p{margin:6px 0;color:#CBD5E1;font-size:15px;max-width:780px}
+  .ask .pill{display:inline-block;background:rgba(20,184,166,.18);color:#5EEAD4;border:1px solid rgba(20,184,166,.4);border-radius:20px;padding:5px 13px;font-size:13px;font-weight:600;margin-top:10px;margin-right:8px}
+  .foot{margin-top:26px;font-size:12px;color:var(--grey);line-height:1.6}
+  .src{color:var(--grey);text-decoration:none;border-bottom:1px dotted var(--grey)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Ethiks360 · Proof360</div>
+  <h1>The ISV <span class="hl">Ingestion Engine</span></h1>
+  <div class="sub">From a raw software vendor to <strong>listed, compliant, insured and co-selling on AWS Marketplace</strong> — as one managed motion. The front door to the ecosystem, run for you.</div>
+  <div class="meta">Built for the AWS&nbsp;+&nbsp;Ingram Micro inbound motion &nbsp;·&nbsp; click any stage, or press play</div>
+
+  <div class="runbar">
+    <button class="btn" onclick="run()">▶ Run the engine</button>
+    <button class="btn ghost" onclick="reset()">Reset</button>
+    <span class="hint" id="hint">An ISV enters on the left and leaves sellable on the right.</span>
+  </div>
+
+  <div class="pipe" id="pipe">
+    <div class="dot" id="dot"></div>
+  </div>
+
+  <div class="detail" id="detail">
+    <h3>Click a stage to see what the engine does</h3>
+    <p class="who">Each stage removes a step an ISV usually fails or stalls on — and that Ingram's headcount would otherwise do by hand, vendor by vendor.</p>
+  </div>
+
+  <div class="vwrap">
+    <div class="tabs" id="tabs"></div>
+    <div class="vbody" id="vbody"></div>
+  </div>
+
+  <div class="ask">
+    <div class="eyebrow">The ask</div>
+    <h2>Route the funded ISV-inbound program through this engine.</h2>
+    <p>The engine is built. Ingram's two heads <strong>operate</strong> it instead of hand-building every onboarding; AWS gets more transacting, co-selling ISVs without doing the heavy lifting; ISVs get a done-for-you path to revenue. Ethiks360 is the protocol and the reseller of record.</p>
+    <span class="pill">More ISVs transacting on Marketplace</span>
+    <span class="pill">Faster time-to-listed</span>
+    <span class="pill">Compliance + insurance handled</span>
+    <span class="pill">Co-sell ready (ISV Accelerate)</span>
+  </div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+const stages=[
+ {n:"01",t:"Qualify &amp; FTR",tag:"fit + technical review",
+  pain:"~weeks of back-and-forth",
+  body:"We qualify the ISV and run them through AWS's Foundational Technical Review (FTR) / Well-Architected checks — the gate that decides whether they can co-sell and list cleanly. Most ISVs don't know it exists until it blocks them.",
+  who:"Operated by Ingram's heads on the Proof360 checklist. Engine supplies the rails."},
+ {n:"02",t:"Compliance",tag:"SOC 2 / ISO 27001",
+  pain:"3–6 months solo",
+  body:"SOC 2 / ISO 27001 is the table-stakes enterprise buyers and AWS expect. We stand it up via continuous-compliance tooling (e.g. Vanta) as part of the bundle — turning a multi-month project into a managed track.",
+  who:"Ethiks360 is the reseller for the compliance tooling — margin + speed."},
+ {n:"03",t:"Insurance",tag:"cyber + business",
+  pain:"often forgotten until a deal stalls",
+  body:"Enterprise and government buyers require cyber and business liability cover. We attach it in-flow, so the ISV isn't scrambling for a certificate the week a deal is closing.",
+  who:"Bundled and resold through the engine."},
+ {n:"04",t:"Marketplace Listing",tag:"paid, transactable",
+  pain:"the listing nobody finishes",
+  body:"We build the AWS Marketplace seller registration and a paid, transactable listing (SaaS / AMI / container) — the prerequisite for any private offer or co-sell dollar to flow.",
+  who:"Done-for-you. The ISV shows up listed, not stuck in the portal."},
+ {n:"05",t:"CPPO &amp; Co-sell",tag:"private offers + ISV Accelerate",
+  pain:"the money plumbing",
+  body:"With a Channel Partner Private Offer (CPPO), Ethiks360 becomes seller of record: we set buyer pricing and terms, AWS bills the customer and disburses ISV + partner margin. We register the ISV for co-sell (ISV Accelerate / ACE) so AWS field sellers are incentivised to bring deals in.",
+  who:"This is the revenue rail — reseller margin to Ethiks360, pipeline to the ISV, Marketplace transaction to AWS."},
+ {n:"06",t:"Live &amp; Selling",tag:"in the ecosystem",
+  pain:"—",
+  body:"The ISV is now listed, compliant, insured, transactable and co-sell-ready — inside the AWS ecosystem, through the Ingram channel, in a fraction of the usual time. The engine can ingest the next one in parallel.",
+  who:"Repeatable. The line ingests many ISVs at once."}
+];
+
+const pipe=document.getElementById('pipe');
+stages.forEach((s,i)=>{
+  const d=document.createElement('div');
+  d.className='node';d.id='node'+i;
+  d.innerHTML='<div class="n">'+s.n+'</div><div class="t">'+s.t+'</div><div class="tag">'+s.tag+'</div>';
+  d.onclick=()=>select(i);
+  pipe.appendChild(d);
+});
+
+function select(i){
+  document.querySelectorAll('.node').forEach(n=>n.classList.remove('active'));
+  document.getElementById('node'+i).classList.add('active');
+  const s=stages[i];
+  const painHtml = s.pain==="—" ? "" : '<span class="pain">Removes: '+s.pain+'</span><br>';
+  document.getElementById('detail').innerHTML =
+    '<h3>'+s.n+' · '+s.t+'</h3>'+painHtml+'<p>'+s.body+'</p><div class="who">'+s.who+'</div>';
+}
+
+let timer=null;
+function reset(){
+  if(timer){clearInterval(timer);timer=null;}
+  document.querySelectorAll('.node').forEach(n=>n.classList.remove('lit','active'));
+  const dot=document.getElementById('dot');dot.style.opacity=0;dot.style.left='0px';
+  document.getElementById('hint').textContent='An ISV enters on the left and leaves sellable on the right.';
+}
+function run(){
+  reset();
+  const dot=document.getElementById('dot');
+  dot.style.opacity=1;
+  let i=0;
+  const step=()=>{
+    const node=document.getElementById('node'+i);
+    const r=node.offsetLeft+node.offsetWidth/2-9;
+    dot.style.left=r+'px';
+    node.classList.add('lit');
+    select(i);
+    document.getElementById('hint').textContent='Stage '+stages[i].n+' — '+stages[i].t.replace('&amp;','&');
+    i++;
+    if(i>=stages.length){clearInterval(timer);timer=null;
+      setTimeout(()=>{document.getElementById('hint').textContent='✓ Listed, compliant, insured, co-selling — sellable. Next ISV, please.';},600);}
+  };
+  step();
+  timer=setInterval(step,950);
+}
+
+const values=[
+ {k:"What AWS gets",b:["More ISVs <strong>transacting</strong> on Marketplace (revenue + EDP pull).","Co-sell-ready vendors that <strong>retire AWS seller quota</strong> via ISV Accelerate.","Inbound onboarding handled by the channel — less AWS lifting."]},
+ {k:"What Ingram gets",b:["A <strong>productised inbound motion</strong> — the two funded heads operate an engine, they don't hand-build each onboarding.","A repeatable pipeline of listed, co-sell-ready ISVs.","A differentiated distributor position vs. doing generic fulfilment."]},
+ {k:"What the ISV gets",b:["Zero-to-sellable in a fraction of the time — FTR, SOC 2/ISO, insurance, listing, co-sell, <strong>done for them</strong>.","Access to AWS co-sell dollars and field sellers.","One managed front door instead of six separate projects."]},
+ {k:"The role I play",b:["<strong>The protocol &amp; IP</strong> — Proof360 is the engine; the methodology is the moat.","<strong>Reseller of record</strong> via CPPO — margin on every flow, with or without Ingram.","Independent: the same engine works for any channel — Ingram is the first funded one, not the owner."]}
+];
+const tabs=document.getElementById('tabs');
+values.forEach((v,i)=>{
+  const b=document.createElement('button');b.className='tab'+(i===0?' active':'');b.textContent=v.k;
+  b.onclick=()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));b.classList.add('active');vbody(i);};
+  tabs.appendChild(b);
+});
+function vbody(i){document.getElementById('vbody').innerHTML='<ul>'+values[i].b.map(x=>'<li>'+x+'</li>').join('')+'</ul>';}
+vbody(0);
+
+document.getElementById('foot').innerHTML =
+ 'Mechanics verified against AWS public documentation (CPPO, ISV Partner Path, ISV Accelerate, FTR, MDF). Ingram-specific commercial terms and the funded-headcount structure are subject to agreement and shown illustratively. This is an Ethiks360 proposal, not an official AWS or Ingram Micro document. Compliance and insurance delivered via third-party tooling resold by Ethiks360.';
+
+select(0);
+</script>
+</body>
+</html>

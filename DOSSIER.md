@@ -1,8 +1,24 @@
 # proof360 — DOSSIER
 
+> CURRENT AUTHORITY OVERRIDE — 2026-07-03
+>
+> Believe this block before any older architecture prose below.
+> VECTOR is not a proof360 dependency. Do not route new inference through
+> `localhost:3003`, `VECTOR_URL`, or VECTOR-era metering. Current inference is
+> direct provider/service integration inside `api/` plus deterministic
+> recompute/gap code. CORPUS is the evidence/citation dependency on `:3009`.
+> FORUM is the commercial catalog dependency when SKU/price routing is wired.
+> PULSUS sees proof360 only when provider calls emit `usage-event.v1`.
+> VERITAS remains the intended governed attestation plane, but do not claim an
+> active VERITAS publish path unless the code path is present and tested.
+>
+> Coordination rule: this repo has known doc/code drift. Before building from a
+> paragraph below, check `repo.json`, `api/src/server.js`, `api/src/services/`,
+> and the current frontend routes.
+
 **Identity:** Entity onramp — trust readiness diagnostic for founders, with editable report and governed claim escalation
-**Version:** v3.0 (architecture locked 2026-04-26; build pending)
-**Status:** `live` — v1 running at proof360.au; v3 build pending Kiro
+**Version:** v3 operating surface in progress; v1/v3 prose is mixed below
+**Status:** `live` — proof360.au; code has moved beyond several older v3-planning sections
 **Authority:** John Coates
 **Repo:** ethikslabs/proof360
 **URL:** proof360.au
@@ -26,9 +42,10 @@ It is the front door to the 360 stack and the first product to render the doctri
 
 **The boundary:**
 - proof360 owns assessment UX, signal storage, override contract, recompute kernel, and engagement routing.
-- VECTOR routes all inference (Claude Haiku for signal extraction, NIM Nemotron for trust evaluation, embeddings for VERITAS).
-- VERITAS is the governed claim authority — attests gaps on Tier-2 publish.
-- trust360 is retained as fallback only during VERITAS migration.
+- Provider calls are direct from proof360 services. VECTOR is archived and must not be reintroduced.
+- CORPUS supplies evidence/citation context for gap and vendor hints; proof360 must degrade honestly if CORPUS is unavailable.
+- VERITAS is the intended governed claim authority for Tier-2 publish, but only code-backed paths count.
+- FORUM is the intended catalog/price source for distributor and vendor routing; proof360 should not invent SKU truth locally.
 
 ---
 
@@ -37,9 +54,11 @@ It is the front door to the 360 stack and the first product to render the doctri
 ```
 IMPERIUM (control plane)
 └── proof360 (entity onramp — live v1, v3 build pending)
-    ├── inference   → VECTOR (claude-haiku, NIM nemotron, embeddings)
-    ├── attestation → VERITAS (Tier-2 publish gates vendor matrix)
-    ├── metering    → PULSUS (dual ledger: VECTOR tokens + proof360 consumption)
+    ├── inference   → direct provider/service calls inside api/
+    ├── evidence    → CORPUS (:3009 /search)
+    ├── catalog     → FORUM (planned/narrow integration; do not fake SKU truth)
+    ├── attestation → VERITAS when a tested publish path exists
+    ├── metering    → PULSUS via usage-event.v1 emitter coverage
     ├── monitoring  → ARGUS (/api/health endpoint registered)
     ├── alerts      → SIGNUM stub (3-line wrapper for portal Telegram)
     └── pulse       → IMPERIUM (fire-and-forget, fallback no-op)
@@ -136,9 +155,9 @@ Three tables: `engagements` (state), `engagement_events` (lifecycle, append-only
 ### Request pipeline (async, in-memory session-keyed)
 
 ```
-POST /api/v1/session/start          → signal-extractor (Firecrawl + Haiku via VECTOR)
+POST /api/v1/session/start          → signal-extractor (Firecrawl + direct provider/service calls)
 GET  /api/v1/session/:id/inferences → cold read inferences + corrections + follow-ups
-POST /api/v1/session/:id/submit     → gap-mapper + trust-client (NIM primary, trust360 fallback)
+POST /api/v1/session/:id/submit     → gap-mapper + deterministic trust score + CORPUS evidence hints
 GET  /api/v1/session/:id/report     → Layer 1 always, Layer 2 after email gate
 POST /api/v1/session/:id/capture-email → leads.ndjson append (no SES wired)
 ```
@@ -153,10 +172,11 @@ v1 trust score: `100 − Σ(severity weights of triggered gaps)`. Severity weigh
 - **Frontend:** React 19 + Vite 8 + Tailwind 3, no state management library
 - **Auth:** Auth0 PKCE (founder), Google/Microsoft OAuth + Auth0 PKCE (partner portal). Production tenant required pre-v3.0 launch.
 - **Database (v3):** Postgres on RDS, ap-southeast-2, six tables + three append-only event tables
-- **Inference:** All routed through VECTOR at `http://localhost:3003/v1` (Claude Haiku, NIM Nemotron, OpenAI embeddings)
+- **Inference:** Direct provider/service calls from proof360 code. `api/src/lib/inference.js` is direct Bedrock and emits usage meter events.
 - **External scans:** Firecrawl, HIBP, AbuseIPDB, GitHub, SSL Labs, crt.sh, ipapi.co, public port scan, jobs page
-- **Metering:** Dual ledger — VECTOR `data/metering.ndjson` (LLM tokens) + proof360 `data/consumption.ndjson` (external scans). PULSUS aggregates by `session_id`.
-- **Attestation (v3):** VERITAS via `~200 LOC veritas-adapter.js` — replaces trust360 in fallback slot
+- **Evidence:** CORPUS search at `CORPUS_SEARCH_URL` / `:3009` for citations and vendor hints.
+- **Metering:** PULSUS consumes `usage-event.v1` events emitted by the meter; unmetered calls are invisible.
+- **Attestation (v3):** VERITAS only when a tested publish adapter exists; do not claim live attestation before code proves it.
 
 ---
 
@@ -175,11 +195,11 @@ v1 trust score: `100 − Σ(severity weights of triggered gaps)`. Severity weigh
 
 | File | Purpose | v3 status |
 |------|---------|-----------|
-| `api/src/services/signal-extractor.js` | Firecrawl → Claude → raw signals | extend with VECTOR `correlation_id` |
-| `api/src/services/gap-mapper.js` | Gap triggers → trust client → trust_score | route fallback to VERITAS adapter |
-| `api/src/services/trust-client.js` | NIM primary, trust360 fallback | trust360 path replaced by VERITAS adapter |
-| `api/src/services/veritas-adapter.js` | **NEW** — Tier-2 publish attestation | build per `veritas-adapter-spec.md` |
-| `api/src/services/consumption-emitter.js` | **NEW** — non-VECTOR scan ledger | build per Kiro brief |
+| `api/src/services/signal-extractor.js` | Firecrawl + provider extraction → raw signals | keep provider-direct and metered |
+| `api/src/services/gap-mapper.js` | Gap triggers → trust_score + CORPUS evidence/vendor hints | keep CORPUS failure honest |
+| `api/src/lib/inference.js` | Direct Bedrock wrapper with meter emission | do not replace with VECTOR |
+| `api/src/services/veritas-adapter.js` | Tier-2 publish attestation if present | build/test before claiming live |
+| `api/src/services/consumption-emitter.js` | External scan ledger if present | prefer usage-event.v1 where provider calls are involved |
 | `api/src/services/session-store.js` | In-memory session map | replace with Postgres `sessions` |
 | `api/src/services/recompute.js` | **NEW** — deterministic pipeline kernel | build per Kiro brief |
 | `api/src/handlers/override.js` | **NEW** — mutation contract endpoint | build per Kiro brief |
@@ -207,7 +227,7 @@ v1 trust score: `100 − Σ(severity weights of triggered gaps)`. Severity weigh
 ### Post-v3.0
 
 - v3.1+ surface scoping (insurance, AWS programs, buyer subscription) — each gated by named commercial pull
-- VECTOR Phase 3 (per-tenant rate limits + budget enforcement) — proof360 handles 429-equivalent cleanly when it lands
+- Inference-direct guard — CI should fail if `VECTOR_URL` or `localhost:3003` reappears in live code/config
 - Test suite (no automated tests today; v3 build introduces them)
 
 ---
@@ -219,7 +239,8 @@ v1 trust score: `100 − Σ(severity weights of triggered gaps)`. Severity weigh
 - `proof360/docs/kiro-build-brief-v3.md` — Kiro execution input
 - `proof360/docs/veritas-adapter-spec.md` — adapter component spec
 - `VERITAS/DOSSIER.md` — governed truth substrate (claim attestation authority)
-- `VECTOR/DOSSIER.md` — inference carrier (all proof360 inference routed here)
+- `CORPUS/DOSSIER.md` — evidence/citation substrate for proof360 gap and vendor context
+- `FORUM/DOSSIER.md` — commercial catalog/price plane for future routing
 - `PULSUS/DOSSIER.md` — cost signal plane (consumes both ledgers)
 - `IMPERIUM/DOSSIER.md` — control plane (pulse consumer)
 - `ARGUS/DOSSIER.md` — monitoring sentry (`/api/health` registered)
@@ -265,7 +286,7 @@ Per doctrine: every MCP caller is just another renderer + writer of the same con
     "pulse_emission"
   ],
   "authority_level": "product",
-  "depends_on": ["vector", "veritas", "pulsus", "argus"],
+  "depends_on": ["corpus", "forum", "veritas", "pulsus", "argus"],
   "contact_protocol": "http",
   "human_principal": "john-coates"
 }
@@ -283,7 +304,7 @@ Per doctrine: every MCP caller is just another renderer + writer of the same con
 | Capital path | revenue |
 | Revenue model | Reseller embed fees + vendor partner lead routing commission (three-branch attribution: john / distributor / vendor) |
 | IP boundary | Assessment UX, override contract shape, deterministic recompute kernel, tier boundary enforcement, engagement router, signals_object dataset moat (now persistent in Postgres) |
-| Stack dependency | VECTOR (inference, locked contract), VERITAS (Tier-2 attestation), PULSUS (metering), ARGUS (monitoring), IMPERIUM (pulse target) |
+| Stack dependency | Direct provider inference, CORPUS (evidence/citations), FORUM (catalog/price routing), VERITAS (Tier-2 attestation when implemented), PULSUS (metering), ARGUS (monitoring), IMPERIUM (pulse target) |
 | First customer | external: proof360.au (live v1, public) |
 | Forcing functions for v3.0 | Ingram MD presentation (partner portal live), AWS commercial motions, Austbrokers underwriting model |
 

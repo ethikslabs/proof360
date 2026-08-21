@@ -118,6 +118,178 @@ function VendorChip({ vendorId, name, tc }) {
   );
 }
 
+// Tenant → CER partner id (api/src/config/cer-routes.js). Absent = no live panel (fail-closed).
+const TENANT_CER_PARTNER = {
+  ingram: 'ingram_micro',
+  vanta: 'vanta',
+  austbrokers: 'austbrokers_cyberpro',
+};
+
+const money = (n, cur = 'USD') =>
+  n == null ? null : `${cur === 'USD' ? '$' : ''}${Number(n).toLocaleString()}`;
+
+const GAP_LABEL = {
+  aws_program_eligibility: 'AWS program eligibility',
+  soc2: 'SOC 2 readiness',
+  mfa: 'MFA not enforced',
+  cyber_insurance: 'No cyber insurance',
+  backup_dr: 'Backup / DR',
+  edr: 'Endpoint protection',
+};
+
+// One engagement record. The row opens the full record; the +/− peeks inline without
+// leaving the window. Every value is server state.
+function EngagementRow({ e, tc, index, onOpen }) {
+  const [open, setOpen] = useState(false);
+  const opp = e.opportunity;
+  const customer = e.customer?.name || e.route;
+
+  return (
+    <div className="eng-row" style={{
+      background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10,
+      marginBottom: 10, overflow: 'hidden', animation: 'rowIn 0.3s ease both',
+      animationDelay: `${index * 0.04}s`, transition: 'border-color 0.15s, box-shadow 0.15s',
+    }}>
+      <div onClick={() => onOpen(e.cer_id)} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', cursor: 'pointer' }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 3 }}>
+            <span style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{customer}</span>
+            {e.customer?.country && (
+              <span style={{ fontSize: 10, color: '#6b7280', fontFamily: "'IBM Plex Mono', monospace" }}>{e.customer.country}</span>
+            )}
+          </div>
+          <div style={{ fontSize: 12, color: '#6b7280' }}>
+            {e.label}
+            {e.gap && <> · <span style={{ color: '#111827' }}>closes: {GAP_LABEL[e.gap] || e.gap}</span></>}
+          </div>
+        </div>
+
+        {opp?.amount != null && (
+          <div style={{ textAlign: 'right', flexShrink: 0 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#111827', fontFamily: "'IBM Plex Mono', monospace" }}>
+              {money(opp.amount, opp.currency)}
+            </div>
+            <div style={{ fontSize: 10, color: '#9ca3af', textTransform: 'lowercase' }}>{opp.frequency}</div>
+          </div>
+        )}
+
+        <span style={{
+          fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '0.05em', flexShrink: 0,
+          background: `${tc}12`, border: `1px solid ${tc}30`, color: '#111827',
+          padding: '4px 10px', borderRadius: 5,
+        }}>{e.status}</span>
+
+        <span style={{ fontSize: 12, color: tc, flexShrink: 0, fontWeight: 600 }}>open →</span>
+        <span
+          onClick={(ev) => { ev.stopPropagation(); setOpen(o => !o); }}
+          title={open ? 'Collapse' : 'Peek without leaving'}
+          style={{ fontSize: 13, color: '#9ca3af', flexShrink: 0, width: 16, textAlign: 'center', cursor: 'pointer' }}
+        >{open ? '−' : '+'}</span>
+      </div>
+
+      {open && (
+        <div style={{ borderTop: '1px solid #f3f4f6', padding: '14px 16px', background: '#fafafa', animation: 'expandIn 0.2s ease' }}>
+          {opp ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 14, marginBottom: 14 }}>
+              {[
+                ['AWS opportunity', opp.id],
+                ['Review status', opp.review_status],
+                ['Stage', opp.stage],
+                ['Type', opp.opportunity_type],
+                ['Target close', opp.target_close_date],
+                ['Industry', opp.industry || e.customer?.industry],
+              ].filter(([, v]) => v).map(([k, v]) => (
+                <div key={k}>
+                  <div style={{ fontSize: 9, color: '#9ca3af', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 3 }}>{k}</div>
+                  <div style={{ fontSize: 12, color: '#111827', fontFamily: "'IBM Plex Mono', monospace" }}>{v}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 14 }}>
+              Engagement open — no vendor-side transaction record on this route yet.
+            </div>
+          )}
+
+          <div style={{ fontSize: 9, color: '#9ca3af', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>
+            Evidence on this record · {e.event_count} event{e.event_count === 1 ? '' : 's'}
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {(e.evidence_refs || []).map(ref => (
+              <span key={ref} style={{
+                fontSize: 10, color: '#374151', fontFamily: "'IBM Plex Mono', monospace",
+                background: '#fff', border: '1px solid #e5e7eb', padding: '3px 8px', borderRadius: 4,
+              }}>{ref}</span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Live partner window — the demo founder's consented engagements joined to the AWS
+// co-sell book (GET /api/v1/partner/:partner/cers). Un-bitten book entries render as
+// an aggregate line only, never named: the CER is the consent vehicle.
+function LiveCerPanel({ tenantKey, tc, onOpen }) {
+  const [data, setData] = useState(null);
+  const partner = TENANT_CER_PARTNER[tenantKey];
+
+  useEffect(() => {
+    if (!partner) return;
+    let alive = true;
+    fetch(`/api/v1/partner/${partner}/cers`)
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (alive && d) setData(d); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [partner]);
+
+  if (!partner || !data || data.engagements.length === 0) return null;
+  const { engagements, book } = data;
+  const consentedValue = engagements.reduce((s, e) => s + (e.opportunity?.amount || 0), 0);
+
+  return (
+    <div style={{ padding: '16px 0 4px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+        <span style={{ width: 6, height: 6, borderRadius: '50%', background: tc, animation: 'pulseDot 3s infinite', display: 'inline-block' }}/>
+        <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '0.06em' }}>
+          ENGAGEMENT RECORDS · CONSENTED
+        </span>
+        {consentedValue > 0 && (
+          <span style={{ fontSize: 10, color: '#6b7280', fontFamily: "'IBM Plex Mono', monospace" }}>
+            · {money(consentedValue)} monthly across {engagements.length} record{engagements.length === 1 ? '' : 's'}
+          </span>
+        )}
+      </div>
+
+      {engagements.map((e, i) => <EngagementRow key={e.cer_id} e={e} tc={tc} index={i} onOpen={onOpen} />)}
+
+      {book?.unbitten > 0 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+          padding: '12px 16px', marginTop: 2, marginBottom: 10,
+          background: '#fafafa', border: '1px dashed #d1d5db', borderRadius: 10,
+        }}>
+          <span style={{ fontSize: 13, color: '#6b7280' }}>
+            <strong style={{ color: '#111827' }}>{book.unbitten} more</strong> in the {book.catalog || 'co-sell'} book
+            {book.unbitten_monthly_value > 0 && <> · {money(book.unbitten_monthly_value, book.currency)} monthly</>}
+          </span>
+          <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 'auto' }}>
+            not yet consented for sharing — aggregate only
+          </span>
+        </div>
+      )}
+
+      {data.captured_at && (
+        <div style={{ fontSize: 10, color: '#c4c8ce', fontFamily: "'IBM Plex Mono', monospace", paddingBottom: 12 }}>
+          book captured {timeAgo(data.captured_at)}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function LeadRow({ lead, tenant, tenantKey, engagement, onEngage, index }) {
   const [expanded, setExpanded] = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
@@ -382,7 +554,11 @@ export default function PortalDashboard() {
   const tenant = TENANTS[auth.tenant];
   const isDistributor = tenant?.role === 'distributor';
   const tc = tenant?.color || '#2563eb';
-  const allLeads = filterLeadsForTenant(PORTAL_LEADS, tenant);
+  // Live-fed tenants see NO static seed leads — their window renders real CER state
+  // exclusively (canon: no invented pipeline beside genuine records). Any tenant wired to
+  // a CER partner is live-fed; the rest keep the legacy seeded demo until consolidation.
+  const liveOnly = Boolean(TENANT_CER_PARTNER[auth.tenant]);
+  const allLeads = liveOnly ? [] : filterLeadsForTenant(PORTAL_LEADS, tenant);
   const tenantLogo = TENANT_LOGOS[auth.tenant];
 
   const counts = {
@@ -419,6 +595,7 @@ export default function PortalDashboard() {
         @keyframes pulseDot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(1.5)} }
         @keyframes rowIn { from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none} }
         @keyframes expandIn { from{opacity:0}to{opacity:1} }
+        .eng-row:hover { border-color: #cbd5e1 !important; box-shadow: 0 2px 8px rgba(15,23,42,0.06); }
         *{box-sizing:border-box;margin:0;padding:0}
       `}</style>
 
@@ -584,6 +761,9 @@ export default function PortalDashboard() {
             )}
           </div>
         )}
+
+        {/* Live engagement records (CER) — server-projected, demo-grade */}
+        <LiveCerPanel tenantKey={auth.tenant} tc={tc} onOpen={id => navigate(`/portal/records/${id}`)} />
 
         {/* Lead feed */}
         <div style={{ paddingTop: 16 }}>
