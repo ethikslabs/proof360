@@ -2,6 +2,7 @@
 import { buildSystemPrompt } from '../services/persona-prompts.js';
 import { notifyJohn } from '../services/john-relay.js';
 import { chatStream } from '../lib/inference.js';
+import { retrieveCorpusEvidence, evidenceBlock } from '../services/corpus-retrieve.js';
 
 const VALID_PERSONAS = ['sophia', 'leonardo', 'edison'];
 
@@ -33,6 +34,12 @@ export async function chatHandler(request, reply) {
   const sessionId = context?.session_id || null;
   const correlationId = sessionId || 'proof360';
 
+  // Live corpus retrieval (John go 2026-08-22) — evidence joins the system prompt;
+  // null on any failure and the chat proceeds exactly as before.
+  const corpusHits = await retrieveCorpusEvidence(
+    apiMessages[apiMessages.length - 1]?.content ?? '', context);
+  const groundedPrompt = systemPrompt + evidenceBlock(corpusHits);
+
   // @john detection — skip inference, notify John via Telegram, return inline response
   const lastUserMsg = apiMessages[apiMessages.length - 1]?.content || '';
   if (/@john\b/i.test(lastUserMsg)) {
@@ -53,7 +60,7 @@ export async function chatHandler(request, reply) {
     const stream = chatStream({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 300,
-      messages: [{ role: 'system', content: systemPrompt }, ...apiMessages],
+      messages: [{ role: 'system', content: groundedPrompt }, ...apiMessages],
       correlation_id: correlationId,
     });
 
