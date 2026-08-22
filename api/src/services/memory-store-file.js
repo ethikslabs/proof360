@@ -327,7 +327,7 @@ function reconstruct(profile, transactions) {
   const observations = [];
   const claims = [];
   const current_claims = {};
-  // CER (Commercial Engagement Record) primitives ride the same append-only log.
+  // CER (Customer Engagement Record) primitives ride the same append-only log.
   // `decision` = the CER base record; `cer_event` = its consent/status log. Both are
   // carried through to the snapshot verbatim; cerProjection() folds them at read time.
   const decisions = [];

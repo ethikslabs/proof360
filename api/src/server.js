@@ -40,7 +40,7 @@ import {
   cerConsentWithdrawHandler,
   cerStatusHandler,
 } from './handlers/cer.js';
-import { partnerCersListHandler, partnerCerDetailHandler } from './handlers/partner-cers.js';
+import { advisoryRegistersHandler } from './handlers/advisory.js';
 
 const PORT = parseInt(process.env.PORT || '3002', 10);
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
@@ -110,12 +110,6 @@ app.post('/api/v1/profile/current/cers', { preHandler: journeyGate }, cerCreateH
 app.post('/api/v1/profile/current/cers/:cerId/consent-withdraw', { preHandler: journeyGate }, cerConsentWithdrawHandler);
 app.post('/api/v1/profile/current/cers/:cerId/status', { preHandler: journeyGate }, cerStatusHandler);
 
-// --- Partner window (DEMO-GRADE): no-leak projection of the demo founder's CERs ---
-// Hard-gated inside the handler: 404 unless DEMO_FOUNDER_MODE === 'true'. Productized
-// partner read is PROOF360-CER-PARTNER-API-001 — it replaces this, never extends it.
-app.get('/api/v1/partner/:partner/cers', partnerCersListHandler);
-app.get('/api/v1/partner/:partner/cers/:cerId', partnerCerDetailHandler);
-
 // --- Turnstile siteverify (server is the verifier; widget token alone proves nothing) ---
 app.post('/api/v1/turnstile/verify', createTurnstileVerifyHandler());
 
@@ -126,6 +120,7 @@ app.post('/api/v1/notify', notifyHandler);
 
 // --- CORPUS ---
 app.get('/api/v1/corpus/stats', corpusStatsHandler);
+app.get('/api/v1/advisory/registers', advisoryRegistersHandler);
 
 // --- Health ---
 app.get('/health', healthHandler);
