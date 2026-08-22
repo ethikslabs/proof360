@@ -4,8 +4,14 @@
 // Runs through the REAL session-chat handler; only Bedrock streaming is mocked.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+// The mock persona "reads the script perfectly": it echoes the system prompt, so any
+// injected confirm/proposal question counts as voiced (the voiced gate requires the
+// reply to actually contain the ask). Individual tests override it to play rogue.
+const personaReply = { value: null }; // null = echo system prompt
 vi.mock('../../src/lib/inference.js', () => ({
-  chatStream: vi.fn(async function* () { yield 'ok'; }),
+  chatStream: vi.fn(async function* ({ messages }) {
+    yield personaReply.value ?? messages.find((m) => m.role === 'system').content;
+  }),
 }));
 
 import { chatStream } from '../../src/lib/inference.js';
@@ -41,6 +47,7 @@ describe('the acceptance walk', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    personaReply.value = null;
     session = createSession({ website_url: 'https://acme.example' });
     // Cold read done: AWS inferred from recon; stage + raise inferred from extraction.
     updateSession(session.id, {
@@ -107,5 +114,22 @@ describe('the acceptance walk', () => {
     await say(session.id, 'hi');
     await say(session.id, 'what does SOC 2 actually involve?');
     expect(getSession(session.id).claim_events).toHaveLength(0);
+  });
+
+  it('the voiced gate: a "yes" to the persona\'s OWN question never flips the unasked claim', async () => {
+    // Rogue persona: ignores the injected confirm block entirely (the live 2026-08-22 case).
+    personaReply.value = 'Which is hitting you harder right now: SOC 2 asks or internal uncertainty?';
+    await say(session.id, 'hi');
+    expect(getSession(session.id).pending_confirm).toBeTruthy(); // ask stands…
+    await say(session.id, 'yes');
+    // …but the "yes" answered the persona's own question — no testimony forged.
+    expect(getSession(session.id).claim_events).toHaveLength(0);
+
+    // Persona behaves next exchange → the same claim is re-asked and NOW a yes lands.
+    personaReply.value = null;
+    await say(session.id, 'ok go on');
+    await say(session.id, 'yes');
+    expect(getSession(session.id).claim_events).toHaveLength(1);
+    expect(getSession(session.id).claim_events[0].type).toBe('confirmed');
   });
 });

@@ -197,6 +197,31 @@ const CONFIRM_PRIORITY = [
   'governance.cyber_insurance',
 ];
 
+// Human label per Record field — user-facing copy (reasons, prompts) reads
+// "product type", never a raw path tail like "type". Fallback: last path
+// segment with underscores spaced.
+const FIELD_LABELS = {
+  'infrastructure.cloud_provider': 'cloud provider',
+  'infrastructure.cdn_provider': 'CDN provider',
+  'infrastructure.email_provider': 'email provider',
+  'infrastructure.waf': 'WAF',
+  'security.dmarc_policy': 'DMARC policy',
+  'product.type': 'product type',
+  'market.customer_type': 'customer type',
+  'company.stage': 'stage',
+  'company.sector': 'sector',
+  'company.geo_market': 'market',
+  'company.has_raised_institutional': 'institutional raise',
+  'compliance.soc2_status': 'SOC 2 status',
+  'data.sensitivity': 'data sensitivity',
+  'identity.model': 'identity model',
+  'governance.cyber_insurance': 'cyber insurance',
+};
+
+export function fieldLabel(field) {
+  return FIELD_LABELS[field] || String(field).split('.').pop().replace(/_/g, ' ');
+}
+
 export function nextConfirmable(claims) {
   const open = claims.filter((c) => c.status === 'inferred');
   if (!open.length) return null;

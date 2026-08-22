@@ -5,6 +5,8 @@ import {
   fieldQuestion,
   ceremonyResultNote,
   proposalPromptBlock,
+  questionWasVoiced,
+  proposalWasVoiced,
 } from '../../src/services/confirm-ceremony.js';
 
 const awsClaim = {
@@ -67,6 +69,32 @@ describe('ceremonyResultNote — tell the persona what testimony just landed', (
   });
   it('empty for no answer', () => {
     expect(ceremonyResultNote(awsClaim, null)).toBe('');
+  });
+});
+
+describe('questionWasVoiced — testimony only counts against a question actually asked', () => {
+  it('true when the reply mentions the claimed value and asks a question', () => {
+    expect(questionWasVoiced("Looks like you're on AWS — right?", awsClaim)).toBe(true);
+    expect(questionWasVoiced('So — you appear to run on aws. Is that correct?', awsClaim)).toBe(true);
+  });
+
+  it('false when the persona went its own way — no value, or no question at all', () => {
+    // the live failure: persona asked its own wrap-up question, never the confirm
+    expect(questionWasVoiced('Which is hitting you harder: SOC 2 asks or uncertainty?', awsClaim)).toBe(false);
+    // mentions the value but asks nothing
+    expect(questionWasVoiced('Your AWS setup looks solid.', awsClaim)).toBe(false);
+    expect(questionWasVoiced('', awsClaim)).toBe(false);
+    expect(questionWasVoiced('anything', null)).toBe(false);
+  });
+});
+
+describe('proposalWasVoiced — same law for the shortlist ask', () => {
+  const proposal = { id: 'cap-vanta', title: 'Vanta', reason: 'soc2 gap open' };
+  it('true only when the reply names the proposal and asks', () => {
+    expect(proposalWasVoiced('Worth considering Vanta — add it to your shortlist?', proposal)).toBe(true);
+    expect(proposalWasVoiced('Vanta maps your controls automatically.', proposal)).toBe(false);
+    expect(proposalWasVoiced('Want me to add something to your shortlist?', proposal)).toBe(false);
+    expect(proposalWasVoiced('x', null)).toBe(false);
   });
 });
 

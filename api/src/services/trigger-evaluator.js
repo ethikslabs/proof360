@@ -12,6 +12,7 @@
 //          ops: `=` `!=` `in [..]` `present`, conjoined with AND
 //   gaps : `Surfaces when CER shows open gaps: soc2, compliance`
 //          fires on ANY overlap with the session's open gaps (gap-mapper output)
+import { fieldLabel } from './claims-projection.js';
 
 // Register trigger field → Record claim field.
 const TRIGGER_FIELD_TO_CLAIM = {
@@ -102,7 +103,7 @@ function proposalReason(entry, claims_cited, gaps_cited) {
   const parts = [];
   if (claims_cited.length) {
     parts.push(claims_cited
-      .map((c) => `your ${c.field.split('.').pop().replace(/_/g, ' ')} is confirmed as ${c.value}`)
+      .map((c) => `your ${fieldLabel(c.field)} is confirmed as ${c.value}`)
       .join(' and '));
   }
   if (gaps_cited.length) {

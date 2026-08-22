@@ -77,6 +77,28 @@ export function proposalPromptBlock(proposal) {
 }
 
 // ---------------------------------------------------------------------------
+// Voiced checks (found live 2026-08-22): the model can ignore the injected block
+// and ask its own question — the claim stays pending, and a "yes" to the model's
+// OWN question must never be captured against the unasked confirm. Testimony only
+// counts against a question actually voiced: the reply must mention the claimed
+// value (or the proposal's name) AND ask a question. Deterministic, fail-closed —
+// an unvoiced ask just re-arms next exchange.
+// ---------------------------------------------------------------------------
+export function questionWasVoiced(replyText, claim) {
+  if (!claim || !replyText) return false;
+  const reply = String(replyText).toLowerCase();
+  if (!reply.includes('?')) return false;
+  return reply.includes(String(displayValue(claim.value)).toLowerCase());
+}
+
+export function proposalWasVoiced(replyText, proposal) {
+  if (!proposal || !replyText) return false;
+  const reply = String(replyText).toLowerCase();
+  if (!reply.includes('?')) return false;
+  return reply.includes(String(proposal.title).toLowerCase());
+}
+
+// ---------------------------------------------------------------------------
 // Deterministic reply capture. Conservative on purpose: a missed capture costs
 // one re-ask; a wrong capture forges testimony.
 // ---------------------------------------------------------------------------

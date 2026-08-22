@@ -132,10 +132,26 @@ describe('evaluateRegister — the shortlist proposal set', () => {
     expect(activate.claims_cited).toHaveLength(2);
     expect(activate.reason).toContain('confirmed');
     expect(activate.cer_route).toBe('ingram_micro_aws');
+    // human field labels, never raw path tails ("your stage", not "your stage" from company.stage is
+    // fine — but market.customer_type must read "customer type", product.type "product type")
+    expect(activate.reason).toContain('your stage is confirmed as Seed');
 
     const vanta = proposals.find((p) => p.id === 'vanta');
     expect(vanta.gaps_cited).toEqual(['soc2']);
     expect(vanta.reason.toLowerCase()).toContain('soc2');
+  });
+
+  it('reasons use human field labels — "product type", never the raw path tail "type"', () => {
+    const reg = [{
+      id: 'x', kind: 'program', title: 'X', description: 'x',
+      trigger: 'product_type in [B2B SaaS, Platform, API, Software product]',
+      cer_route: 'shortlist_general',
+    }];
+    const [p] = evaluateRegister(reg, {
+      claims: [confirmed('product.type', 'Software product')], openGaps: [],
+    });
+    expect(p.reason).toContain('your product type is confirmed as Software product');
+    expect(p.reason).not.toMatch(/your type is/);
   });
 
   it('proposes nothing when nothing is confirmed and no gaps are open', () => {

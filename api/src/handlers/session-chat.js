@@ -7,6 +7,7 @@ import { chatStream } from '../lib/inference.js';
 import { buildClaimEvent, claimsProjection, nextConfirmable } from '../services/claims-projection.js';
 import {
   confirmPromptBlock, interpretConfirmReply, ceremonyResultNote, proposalPromptBlock,
+  questionWasVoiced, proposalWasVoiced,
 } from '../services/confirm-ceremony.js';
 import { sessionRecordSnapshot } from './record.js';
 import { liveProposals, acceptProposal } from './shortlist.js';
@@ -117,7 +118,10 @@ export async function sessionChatHandler(request, reply) {
   const pendingClaim = session.pending_confirm
     ? preClaims.find((c) => c.claim_id === session.pending_confirm && c.status === 'inferred')
     : null;
-  if (pendingClaim) {
+  // Voiced gate (live finding 2026-08-22): capture ONLY if last exchange's reply
+  // actually voiced the question — the model can ignore the injected block, and a
+  // "yes" to the model's own question must never flip the unasked claim.
+  if (pendingClaim && session.pending_confirm_voiced) {
     const answer = interpretConfirmReply(cleanMessage, pendingClaim);
     if (answer) {
       const event = buildClaimEvent(pendingClaim.claim_id, {
@@ -140,8 +144,9 @@ export async function sessionChatHandler(request, reply) {
     const pendingProp = liveProposals(session).find((p) => p.id === session.pending_proposal);
     if (!pendingProp) {
       session.pending_proposal = null; // accepted via UI or trigger no longer fires
-    } else {
-      // Same deterministic capture as the confirm ceremony (stub claim = yes/no reuse).
+    } else if (session.pending_proposal_voiced) {
+      // Same deterministic capture as the confirm ceremony (stub claim = yes/no reuse);
+      // same voiced gate — an unvoiced proposal just re-arms next exchange.
       const answer = interpretConfirmReply(cleanMessage, { field: 'proposal' });
       if (answer?.type === 'confirmed') {
         const res = acceptProposal(session, pendingProp.id);
@@ -163,14 +168,18 @@ export async function sessionChatHandler(request, reply) {
   }
 
   let askBlock = '';
+  let askedProposal = null;
+  let askedClaim = null;
   if (!session.pending_proposal) {
     const [nextProposal] = liveProposals(session);
     if (nextProposal) {
       session.pending_proposal = nextProposal.id;
+      askedProposal = nextProposal;
       askBlock = proposalPromptBlock(nextProposal);
     }
   } else {
-    askBlock = proposalPromptBlock(liveProposals(session).find((p) => p.id === session.pending_proposal));
+    askedProposal = liveProposals(session).find((p) => p.id === session.pending_proposal) || null;
+    askBlock = proposalPromptBlock(askedProposal);
   }
   // Only ONE pending question may stand — a "yes" next turn must be unambiguous.
   if (askBlock) session.pending_confirm = null;
@@ -180,8 +189,13 @@ export async function sessionChatHandler(request, reply) {
       ? claims.find((c) => c.claim_id === session.pending_confirm)
       : nextConfirmable(claims);
     if (toConfirm) session.pending_confirm = toConfirm.claim_id;
+    askedClaim = toConfirm || null;
     askBlock = confirmPromptBlock(toConfirm);
   }
+  // Until the reply proves otherwise, nothing is voiced this exchange (fail-closed —
+  // also covers the @john path and stream failures).
+  session.pending_confirm_voiced = false;
+  session.pending_proposal_voiced = false;
   // -------------------------------------------------------------------------------
 
   const systemPrompt = buildSystemPrompt(persona, context) + ceremonyNote + proposalNote + askBlock;
@@ -236,6 +250,10 @@ export async function sessionChatHandler(request, reply) {
 
     if (fullResponse) {
       session.chat_history.push({ role: 'assistant', content: fullResponse, persona, ts: Date.now() });
+      // The reply is the evidence: mark the pending ask voiced only if it was
+      // actually asked, so next exchange's capture is legitimate testimony.
+      session.pending_confirm_voiced = questionWasVoiced(fullResponse, askedClaim);
+      session.pending_proposal_voiced = proposalWasVoiced(fullResponse, askedProposal);
     }
 
     if (headersWritten) {
