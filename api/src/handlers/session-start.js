@@ -1,6 +1,7 @@
 import { createSession, updateSession, appendLog } from '../services/session-store.js';
 import { extractSignals } from '../services/signal-extractor.js';
 import { buildInferences } from '../services/inference-builder.js';
+import { buildInferredClaims } from '../services/claims-projection.js';
 import { emitPulse } from '../services/pulse-emitter.js';
 import { extractReconContext } from '../services/recon-pipeline.js';
 import { query } from '../db/pool.js';
@@ -47,9 +48,15 @@ async function extractAndInfer(sessionId, { website_url, deck_file, session_id }
     const reconFlat = extractReconContext(recon_context);
     const inferenceResult = buildInferences(signals, sources_read, website_url, reconFlat);
 
+    // Seed the Record (ETHL-WRK-SPEC-011): every probe/extraction output becomes an
+    // inferred claim with named provenance — inferred until the founder confirms.
+    const claimRecords = buildInferredClaims({ recon: reconFlat, signals });
+
     log({ type: '__done__' });
     updateSession(sessionId, {
       infer_status: 'complete',
+      claim_records: claimRecords,
+      claim_events: [],
       raw_signals: signals,
       inferences: inferenceResult.inferences,
       correctable_fields: inferenceResult.correctable_fields,

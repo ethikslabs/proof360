@@ -4,6 +4,9 @@ import { notifyJohn } from '../services/john-relay.js';
 import { normalizeContext } from '../services/context-normalizer.js';
 import { runGapAnalysis } from '../services/gap-mapper.js';
 import { chatStream } from '../lib/inference.js';
+import { buildClaimEvent, claimsProjection, nextConfirmable } from '../services/claims-projection.js';
+import { confirmPromptBlock, interpretConfirmReply, ceremonyResultNote } from '../services/confirm-ceremony.js';
+import { sessionRecordSnapshot } from './record.js';
 
 const MODEL = 'claude-haiku-4-5-20251001';
 
@@ -101,7 +104,39 @@ export async function sessionChatHandler(request, reply) {
     session_id: session.id,
   };
 
-  const systemPrompt = buildSystemPrompt(persona, context);
+  // --- The confirm ceremony (ETHL-WRK-SPEC-011 D3) -------------------------------
+  // 1) If a confirm question is pending and this message answers it deterministically,
+  //    write the claim_event (append-only; the base claim is never mutated).
+  // 2) Then pick at most ONE claim to confirm this exchange and hand the persona the
+  //    question to weave in naturally. Ambiguous replies write nothing — never a guess.
+  let ceremonyNote = '';
+  const preClaims = claimsProjection(sessionRecordSnapshot(session));
+  const pendingClaim = session.pending_confirm
+    ? preClaims.find((c) => c.claim_id === session.pending_confirm && c.status === 'inferred')
+    : null;
+  if (pendingClaim) {
+    const answer = interpretConfirmReply(cleanMessage, pendingClaim);
+    if (answer) {
+      const event = buildClaimEvent(pendingClaim.claim_id, {
+        type: answer.type, value: answer.value, actor: 'founder', via: 'chat',
+      });
+      session.claim_events = [...(session.claim_events || []), event];
+      session.pending_confirm = null;
+      ceremonyNote = ceremonyResultNote(pendingClaim, answer);
+    }
+  } else if (session.pending_confirm) {
+    session.pending_confirm = null; // pending claim no longer open (answered via UI) — drop it
+  }
+
+  const claims = claimsProjection(sessionRecordSnapshot(session));
+  const toConfirm = session.pending_confirm
+    ? claims.find((c) => c.claim_id === session.pending_confirm)
+    : nextConfirmable(claims);
+  if (toConfirm) session.pending_confirm = toConfirm.claim_id;
+  const confirmBlock = confirmPromptBlock(toConfirm);
+  // -------------------------------------------------------------------------------
+
+  const systemPrompt = buildSystemPrompt(persona, context) + ceremonyNote + confirmBlock;
 
   // Last 20 turns (10 pairs) to keep context cost bounded
   const apiMessages = session.chat_history

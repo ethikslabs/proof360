@@ -31,7 +31,13 @@ export async function sessionAttachHandler(request, reply) {
     throw err;
   }
 
-  const records = buildSessionAttachRecords(profile, session);
+  // The Record graduates with the session: claim records + truth-ladder events flow
+  // into the append-only log verbatim (ETHL-WRK-SPEC-011 D2 — same fold reads both).
+  const records = [
+    ...buildSessionAttachRecords(profile, session),
+    ...(session.claim_records || []),
+    ...(session.claim_events || []),
+  ];
   const tx = await appendTransaction(profile.id, records, {
     route: 'POST /api/v1/sessions/:sessionId/profile',
     source: 'cold_read',

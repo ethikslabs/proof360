@@ -89,4 +89,42 @@ describe('profile route handlers', () => {
     expect(reply.payload.attached_session_id).toBe(session.id);
     expect(reply.payload.projections.lit_tiles.investor).toBe(true);
   });
+
+  it('attach graduates the Record: session claims + events ride into the founder-memory log', async () => {
+    const { buildClaimRecord, buildClaimEvent, claimsProjection } =
+      await import('../../src/services/claims-projection.js');
+    const memoryStore = await import('../../src/services/memory-store.js');
+
+    const claim = buildClaimRecord({
+      field: 'infrastructure.cloud_provider', value: 'aws',
+      provenance: { method: 'recon-ip', detail: 'ASN AS16509 Amazon' },
+    });
+    const event = buildClaimEvent(claim.claim_id, { type: 'confirmed', actor: 'founder', via: 'chat' });
+
+    const session = sessionStore.createSession({
+      id: '22222222-2222-4222-8222-222222222222',
+      website_url: 'https://example.com',
+    });
+    sessionStore.updateSession(session.id, {
+      infer_status: 'complete',
+      company_name: 'Example Co',
+      raw_signals: [],
+      claim_records: [claim],
+      claim_events: [event],
+    });
+
+    const reply = replyMock();
+    await attachHandler.sessionAttachHandler({
+      authUser: { sub: 'auth0|founder' },
+      params: { sessionId: session.id },
+    }, reply);
+    expect(reply.statusCode).toBe(201);
+
+    const snapshot = await memoryStore.replayProfile(reply.payload.profile_id);
+    expect(snapshot.record_claims).toHaveLength(1);
+    expect(snapshot.claim_events).toHaveLength(1);
+    const [projected] = claimsProjection(snapshot);
+    expect(projected.status).toBe('confirmed');
+    expect(projected.value).toBe('aws');
+  });
 });

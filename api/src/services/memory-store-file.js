@@ -332,6 +332,11 @@ function reconstruct(profile, transactions) {
   // carried through to the snapshot verbatim; cerProjection() folds them at read time.
   const decisions = [];
   const cer_events = [];
+  // The Record's truth ladder (ETHL-WRK-SPEC-011): `record_claim` = a claim about the
+  // customer, born inferred; `claim_event` = confirmed/corrected/rejected. Same verbatim
+  // carry; claimsProjection() folds them at read time.
+  const record_claims = [];
+  const claim_events = [];
 
   for (const transaction of transactions) {
     for (const record of transaction.records || []) {
@@ -344,6 +349,8 @@ function reconstruct(profile, transactions) {
       }
       if (record.primitive === 'decision') decisions.push(record);
       if (record.primitive === 'cer_event') cer_events.push(record);
+      if (record.primitive === 'record_claim') record_claims.push(record);
+      if (record.primitive === 'claim_event') claim_events.push(record);
     }
   }
 
@@ -359,6 +366,8 @@ function reconstruct(profile, transactions) {
     current_claims,
     decisions,
     cer_events,
+    record_claims,
+    claim_events,
   };
 }
 

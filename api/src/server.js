@@ -32,6 +32,7 @@ import {
   profileProjectionsHandler,
 } from './handlers/profile.js';
 import { sessionAttachHandler } from './handlers/session-attach.js';
+import { recordHandler, claimAnswerHandler } from './handlers/record.js';
 import {
   cersListHandler,
   cerCreateHandler,
@@ -52,6 +53,10 @@ app.post('/api/v1/session/start', sessionStartHandler);
 app.get('/api/v1/session/:id/log', sessionLogHandler);
 app.get('/api/v1/session/:id/infer-status', inferStatusHandler);
 app.get('/api/v1/session/:id/inferences', inferencesHandler);
+
+// --- The Record (ETHL-WRK-SPEC-011): claims, truth ladder, confirm/edit verbs ---
+app.get('/api/v1/session/:id/record', recordHandler);
+app.post('/api/v1/session/:id/claims/:claimId/answer', claimAnswerHandler);
 
 // --- Phase 2: Follow-up ---
 app.get('/api/v1/session/:id/followup-questions', followupQuestionsHandler);
