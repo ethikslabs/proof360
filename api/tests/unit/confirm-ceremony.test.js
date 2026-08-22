@@ -4,6 +4,7 @@ import {
   interpretConfirmReply,
   fieldQuestion,
   ceremonyResultNote,
+  proposalPromptBlock,
 } from '../../src/services/confirm-ceremony.js';
 
 const awsClaim = {
@@ -36,6 +37,23 @@ describe('fieldQuestion — human phrasing per field', () => {
   it('falls back to a generic phrasing for unmapped fields', () => {
     const q = fieldQuestion({ field: 'x.y', value: 'zed' });
     expect(q).toContain('zed');
+  });
+});
+
+describe('proposalPromptBlock — the shortlist moment in conversation', () => {
+  it('hands the persona one proposal with its reason to disclose', () => {
+    const block = proposalPromptBlock({
+      id: 'cap-vanta', title: 'Vanta',
+      reason: 'Vanta proposed because the soc2 gap is open on your read.',
+    });
+    expect(block).toContain('Vanta');
+    expect(block).toContain('soc2 gap is open');
+    expect(block.toLowerCase()).toContain('shortlist');
+    // the disclosed-stake model: the reason is spoken, never hidden
+    expect(block.toLowerCase()).toMatch(/reason|because/);
+  });
+  it('empty when there is nothing to propose', () => {
+    expect(proposalPromptBlock(null)).toBe('');
   });
 });
 

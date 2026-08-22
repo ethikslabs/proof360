@@ -40,6 +40,9 @@ export function buildCerRecords({
   person_id,
   company_id,
   actor = 'founder',
+  // ETHL-WRK-SPEC-011 D5: a Move born from a register trigger carries its reason on
+  // its face — { trigger_id, claims_cited, gaps_cited, text, user_text, discussed_in }.
+  reason = null,
 }) {
   const routeCfg = CER_ROUTES[route];
   if (!routeCfg) throw new Error(`unknown_cer_route:${route}`);
@@ -64,6 +67,7 @@ export function buildCerRecords({
       company_id,
       recommendation_id,
       evidence_refs,
+      reason,
       visibility_policy: visibilityPolicyForRoute(route),
       created_at: createdAt,
       updated_at: createdAt,
@@ -144,6 +148,7 @@ function projectOne(decision, events) {
     company_id: decision.company_id,
     recommendation_id: decision.recommendation_id,
     evidence_refs: decision.evidence_refs || [],
+    reason: decision.reason ?? null,
     visibility_policy: decision.visibility_policy,
     admin_status,
     status: withdrawn ? 'Closed' : admin_status,

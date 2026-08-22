@@ -62,6 +62,20 @@ export function ceremonyResultNote(claim, answer) {
   ].join('\n');
 }
 
+// The shortlist moment (D5): once testimony unlocks a register trigger, the persona
+// proposes ONE Move — reason spoken on its face (disclosed-stake model), consent asked.
+export function proposalPromptBlock(proposal) {
+  if (!proposal) return '';
+  return [
+    '',
+    '--- SHORTLIST PROPOSAL (one commercial suggestion this exchange) ---',
+    `Propose: ${proposal.title} — ask naturally: "Worth considering ${proposal.title} — want me to add it to your shortlist?"`,
+    `State the reason with it, plainly: "${proposal.reason}"`,
+    'Make at most this one proposal. If they say yes it will be recorded; if they decline, drop it gracefully and never push.',
+    '--- END SHORTLIST PROPOSAL ---',
+  ].join('\n');
+}
+
 // ---------------------------------------------------------------------------
 // Deterministic reply capture. Conservative on purpose: a missed capture costs
 // one re-ask; a wrong capture forges testimony.

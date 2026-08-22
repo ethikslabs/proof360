@@ -31,6 +31,15 @@ export const CER_ROUTES = {
     cta_label: 'Request Cisco pathway',
     partner: 'ingram_micro',
   },
+  // Catch-all for capability-register entries with no dedicated pathway yet
+  // (ETHL-WRK-SPEC-011 P2). partner 'unrouted' matches no real partner viewer —
+  // these Moves are founder/admin-visible only, default-deny by construction.
+  shortlist_general: {
+    pathway_type: 'shortlist_item',
+    label: 'Shortlist',
+    cta_label: 'Add to shortlist',
+    partner: 'unrouted',
+  },
 };
 
 // The visibility policy stored on a CER. Founder + Ethiks360 admin always; the named

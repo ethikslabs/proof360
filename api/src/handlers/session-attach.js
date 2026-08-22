@@ -37,6 +37,7 @@ export async function sessionAttachHandler(request, reply) {
     ...buildSessionAttachRecords(profile, session),
     ...(session.claim_records || []),
     ...(session.claim_events || []),
+    ...(session.shortlist_records || []),
   ];
   const tx = await appendTransaction(profile.id, records, {
     route: 'POST /api/v1/sessions/:sessionId/profile',

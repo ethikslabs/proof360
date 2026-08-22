@@ -5,8 +5,11 @@ import { normalizeContext } from '../services/context-normalizer.js';
 import { runGapAnalysis } from '../services/gap-mapper.js';
 import { chatStream } from '../lib/inference.js';
 import { buildClaimEvent, claimsProjection, nextConfirmable } from '../services/claims-projection.js';
-import { confirmPromptBlock, interpretConfirmReply, ceremonyResultNote } from '../services/confirm-ceremony.js';
+import {
+  confirmPromptBlock, interpretConfirmReply, ceremonyResultNote, proposalPromptBlock,
+} from '../services/confirm-ceremony.js';
 import { sessionRecordSnapshot } from './record.js';
+import { liveProposals, acceptProposal } from './shortlist.js';
 
 const MODEL = 'claude-haiku-4-5-20251001';
 
@@ -128,15 +131,60 @@ export async function sessionChatHandler(request, reply) {
     session.pending_confirm = null; // pending claim no longer open (answered via UI) — drop it
   }
 
-  const claims = claimsProjection(sessionRecordSnapshot(session));
-  const toConfirm = session.pending_confirm
-    ? claims.find((c) => c.claim_id === session.pending_confirm)
-    : nextConfirmable(claims);
-  if (toConfirm) session.pending_confirm = toConfirm.claim_id;
-  const confirmBlock = confirmPromptBlock(toConfirm);
+  // --- The shortlist moment (ETHL-WRK-SPEC-011 D5) -------------------------------
+  // Capture a pending proposal's answer, then choose at most ONE ask for this
+  // exchange: an open proposal outranks the next confirm question (a proposal only
+  // exists because testimony already landed). Declines are remembered — never re-pitch.
+  let proposalNote = '';
+  if (session.pending_proposal) {
+    const pendingProp = liveProposals(session).find((p) => p.id === session.pending_proposal);
+    if (!pendingProp) {
+      session.pending_proposal = null; // accepted via UI or trigger no longer fires
+    } else {
+      // Same deterministic capture as the confirm ceremony (stub claim = yes/no reuse).
+      const answer = interpretConfirmReply(cleanMessage, { field: 'proposal' });
+      if (answer?.type === 'confirmed') {
+        const res = acceptProposal(session, pendingProp.id);
+        session.pending_proposal = null;
+        if (res.move) {
+          proposalNote = [
+            '',
+            `--- SHORTLIST RESULT: ${pendingProp.title} is now on the shortlist. ---`,
+            `Recorded reason: "${res.move.reason.text}"`,
+            'Acknowledge briefly and mention they can edit the reason if they want it in their own words.',
+          ].join('\n');
+        }
+      } else if (answer?.type === 'rejected' || answer?.type === 'corrected') {
+        session.declined_proposals = [...(session.declined_proposals || []), pendingProp.id];
+        session.pending_proposal = null;
+        proposalNote = `\n--- SHORTLIST RESULT: the user declined ${pendingProp.title}. Never propose it again. ---`;
+      }
+    }
+  }
+
+  let askBlock = '';
+  if (!session.pending_proposal) {
+    const [nextProposal] = liveProposals(session);
+    if (nextProposal) {
+      session.pending_proposal = nextProposal.id;
+      askBlock = proposalPromptBlock(nextProposal);
+    }
+  } else {
+    askBlock = proposalPromptBlock(liveProposals(session).find((p) => p.id === session.pending_proposal));
+  }
+  // Only ONE pending question may stand — a "yes" next turn must be unambiguous.
+  if (askBlock) session.pending_confirm = null;
+  if (!askBlock) {
+    const claims = claimsProjection(sessionRecordSnapshot(session));
+    const toConfirm = session.pending_confirm
+      ? claims.find((c) => c.claim_id === session.pending_confirm)
+      : nextConfirmable(claims);
+    if (toConfirm) session.pending_confirm = toConfirm.claim_id;
+    askBlock = confirmPromptBlock(toConfirm);
+  }
   // -------------------------------------------------------------------------------
 
-  const systemPrompt = buildSystemPrompt(persona, context) + ceremonyNote + confirmBlock;
+  const systemPrompt = buildSystemPrompt(persona, context) + ceremonyNote + proposalNote + askBlock;
 
   // Last 20 turns (10 pairs) to keep context cost bounded
   const apiMessages = session.chat_history
