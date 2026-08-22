@@ -32,6 +32,9 @@ export async function retrieveCorpusEvidence(userMessage, context = {}) {
       evidence_id: r.evidence_id,
       score: r.score,
       text: (r.text ?? '').slice(0, CHUNK_CHARS),
+      // Citation-card fields ("Our working" UX): publisher original + when we fetched it.
+      source_url: r.source_url ?? null,
+      fetched_at: r.fetched_at ?? null,
     }));
   } catch {
     return null; // corpus unreachable — chat degrades gracefully, never breaks

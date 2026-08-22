@@ -27,6 +27,37 @@ function projectRecord(session) {
   };
 }
 
+// The chat's audit trail ("Our working", 2026-08-23): every grounded exchange appends
+// one receipt — what was asked, what was retrieved, card-ready fields per hit. Honest
+// by construction: corpus down = an empty-hits receipt, never a fabricated line.
+const MAX_RECEIPTS = 20;
+
+export function appendChatReceipt(session, { query, hits }) {
+  const receipt = {
+    ts: new Date().toISOString(),
+    query,
+    hits: (hits ?? []).map((h) => ({
+      n: h.n,
+      slug: h.slug,
+      layer: h.layer,
+      evidence_id: h.evidence_id,
+      score: h.score,
+      excerpt: h.text,
+      source_url: h.source_url ?? null,
+      fetched_at: h.fetched_at ?? null,
+    })),
+  };
+  const receipts = [...(session.chat_receipts || []), receipt].slice(-MAX_RECEIPTS);
+  updateSession(session.id, { chat_receipts: receipts });
+}
+
+// GET /api/v1/session/:id/chat/receipts
+export async function chatReceiptsHandler(request, reply) {
+  const session = getSession(request.params.id);
+  if (!session) return reply.status(404).send({ error: 'session_not_found' });
+  return reply.send({ receipts: session.chat_receipts || [] });
+}
+
 // GET /api/v1/session/:id/record
 export async function recordHandler(request, reply) {
   const session = getSession(request.params.id);

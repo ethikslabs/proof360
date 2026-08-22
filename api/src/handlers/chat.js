@@ -3,6 +3,8 @@ import { buildSystemPrompt } from '../services/persona-prompts.js';
 import { notifyJohn } from '../services/john-relay.js';
 import { chatStream } from '../lib/inference.js';
 import { retrieveCorpusEvidence, evidenceBlock } from '../services/corpus-retrieve.js';
+import { getSession } from '../services/session-store.js';
+import { appendChatReceipt } from './record.js';
 
 const VALID_PERSONAS = ['sophia', 'leonardo', 'edison'];
 
@@ -36,9 +38,16 @@ export async function chatHandler(request, reply) {
 
   // Live corpus retrieval (John go 2026-08-22) — evidence joins the system prompt;
   // null on any failure and the chat proceeds exactly as before.
-  const corpusHits = await retrieveCorpusEvidence(
-    apiMessages[apiMessages.length - 1]?.content ?? '', context);
+  const lastUserContent = apiMessages[apiMessages.length - 1]?.content ?? '';
+  const corpusHits = await retrieveCorpusEvidence(lastUserContent, context);
   const groundedPrompt = systemPrompt + evidenceBlock(corpusHits);
+
+  // Receipt ("Our working"): record what this exchange retrieved so [n] chips resolve
+  // to citation cards. Only when the caller rides a real session; never blocks the chat.
+  if (sessionId) {
+    const session = getSession(sessionId);
+    if (session) appendChatReceipt(session, { query: lastUserContent, hits: corpusHits ?? [] });
+  }
 
   // @john detection — skip inference, notify John via Telegram, return inline response
   const lastUserMsg = apiMessages[apiMessages.length - 1]?.content || '';
