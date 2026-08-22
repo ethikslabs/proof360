@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { checkStaleSessions } from './services/session-store.js';
 import { sessionStartHandler } from './handlers/session-start.js';
+import { firehoseHandler } from './handlers/firehose.js';
 import { inferStatusHandler } from './handlers/infer-status.js';
 import { inferencesHandler } from './handlers/inferences.js';
 import { followupQuestionsHandler } from './handlers/followup-questions.js';
@@ -51,6 +52,8 @@ await app.register(cors, { origin: true });
 
 // --- Phase 1: Cold read ---
 app.post('/api/v1/session/start', sessionStartHandler);
+// The firehose: cold read from nothing — the founder just talks (ETHL 2026-08-23)
+app.post('/api/v1/firehose', firehoseHandler);
 app.get('/api/v1/session/:id/log', sessionLogHandler);
 app.get('/api/v1/session/:id/infer-status', inferStatusHandler);
 app.get('/api/v1/session/:id/inferences', inferencesHandler);

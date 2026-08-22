@@ -16,6 +16,9 @@ const PROVENANCE_METHODS = [
   'recon-ip', 'recon-dns', 'recon-http', 'recon-certs', 'recon-ports', 'recon-ssllabs',
   'recon-hibp', 'recon-abuseipdb', 'recon-github', 'recon-company',
   'claude-inference', 'user-confirm', 'user-edit', 'register-deposit',
+  // The firehose (2026-08-23): a fact caught from the founder speaking their idea —
+  // no site, no deck, just words. Inferred-until-confirmed like any other claim.
+  'founder-utterance',
 ];
 const CLAIM_EVENT_TYPES = ['confirmed', 'corrected', 'rejected'];
 
