@@ -145,6 +145,10 @@ function projectOne(decision, events) {
     pathway_type: decision.pathway_type,
     route: decision.route,
     label: CER_ROUTES[decision.route]?.label || null,
+    // Per-item CTA for the shortlist (John 2026-08-23): the real next action —
+    // apply for a program, request an insurance quote — surfaced from the route's
+    // external_action seam. null routes render no button (never a dead control).
+    cta: CER_ROUTES[decision.route]?.external_action || null,
     person_id: decision.person_id,
     company_id: decision.company_id,
     recommendation_id: decision.recommendation_id,

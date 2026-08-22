@@ -63,6 +63,18 @@ describe('cerProjection — folding status + consent', () => {
     expect(cer).toMatchObject({ status: 'Submitted', consent_state: 'granted', partner_sharing: true });
   });
 
+  it('a shortlisted Move carries its per-item CTA (Apply / Inquire / Book) from its route', () => {
+    // The shortlist "shopping cart but not" (John 2026-08-23): each item shows its real
+    // next action — apply for a program, request a quote for insurance — never "buy".
+    const [aws] = cerProjection(snapshotFrom(buildCerRecords({ route: 'ingram_micro_aws', person_id: 'p', company_id: 'c' }).records));
+    expect(aws.cta).toEqual({ kind: 'marketplace_offer', label: 'Open AWS Marketplace private offer', target: null });
+    const [ins] = cerProjection(snapshotFrom(buildCerRecords({ route: 'austbrokers_cyberpro', person_id: 'p', company_id: 'c' }).records));
+    expect(ins.cta.kind).toBe('referral_form');
+    // a route with no dedicated external action surfaces cta: null (never a broken button)
+    const [gen] = cerProjection(snapshotFrom(buildCerRecords({ route: 'shortlist_general', person_id: 'p', company_id: 'c' }).records));
+    expect(gen.cta).toBeNull();
+  });
+
   it('folds the latest status-updated event into status', () => {
     const { cerId, records } = buildCerRecords({ route: 'vanta', person_id: 'p', company_id: 'c' });
     records.push(buildStatusUpdatedRecord(cerId, { from: 'Submitted', to: 'Under review' }));
