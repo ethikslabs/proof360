@@ -47,6 +47,7 @@ export function evidenceBlock(hits) {
     ...lines,
     '--- END CORPUS EVIDENCE ---',
     'Ground your answer in this evidence where it is relevant, and cite inline as [1], [2] with the source name.',
+    'Media-quote rule: you may quote AT MOST one short passage (a sentence or less) per answer, in quotation marks, always attributed by publication or source name — like a journalist. Everything else is paraphrase-with-citation. Never reproduce source text at length.',
     'If the evidence does not cover the question, say plainly that the corpus does not yet hold that — never invent facts or numbers.',
   ].join('\n');
 }
