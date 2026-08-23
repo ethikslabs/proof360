@@ -1,6 +1,6 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
-import { checkStaleSessions } from './services/session-store.js';
+import { checkStaleSessions, flushSessionsNow } from './services/session-store.js';
 import { sessionStartHandler } from './handlers/session-start.js';
 import { firehoseHandler } from './handlers/firehose.js';
 import { inferStatusHandler } from './handlers/infer-status.js';
@@ -153,5 +153,11 @@ app.listen({ port: PORT, host: '0.0.0.0' }, (err) => {
 // Graceful shutdown — lets PM2 SIGTERM drain in-flight requests before
 // the new process starts, preventing EADDRINUSE on rapid restarts.
 process.on('SIGTERM', () => {
-  app.close().then(() => process.exit(0)).catch(() => process.exit(1));
+  // Flush any coalesced session writes first — a PM2 restart must never lose
+  // the last few seconds of a founder's twin (write-through is 250ms-coalesced).
+  flushSessionsNow()
+    .catch(() => {})
+    .then(() => app.close())
+    .then(() => process.exit(0))
+    .catch(() => process.exit(1));
 });

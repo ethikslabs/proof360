@@ -1,5 +1,5 @@
 import { getSessionForMessage, getTelegramFileUrl } from '../services/john-relay.js';
-import { getSession } from '../services/session-store.js';
+import { getSession, persistSession } from '../services/session-store.js';
 
 export async function telegramWebhookHandler(request, reply) {
   const msg = request.body?.message;
@@ -34,6 +34,7 @@ export async function telegramWebhookHandler(request, reply) {
 
   if (!session.john_messages) session.john_messages = [];
   session.john_messages.push(johnMsg);
+  persistSession(session.id); // direct mutation — write through
 
   return reply.send({ ok: true });
 }

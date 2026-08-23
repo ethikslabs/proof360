@@ -1,4 +1,4 @@
-import { getSession, updateSession } from '../services/session-store.js';
+import { getSession, updateSession, persistSession } from '../services/session-store.js';
 import { buildSystemPrompt } from '../services/persona-prompts.js';
 import { notifyJohn } from '../services/john-relay.js';
 import { normalizeContext } from '../services/context-normalizer.js';
@@ -215,6 +215,7 @@ export async function sessionChatHandler(request, reply) {
     });
     const johnReply = "📨 John's been notified — he'll reply here shortly.";
     session.chat_history.push({ role: 'assistant', content: johnReply, persona, ts: Date.now() });
+    persistSession(id); // direct mutations above — write the twin through
     return reply.type('text/plain').send(johnReply);
   }
 
@@ -255,6 +256,7 @@ export async function sessionChatHandler(request, reply) {
       session.pending_confirm_voiced = questionWasVoiced(fullResponse, askedClaim);
       session.pending_proposal_voiced = proposalWasVoiced(fullResponse, askedProposal);
     }
+    persistSession(id); // direct mutations this exchange — write the twin through
 
     if (headersWritten) {
       reply.raw.end();
@@ -263,6 +265,7 @@ export async function sessionChatHandler(request, reply) {
     }
   } catch (err) {
     request.log.error(err, 'session chat stream error');
+    persistSession(id); // pre-stream mutations (history, ceremony events) still count
     if (!headersWritten) {
       return reply.status(500).send({ error: 'chat_failed' });
     }

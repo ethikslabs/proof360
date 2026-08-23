@@ -3,6 +3,7 @@ export default defineConfig({
   test: {
     globals: true,
     globalSetup: ['tests/memory/global-setup.js'],
+    setupFiles: ['tests/_env-setup.js'],
     include: [
       'tests/unit/**/*.test.js',
       'tests/exploration/**/*.test.js',
