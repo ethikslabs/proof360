@@ -2,6 +2,11 @@ import { tokens, PERSONA } from '../../tokens.js';
 import { SPACE_GLYPHS } from '../../glyphs.jsx';
 import { HIVE_STAGES } from '../../data/mock/hive.js';
 
+// Discovery's one uniform action (John CTA-staging ruling 2026-08-23): no Apply,
+// no calendar bounce-out mid-thought. Add to shortlist — the real engage actions
+// live on the shortlist page.
+import { AddToShortlist } from './AddToShortlist.jsx';
+
 function SeverityDot({ severity, t }) {
   const tk = tokens(t.theme);
   const c = severity === 'high'   ? tk.sevHigh
@@ -290,7 +295,7 @@ function VendorsProjection({ panel, company, t }) {
                 <div style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 13.5, color: tk.inkMid, lineHeight: 1.5, marginBottom: 8 }}>{v.why}</div>
                 <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9.5, color: tk.inkSoft, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Addresses · {v.addresses}</div>
               </div>
-              <a href="https://meetings.hubspot.com/john3174" target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ alignSelf: 'center', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.teal, borderBottom: `1px solid ${tk.teal}66`, paddingBottom: 1, letterSpacing: '0.04em', textDecoration: 'none', whiteSpace: 'nowrap' }}>Apply →</a>
+              <AddToShortlist item={{ name: v.name, category: v.category, why: v.why, source: 'vendors panel' }} accent={tk.teal} />
             </div>
           ))}
         </PSection>
@@ -456,7 +461,7 @@ function VendorDetailProjection({ id, company, t }) {
               <div style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 13, lineHeight: 1.5, color: tk.inkMid }}>{p.value} · {p.detail}</div>
             </div>
             {(p.status === 'available' || p.status === 'eligible') && (
-              <a href="https://meetings.hubspot.com/john3174" target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ alignSelf: 'center', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.teal, borderBottom: `1px solid ${tk.teal}66`, paddingBottom: 1, letterSpacing: '0.04em', textDecoration: 'none', whiteSpace: 'nowrap' }}>Apply →</a>
+              <AddToShortlist item={{ name: p.name, why: p.value, source: 'programs panel' }} accent={tk.teal} />
             )}
           </div>
         ))}
@@ -526,15 +531,17 @@ function AwsProjection({ panel, company, t }) {
             color: '#c2c8d2', marginTop: 8,
           }}>{availableCount} available now · {d.programs.length} matched to your stage</div>
         </div>
-        <a href="https://aws.amazon.com/marketplace" target="_blank" rel="noopener noreferrer"
-          onClick={e => e.stopPropagation()}
+        <AddToShortlist
+          item={{ name: 'AWS Marketplace co-sell', why: d.creditHeadline ?? '$220k+ in credits + co-sell', source: 'aws panel' }}
+          accent={tk.aws}
           style={{
             flexShrink: 0, alignSelf: 'center',
             background: tk.aws, color: tk.awsInk,
             fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 13, fontWeight: 700,
-            padding: '10px 18px', borderRadius: 9, textDecoration: 'none',
+            padding: '10px 18px', borderRadius: 9, borderBottom: 'none',
             letterSpacing: '0.01em', whiteSpace: 'nowrap',
-          }}>Apply →</a>
+          }}
+        />
       </div>
       <p style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 16, lineHeight: 1.55, color: tk.inkMid, margin: '0 0 36px', maxWidth: 640 }}>
         {d.summary}
@@ -559,7 +566,7 @@ function AwsProjection({ panel, company, t }) {
                 <div style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 13, lineHeight: 1.5, color: tk.inkMid }}>{p.value} · {p.detail}</div>
               </div>
               {(p.status === 'available' || p.status === 'eligible') && (
-                <a href="https://meetings.hubspot.com/john3174" target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ alignSelf: 'center', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.teal, borderBottom: `1px solid ${tk.teal}66`, paddingBottom: 1, letterSpacing: '0.04em', textDecoration: 'none', whiteSpace: 'nowrap' }}>Apply →</a>
+                <AddToShortlist item={{ name: p.name, why: p.value, source: 'programs panel' }} accent={tk.teal} />
               )}
             </div>
           ))}
@@ -601,7 +608,7 @@ function MicrosoftProjection({ panel, company, t }) {
                 <div style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 13, lineHeight: 1.5, color: tk.inkMid }}>{p.value} · {p.detail}</div>
               </div>
               {(p.status === 'available' || p.status === 'eligible') && (
-                <a href="https://meetings.hubspot.com/john3174" target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ alignSelf: 'center', fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.teal, borderBottom: `1px solid ${tk.teal}66`, paddingBottom: 1, letterSpacing: '0.04em', textDecoration: 'none', whiteSpace: 'nowrap' }}>Apply →</a>
+                <AddToShortlist item={{ name: p.name, why: p.value, source: 'programs panel' }} accent={tk.teal} />
               )}
             </div>
           ))}

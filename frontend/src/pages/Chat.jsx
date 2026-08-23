@@ -40,6 +40,9 @@ import { resolveTurnstileSitekey, verifyTurnstileServerSide } from '../utils/tur
 import { socialProviderEnabled } from '../utils/social-login.js';
 import { makeOAuthState } from '../utils/oauth-state.js';
 import { EMPTY_TILES, tilesFromProjections } from '../utils/projectionTiles.js';
+import { OurWorking } from '../components/chat/OurWorking.jsx';
+import { ShortlistContext } from '../components/chat/AddToShortlist.jsx';
+import * as spine from '../api/spine.js';
 
 /* ─── Auth constants ─────────────────────────────────────────────────────── */
 // No ghost-tenant fallbacks (dev-ethikslabs.au.auth0.com never existed) — config comes
@@ -1438,7 +1441,7 @@ export default function Chat() {
 
   useEffect(() => {
     if (!currentUser) return;
-    const sessionId = companyData?.session_id ?? sessionStorage.getItem('proof360_session_id');
+    const sessionId = companyData?.session_id ?? spine.storedSessionId();
     if (sessionId) attachCurrentSessionToProfile(sessionId, companyData);
   }, [currentUser, companyData, attachCurrentSessionToProfile]);
 
@@ -1450,6 +1453,93 @@ export default function Chat() {
       return alreadyIn ? prev : [...prev, vendorObj];
     });
   }, []);
+
+  // ── The Record spine (ETHL-WRK-SPEC-011): server truth for the shortlist of
+  // Moves + the truth-ladder claims. The local `shortlist` above stays the demo
+  // sandbox; `serverShortlist` is the founder's real one, restored on return.
+  const [serverShortlist, setServerShortlist] = useState([]);
+  const [recordClaims, setRecordClaims]       = useState([]);
+  const liveSessionId = companyData?.session_id ?? null;
+
+  const refreshSpine = useCallback(async (sessionIdArg) => {
+    const sid = sessionIdArg ?? liveSessionId ?? spine.storedSessionId();
+    if (!sid) return;
+    const [rec, sl] = await Promise.allSettled([spine.getRecord(sid), spine.getShortlist(sid)]);
+    if (rec.status === 'fulfilled') setRecordClaims(rec.value.record?.claims ?? []);
+    if (sl.status === 'fulfilled') setServerShortlist(sl.value.shortlist ?? []);
+  }, [liveSessionId]);
+
+  const shortlistedNames = useMemo(() => new Set([
+    ...serverShortlist.map(m => (m.item?.name ?? m.label ?? '').toLowerCase()).filter(Boolean),
+    ...shortlist.map(v => (v.name ?? '').toLowerCase()).filter(Boolean),
+  ]), [serverShortlist, shortlist]);
+
+  // One uniform discovery action (John CTA-staging ruling 2026-08-23): with a live
+  // session the add mints a Move on the box; the demo sandbox stays local-only.
+  const shortlistCtx = useMemo(() => ({
+    sessionId: liveSessionId,
+    shortlistedNames,
+    add: async (item) => {
+      const sid = liveSessionId ?? spine.storedSessionId();
+      if (sid) {
+        const res = await spine.addToShortlist(sid, item);
+        if (res?.move) {
+          setServerShortlist(prev => prev.some(m => m.cer_id === res.move.cer_id)
+            ? prev : [...prev, res.move]);
+        }
+      } else {
+        handleShortlist({
+          id: item.name, name: item.name, category: item.category,
+          synthesis: item.why, timing: 'now',
+          provenance: { added_at: new Date().toISOString() },
+        });
+      }
+    },
+  }), [liveSessionId, shortlistedNames, handleShortlist]);
+
+  // The shortlist panel renders server Moves + demo items in one list — each Move
+  // with its note (the reason on its face) and its real engage action.
+  const shortlistPanelItems = useMemo(() => [
+    ...serverShortlist.map(m => ({
+      id: m.cer_id,
+      name: m.item?.name ?? m.label ?? m.route,
+      category: m.item?.category ?? m.pathway_type,
+      synthesis: m.reason?.user_text || m.reason?.text || null,
+      timing: 'now',
+      cta: m.cta,
+      url: m.item?.url ?? null,
+      provenance: { added_at: m.created_at },
+    })),
+    ...shortlist,
+  ], [serverShortlist, shortlist]);
+
+  // ── The return path ("simple to return to", John 2026-08-23): a stored session
+  // restores the twin — history, Record, shortlist — no login, no ceremony.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('demo') || params.has('q')) return;
+    const sid = spine.storedSessionId();
+    if (!sid) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { history } = await spine.getChatHistory(sid);
+        if (cancelled || !history?.length) return;
+        setShowIntro(false);
+        setPhase('active');
+        setInputReady(true);
+        setMessages(history.map((h, i) => ({
+          id: `resume-${i}`, role: h.role, persona: h.persona ?? 'edison', content: h.content,
+        })));
+        setCompanyData(prev => prev ?? { session_id: sid, company_name: null });
+        refreshSpine(sid);
+      } catch {
+        // stored session no longer on the box (retention or reset) — start fresh
+        spine.forgetSessionId();
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDefer = useCallback((vendorId) => {
     setShortlist(prev => prev.filter(s => s.id !== vendorId));
@@ -1463,7 +1553,7 @@ export default function Chat() {
       signal_id: signalId,
       domain: sig.domain ?? null,
       rejected_value: sig.value ?? sig.label ?? null,
-      session_id: companyData?.session_id ?? sessionStorage.getItem('proof360_session_id') ?? null,
+      session_id: companyData?.session_id ?? spine.storedSessionId() ?? null,
     }, 'founder');
   }, [activeSignals, correctSignal, persistFounderMemoryEvent, companyData]);
 
@@ -1498,7 +1588,7 @@ export default function Chat() {
   useEffect(() => {
     const writeSnapshot = () => {
       const snapshot = {
-        session_id: sessionStorage.getItem('proof360_session_id') || crypto.randomUUID(),
+        session_id: spine.storedSessionId() || crypto.randomUUID(),
         entity_id:  'hive_and_code_demo',
         timestamp:  new Date().toISOString(),
         signals:    activeSignals,
@@ -1682,7 +1772,7 @@ export default function Chat() {
         setBriefShown(false);
         setMessages(prev => [...prev, { id: `u-${Date.now()}`, role: 'user', content: text }]);
         if (cap.profileKey) setCompanyProfile(prev => ({ ...prev, [cap.profileKey]: cap.value }));
-        const memorySessionId = companyData?.session_id ?? sessionStorage.getItem('proof360_session_id') ?? null;
+        const memorySessionId = companyData?.session_id ?? spine.storedSessionId() ?? null;
         persistFounderMemoryEvent('chat', {
           text, role: 'user', session_id: memorySessionId, occurred_at: new Date().toISOString(),
         }, 'chat', cap.factField ? [{ field: cap.factField, value: cap.value, source: 'founder' }] : []);
@@ -1698,7 +1788,7 @@ export default function Chat() {
     setMessages(prev => [...prev, { id: `u-${Date.now()}`, role: 'user', content: text }]);
     setIsProcessing(true);
     const sessionId = companyData?.session_id ?? null;
-    const memorySessionId = sessionId ?? sessionStorage.getItem('proof360_session_id') ?? null;
+    const memorySessionId = sessionId ?? spine.storedSessionId() ?? null;
 
     // Update company profile from message signals. These are explicit text
     // signals from the founder's own message, so they may be promoted as
@@ -1755,7 +1845,7 @@ export default function Chat() {
           });
           if (!startRes.ok) throw new Error('start failed');
           const { session_id } = await startRes.json();
-          sessionStorage.setItem('proof360_session_id', session_id);
+          spine.rememberSessionId(session_id);
 
           // Update status label with session context
           setMessages(prev => prev.map(m => m.id === statusId
@@ -1787,6 +1877,7 @@ export default function Chat() {
             inferences: analysis.inferences,
           });
           attachCurrentSessionToProfile(session_id, analysis);
+          refreshSpine(session_id); // the cold read's inferred claims light the rail immediately
 
           const gapCount = analysis.gaps?.length ?? 0;
           const score = analysis.trust_score ?? 0;
@@ -1875,6 +1966,18 @@ export default function Chat() {
             m.id === msgId ? { ...m, content: m.content + chunk } : m
           ));
         }
+
+        // The exchange may have confirmed a claim, minted a Move, or drawn corpus
+        // sources — pin this answer's receipt under it ("Our working") and refresh
+        // the Record + shortlist so the twin visibly solidifies.
+        try {
+          const { receipts } = await spine.getReceipts(sessionId);
+          const receipt = receipts?.at(-1);
+          if (receipt && receipt.query === text) {
+            setMessages(prev => prev.map(m => m.id === msgId ? { ...m, working: receipt } : m));
+          }
+        } catch { /* receipts unavailable — render nothing, invent nothing */ }
+        refreshSpine(sessionId);
       } catch {
         setMessages(prev => prev.map(m => m.id === msgId
           ? { ...m, content: 'Connection error — check your network and try again.' }
@@ -1885,6 +1988,26 @@ export default function Chat() {
       setThinkingSteps([]);
       setIsProcessing(false);
       return;
+    }
+
+    // ── Firehose: no session, no URL — the founder just talks (ETHL 2026-08-23).
+    // A substantive utterance opens a real session: fragments caught on the truth
+    // ladder, reflected back for the confirm ceremony. Short lines (greetings,
+    // persona asks) keep the theatrical room below.
+    if (text.length >= 40) {
+      try {
+        const fh = await spine.firehose(text);
+        spine.rememberSessionId(fh.session_id);
+        setCompanyData({ session_id: fh.session_id, company_name: null });
+        setMessages(prev => [...prev, {
+          id: `fh-${Date.now()}`, role: 'assistant', persona: 'edison', model: 'proof360',
+          content: fh.reflect_back,
+        }]);
+        refreshSpine(fh.session_id);
+        setThinkingSteps([]);
+        setIsProcessing(false);
+        return;
+      } catch { /* firehose unavailable — the mock room still answers */ }
     }
 
     // ── Mock path: used until a real session exists ──
@@ -2004,6 +2127,7 @@ export default function Chat() {
     }
   };
   return (
+    <ShortlistContext.Provider value={shortlistCtx}>
     <div style={{
       position: 'relative', height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
       background: `radial-gradient(ellipse at 100% 100%, ${tk.bgTint} 0%, ${tk.bg} 60%)`,
@@ -2197,15 +2321,18 @@ export default function Chat() {
                 {hasMessages && (
                   <div style={{ marginBottom: 20 }}>
                     {messages.map((m, i) => (
-                      <Bubble
-                        key={m.id} msg={m} t={t}
-                        isLatest={i === messages.length - 1 && m.role !== 'user'}
-                        onPersonaRef={name => {
-                          setInputValue(v => (v.trim() ? v.trimEnd() + ' ' : '') + '@' + name + ' ');
-                          setTimeout(() => inputRef.current?.focus(), 0);
-                        }}
-                        onProgramFocus={setFocusedProgram}
-                      />
+                      <div key={m.id}>
+                        <Bubble
+                          msg={m} t={t}
+                          isLatest={i === messages.length - 1 && m.role !== 'user'}
+                          onPersonaRef={name => {
+                            setInputValue(v => (v.trim() ? v.trimEnd() + ' ' : '') + '@' + name + ' ');
+                            setTimeout(() => inputRef.current?.focus(), 0);
+                          }}
+                          onProgramFocus={setFocusedProgram}
+                        />
+                        {m.working && <OurWorking receipt={m.working} tk={tk} />}
+                      </div>
                     ))}
                     {thinkingSteps.length > 0 && <ThinkingStream steps={thinkingSteps} visible t={t} />}
                   </div>
@@ -2496,12 +2623,13 @@ export default function Chat() {
                 />
               </div>
 
-              {shortlist.length > 0 && (
-                // vendors=shortlist intentional: this panel shows only shortlisted items,
-                // all marked selected. shortlistedIds drives the "✓ Shortlisted" state per card.
+              {shortlistPanelItems.length > 0 && (
+                // The shortlist IS the engagement page (John 2026-08-23): server Moves
+                // (with note + real engage action) merged with demo-sandbox items, all
+                // marked selected. shortlistedIds drives the "✓ Shortlisted" state per card.
                 <VendorShortlist
-                  vendors={shortlist}
-                  shortlistedIds={shortlist}
+                  vendors={shortlistPanelItems}
+                  shortlistedIds={shortlistPanelItems}
                   onShortlist={handleShortlist}
                   onDefer={handleDefer}
                 />
@@ -2510,14 +2638,17 @@ export default function Chat() {
               {messages.map((m, i) => {
                 const isLatest = i === messages.length - 1 && m.role !== 'user';
                 return (
-                  <Bubble
-                    key={m.id} msg={m} t={t} isLatest={isLatest}
-                    onPersonaRef={name => {
-                      setInputValue(v => (v.trim() ? v.trimEnd() + ' ' : '') + '@' + name + ' ');
-                      setTimeout(() => inputRef.current?.focus(), 0);
-                    }}
-                    onProgramFocus={setFocusedProgram}
-                  />
+                  <div key={m.id}>
+                    <Bubble
+                      msg={m} t={t} isLatest={isLatest}
+                      onPersonaRef={name => {
+                        setInputValue(v => (v.trim() ? v.trimEnd() + ' ' : '') + '@' + name + ' ');
+                        setTimeout(() => inputRef.current?.focus(), 0);
+                      }}
+                      onProgramFocus={setFocusedProgram}
+                    />
+                    {m.working && <OurWorking receipt={m.working} tk={tk} />}
+                  </div>
                 );
               })}
               {phase === 'journey-setup' && <JourneyConsentCards onSelect={selectJourney} stages={DEMO_STAGES} tk={tk} />}
@@ -2644,6 +2775,7 @@ export default function Chat() {
                   activeSignals={activeSignals}
                   rankedVendors={rankedVendors}
                   ctaEarned={ctaEarned}
+                  recordClaims={recordClaims}
                 />
               </div>
             </>
@@ -2817,5 +2949,6 @@ export default function Chat() {
       )}
 
     </div>
+    </ShortlistContext.Provider>
   );
 }

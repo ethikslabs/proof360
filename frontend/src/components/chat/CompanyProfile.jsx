@@ -240,7 +240,53 @@ function DiscoveryView({ tk, onVendorSelect, isDemoMode, rankedVendors }) {
   );
 }
 
-export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onVendorSelect, isDemoMode, activeSignals, rankedVendors }) {
+// The Record, rendered as visual state (provenance-UX brief 2026-08-23): inferred
+// claims sit faint — the twin's outline; confirming one LIGHTS it. 0/6 → 6/6 reads
+// as a solidifying twin, not a fraction. Status colors, one place:
+const CLAIM_STATE = {
+  inferred:  { mark: '◇', opacity: 0.5,  weight: 400 },
+  confirmed: { mark: '◆', opacity: 1,    weight: 600 },
+  corrected: { mark: '◆', opacity: 1,    weight: 600 },
+};
+
+function RecordClaims({ claims, tk }) {
+  const visible = claims.filter((c) => CLAIM_STATE[c.status]);
+  if (visible.length === 0) return null;
+  const lit = visible.filter((c) => c.status !== 'inferred').length;
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
+        <span style={{
+          fontFamily: '"IBM Plex Mono", monospace',
+          fontSize: 8.5, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase',
+          color: tk.inkSoft,
+        }}>What we&apos;re inferring</span>
+        <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9, color: tk.inkSoft }}>
+          {lit}/{visible.length} confirmed
+        </span>
+      </div>
+      {visible.map((c) => {
+        const st = CLAIM_STATE[c.status];
+        return (
+          <div key={c.claim_id} style={{
+            display: 'flex', gap: 6, marginBottom: 5, alignItems: 'flex-start',
+            opacity: st.opacity, transition: 'opacity 0.4s ease',
+          }}>
+            <span style={{ color: c.status === 'inferred' ? tk.inkGhost : '#15803d', fontSize: 9, marginTop: 2, flexShrink: 0 }}>{st.mark}</span>
+            <span style={{
+              fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+              fontSize: 10.5, color: tk.inkSoft, lineHeight: 1.4, fontWeight: st.weight,
+            }}>
+              {c.label ?? c.field}: <span style={{ color: c.status === 'inferred' ? tk.inkSoft : tk.ink }}>{String(c.value)}</span>
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onVendorSelect, isDemoMode, activeSignals, rankedVendors, recordClaims = [] }) {
   const [, setBlink] = useState(true);
 
   useEffect(() => {
@@ -297,6 +343,9 @@ export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onVendorS
               )}
             </div>
           </div>
+
+          {/* The Record — the truth ladder as visual state */}
+          <RecordClaims claims={recordClaims} tk={tk} />
 
           {/* vs Hive&Co */}
           <div>

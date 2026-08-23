@@ -48,6 +48,27 @@ export function VendorShortlist({ vendors, shortlistedIds, onShortlist, onDefer 
                             Added {new Date(shortlistEntry.provenance.added_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
                           </span>
                         )}
+                        {/* The shortlist IS the engagement page (John 2026-08-23):
+                            the real per-item action lives here, never in discovery. */}
+                        {(() => {
+                          // Label matches where the link actually goes (link-discipline:
+                          // every link survives an unsupervised click).
+                          const [href, label] = v.cta?.target
+                            ? [v.cta.target, v.cta.label]
+                            : v.url
+                              ? [v.url, 'Open program page →']
+                              : ['https://meetings.hubspot.com/john3174', 'Book a conversation →'];
+                          return (
+                            <a
+                              href={href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ fontSize: 11, color: '#38bdf8', textDecoration: 'none', borderBottom: '1px solid #38bdf866', marginLeft: 'auto' }}
+                            >
+                              {label}
+                            </a>
+                          );
+                        })()}
                       </>
                     ) : (
                       <>
