@@ -11,6 +11,7 @@ import FounderDashboard from './pages/FounderDashboard';
 import Chat from './pages/Chat';
 import Journey from './pages/Journey';
 import Mel from './pages/Mel';
+import Lab from './pages/Lab';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -81,6 +82,9 @@ export default function App() {
             <Route path="/journey" element={<Journey />} />
             <Route path="/mel/:beatId" element={<Mel />} />
             <Route path="/mel" element={<Mel />} />
+            {/* The accumulating "lab" home (design/hiveandco-lab). Additive first cut; folds into
+                /chat as the home in a later deliberate step. */}
+            <Route path="/lab" element={<Lab />} />
             {/* Catch-all: legacy/deleted paths (/audit, /home, /report, /processing) and any
                 typo redirect to the single entry point rather than rendering a blank SPA shell
                 (CATCHALL-ROUTE-001). */}

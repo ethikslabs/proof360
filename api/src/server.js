@@ -23,6 +23,7 @@ import { engageHandler } from './handlers/engage.js';
 import { telegramWebhookHandler } from './handlers/telegram-webhook.js';
 import { johnMessagesHandler } from './handlers/john-messages.js';
 import { corpusStatsHandler } from './handlers/corpus-stats.js';
+import { advisoryRegistersHandler } from './handlers/advisory.js';
 import { notifyHandler } from './handlers/notify.js';
 import { createTurnstileVerifyHandler } from './handlers/turnstile.js';
 import { requireAuth } from './lib/auth.js';
@@ -41,7 +42,6 @@ import {
   cerConsentWithdrawHandler,
   cerStatusHandler,
 } from './handlers/cer.js';
-import { advisoryRegistersHandler } from './handlers/advisory.js';
 
 const PORT = parseInt(process.env.PORT || '3002', 10);
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';

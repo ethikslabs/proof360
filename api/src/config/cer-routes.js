@@ -9,7 +9,6 @@
 // routes to. `target: null` is provisioned per-customer/deal at engage time (a CPPO private-offer
 // link minted per customer; a referral form opened per founder) — never hardcoded here. Frontend
 // projection: frontend/src/utils/cerPathways.js. The engage handler is the remaining /chat build.
-
 export const CER_ROUTES = {
   ingram_micro_aws: {
     pathway_type: 'cloud_program',

@@ -1,0 +1,377 @@
+<style>
+  :root{
+    --ground:#201712; --comb:#2b2019; --combLo:#342519; --combHi:#3b2b1e;
+    --honey:#e6a94a; --amber:#c17d30; --cream:#f3ebdd; --tan:#ad9d86;
+    --hair:#3a2c22; --hairHi:#4a382a; --sealed:#6bb388; --rail:#5aa1a1; --warn:#d98a3d;
+    --serif:"Hoefler Text","Iowan Old Style",Garamond,Georgia,"Times New Roman",serif;
+    --mono:"SFMono-Regular","SF Mono","Space Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  #hexbg{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5}
+  .wrap{position:relative;z-index:1;background:
+      radial-gradient(1200px 620px at 78% -8%, rgba(230,169,74,.10), transparent 60%),
+      radial-gradient(900px 500px at 6% 4%, rgba(90,161,161,.05), transparent 55%),
+      var(--ground);
+    color:var(--cream);font-family:var(--serif);min-height:100vh;
+    -webkit-font-smoothing:antialiased;line-height:1.5}
+  .shell{max-width:1120px;margin:0 auto;padding:0 32px 96px}
+
+  /* top bar */
+  .topbar{display:flex;align-items:center;justify-content:space-between;
+    padding:26px 32px;max-width:1120px;margin:0 auto}
+  .mark{font-family:var(--serif);font-size:26px;font-weight:600;letter-spacing:-.01em}
+  .mark b{color:var(--cream)} .mark i{font-style:italic;color:var(--honey);font-weight:600}
+  .who{display:flex;align-items:center;gap:12px}
+  .pill{font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--honey);
+    border:1px solid var(--hairHi);border-radius:999px;padding:7px 14px;background:rgba(230,169,74,.06)}
+  .ava{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
+    background:linear-gradient(150deg,var(--honey),var(--amber));color:#241a10;
+    font-family:var(--mono);font-weight:700;font-size:14px}
+
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.34em;color:var(--tan);
+    text-transform:uppercase;margin:34px 0 14px}
+  h1.hero{font-size:clamp(38px,5.4vw,68px);line-height:1.02;font-weight:600;letter-spacing:-.02em;
+    margin:0 0 8px;text-wrap:balance;max-width:15ch}
+  h1.hero i{font-style:italic;color:var(--honey)}
+
+  /* resume banner */
+  .resume{display:flex;gap:16px;align-items:flex-start;margin:30px 0 8px;
+    border:1px solid var(--hair);border-radius:16px;padding:20px 22px;
+    background:linear-gradient(180deg,rgba(255,255,255,.02),transparent)}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--sealed);margin-top:7px;flex:0 0 auto;
+    box-shadow:0 0 0 4px rgba(107,179,136,.14)}
+  .resume p{margin:0;font-size:18px;color:var(--cream);max-width:70ch}
+  .resume p b{color:var(--honey);font-weight:600}
+  .resume .chg{color:var(--sealed);font-style:italic}
+
+  /* metric cards */
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:22px 0}
+  .card{border:1px solid var(--hair);border-radius:16px;padding:20px;background:var(--comb);
+    display:flex;flex-direction:column;gap:6px;min-height:186px;position:relative;
+    transition:border-color .18s,transform .18s}
+  .card:hover{border-color:var(--hairHi);transform:translateY(-2px)}
+  .clabel{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--tan)}
+  .cbig{font-family:var(--serif);font-size:52px;line-height:1;font-weight:600;font-variant-numeric:tabular-nums;margin-top:4px}
+  .csub{font-size:14px;color:var(--tan);margin-top:auto}
+  .clink{font-family:var(--mono);font-size:13px;color:var(--honey);text-decoration:none;margin-top:10px;display:inline-flex;gap:6px}
+  .clink:hover{color:var(--cream)}
+  .delta{color:var(--sealed);font-family:var(--mono);font-size:12px}
+  /* readiness ring card */
+  .ring{display:flex;align-items:center;gap:16px;margin-top:2px}
+  .ring svg{flex:0 0 auto}
+  .ringnum{font-family:var(--serif);font-size:40px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+  .ringnum small{font-size:15px;color:var(--tan);font-family:var(--mono)}
+  .readcard{background:linear-gradient(180deg,rgba(230,169,74,.10),var(--comb));border-color:var(--hairHi)}
+  .latest .csub{color:var(--cream);font-size:15px;line-height:1.35;margin-top:6px;font-family:var(--serif)}
+
+  /* topbar sign-up CTA */
+  .supbtn{font-family:var(--mono);font-size:12.5px;color:#241a10;background:var(--cream);
+    border-radius:9px;padding:9px 15px;text-decoration:none;font-weight:600;white-space:nowrap}
+  .supbtn:hover{background:var(--honey)}
+
+  /* moves — the CTAs, each a CER */
+  .moves{margin:30px 0 4px;border-top:1px solid var(--hair);padding-top:26px}
+  .moveshead{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+  .moveshead h3{font-family:var(--serif);font-size:26px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .moveshead p{margin:0;font-size:13px;color:var(--tan);font-style:italic;max-width:46ch}
+  .movelist{display:flex;flex-direction:column;gap:12px}
+  .move{display:grid;grid-template-columns:132px 1fr auto;gap:20px;align-items:center;
+    border:1px solid var(--hair);border-radius:14px;padding:18px 20px;background:var(--comb)}
+  .move.hot{background:linear-gradient(120deg,rgba(230,169,74,.12),var(--comb) 62%);border-color:var(--hairHi)}
+  .mtag{font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;
+    padding:6px 10px;border-radius:7px;border:1px solid var(--hairHi);text-align:center;color:var(--tan);align-self:start}
+  .mtag.free{color:var(--sealed);border-color:rgba(107,179,136,.4);background:rgba(107,179,136,.07)}
+  .mtag.apply{color:var(--rail);border-color:rgba(90,161,161,.4);background:rgba(90,161,161,.07)}
+  .mtag.buy{color:var(--honey);border-color:rgba(230,169,74,.45);background:rgba(230,169,74,.09)}
+  .mtag.when{color:var(--tan)}
+  .mtitle{font-family:var(--serif);font-size:19px;color:var(--cream);margin:0 0 5px;line-height:1.25}
+  .mwhy{margin:0;font-size:14px;color:var(--tan);line-height:1.45;max-width:64ch}
+  .mwhy b{color:var(--cream);font-weight:400}
+  .mcta{font-family:var(--mono);font-size:13px;white-space:nowrap;text-decoration:none;
+    padding:11px 16px;border-radius:10px;border:1px solid var(--hairHi);color:var(--cream);transition:border-color .15s,color .15s}
+  .mcta:hover{border-color:var(--honey);color:var(--honey)}
+  .mcta.solid{background:linear-gradient(160deg,var(--honey),var(--amber));color:#241a10;border:none;font-weight:700;
+    box-shadow:0 6px 20px -8px rgba(230,169,74,.55)}
+  .mcta.solid:hover{filter:brightness(1.06);color:#241a10}
+  @media(max-width:640px){.move{grid-template-columns:1fr;gap:12px}.mcta{justify-self:start}}
+
+  /* ask block */
+  .ask{margin:30px 0;border:1px solid var(--hairHi);border-radius:18px;padding:28px 30px;
+    background:linear-gradient(135deg,rgba(230,169,74,.13),rgba(193,125,48,.05) 60%,transparent);
+    display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+  .ask h2{font-family:var(--serif);font-size:27px;font-weight:600;margin:0 0 8px;letter-spacing:-.01em}
+  .ask p{margin:0;color:var(--tan);font-size:15px;max-width:56ch}
+  .try{display:inline-flex;align-items:center;gap:10px;margin-top:16px;border:1px dashed var(--hairHi);
+    border-radius:10px;padding:10px 14px;color:var(--cream);font-size:14px;font-style:italic}
+  .try b{font-family:var(--mono);font-style:normal;font-size:11px;letter-spacing:.1em;color:var(--honey)}
+  .newrun{font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:.01em;color:#241a10;
+    background:linear-gradient(160deg,var(--honey),var(--amber));border:none;border-radius:12px;
+    padding:16px 26px;cursor:pointer;white-space:nowrap;box-shadow:0 8px 26px -10px rgba(230,169,74,.6)}
+  .newrun:hover{filter:brightness(1.06)}
+
+  /* history */
+  .histhead{display:flex;align-items:baseline;gap:14px;margin:40px 0 16px}
+  .histhead h2{font-family:var(--serif);font-size:30px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .histhead .meta{font-family:var(--mono);font-size:12px;color:var(--tan);letter-spacing:.05em}
+  .hist{display:flex;flex-direction:column;gap:12px}
+  .item{border:1px solid var(--hair);border-radius:14px;padding:18px 22px;background:var(--comb);
+    transition:border-color .18s,background .18s;cursor:pointer}
+  .item:hover{border-color:var(--hairHi);background:var(--combLo)}
+  .item .q{font-size:19px;color:var(--cream);margin:0 0 8px;line-height:1.3}
+  .item .found{font-size:14px;color:var(--tan);margin:0 0 10px;max-width:80ch;line-height:1.45}
+  .item .imeta{font-family:var(--mono);font-size:11.5px;color:var(--tan);letter-spacing:.04em;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+  .lens{padding:2px 8px;border-radius:5px;border:1px solid var(--hairHi)}
+  .lens.sophia{color:var(--honey)} .lens.edison{color:var(--rail)} .lens.leonardo{color:#b79ce0}
+  .seed{color:var(--sealed)} .new{color:var(--honey)}
+  .fresh{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:#241a10;background:var(--honey);
+    padding:2px 7px;border-radius:5px;text-transform:uppercase}
+
+  /* vendor brand rails — receipts, not badges; recessive until touched */
+  .movemark{vertical-align:-3px;margin-right:8px;opacity:.55;color:var(--tan)}
+  .rails{margin:38px 0 0;border-top:1px solid var(--hair);padding-top:26px;
+    display:flex;flex-direction:column;gap:16px}
+  .railrow{display:flex;align-items:center;gap:14px 20px;flex-wrap:wrap}
+  .railcap{font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;
+    color:var(--tan);opacity:.6;flex:0 0 176px}
+  .brand{display:inline-flex;align-items:center;gap:8px;color:var(--tan);opacity:.8;
+    font-family:var(--mono);font-size:12.5px;letter-spacing:.01em;text-decoration:none;
+    transition:opacity .2s,color .2s}
+  .brand:hover{opacity:1;color:var(--bc,var(--cream))}
+  .brand svg{width:17px;height:17px;flex:0 0 auto}
+  @media(max-width:640px){.railcap{flex-basis:100%}}
+
+  /* visible-but-quiet trust strip, up where it's actually seen */
+  .trustbar{display:flex;align-items:center;gap:14px 22px;flex-wrap:wrap;margin:20px 0 6px}
+  .trustbar .tcap{font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;
+    text-transform:uppercase;color:var(--tan);opacity:.75}
+  .trustbar .brand{opacity:.9;font-size:13.5px}
+  .trustbar .brand svg{width:21px;height:21px}
+  .trustbar .sep{color:var(--hairHi);font-size:14px}
+
+  /* footer */
+  .foot{margin-top:40px;padding-top:22px;border-top:1px solid var(--hair);
+    display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;
+    font-family:var(--mono);font-size:12px;color:var(--tan);letter-spacing:.03em}
+  .foot .live{color:var(--tan)} .foot .live b{color:var(--sealed);font-weight:400}
+
+  @media(max-width:860px){.cards{grid-template-columns:repeat(2,1fr)}.shell{padding:0 20px 72px}.topbar{padding:20px}}
+  @media(max-width:520px){.cards{grid-template-columns:1fr}.ask{flex-direction:column;align-items:flex-start}}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+  a{color:inherit}
+</style>
+
+<canvas id="hexbg"></canvas>
+<div class="wrap">
+  <div class="topbar">
+    <div class="mark"><b>proof</b><i>360</i></div>
+    <div class="who">
+      <a class="supbtn" href="#">Start your own lab &rarr;</a>
+      <span class="pill">● Hive &amp; Co</span>
+      <span class="ava">H</span>
+    </div>
+  </div>
+
+  <div class="shell">
+    <div class="eyebrow">Trust &amp; Readiness Lab</div>
+    <h1 class="hero">Welcome back to <i>Hive &amp; Co&rsquo;s</i> lab.</h1>
+
+    <div class="resume">
+      <span class="dot"></span>
+      <p>Your lab on <b>Hive &amp; Co</b>: 12 reads, 6 vendors matched, readiness <b>38 &rarr; 41</b>.
+      <span class="chg">2 new signals since Tuesday &mdash; a fresh healthcare-buyer search and Cloudflare confirmed live on your domain.</span> Pick up where you left off.</p>
+    </div>
+
+    <div class="trustbar">
+      <span class="tcap">Runs live on</span>
+      <a class="brand" style="--bc:#d97757" href="#"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><line x1="12" y1="3" x2="12" y2="21"/><line x1="4.2" y1="7.5" x2="19.8" y2="16.5"/><line x1="19.8" y1="7.5" x2="4.2" y2="16.5"/></svg>Claude</a>
+      <a class="brand" style="--bc:#ff9900" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 14c4.5 3.2 11.5 3.2 16 0"/><path d="M15.5 12.5 20 14l-1.4 4.3"/></svg>Bedrock</a>
+      <a class="brand" style="--bc:#20b8cd" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17M3.5 12h17" stroke-width="1.4"/></svg>Perplexity</a>
+      <a class="brand" style="--bc:#f38020" href="#"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.2 17.5a3.8 3.8 0 0 1 .5-7.55 5.4 5.4 0 0 1 10.2 1.15 3.3 3.3 0 0 1 1.4 6.4z"/></svg>Cloudflare</a>
+      <span class="sep">&middot;</span>
+      <a class="brand" style="--bc:#6d5efc" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4" stroke-width="1.7"/></svg>Vanta</a>
+      <a class="brand" style="--bc:#049fd9" href="#"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="10" width="2" height="4" rx="1"/><rect x="7.5" y="7" width="2" height="10" rx="1"/><rect x="12" y="4" width="2" height="16" rx="1"/><rect x="16.5" y="7" width="2" height="10" rx="1"/></svg>Cisco</a>
+    </div>
+
+    <div class="cards">
+      <div class="card readcard">
+        <div class="clabel">Investor Readiness</div>
+        <div class="ring">
+          <svg width="66" height="66" viewBox="0 0 66 66" aria-hidden="true">
+            <circle cx="33" cy="33" r="28" fill="none" stroke="#3a2c22" stroke-width="6"/>
+            <circle cx="33" cy="33" r="28" fill="none" stroke="#e6a94a" stroke-width="6"
+              stroke-linecap="round" stroke-dasharray="175.9" stroke-dashoffset="103.8"
+              transform="rotate(-90 33 33)"/>
+          </svg>
+          <div class="ringnum">41<small>&thinsp;/100</small></div>
+        </div>
+        <div class="csub"><span class="delta">&#9650; +26</span> since first read</div>
+        <a class="clink" href="#">See the projection &rarr;</a>
+      </div>
+
+      <div class="card">
+        <div class="clabel">Vendors Matched</div>
+        <div class="cbig">6</div>
+        <div class="csub">Vanta, AWS, Cloudflare, Microsoft, Cisco &hellip;</div>
+        <a class="clink" href="#">View matches &rarr;</a>
+      </div>
+
+      <div class="card">
+        <div class="clabel">Programs</div>
+        <div class="cbig">8</div>
+        <div class="csub"><b style="color:var(--cream)">$231k</b> in credits mapped</div>
+        <a class="clink" href="#">View programs &rarr;</a>
+      </div>
+
+      <div class="card latest">
+        <div class="clabel">Latest Read</div>
+        <div class="csub">hiveandco.au &mdash; the raise docs are clean; the evidence layer is the gap.</div>
+        <a class="clink" href="#">Open the read &rarr;</a>
+      </div>
+    </div>
+
+    <div class="moves">
+      <div class="moveshead">
+        <h3>Moves you can run today.</h3>
+        <p>Each is a Decision you control &mdash; pre-filled from your posture, yours to withdraw.</p>
+      </div>
+      <!-- WIRING SPEC (for the /chat React fold) — each Move is a CER.
+           On click: confirmCer(route) via frontend/src/hooks/useCer.js → client.createCer
+           (POST /api/v1/profile/current/cers). Routes are the 4 live pathways in
+           frontend/src/utils/cerPathways.js / api/src/config/cer-routes.js.
+           data-cer-route = exact pathway key; data-cer-cta = the pathway's internal cta_label
+           (kept OFF the visible button — the human copy below is better HX and stays on top).
+           GAPS, honestly marked:
+             • free_action (IR policy): NOT a CER — a zero-spend readiness action, no route.
+             • aws_activate: the $10k credit APPLICATION is an external deep-link that does not
+               exist yet (CerProjectionCard onBookCall is a no-op). The AWS *CER* route
+               (ingram_micro_aws) is the Ingram/Marketplace co-sell, a different motion.
+             • ingram_micro_cisco (4th live route) is not yet surfaced as a Move. -->
+      <div class="movelist">
+        <div class="move" data-move="free_action" data-cer-route="none">
+          <div class="mtag free">Free &middot; $0</div>
+          <div>
+            <p class="mtitle">Publish an incident-response policy</p>
+            <p class="mwhy">Clears the first enterprise checklist item and lifts readiness <b>+3</b> &mdash; no vendor spend. The template&rsquo;s already written.</p>
+          </div>
+          <a class="mcta" href="#free-ir-policy">Use the template &rarr;</a>
+        </div>
+        <div class="move" data-cer-route="ingram_micro_aws" data-cer-cta="Start AWS pathway" data-external-gap="aws_activate_application">
+          <div class="mtag apply">Apply</div>
+          <div>
+            <p class="mtitle"><svg class="movemark" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 14c4.5 3.2 11.5 3.2 16 0"/><path d="M15.5 12.5 20 14l-1.4 4.3"/></svg>AWS Activate &mdash; $10k in credits</p>
+            <p class="mwhy">The application is <b>pre-filled from your posture</b>. Under review in one click; credits land on EC2, S3 and RDS on approval.</p>
+          </div>
+          <a class="mcta" href="#cer-ingram_micro_aws">Apply &rarr;</a>
+        </div>
+        <div class="move hot" data-cer-route="vanta" data-cer-cta="Review compliance pathway">
+          <div class="mtag buy">AWS Marketplace</div>
+          <div>
+            <p class="mtitle"><svg class="movemark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4" stroke-width="1.7"/></svg>Close SOC&nbsp;2 with Vanta</p>
+            <p class="mwhy">Buy it <b>through AWS Marketplace</b> &mdash; it draws down your AWS commitment, and Ingram is seller-of-record. One private offer, your posture attached.</p>
+          </div>
+          <a class="mcta solid" href="#cer-vanta">Start the offer &rarr;</a>
+        </div>
+        <div class="move" data-cer-route="austbrokers_cyberpro" data-cer-cta="Check cyber insurance pathway">
+          <div class="mtag when">When you&rsquo;re ready</div>
+          <div>
+            <p class="mtitle">Cyber cover &mdash; CyberPro</p>
+            <p class="mwhy">A quote, not a commitment. Your posture <em>is</em> the application. It sits here quietly &mdash; engage it the day a deal needs it, not before.</p>
+          </div>
+          <a class="mcta" href="#cer-austbrokers_cyberpro">Get covered &rarr;</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="ask">
+      <div>
+        <h2>Ask Hive &amp; Co&rsquo;s posture a question.</h2>
+        <p>The lab reads live signals, maps the buyer, and hands you moves you can run today &mdash; not a report you file.</p>
+        <span class="try"><b>Try</b> What would a Series&nbsp;A investor&rsquo;s DD flag first?</span>
+      </div>
+      <button class="newrun">+ New run</button>
+    </div>
+
+    <div class="histhead">
+      <h2>What you&rsquo;ve uncovered so far</h2>
+      <span class="meta">12 reads &middot; newest first</span>
+    </div>
+
+    <div class="hist">
+      <div class="item">
+        <p class="q">What would a Series&nbsp;A investor&rsquo;s DD flag first &mdash; and what closes it?</p>
+        <p class="found">The provenance chain. Your raise docs are open and clean, but there&rsquo;s no attested trail from supplier to jar. Fix that before term-sheet stage; it&rsquo;s the difference between &ldquo;start a conversation&rdquo; and &ldquo;close.&rdquo;</p>
+        <div class="imeta"><span class="lens sophia">&#9679; Sophia &middot; investor/trust</span><span>4 Jul 2026, 4:05 pm</span><span class="new">&#9650; readiness +3</span><span class="fresh">new</span></div>
+      </div>
+      <div class="item">
+        <p class="q">Which of my three gaps loses a deal fastest?</p>
+        <p class="found">No SOC&nbsp;2. Healthcare enterprise procurement gates on it &mdash; it stalls the deal before price. An IR policy this week (free Vanta template) clears one checklist item with zero vendor spend.</p>
+        <div class="imeta"><span class="lens edison">&#9679; Edison &middot; operational</span><span>4 Jul 2026, 11:20 am</span><span>1 read</span></div>
+      </div>
+      <div class="item">
+        <p class="q">hiveandco.au &mdash; cold read</p>
+        <p class="found">The read that opened this lab. Founded 2019, Manuka provenance play, Sainsbury&rsquo;s enterprise pilot. Journey &rarr; signals &rarr; gaps, 6 live sources. This is the seed every card above grew from.</p>
+        <div class="imeta"><span class="seed">&#9679; seed read</span><span>3 Jul 2026, 9:12 pm</span><span>3 reads</span></div>
+      </div>
+      <div class="item">
+        <p class="q">What&rsquo;s the cheapest move that lifts readiness this week?</p>
+        <p class="found">Publish an incident-response policy and a supplier-verification note. Zero spend, +3 readiness, and it&rsquo;s the exact evidence a DD portal asks for. Vendor spend can wait for a real enterprise deal.</p>
+        <div class="imeta"><span class="lens edison">&#9679; Edison &middot; operational</span><span>3 Jul 2026, 8:40 pm</span><span>1 read</span></div>
+      </div>
+    </div>
+
+    <div class="rails">
+      <div class="railrow">
+        <span class="railcap">Sensed live via</span>
+        <a class="brand" style="--bc:#20b8cd" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17M3.5 12h17" stroke-width="1.4"/></svg>Perplexity</a>
+        <a class="brand" style="--bc:#f38020" href="#"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.2 17.5a3.8 3.8 0 0 1 .5-7.55 5.4 5.4 0 0 1 10.2 1.15 3.3 3.3 0 0 1 1.4 6.4z"/></svg>Cloudflare</a>
+        <a class="brand" href="#">GitHub</a>
+        <span class="brand">WHOIS</span>
+      </div>
+      <div class="railrow">
+        <span class="railcap">Reasoned on</span>
+        <a class="brand" style="--bc:#d97757" href="#"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><line x1="12" y1="3" x2="12" y2="21"/><line x1="4.2" y1="7.5" x2="19.8" y2="16.5"/><line x1="19.8" y1="7.5" x2="4.2" y2="16.5"/></svg>Claude</a>
+        <a class="brand" style="--bc:#ff9900" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 14c4.5 3.2 11.5 3.2 16 0"/><path d="M15.5 12.5 20 14l-1.4 4.3"/></svg>Bedrock</a>
+      </div>
+      <div class="railrow">
+        <span class="railcap">Engagements route through</span>
+        <a class="brand" style="--bc:#ff9900" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 14c4.5 3.2 11.5 3.2 16 0"/><path d="M15.5 12.5 20 14l-1.4 4.3"/></svg>AWS Marketplace</a>
+        <a class="brand" style="--bc:#2b6cb0" href="#">Ingram</a>
+        <a class="brand" style="--bc:#6d5efc" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4" stroke-width="1.7"/></svg>Vanta</a>
+        <a class="brand" style="--bc:#049fd9" href="#"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="10" width="2" height="4" rx="1"/><rect x="7.5" y="7" width="2" height="10" rx="1"/><rect x="12" y="4" width="2" height="16" rx="1"/><rect x="16.5" y="7" width="2" height="10" rx="1"/><rect x="21" y="10" width="0" height="4"/></svg>Cisco</a>
+        <a class="brand" style="--bc:#3fb0c9" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg>CyberPro</a>
+      </div>
+    </div>
+
+    <div class="foot">
+      <span>This is Hive &amp; Co&rsquo;s lab &mdash; a reference founder. Map your own against it. &middot; proof360.au</span>
+      <span class="live">Every logo above is a <b>live rail, not a badge</b> &middot; each one checkable</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Faint honeycomb ground — atmosphere, not decoration.
+  (function(){
+    var c=document.getElementById('hexbg'),x=c.getContext('2d');
+    function draw(){
+      var w=c.width=innerWidth,h=c.height=innerHeight,r=34,
+          hw=Math.sqrt(3)*r, vh=1.5*r;
+      x.clearRect(0,0,w,h);
+      x.strokeStyle='rgba(230,169,74,0.05)';x.lineWidth=1;
+      for(var row=-1,ry=0; ry<h+vh; row++,ry=row*vh){
+        for(var col=-1,cx=(row%2?hw/2:0)-hw; cx<w+hw; col++,cx+=hw){
+          hex(x, cx, ry, r);
+        }
+      }
+    }
+    function hex(x,cx,cy,r){
+      x.beginPath();
+      for(var i=0;i<6;i++){
+        var a=Math.PI/180*(60*i-30),px=cx+r*Math.cos(a),py=cy+r*Math.sin(a);
+        i?x.lineTo(px,py):x.moveTo(px,py);
+      }
+      x.closePath();x.stroke();
+    }
+    draw(); addEventListener('resize',draw);
+  })();
+</script>

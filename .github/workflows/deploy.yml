@@ -47,6 +47,11 @@ jobs:
           echo "audience=$AUDIENCE" >> $GITHUB_OUTPUT
           echo "client_id=$CLIENT_ID" >> $GITHUB_OUTPUT
           echo "turnstile_sitekey=$TURNSTILE_SITEKEY" >> $GITHUB_OUTPUT
+          # Google light SSO client id — public identifier, optional lane: WARN when
+          # absent (frontend falls back to demo mode), never fail the deploy on it.
+          GOOGLE_CLIENT_ID=$(aws ssm get-parameter --name /proof360/GOOGLE_CLIENT_ID --query "Parameter.Value" --output text 2>/dev/null || echo "")
+          [ -n "$GOOGLE_CLIENT_ID" ] || echo "::warning::/proof360/GOOGLE_CLIENT_ID missing/empty — Google login builds in demo-fallback mode"
+          echo "google_client_id=$GOOGLE_CLIENT_ID" >> $GITHUB_OUTPUT
 
       - name: Build frontend
         working-directory: frontend
@@ -58,6 +63,7 @@ jobs:
           VITE_AUTH0_AUDIENCE: ${{ steps.auth0.outputs.audience }}
           VITE_AUTH0_CLIENT_ID: ${{ steps.auth0.outputs.client_id }}
           VITE_CF_TURNSTILE_SITEKEY: ${{ steps.auth0.outputs.turnstile_sitekey }}
+          VITE_GOOGLE_CLIENT_ID: ${{ steps.auth0.outputs.google_client_id }}
         run: |
           npm install
           npm run build
@@ -171,6 +177,17 @@ jobs:
             sleep 2
           done
           [ "$STATUS" = "200" ] && echo "API healthy" || echo "WARNING: /api/health returned $STATUS after 10 attempts"
+
+          echo "=== State checkpoint (continuity-state, fail-soft) ==="
+          # CK-REF-REPO-REG-001: every deploy writes proof360:last-deploy into the state
+          # engine. Deliberately NOT get_ssm (it exits 1) — a missing engine token or a
+          # down engine must never fail a deploy.
+          CS_TOKEN=$(aws ssm get-parameter --region $REGION --name /ethikslabs/continuity-state/internal-token --with-decryption --query Parameter.Value --output text 2>/dev/null || true)
+          if [ -n "$CS_TOKEN" ]; then
+            curl -s -m 5 -X PUT localhost:8420/state/proof360:last-deploy \
+              -H "Authorization: Bearer $CS_TOKEN" -H "content-type: application/json" \
+              -d "{\"value\":{\"health\":\"$STATUS\",\"ts\":\"$(date -u +%FT%TZ)\",\"via\":\"deploy.yml\"},\"actor\":\"deploy:proof360\"}" > /dev/null 2>&1 || true
+          fi
 
           echo "=== Registering Telegram webhook ==="
           curl -s "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook?url=https://proof360.au/api/telegram/webhook" | grep -o '"ok":[^,}]*'

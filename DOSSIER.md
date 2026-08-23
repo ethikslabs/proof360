@@ -25,6 +25,9 @@
 
 ---
 
+> **ERA NOTE (rinse-2, John 'A approve' 2026-07-19):** This dossier is v3-era in places — VECTOR (dead, retracted 2026-07-03; inference is Bedrock-direct via the EC2 instance role), IMPERIUM (archived 2026-07-14, doctrine-only; live surfaces = operator-panel + workspace-control) and trust360 (retired) appear below as the architecture stood when written. The sharpest live-claims are corrected inline; the full document refresh is boarded as PROOF360-AUDIT-DISPOSITION-001. Current truth: repo.json + CLAUDE.md + README.md.
+
+
 ## Visual Identity
 
 | Field | Value |
@@ -52,16 +55,16 @@ It is the front door to the 360 stack and the first product to render the doctri
 ## Role in the 360 Stack
 
 ```
-IMPERIUM (control plane)
+IMPERIUM (control plane — ARCHIVED 2026-07-14, doctrine-only)
 └── proof360 (entity onramp — live v1, v3 build pending)
-    ├── inference   → direct provider/service calls inside api/
+    ├── inference   → Bedrock-direct inside api/ (was VECTOR — dead 2026-07-03)
     ├── evidence    → CORPUS (:3009 /search)
     ├── catalog     → FORUM (planned/narrow integration; do not fake SKU truth)
     ├── attestation → VERITAS when a tested publish path exists
     ├── metering    → PULSUS via usage-event.v1 emitter coverage
     ├── monitoring  → ARGUS (/api/health endpoint registered)
     ├── alerts      → SIGNUM stub (3-line wrapper for portal Telegram)
-    └── pulse       → IMPERIUM (fire-and-forget, fallback no-op)
+    └── pulse       → retired with IMPERIUM (was fire-and-forget no-op; liveness = PULSUS/ARGUS)
 ```
 
 ---
@@ -172,7 +175,7 @@ v1 trust score: `100 − Σ(severity weights of triggered gaps)`. Severity weigh
 - **Frontend:** React 19 + Vite 8 + Tailwind 3, no state management library
 - **Auth:** Auth0 PKCE (founder), Google/Microsoft OAuth + Auth0 PKCE (partner portal). Production tenant required pre-v3.0 launch.
 - **Database (v3):** Postgres on RDS, ap-southeast-2, six tables + three append-only event tables
-- **Inference:** Direct provider/service calls from proof360 code. `api/src/lib/inference.js` is direct Bedrock and emits usage meter events.
+- **Inference:** Bedrock-direct (`api/src/lib/inference.js`; EC2 instance role, us-east-1 estate default), emits usage meter events. VECTOR routing is dead (2026-07-03).
 - **External scans:** Firecrawl, HIBP, AbuseIPDB, GitHub, SSL Labs, crt.sh, ipapi.co, public port scan, jobs page
 - **Evidence:** CORPUS search at `CORPUS_SEARCH_URL` / `:3009` for citations and vendor hints.
 - **Metering:** PULSUS consumes `usage-event.v1` events emitted by the meter; unmetered calls are invisible.
@@ -241,8 +244,9 @@ v1 trust score: `100 − Σ(severity weights of triggered gaps)`. Severity weigh
 - `VERITAS/DOSSIER.md` — governed truth substrate (claim attestation authority)
 - `CORPUS/DOSSIER.md` — evidence/citation substrate for proof360 gap and vendor context
 - `FORUM/DOSSIER.md` — commercial catalog/price plane for future routing
+- ~~VECTOR~~ — dead (2026-07-03); inference is Bedrock-direct
 - `PULSUS/DOSSIER.md` — cost signal plane (consumes both ledgers)
-- `IMPERIUM/DOSSIER.md` — control plane (pulse consumer)
+- ~~IMPERIUM~~ — archived (2026-07-14, doctrine-only); operator surface = operator-panel
 - `ARGUS/DOSSIER.md` — monitoring sentry (`/api/health` registered)
 - `WHY.md` — origin story and Ethiks360 context
 
@@ -304,7 +308,7 @@ Per doctrine: every MCP caller is just another renderer + writer of the same con
 | Capital path | revenue |
 | Revenue model | Reseller embed fees + vendor partner lead routing commission (three-branch attribution: john / distributor / vendor) |
 | IP boundary | Assessment UX, override contract shape, deterministic recompute kernel, tier boundary enforcement, engagement router, signals_object dataset moat (now persistent in Postgres) |
-| Stack dependency | Direct provider inference, CORPUS (evidence/citations), FORUM (catalog/price routing), VERITAS (Tier-2 attestation when implemented), PULSUS (metering), ARGUS (monitoring), IMPERIUM (pulse target) |
+| Stack dependency | Bedrock-direct inference, CORPUS (evidence/citations), FORUM (catalog/price routing), VERITAS (Tier-2 attestation when implemented), PULSUS (metering), ARGUS (monitoring) |
 | First customer | external: proof360.au (live v1, public) |
 | Forcing functions for v3.0 | Ingram MD presentation (partner portal live), AWS commercial motions, Austbrokers underwriting model |
 

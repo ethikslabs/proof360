@@ -1,62 +1,17 @@
-# proof360
+# proof360 — the trust gap engine
 
-proof360 is the live trust-readiness diagnostic and entity onramp for the
-EthiksLabs stack. A founder gives it a company signal, proof360 produces a
-structured trust posture, lets the human correct inferred data, and routes the
-next commercial step.
+Cold-reads any entity → live trust report → gaps → vendor matches → margin. No login to see the report. The first commercial lens on the EthiksLabs stack (CORPUS declares → VERITAS attests → proof360 renders).
 
-## Stack Diagram
+**Live:** `proof360.au` · API on the estate box (pm2 `proof360`, deploy via GitHub Actions → S3 → SSM) · inference Bedrock-direct (EC2 instance role — never a routing tollgate).
 
-```mermaid
-flowchart LR
-  CUSTOMER["Customer\ntrust readiness need"] --> PROOF["proof360\ndiagnostic"]
-  PROOF --> REPORT["Readiness report"]
-  REPORT --> VERITAS["VERITAS\nreceipts later"]
-```
+**The core object is the CER — Customer Engagement Record**: one vehicle, two markets. A living, consent-gated record of a customer engagement that a partner consumes as evidence, not as a lead.
 
-## Natural-Language Build Note
+## Where truth lives
 
-This orientation layer was produced in 3 prompts total, using natural language: create the repo README, add the Mermaid stack diagram, and make the result obvious for Sarvesh in GitHub.
+- `repo.json` — the work board (tasks, boundaries, John's rulings)
+- `CLAUDE.md` / `AGENTS.md` — agent guidance
+- `docs/plans/` — dated implementation plans; `docs/specs/` + `docs/design/` — current specs
+- `CONTROL/state.json` — per-SPV operating state (written by /makethebed only)
+- `frontend/src/tokens.js` — live design tokens (the design-system source Atelier/DESIGN.md synthesizes)
 
-## Why It Exists
-
-The stack needs a front door. proof360 turns a messy public company footprint
-into a usable trust report, then separates quick diagnostic value from governed
-Tier 2 actionability.
-
-## SPV Logic
-
-proof360 is a customer-facing product SPV. Its commercial job is origination:
-diagnostic assessment, trust gap discovery, vendor or distributor routing, and
-future attested proof packs. Other infrastructure SPVs support it, but proof360
-owns the customer journey.
-
-## What It Owns
-
-- Assessment UX and report rendering.
-- Public signal capture and session flow.
-- Human override contract for correcting inferred fields.
-- Engagement routing across proof360-led, distributor, or vendor-direct paths.
-
-It does not own inference routing, final truth, cost derivation, or monitoring.
-Those belong to VECTOR, VERITAS, PULSUS, and ARGUS respectively.
-
-## Current State
-
-- Workspace state: live.
-- Runtime: Node.js API and React/Vite frontend.
-- Port: 3002 for the API.
-- Public URL: proof360.au.
-- v3 architecture is locked; v1 remains live while v3 build work is pending.
-
-## Stack Position
-
-proof360 calls VECTOR for inference, VERITAS for governed attestation, PULSUS for
-consumption/cost signals, ARGUS for monitoring, and SIGNUM for future shared
-notifications.
-
-## Start Here
-
-- `DOSSIER.md` explains the product boundary and v3 architecture.
-- `AGENTS.md` and `CLAUDE.md` explain repo operating rules.
-- `docs/` contains build briefs and convergence material.
+The v3-era README and specs (VECTOR/trust360 architecture, both dead) are archived at `docs/archive/fossils-2026-07-18/` — John audit ruling 2026-07-18. Do not resurrect: estate views listing VECTOR as live are the measured drift class this repo no longer participates in.

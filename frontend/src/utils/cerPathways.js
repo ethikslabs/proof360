@@ -3,6 +3,11 @@
 // (api/src/config/cer-routes.js) remains the source of truth for storage/visibility;
 // this is the conversation-facing projection of the same four pathways.
 
+// `external_action` is the "extend CER" seam (John 2026-07-13): the real next step a confirmed
+// CER routes the founder to. `target: null` = provisioned per-customer/deal (a CPPO private-offer
+// link is minted per customer; a quote form is opened per founder) — filled at engage time, never
+// hardcoded. The Move surfaces this once the CER exists; the handler that fires it replaces the
+// CerProjectionCard onBookCall no-op in the /chat fold. Backend mirror: api/src/config/cer-routes.js.
 export const PATHWAYS = {
   ingram_micro_aws: {
     pathway_type: 'cloud_program',
@@ -11,6 +16,7 @@ export const PATHWAYS = {
     short: 'AWS',
     partner: 'Ingram Micro',
     title: 'AWS PATHWAY',
+    external_action: { kind: 'marketplace_offer', label: 'Open AWS Marketplace private offer', target: null },
   },
   austbrokers_cyberpro: {
     pathway_type: 'cyber_insurance_referral',
@@ -19,6 +25,7 @@ export const PATHWAYS = {
     short: 'cyber insurance',
     partner: 'Austbrokers CyberPro',
     title: 'CYBER INSURANCE',
+    external_action: { kind: 'referral_form', label: 'Request CyberPro quote', target: null },
   },
   vanta: {
     pathway_type: 'compliance_security',
@@ -27,6 +34,7 @@ export const PATHWAYS = {
     short: 'compliance',
     partner: 'Vanta',
     title: 'COMPLIANCE',
+    external_action: { kind: 'marketplace_offer', label: 'Open Vanta on AWS Marketplace', target: null },
   },
   ingram_micro_cisco: {
     pathway_type: 'distributor_product',
@@ -35,6 +43,7 @@ export const PATHWAYS = {
     short: 'Cisco',
     partner: 'Ingram Micro',
     title: 'CISCO PATHWAY',
+    external_action: { kind: 'distributor_quote', label: 'Request Cisco quote via Ingram', target: null },
   },
 };
 
