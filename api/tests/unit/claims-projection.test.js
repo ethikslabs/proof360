@@ -91,6 +91,8 @@ describe('claimsProjection — the truth ladder fold', () => {
     });
     expect(projected.provenance.detail).toBe('ASN AS16509 Amazon');
     expect(projected.confirmed).toBeNull();
+    // The projection serves the human label — the UI never renders a raw path tail.
+    expect(projected.label).toBe('cloud provider');
   });
 
   it('a confirmed event flips status and records first-party testimony', () => {

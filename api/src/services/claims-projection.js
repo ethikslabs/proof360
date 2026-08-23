@@ -86,6 +86,7 @@ function foldOne(claim, events) {
   return {
     claim_id: claim.claim_id,
     field: claim.field,
+    label: fieldLabel(claim.field),
     value,
     inferred_value: claim.value,
     status,

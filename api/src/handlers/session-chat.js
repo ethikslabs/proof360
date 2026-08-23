@@ -9,8 +9,9 @@ import {
   confirmPromptBlock, interpretConfirmReply, ceremonyResultNote, proposalPromptBlock,
   questionWasVoiced, proposalWasVoiced,
 } from '../services/confirm-ceremony.js';
-import { sessionRecordSnapshot } from './record.js';
+import { sessionRecordSnapshot, appendChatReceipt } from './record.js';
 import { liveProposals, acceptProposal } from './shortlist.js';
+import { retrieveCorpusEvidence, evidenceBlock } from '../services/corpus-retrieve.js';
 
 const MODEL = 'claude-haiku-4-5-20251001';
 
@@ -198,7 +199,16 @@ export async function sessionChatHandler(request, reply) {
   session.pending_proposal_voiced = false;
   // -------------------------------------------------------------------------------
 
-  const systemPrompt = buildSystemPrompt(persona, context) + ceremonyNote + proposalNote + askBlock;
+  // Live corpus grounding — same engine as /api/v1/chat: evidence joins the prompt,
+  // and the exchange leaves a receipt ("Our working"). Honest by construction: a
+  // corpus failure grounds nothing and the receipt records zero hits, never invention.
+  const corpusHits = await retrieveCorpusEvidence(cleanMessage, {
+    company_name: context.company_name,
+  });
+  appendChatReceipt(session, { query: cleanMessage, hits: corpusHits ?? [] });
+
+  const systemPrompt = buildSystemPrompt(persona, context) + ceremonyNote + proposalNote + askBlock
+    + evidenceBlock(corpusHits);
 
   // Last 20 turns (10 pairs) to keep context cost bounded
   const apiMessages = session.chat_history
