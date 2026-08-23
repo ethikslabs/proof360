@@ -98,6 +98,64 @@ export function acceptProposal(session, proposalId, { editedReason = null } = {}
   return { move };
 }
 
+// Universal "Add to shortlist" (John ruling 2026-08-23): discovery's ONE uniform
+// action — one tap, no commitment, the founder saves the thing WITH its reason.
+// A register match (provider or title, case-insensitive) adopts the entry's
+// cer_route so the route's CTA flows to the shortlist page; anything else routes
+// shortlist_general (no CTA — never a dead control). Idempotent on item name.
+function matchRegisterEntry(name) {
+  const needle = String(name).trim().toLowerCase();
+  return activeRegister().find(
+    (e) => e.provider?.toLowerCase() === needle || e.title?.toLowerCase() === needle
+  ) || null;
+}
+
+// POST /api/v1/session/:id/shortlist  { name, category?, why?, source? }
+export async function shortlistAddHandler(request, reply) {
+  const session = getSession(request.params.id);
+  if (!session) return reply.status(404).send({ error: 'session_not_found' });
+
+  const name = request.body?.name?.trim();
+  if (!name) return reply.status(400).send({ error: 'name_required' });
+
+  const existing = cerProjection(shortlistSnapshot(session))
+    .find((m) => m.item?.name?.toLowerCase() === name.toLowerCase());
+  if (existing) {
+    return reply.status(200).send({ move: existing, already_shortlisted: true });
+  }
+
+  const entry = matchRegisterEntry(name);
+  const { cerId, records } = buildCerRecords({
+    route: entry?.cer_route || 'shortlist_general',
+    person_id: null,
+    company_id: session.company_name || null,
+    evidence_refs: [],
+    actor: 'founder',
+    item: {
+      name,
+      category: request.body?.category || entry?.category || null,
+      register_id: entry?.id || null,
+      url: entry?.url || null,
+    },
+    reason: {
+      trigger_id: null,
+      trigger: null,
+      claims_cited: [],
+      gaps_cited: [],
+      text: request.body?.why || `Added from ${request.body?.source || 'discovery'}`,
+      user_text: null,
+      discussed_in: session.id,
+    },
+  });
+
+  updateSession(session.id, {
+    shortlist_records: [...(session.shortlist_records || []), ...records],
+  });
+  const move = cerProjection(shortlistSnapshot(getSession(session.id)))
+    .find((m) => m.cer_id === cerId);
+  return reply.status(201).send({ move });
+}
+
 // POST /api/v1/session/:id/proposals/:proposalId/accept  { edited_reason? }
 export async function proposalAcceptHandler(request, reply) {
   const session = getSession(request.params.id);

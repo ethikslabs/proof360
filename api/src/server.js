@@ -34,7 +34,7 @@ import {
 } from './handlers/profile.js';
 import { sessionAttachHandler } from './handlers/session-attach.js';
 import { recordHandler, claimAnswerHandler, chatReceiptsHandler } from './handlers/record.js';
-import { proposalsHandler, shortlistHandler, proposalAcceptHandler } from './handlers/shortlist.js';
+import { proposalsHandler, shortlistHandler, proposalAcceptHandler, shortlistAddHandler } from './handlers/shortlist.js';
 import {
   cersListHandler,
   cerCreateHandler,
@@ -67,6 +67,7 @@ app.get('/api/v1/session/:id/chat/receipts', chatReceiptsHandler);
 app.get('/api/v1/session/:id/proposals', proposalsHandler);
 app.get('/api/v1/session/:id/shortlist', shortlistHandler);
 app.post('/api/v1/session/:id/proposals/:proposalId/accept', proposalAcceptHandler);
+app.post('/api/v1/session/:id/shortlist', shortlistAddHandler);
 
 // --- Phase 2: Follow-up ---
 app.get('/api/v1/session/:id/followup-questions', followupQuestionsHandler);

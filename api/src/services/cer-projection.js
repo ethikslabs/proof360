@@ -44,6 +44,10 @@ export function buildCerRecords({
   // ETHL-WRK-SPEC-011 D5: a Move born from a register trigger carries its reason on
   // its face — { trigger_id, claims_cited, gaps_cited, text, user_text, discussed_in }.
   reason = null,
+  // Universal add-to-shortlist (John 2026-08-23): the shortlisted thing's display
+  // identity — { name, category, register_id, url }. null for trigger-born Moves
+  // whose identity is the route itself.
+  item = null,
 }) {
   const routeCfg = CER_ROUTES[route];
   if (!routeCfg) throw new Error(`unknown_cer_route:${route}`);
@@ -69,6 +73,7 @@ export function buildCerRecords({
       recommendation_id,
       evidence_refs,
       reason,
+      item,
       visibility_policy: visibilityPolicyForRoute(route),
       created_at: createdAt,
       updated_at: createdAt,
@@ -154,6 +159,7 @@ function projectOne(decision, events) {
     recommendation_id: decision.recommendation_id,
     evidence_refs: decision.evidence_refs || [],
     reason: decision.reason ?? null,
+    item: decision.item ?? null,
     visibility_policy: decision.visibility_policy,
     admin_status,
     status: withdrawn ? 'Closed' : admin_status,
