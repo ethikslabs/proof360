@@ -41,6 +41,7 @@ import { socialProviderEnabled } from '../utils/social-login.js';
 import { makeOAuthState } from '../utils/oauth-state.js';
 import { EMPTY_TILES, tilesFromProjections } from '../utils/projectionTiles.js';
 import { OurWorking } from '../components/chat/OurWorking.jsx';
+import { TWIN_YOURS } from '../copy.js';
 import { ShortlistContext } from '../components/chat/AddToShortlist.jsx';
 import * as spine from '../api/spine.js';
 
@@ -2186,7 +2187,7 @@ export default function Chat() {
           sessionTok={0}
           sessionModels={[]}
           onSignIn={() => setLoginOpen(true)}
-          yourCompanyName={founderProfileName ?? companyProfile.name ?? (currentUser ? 'Company Profile' : undefined)}
+          yourCompanyName={founderProfileName ?? companyProfile.name ?? (currentUser ? TWIN_YOURS : undefined)}
           cers={cer.createdCers}
           onWithdrawCer={cer.withdrawCer}
           t={t}

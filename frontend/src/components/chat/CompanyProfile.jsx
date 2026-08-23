@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { TWIN_YOURS } from '../../copy.js';
 import awsUrl from '../OperationalField/logos/aws.svg';
 import vantaUrl from '../OperationalField/logos/vanta.svg';
 import ciscoUrl from '../OperationalField/logos/cisco.svg';
@@ -315,7 +316,7 @@ export function CompanyProfile({ profile, isBuilding, hasMessages, tk, onVendorS
               fontSize: 15, fontStyle: 'italic', color: tk.ink, marginBottom: 5,
               minHeight: 22,
             }}>
-              {profile.name || <span style={{ color: tk.inkGhost }}>Your company</span>}
+              {profile.name || <span style={{ color: tk.inkGhost }}>{TWIN_YOURS}</span>}
             </div>
             <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
               {profile.stage ? (

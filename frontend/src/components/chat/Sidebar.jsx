@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { TWIN_YOURS, TWIN_INITIALS } from '../../copy.js';
 import { tokens } from '../../tokens.js';
 import { SPACE_GLYPHS } from '../../glyphs.jsx';
 import { HIVE_STAGES } from '../../data/mock/hive.js';
@@ -342,7 +343,7 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
             overflow: 'hidden',
           }}>
           <AccordionSection
-            title={yourCompanyName ?? 'Your company'}
+            title={yourCompanyName ?? TWIN_YOURS}
             accent={litCount > 0 ? tk.plum : '#8e7caa'}
             count={litCount} total={6}
             open={isSectionOpen('__yours')} onToggle={() => toggleSection('__yours')}
@@ -354,7 +355,7 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontFamily: '"IBM Plex Sans", sans-serif',
                 fontSize: 9, fontWeight: 700, color: '#fff', letterSpacing: '0.04em',
-              }}>YC</div>
+              }}>{TWIN_INITIALS}</div>
             )}
           >
             {litCount === 0 && !collapsed && (
