@@ -1464,6 +1464,14 @@ export default function Chat() {
   const [recordClaims, setRecordClaims]       = useState([]);
   const liveSessionId = companyData?.session_id ?? null;
 
+  // The demo/workspace discriminator (INVARIANTS.md §4): true only while the
+  // demo stage is selected AND no live session has started. `isDemoMode` alone
+  // means "the demo stage is selected" — it stays true after a live session
+  // begins, because the demo stage id never changes. Every consumer that uses
+  // the flag to mean "this is the sandbox, not the user's reality" must be
+  // gated on `inDemoMode`, not the raw `isDemoMode`.
+  const inDemoMode = isDemoMode && !liveSessionId;
+
   const refreshSpine = useCallback(async (sessionIdArg) => {
     const sid = sessionIdArg ?? liveSessionId ?? spine.storedSessionId();
     if (!sid) return;
@@ -2186,7 +2194,7 @@ export default function Chat() {
       }} />}
 
       <AuthorityLayer
-        isDemoMode={isDemoMode}
+        isDemoMode={inDemoMode}
         entity={authorityEntity}
         activeLens={analysisProfile}
         surfaceAuthority={surfaceAuthority}
@@ -2653,7 +2661,7 @@ export default function Chat() {
 
               <ObservationStrip
                 signals={activeSignals}
-                isDemoMode={isDemoMode}
+                isDemoMode={inDemoMode}
                 onCorrect={handleCorrectSignal}
                 onIgnore={ignoreSignal}
                 onAddContext={addContextSignal}
@@ -2817,7 +2825,7 @@ export default function Chat() {
                   onAsk={q => setInputValue(q)}
                   focusedProgram={focusedProgram}
                   onVendorSelect={id => { setActiveSpace(id); setDrawerCollapsed(false); setMobileActiveTab('Vendors'); commitAuthority(VENDOR_AUTHORITY); }}
-                  isDemoMode={isDemoMode}
+                  isDemoMode={inDemoMode}
                   activeSignals={activeSignals}
                   rankedVendors={rankedVendors}
                   ctaEarned={ctaEarned}
@@ -2998,7 +3006,7 @@ export default function Chat() {
     <CompanionPanel
       items={shortlistPanelItems}
       claims={recordClaims}
-      isDemoMode={isDemoMode && !liveSessionId}
+      isDemoMode={inDemoMode}
       onShortlist={handleShortlist}
       onDefer={handleDefer}
     />
