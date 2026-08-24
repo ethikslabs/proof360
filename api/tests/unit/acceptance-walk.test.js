@@ -95,6 +95,8 @@ describe('the acceptance walk', () => {
     expect(decision.reason.trigger_id).toBeTruthy();
     expect(decision.reason.text).toContain('proposed because');
     expect(decision.reason.discussed_in).toBe(session.id);
+    expect(decision.reason.context.note_status).toBe('inferred');
+    expect(typeof decision.reason.context.at).toBe('string');
     expect(lastSystemPrompt()).toContain('SHORTLIST RESULT');
   });
 

@@ -33,6 +33,47 @@ function shortlistSnapshot(session) {
   };
 }
 
+function excerpt(text, max) {
+  const t = String(text).replace(/\s+/g, ' ').trim();
+  return t.length <= max ? t : `${t.slice(0, max - 1)}…`;
+}
+
+// The conversational moment, captured at add-time (ETHL-WRK-SPEC-012 §3.2;
+// INVARIANTS §3 on the API side). Span POINTERS + a derived note only — the
+// transcript-evidence gate: raw transcript never travels beyond a bounded excerpt.
+export function momentContext(session) {
+  const history = session.chat_history || [];
+  const turn = history.length;
+  const start = Math.max(0, turn - 4);
+  const spans = history.slice(start).map((m, i) => ({ turn: start + i, role: m.role, ts: m.ts }));
+  const lastUser = [...history].reverse().find((m) => m.role === 'user');
+
+  const recentClaims = claimsProjection(sessionRecordSnapshot(session))
+    .filter((c) => c.status === 'confirmed' || c.status === 'corrected')
+    .slice(-3)
+    .map((c) => ({ kind: 'claim', field: c.field, status: c.status }));
+  const priorMoves = cerProjection(shortlistSnapshot(session))
+    .slice(-2)
+    .map((m) => ({ kind: 'move', name: m.item?.name ?? m.route, at: m.created_at }));
+
+  const parts = [];
+  if (lastUser) parts.push(`while discussing "${excerpt(lastUser.content, 90)}"`);
+  if (recentClaims.length) {
+    const fields = recentClaims.map((c) => c.field.split('.').pop().replace(/_/g, ' '));
+    parts.push(`recently confirmed: ${fields.join(', ')}`);
+  }
+  if (priorMoves.length) parts.push(`already on the shortlist: ${priorMoves.map((m) => m.name).join(', ')}`);
+
+  return {
+    at: new Date().toISOString(),
+    turn,
+    spans,
+    recent: [...recentClaims, ...priorMoves],
+    note: parts.length ? `Added ${parts.join('; ')}` : 'Added outside a conversation',
+    note_status: 'inferred',
+  };
+}
+
 export function liveProposals(session) {
   const claims = claimsProjection(sessionRecordSnapshot(session));
   // D4, commercial flavour: no proposal of any kind until the Record holds at least
@@ -87,6 +128,7 @@ export function acceptProposal(session, proposalId, { editedReason = null } = {}
       text: proposal.reason,
       user_text: editedReason,
       discussed_in: session.id,
+      context: momentContext(session),
     },
   });
 
@@ -145,6 +187,7 @@ export async function shortlistAddHandler(request, reply) {
       text: request.body?.why || `Added from ${request.body?.source || 'discovery'}`,
       user_text: null,
       discussed_in: session.id,
+      context: momentContext(session),
     },
   });
 
