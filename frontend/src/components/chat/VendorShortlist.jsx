@@ -39,6 +39,17 @@ export function VendorShortlist({ vendors, shortlistedIds, onShortlist, onDefer 
                   <p style={{ fontSize: 12, color: '#64748b', lineHeight: 1.5, margin: '0 0 8px' }}>
                     {v.synthesis || v.reason}
                   </p>
+                  {shortlistEntry?.context?.note && (
+                    <p style={{ fontSize: 11, color: '#94a3b8', fontStyle: 'italic', margin: '0 0 8px' }}>
+                      {shortlistEntry.context.note}
+                      {shortlistEntry.context.note_status === 'inferred' && (
+                        <span style={{
+                          marginLeft: 6, fontSize: 9, fontStyle: 'normal', letterSpacing: '0.06em',
+                          color: '#eab308', border: '1px solid #eab30855', borderRadius: 4, padding: '1px 4px',
+                        }}>INFERRED</span>
+                      )}
+                    </p>
+                  )}
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     {isShortlisted ? (
                       <>
