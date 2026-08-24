@@ -1911,6 +1911,7 @@ export default function Chat() {
             deal_readiness: analysis.deal_readiness,
             inferences: analysis.inferences,
           });
+          setShortlist([]); // live session starting — the demo sandbox shortlist must not mix in
           attachCurrentSessionToProfile(session_id, analysis);
           refreshSpine(session_id); // the cold read's inferred claims light the rail immediately
 
@@ -2042,6 +2043,7 @@ export default function Chat() {
         const fh = await spine.firehose(text);
         spine.rememberSessionId(fh.session_id);
         setCompanyData({ session_id: fh.session_id, company_name: null });
+        setShortlist([]); // live session starting — the demo sandbox shortlist must not mix in
         setMessages(prev => [...prev, {
           id: `fh-${Date.now()}`, role: 'assistant', persona: 'edison', model: 'proof360',
           content: fh.reflect_back,
@@ -2993,13 +2995,13 @@ export default function Chat() {
       )}
 
     </div>
-      <CompanionPanel
-        items={shortlistPanelItems}
-        claims={recordClaims}
-        isDemoMode={isDemoMode}
-        onShortlist={handleShortlist}
-        onDefer={handleDefer}
-      />
+    <CompanionPanel
+      items={shortlistPanelItems}
+      claims={recordClaims}
+      isDemoMode={isDemoMode && !liveSessionId}
+      onShortlist={handleShortlist}
+      onDefer={handleDefer}
+    />
     </ShortlistContext.Provider>
   );
 }

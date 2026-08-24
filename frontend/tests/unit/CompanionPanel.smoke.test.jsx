@@ -39,4 +39,10 @@ describe('CompanionPanel', () => {
       onShortlist={() => {}} onDefer={() => {}} />);
     expect(container.firstChild).toBeNull();
   });
+
+  it('renders a claims strip when only claims exist (no items yet)', () => {
+    render(<CompanionPanel items={[]} claims={[{ claim_id: 'c1' }, { claim_id: 'c2' }]}
+      isDemoMode={false} onShortlist={() => {}} onDefer={() => {}} />);
+    expect(screen.getByText(/2 facts on your record/)).toBeTruthy();
+  });
 });

@@ -64,6 +64,11 @@ export function CompanionPanel({ items, claims, isDemoMode, onShortlist, onDefer
         >—</button>
       </div>
       <div style={{ overflowY: 'auto', padding: '12px 14px 4px' }}>
+        {claims?.length > 0 && (
+          <div style={{ fontSize: 11, color: '#94a3b8', padding: '0 0 10px' }}>
+            {claims.length} facts on your record
+          </div>
+        )}
         <VendorShortlist
           vendors={items}
           shortlistedIds={items}
