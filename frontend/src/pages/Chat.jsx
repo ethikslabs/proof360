@@ -1508,6 +1508,7 @@ export default function Chat() {
       name: m.item?.name ?? m.label ?? m.route,
       category: m.item?.category ?? m.pathway_type,
       synthesis: m.reason?.user_text || m.reason?.text || null,
+      context: m.reason?.context ?? null,
       timing: 'now',
       cta: m.cta,
       url: m.item?.url ?? null,
