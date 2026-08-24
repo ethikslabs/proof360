@@ -24,7 +24,7 @@ import { useSignals }       from '../hooks/useSignals.js';
 import { ObservationStrip } from '../components/chat/ObservationStrip.jsx';
 import { GuidanceBlock }      from '../components/chat/GuidanceBlock.jsx';
 import { MOCK_GUIDANCE_BLOCK } from '../data/mock/signals.js';
-import { VendorShortlist } from '../components/chat/VendorShortlist.jsx';
+import { CompanionPanel } from '../components/chat/CompanionPanel.jsx';
 import { rankVendorsBySignals } from '../data/mock/vendors.js';
 import { AuthorityLayer }      from '../components/chat/AuthorityLayer.jsx';
 import { useSurfaceAuthority } from '../hooks/useSurfaceAuthority.js';
@@ -2672,18 +2672,6 @@ export default function Chat() {
                 />
               </div>
 
-              {shortlistPanelItems.length > 0 && (
-                // The shortlist IS the engagement page (John 2026-08-23): server Moves
-                // (with note + real engage action) merged with demo-sandbox items, all
-                // marked selected. shortlistedIds drives the "✓ Shortlisted" state per card.
-                <VendorShortlist
-                  vendors={shortlistPanelItems}
-                  shortlistedIds={shortlistPanelItems}
-                  onShortlist={handleShortlist}
-                  onDefer={handleDefer}
-                />
-              )}
-
               {messages.map((m, i) => {
                 if (m.advisory) {
                   return (
@@ -3005,6 +2993,13 @@ export default function Chat() {
       )}
 
     </div>
+      <CompanionPanel
+        items={shortlistPanelItems}
+        claims={recordClaims}
+        isDemoMode={isDemoMode}
+        onShortlist={handleShortlist}
+        onDefer={handleDefer}
+      />
     </ShortlistContext.Provider>
   );
 }
