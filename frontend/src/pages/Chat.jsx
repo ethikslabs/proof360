@@ -1541,6 +1541,11 @@ export default function Chat() {
     ...shortlist,
   ], [serverShortlist, shortlist]);
 
+  // Live-session presence readable inside async closures — the resume effect must
+  // not stomp a cold read that completed while its fetch was in flight (re-review race).
+  const companyDataRef = useRef(null);
+  useEffect(() => { companyDataRef.current = companyData; }, [companyData]);
+
   // ── The return path ("simple to return to", John 2026-08-23): a stored session
   // restores the twin — history, Record, shortlist — no login, no ceremony.
   useEffect(() => {
@@ -1552,7 +1557,7 @@ export default function Chat() {
     (async () => {
       try {
         const { history } = await spine.getChatHistory(sid);
-        if (cancelled || !history?.length) return;
+        if (cancelled || !history?.length || companyDataRef.current) return;
         setShowIntro(false);
         setPhase('active');
         setInputReady(true);

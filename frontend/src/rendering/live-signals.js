@@ -22,6 +22,7 @@ const DOMAIN_MAP = {
   infrastructure: 'security',
   data: 'security',
   governance: 'compliance',
+  company: 'financial', // stage/entity signals — matches the seed_stage mock precedent (data/mock/signals.js)
 };
 
 // The builder never sends polarity — these are neutral, unverified
@@ -31,6 +32,9 @@ const DOMAIN_MAP = {
 // "flag for attention, unconfirmed" tone is the closer match for a
 // freshly-inferred, not-yet-corrected observation, so 'capability' is the
 // neutral default here.
+// NOTE (Task 7+ landmine): gapSignals in useSignals.js "drive vendor ranking";
+// with this default, live inferences never enter gap-driven ranking — revisit
+// polarity derivation when that wiring lands.
 const DEFAULT_POLARITY = 'capability';
 
 export function inferencesToSignals(inferences) {
