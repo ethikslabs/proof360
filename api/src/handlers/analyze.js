@@ -61,7 +61,16 @@ export async function analyzeHandler(request, reply) {
 
     if (reading) {
       for (const anchor of reading_anchors || []) {
-        appendLog(id, { act: 'reading', type: 'act_body', text: `↳  ${anchor.label} · ${anchor.source}` });
+        // When the label already names the source (e.g. "Company research ·
+        // perplexity" with source "perplexity"), printing "label · source" doubles
+        // it up ("perplexity · perplexity" — live rehearsal finding 4). Print the
+        // label alone in that case; otherwise keep the "label · source" form.
+        const label = anchor.label || '';
+        const source = anchor.source || '';
+        const text = source && label.toLowerCase().includes(source.toLowerCase())
+          ? `↳  ${label}`
+          : `↳  ${label} · ${source}`;
+        appendLog(id, { act: 'reading', type: 'act_body', text });
       }
     } else {
       appendLog(id, { act: 'reading', type: 'act_body', text: "the read didn't come together — falling back to plain signals", color: 'muted' });

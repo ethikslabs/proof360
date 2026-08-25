@@ -8,7 +8,7 @@
 // session-start.js's sessionStartHandler) with externals mocked at the same
 // seams the neighbouring suites use (Firecrawl, Bedrock/chatComplete, recon,
 // Postgres) — never a hand-invented fixture shape.
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('@mendable/firecrawl-js', () => ({
   default: vi.fn().mockImplementation(() => ({
@@ -223,6 +223,60 @@ describe('extractSignals — extraction failure never reaches __done__ itself', 
   });
 });
 
+// Finding 3 (live rehearsal): the Gemini act skipped with note "no answer" when the
+// actual response was HTTP 429 "prepayment credits depleted" — recon-company.js was
+// swallowing the status code. A 429 must narrate as 'quota exhausted', never the
+// generic 'no answer' (that class stays reserved for a genuine timeout/network throw).
+describe('extractSignals — engine skip honesty (real failure class, not a swallowed status)', () => {
+  const originalFetch = global.fetch;
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  it('perplexity 429 → skip note "quota exhausted", not "no answer"', async () => {
+    process.env.PERPLEXITY_API_KEY = 'test-perplexity-key';
+    global.fetch = vi.fn(async (url) => {
+      if (String(url).includes('perplexity.ai')) {
+        return { ok: false, status: 429, json: async () => ({}) };
+      }
+      return originalFetch(url);
+    });
+
+    const log = [];
+    await extractSignals(
+      { website_url: 'https://acme.example', session_id: null },
+      (line) => log.push(line)
+    );
+
+    const perplexitySkip = log.find(
+      (l) => l.type === 'act' && l.act === 'perplexity' && l.phase === 'skip'
+    );
+    expect(perplexitySkip).toBeTruthy();
+    expect(perplexitySkip.note).toBe('quota exhausted');
+  });
+
+  it('perplexity non-429 error status → skip note "engine error (NNN)"', async () => {
+    process.env.PERPLEXITY_API_KEY = 'test-perplexity-key';
+    global.fetch = vi.fn(async (url) => {
+      if (String(url).includes('perplexity.ai')) {
+        return { ok: false, status: 503, json: async () => ({}) };
+      }
+      return originalFetch(url);
+    });
+
+    const log = [];
+    await extractSignals(
+      { website_url: 'https://acme.example', session_id: null },
+      (line) => log.push(line)
+    );
+
+    const perplexitySkip = log.find(
+      (l) => l.type === 'act' && l.act === 'perplexity' && l.phase === 'skip'
+    );
+    expect(perplexitySkip.note).toBe('engine error (503)');
+  });
+});
+
 describe('session-start.js — the corpus act + the extraction-failure __done__', () => {
   beforeEach(() => {
     _getSessionsMap().clear();
@@ -260,7 +314,12 @@ describe('session-start.js — the corpus act + the extraction-failure __done__'
     expect(hitLine.text).toContain('evidence');
   });
 
-  it('no corpus holdings → act skip, honest note, never a fabricated done', async () => {
+  // Finding 1 (live rehearsal, cognisys.co.uk, session ed51d850): corpus-retrieve.js
+  // used to return null for BOTH "unreachable" and "reached fine, zero hits" — the
+  // body line said "no holdings touch this company yet" while the skip note said
+  // "corpus unreachable" even though corpus was up. null must now mean ONLY
+  // "could not look" (ABSENCE RULE: could-not-look ≠ looked-and-found-nothing).
+  it('corpus unreachable (null) → act skip, honest note, NO absence body line — we could not look', async () => {
     retrieveCorpusEvidence.mockResolvedValue(null);
     const reply = replyMock();
     await sessionStartHandler({ body: { website_url: 'https://acme.example' } }, reply);
@@ -271,8 +330,43 @@ describe('session-start.js — the corpus act + the extraction-failure __done__'
     });
 
     const log = getLogs(sessionId);
+    for (const line of log) assertContractShape(line);
+
     const corpusEvent = log.find((l) => l.type === 'act' && l.act === 'corpus' && (l.phase === 'done' || l.phase === 'skip'));
     expect(corpusEvent.phase).toBe('skip');
+    expect(corpusEvent.note).toBe('corpus unreachable');
+    // ABSENCE RULE: we never looked, so we must never claim "no holdings" —
+    // that would be stating a finding we don't have.
+    const corpusBodies = log.filter((l) => l.type === 'act_body' && l.act === 'corpus');
+    expect(corpusBodies.some((l) => l.text.includes('no holdings touch this company yet'))).toBe(false);
+  });
+
+  // The other half of finding 1: corpus reached fine, nothing scored ([]) — a real,
+  // honest zero, distinct from "could not look". This is the case the live
+  // rehearsal's contradictory body line was ACTUALLY describing, and it must read
+  // as 'done', not 'skip'.
+  it('corpus reached, zero holdings ([]) → act done, "0 holdings" note, honest absence body line', async () => {
+    retrieveCorpusEvidence.mockResolvedValue([]);
+    const reply = replyMock();
+    await sessionStartHandler({ body: { website_url: 'https://acme.example' } }, reply);
+    const sessionId = reply.payload.session_id;
+
+    await vi.waitFor(() => {
+      expect(getSession(sessionId).infer_status).toBe('complete');
+    });
+
+    const log = getLogs(sessionId);
+    for (const line of log) assertContractShape(line);
+
+    const corpusEvent = log.find((l) => l.type === 'act' && l.act === 'corpus' && (l.phase === 'done' || l.phase === 'skip'));
+    expect(corpusEvent.phase).toBe('done');
+    expect(corpusEvent.note).toBe('0 holdings');
+    const corpusBodies = log.filter((l) => l.type === 'act_body' && l.act === 'corpus');
+    expect(corpusBodies.some((l) => l.text.includes('no holdings touch this company yet'))).toBe(true);
+
+    // Session cache carries the real empty array through, not null (three-state
+    // contract on session.corpus_hits — corpus-retrieve.js / cold-reading.js).
+    expect(getSession(sessionId).corpus_hits).toEqual([]);
   });
 
   it('the extraction-failure catch — and only that catch — emits __done__', async () => {
@@ -349,5 +443,37 @@ describe('analyze.js — the "reading" act closes the whole-thinking stream', ()
     const bodies = log.filter((l) => l.type === 'act_body');
     expect(bodies.length).toBeGreaterThan(0);
     for (const b of bodies) expect(b.act).toBe('reading');
+  });
+
+  // Finding 4 (live rehearsal, cosmetic): the reading act's anchor body line printed
+  // "↳ Company research · perplexity · perplexity" — cold-reading.js's single-engine
+  // anchor already ends the label with the source (`Company research · ${engine}`,
+  // source: engine — see buildReadingContext), so appending "· source" doubled it.
+  it('reading act anchor body line: label already containing the source prints once, not doubled', async () => {
+    retrieveCorpusEvidence.mockResolvedValue(null);
+    const session = createSession({ website_url: 'https://acme.example' });
+    updateSession(session.id, {
+      infer_status: 'complete',
+      company_name: 'Acme',
+      inferences: [],
+      correctable_fields: [],
+      raw_signals: [],
+      sources_read: ['homepage'],
+      pages_read_count: 1,
+      company_summary: 'Acme builds trust tooling for enterprise SaaS buyers.',
+      research_engines: ['perplexity'],
+    });
+    const reply = replyMock();
+    await analyzeHandler({ params: { id: session.id } }, reply);
+
+    expect(reply.statusCode).toBe(200);
+    const log = getLogs(session.id);
+    const anchorLine = log.find(
+      (l) => l.type === 'act_body' && l.act === 'reading' && l.text.includes('Company research')
+    );
+    expect(anchorLine).toBeTruthy();
+    expect(anchorLine.text).toBe('↳  Company research · perplexity');
+    // The exact bug: the source must never appear twice in one line.
+    expect(anchorLine.text.match(/perplexity/g)?.length).toBe(1);
   });
 });

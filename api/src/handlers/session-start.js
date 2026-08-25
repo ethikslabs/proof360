@@ -57,8 +57,11 @@ async function extractAndInfer(sessionId, { website_url, deck_file, session_id }
     // Act 8 — corpus (John ruling 2026-08-25): scan-time retrieval feeding read-time
     // use, one call, one bill. Same query construction as cold-reading.js's
     // corpusEvidence() (corpusQueryFor) so the cached hits ARE the same retrieval the
-    // reading would otherwise do. Cache contract on session.corpus_hits: absent = never
-    // attempted, null = attempted/nothing-or-unreachable (no retry), array = hits.
+    // reading would otherwise do. Cache contract on session.corpus_hits (retrieveCorpusEvidence's
+    // three-state contract, corpus-retrieve.js): absent = never attempted (field predates
+    // this cache); null = attempted, could NOT look — unreachable/timeout/!ok, or no
+    // company to query with (no retry either way); [] = attempted, reached fine, nothing
+    // scored (a real, honest zero — distinct from null, ABSENCE RULE); array = hits.
     log({ type: 'act', act: 'corpus', phase: 'start', title: 'Checking our research holdings', note: 'corpus · veritas' });
     const corpusQuery = corpusQueryFor({ company_name: inferenceResult.company_name, website_url });
     let corpus_hits = null;
@@ -71,8 +74,15 @@ async function extractAndInfer(sessionId, { website_url, deck_file, session_id }
         log({ act: 'corpus', type: 'act_body', text: `↳  ${hit.slug} · ${hit.layer} · score ${Number(hit.score).toFixed(2)}` });
       }
       log({ type: 'act', act: 'corpus', phase: 'done', note: `${corpus_hits.length} holdings` });
-    } else {
+    } else if (corpus_hits !== null) {
+      // Reached the corpus fine, nothing scored — an honest zero we DID look for,
+      // never confused with the could-not-look case below (ABSENCE RULE).
       log({ act: 'corpus', type: 'act_body', text: 'no holdings touch this company yet', color: 'muted' });
+      log({ type: 'act', act: 'corpus', phase: 'done', note: '0 holdings' });
+    } else {
+      // Could not look at all — unreachable/timeout/!ok, or no company identified to
+      // query with. No absence body line: we never looked, so we cannot honestly say
+      // what we found (ABSENCE RULE — could-not-look ≠ looked-and-found-nothing).
       log({ type: 'act', act: 'corpus', phase: 'skip', note: corpusQuery ? 'corpus unreachable' : 'no company identified' });
     }
 

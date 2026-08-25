@@ -114,7 +114,11 @@ function reconEvidence(session) {
     anchors.push({ label: `${cloud} hosting`, source: 'ip probe' });
   }
 
-  if (ctx.dmarc_policy) {
+  // 'unknown' is recon-dns.js's sentinel for a FAILED _dmarc TXT lookup (SERVFAIL /
+  // timeout / refused) — not a real observation. A failed look must never anchor as
+  // "we can see" (ABSENCE RULE: could-not-look ≠ looked-and-absent). 'missing' /
+  // 'none' / 'quarantine' / 'reject' are genuine, legitimate observations.
+  if (ctx.dmarc_policy && ctx.dmarc_policy !== 'unknown') {
     lines.push(factLine(STRONG, 'DMARC posture', ctx.dmarc_policy));
     anchors.push({ label: `DMARC: ${ctx.dmarc_policy}`, source: 'dns scan' });
   }
@@ -196,16 +200,18 @@ export function corpusQueryFor(session) {
 
 // Corpus evidence — cache-first (John ruling 2026-08-25: retrieval moved to
 // scan time, the corpus act in session-start.js, so the reading never re-bills
-// it). Cache contract on session.corpus_hits: field ABSENT = never attempted
-// (fall back to a live retrieval here, e.g. an older session from before this
-// cache existed); `null` = attempted, nothing/unreachable (honest absence, no
-// retry); an array = the hits. Either way, failure or no hits → no corpus
-// material in the prompt, no corpus anchor — the model reasons from this
-// material in its own words, never quoting it (EXCERPT-NOT-VOICE).
+// it). Cache contract on session.corpus_hits (retrieveCorpusEvidence's three-state
+// contract, corpus-retrieve.js): field ABSENT = never attempted (fall back to a
+// live retrieval here, e.g. an older session from before this cache existed);
+// `null` = attempted, could NOT look — unreachable/timeout/!ok (no retry); `[]` =
+// attempted, reached fine, nothing scored (also honest absence, also no retry —
+// distinct reasons, same treatment here); a non-empty array = the hits. Either
+// null or [] → no corpus material in the prompt, no corpus anchor — the model
+// reasons from this material in its own words, never quoting it (EXCERPT-NOT-VOICE).
 async function corpusEvidence(session) {
   let hits;
   if (Object.prototype.hasOwnProperty.call(session || {}, 'corpus_hits')) {
-    hits = session.corpus_hits; // null (attempted, nothing) or an array (hits) — no retry either way
+    hits = session.corpus_hits; // null (could not look) or an array, possibly empty (looked) — no retry either way
   } else {
     const query = corpusQueryFor(session);
     hits = query ? await retrieveCorpusEvidence(query, { company_name: session?.company_name }).catch(() => null) : null;

@@ -280,6 +280,10 @@ function splitSentences(text) {
     .filter(Boolean);
 }
 
+// 'quota exhausted' and 'engine error (NNN)' (recon-company.js) are already the exact
+// honest note text — no translation entry needed, they pass through via the fallback
+// below rather than collapsing to the generic 'no answer' (finding 3, live rehearsal
+// 2026-08-25: a 429 "prepayment credits depleted" was narrated as "no answer").
 const RESEARCH_SKIP_NOTES = { 'no key': 'no key configured', 'no answer': 'no answer', 'too thin': 'answer too thin' };
 
 // Shared body for the perplexity/gemini acts — SAME shape for both engines by
@@ -303,7 +307,7 @@ async function runResearchAct(act, query, fetchFn, log) {
     }
     log({ type: 'act', act, phase: 'done', note: 'answered' });
   } else {
-    log({ type: 'act', act, phase: 'skip', note: RESEARCH_SKIP_NOTES[result.skip] || 'no answer' });
+    log({ type: 'act', act, phase: 'skip', note: RESEARCH_SKIP_NOTES[result.skip] || result.skip || 'no answer' });
   }
 
   return result;

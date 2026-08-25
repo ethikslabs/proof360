@@ -148,7 +148,7 @@ describe('buildReadingContext — prompt', () => {
     expect(anchors).toContainEqual({ label: '1 corpus holding', source: 'corpus' });
   });
 
-  it('corpus unreachable or no hits → no corpus material, no corpus anchor', async () => {
+  it('corpus unreachable (null) → no corpus material, no corpus anchor', async () => {
     retrieveCorpusEvidence.mockResolvedValue(null);
     const { prompt, anchors } = await buildReadingContext(baseSession());
 
@@ -157,6 +157,66 @@ describe('buildReadingContext — prompt', () => {
     // LINE — that only exists when corpus hits were returned.
     expect(prompt).not.toMatch(/^- \[CORPUS\]/m);
     expect(anchors.find((a) => a.source === 'corpus')).toBeUndefined();
+  });
+
+  // Finding 1 (live rehearsal): retrieveCorpusEvidence's three-state contract
+  // (corpus-retrieve.js) distinguishes "could not look" (null) from "looked, reached
+  // fine, nothing scored" ([]) — but for the READING prompt both are honest absence:
+  // neither state gives the model any corpus material to reason from.
+  it('corpus reached, zero hits ([]) → same honest absence as null, no corpus material, no corpus anchor', async () => {
+    retrieveCorpusEvidence.mockResolvedValue([]);
+    const { prompt, anchors } = await buildReadingContext(baseSession());
+
+    expect(prompt).not.toMatch(/^- \[CORPUS\]/m);
+    expect(anchors.find((a) => a.source === 'corpus')).toBeUndefined();
+  });
+
+  // The session-level cache (session-start.js's corpus act) short-circuits the live
+  // retrieveCorpusEvidence call entirely — corpusEvidence() must treat a cached []
+  // exactly the same as a cached null, never re-attempt, never fabricate material.
+  it('cached session.corpus_hits === [] (attempted at scan time, zero hits) → same honest absence, retrieveCorpusEvidence never called', async () => {
+    const session = baseSession({ corpus_hits: [] });
+    const { prompt, anchors } = await buildReadingContext(session);
+
+    expect(prompt).not.toMatch(/^- \[CORPUS\]/m);
+    expect(anchors.find((a) => a.source === 'corpus')).toBeUndefined();
+    expect(retrieveCorpusEvidence).not.toHaveBeenCalled();
+  });
+
+  it('cached session.corpus_hits with real hits → uses the cache, retrieveCorpusEvidence never called', async () => {
+    const session = baseSession({
+      corpus_hits: [{ n: 1, slug: 'acme-raise', layer: 'evidence', text: 'Acme raised a Series A in 2025.', score: 0.9 }],
+    });
+    const { prompt, anchors } = await buildReadingContext(session);
+
+    expect(prompt).toMatch(/\[CORPUS\].*our research suggests/);
+    expect(prompt).toMatch(/Acme raised a Series A in 2025/);
+    expect(anchors).toContainEqual({ label: '1 corpus holding', source: 'corpus' });
+    expect(retrieveCorpusEvidence).not.toHaveBeenCalled();
+  });
+});
+
+// Finding 2 (live rehearsal): recon-dns.js emits dmarc_policy:'unknown' when the
+// _dmarc TXT lookup FAILED (SERVFAIL/timeout/refused) — see recon-dns.js's
+// ABSENCE_CODES / guardedLookup and tests/unit/recon-dns-honesty.test.js. The old
+// `if (ctx.dmarc_policy)` truthy check let a failed lookup anchor as a STRONG "we
+// can see" fact. ABSENCE RULE: could-not-look ≠ looked-and-absent.
+describe('reconEvidence — ABSENCE RULE: a failed DNS lookup must never anchor as "we can see"', () => {
+  it('dmarc_policy "unknown" is excluded from both the prompt and the anchors', async () => {
+    const session = baseSession({ recon_context: { dns: { dmarc_policy: 'unknown' } } });
+    const { prompt, anchors } = await buildReadingContext(session);
+
+    expect(prompt).not.toMatch(/DMARC posture/);
+    expect(anchors.find((a) => a.label?.startsWith('DMARC'))).toBeUndefined();
+  });
+
+  it('legitimate DMARC observations (missing/none/quarantine/reject) still anchor as STRONG', async () => {
+    for (const policy of ['missing', 'none', 'quarantine', 'reject']) {
+      const session = baseSession({ recon_context: { dns: { dmarc_policy: policy } } });
+      const { prompt, anchors } = await buildReadingContext(session);
+      expect(prompt, policy).toMatch(new RegExp(`\\[STRONG\\].*DMARC posture: ${policy}`));
+      expect(anchors, policy).toContainEqual({ label: `DMARC: ${policy}`, source: 'dns scan' });
+    }
   });
 });
 
