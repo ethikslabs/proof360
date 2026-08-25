@@ -28,12 +28,34 @@
 // Bedrock failure or empty/whitespace output → { reading: null, anchors: [] }. No
 // retry, no canned substitute — the caller (analyze.js) falls back to the existing
 // bullet opener silently, and the anchor chips disappear with it (the two are atomic).
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 import { chatComplete } from '../lib/inference.js';
 import { extractReconContext } from './recon-pipeline.js';
 import { retrieveCorpusEvidence } from './corpus-retrieve.js';
 import { FRAMEWORK_MAP } from '../config/frameworks.js';
+import { resolve as resolveModel } from '../lib/model-resolver.mjs';
 
-const MODEL = 'claude-haiku-4-5-20251001';
+// Model resolution mirrors signal-extractor.js: ask the vendored registry for the
+// role's model instead of hardcoding an id that can silently deprecate. The registry
+// has no 'cold-reading' role yet — resolveModel throws ModelResolutionError for an
+// unknown role, which we catch and fall back to the pre-registry hardcoded id, so
+// behavior is IDENTICAL until the role is actually registered (same fallback
+// discipline signal-extractor.js relies on, just with an explicit last-resort here
+// rather than a registry-declared fallback chain).
+const _registry = JSON.parse(readFileSync(
+  join(dirname(fileURLToPath(import.meta.url)), '../../config/models.registry.json'), 'utf8'));
+const FALLBACK_MODEL = 'claude-haiku-4-5-20251001';
+
+function resolveReadingModel() {
+  try {
+    return resolveModel('cold-reading', { registry: _registry, onLedger: () => {} }).model;
+  } catch {
+    return FALLBACK_MODEL;
+  }
+}
+
 const MAX_TOKENS = 300;
 
 const STRONG = { tag: 'STRONG', instruction: "say 'we can see' / 'we did see' — plain, not boastful" };
@@ -194,7 +216,15 @@ export async function buildReadingContext(session) {
   } else if (inferenceLines.length) {
     anchors.push({ label: 'Site narrative signals', source: 'site scrape' });
   }
-  if (summaryLine) anchors.push({ label: 'Company research', source: 'perplexity+gemini' });
+  // I-1 (review ruling): only claim the perplexity/gemini engines when they actually
+  // ran. signal-extractor.js threads used_web_research = !!company_research onto the
+  // session — a summary can exist purely from site-page synthesis (no engines
+  // contributed), and that must never be presented as "company research".
+  if (summaryLine) {
+    anchors.push(session?.used_web_research
+      ? { label: 'Company research', source: 'perplexity+gemini' }
+      : { label: 'Company summary', source: 'site synthesis' });
+  }
   if (corpus.anchor) anchors.push(corpus.anchor);
 
   const evidenceLines = [...recon.lines, ...inferenceLines];
@@ -238,8 +268,16 @@ export async function buildReadingContext(session) {
     '',
     'STRUCTURE — follow this exact three-beat shape (a reveal, not a verdict; the',
     'reader should feel "all the clues were sitting there"):',
-    '  1. CLUES — one or two plain sentences naming the observations themselves, each',
-    '     hedged per its own grade above.',
+    '  1. CLUES — 2-3 SHORT sentences, each stating ONE observation PLAINLY, hedged per',
+    '     its own grade above. Zero interpretation in this beat — no adjectives that',
+    '     characterize what the observation MEANS, no framing, no editorializing. State',
+    '     the fact and stop. Interpretation belongs ONLY in beat 2 (CONNECTION), never',
+    '     folded into a clue.',
+    '     Right (clue, flat): "Your jobs are in Sydney and Singapore."',
+    '     Wrong (clue with interpretation smuggled in — do NOT write like this):',
+    '     "Your APAC-focused hiring shows you\'re scaling regionally." — that is a',
+    '     conclusion wearing a clue\'s clothing; the interpretation ("APAC-focused",',
+    '     "scaling regionally") belongs in beat 2, not beat 1.',
     '  2. CONNECTION — one sentence drawing the natural conclusion from those clues,',
     "     framed as a conclusion (\"So …\"), never asserted harder than the underlying",
     '     grades allow.',
@@ -251,7 +289,12 @@ export async function buildReadingContext(session) {
     '  That\'s what we see. Are we reading it correctly?"',
     '',
     'Forbidden words/phrases: "obviously", "clearly", "elementary", "of course", any',
-    'self-congratulation, any numeric score.',
+    'self-congratulation, any numeric score. Also forbidden: commentary ON the signals',
+    'themselves — "interesting", "notably", "fascinating", "the mixed signals here…" —',
+    'and generic category wisdom — "that\'s common for X companies", "typical of the',
+    'industry". Every sentence must be about THEIR specific trail, never about their',
+    'category — you are reading THIS company\'s evidence, not narrating what companies',
+    'like it usually do.',
     '',
     'Write in your own words, synthesizing the evidence into a natural read — do not',
     'copy the evidence lines above verbatim into the paragraph, including any [CORPUS]',
@@ -269,7 +312,7 @@ export async function generateReading(session) {
   try {
     const { prompt, anchors } = await buildReadingContext(session);
     const response = await chatComplete({
-      model: MODEL,
+      model: resolveReadingModel(),
       max_tokens: MAX_TOKENS,
       messages: [{ role: 'user', content: prompt }],
       correlation_id: session?.id,

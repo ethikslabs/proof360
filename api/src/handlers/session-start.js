@@ -42,7 +42,7 @@ export async function sessionStartHandler(request, reply) {
 
 async function extractAndInfer(sessionId, { website_url, deck_file, session_id }, log) {
   try {
-    const { signals, sources_read, enterprise_signals, competitor_mentions, recon_context, company_summary, pages_read_count } =
+    const { signals, sources_read, enterprise_signals, competitor_mentions, recon_context, company_summary, pages_read_count, used_web_research } =
       await extractSignals({ website_url, deck_file, session_id }, log);
 
     const reconFlat = extractReconContext(recon_context);
@@ -70,6 +70,7 @@ async function extractAndInfer(sessionId, { website_url, deck_file, session_id }
       competitor_mentions,
       recon_context: recon_context || null,
       company_summary: company_summary || null,
+      used_web_research: !!used_web_research,
     });
 
     // Persist signals and recon to Postgres — non-blocking, failures don't affect in-memory pipeline

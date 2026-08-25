@@ -38,6 +38,7 @@ function baseSession(overrides = {}) {
       { type: 'customer_type', value: 'Enterprise (B2B)', confidence: 'confident' },
     ],
     company_summary: 'Acme builds compliance tooling for enterprise SaaS buyers in AU/NZ.',
+    used_web_research: true,
     recon_context: {
       dns: { dmarc_policy: 'reject' },
       ip: { cloud_provider: 'aws', hosting_provider: 'AWS' },
@@ -92,6 +93,15 @@ describe('buildReadingContext — prompt', () => {
     expect(prompt).toMatch(/obviously/);
     expect(prompt).toMatch(/elementary/);
     expect(prompt).toMatch(/numeric score/);
+
+    // R-2: commentary-on-signals and generic category wisdom are forbidden too
+    expect(prompt).toMatch(/interesting/);
+    expect(prompt).toMatch(/notably/);
+    expect(prompt).toMatch(/fascinating/);
+    expect(prompt).toMatch(/mixed signals here/);
+    expect(prompt).toMatch(/common for X companies/);
+    expect(prompt).toMatch(/typical of the\s+industry/);
+    expect(prompt).toMatch(/never about their\s+category/);
 
     // Frameworks resolved from customer_type = Enterprise (B2B)
     expect(prompt).toMatch(/SOC 2/);
@@ -178,6 +188,23 @@ describe('buildReadingContext — anchors (deterministic, never from model outpu
 
     // Only "No pages readable" survives — every other anchor requires a present fact.
     expect(anchors).toEqual([{ label: 'No pages readable', source: 'scrape' }]);
+  });
+
+  // I-1 (review ruling): the anchor must never claim engines that didn't run.
+  // signal-extractor.js only sets used_web_research when reconCompany's perplexity/
+  // gemini research actually contributed (company_research truthy).
+  it('used_web_research true → summary anchors as "Company research" (engines ran)', async () => {
+    const { anchors } = await buildReadingContext(baseSession({ used_web_research: true }));
+    expect(anchors).toContainEqual({ label: 'Company research', source: 'perplexity+gemini' });
+    expect(anchors.find((a) => a.label === 'Company summary')).toBeUndefined();
+  });
+
+  it('summary present but used_web_research false/absent → anchors as "Company summary" (site synthesis only, engines never ran)', async () => {
+    const session = baseSession({ used_web_research: false });
+    const { anchors } = await buildReadingContext(session);
+
+    expect(anchors).toContainEqual({ label: 'Company summary', source: 'site synthesis' });
+    expect(anchors.find((a) => a.label === 'Company research')).toBeUndefined();
   });
 });
 

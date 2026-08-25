@@ -17,6 +17,7 @@ vi.mock('../../src/services/corpus-retrieve.js', () => ({
   retrieveCorpusEvidence: vi.fn().mockResolvedValue(null),
 }));
 
+import { chatComplete } from '../../src/lib/inference.js';
 import { createSession, updateSession } from '../../src/services/session-store.js';
 import { analyzeHandler } from '../../src/handlers/analyze.js';
 
@@ -80,6 +81,44 @@ describe('analyzeHandler read-quality pass-through', () => {
     const reply = replyMock();
     await analyzeHandler({ params: { id: session.id } }, reply);
 
+    expect(reply.payload.pages_read_count).toBe(0);
+  });
+
+  // I-2 (billing regression guard): the comment on analyzeHandler's cached branch
+  // claims re-analyzing a session never re-bills Bedrock (or the corpus lookup) — the
+  // fresh path is the only one that calls generateReading()/chatComplete(). Assert it,
+  // don't just trust the comment: call analyze twice on the same session and confirm
+  // the second (cached) call adds zero chatComplete invocations.
+  it('a second analyze call on an already-analyzed session never re-bills chatComplete (no-re-bill guarantee)', async () => {
+    const session = seededSession();
+    const before = chatComplete.mock.calls.length;
+
+    const reply1 = replyMock();
+    await analyzeHandler({ params: { id: session.id } }, reply1);
+    const afterFresh = chatComplete.mock.calls.length;
+    expect(afterFresh).toBe(before + 1); // fresh path: generateReading() calls chatComplete once
+
+    const reply2 = replyMock();
+    await analyzeHandler({ params: { id: session.id } }, reply2);
+    const afterCached = chatComplete.mock.calls.length;
+    expect(afterCached).toBe(afterFresh); // cached path: zero additional chatComplete calls
+  });
+
+  // R-3 (synthetic page pollutes pages_read_count): a session where recon-company.js's
+  // web research contributed (used_web_research true) but the site itself returned zero
+  // real pages must still report pages_read_count 0 — the synthetic research "page"
+  // must never be counted as a site page read, and the frontend's degraded-read framing
+  // (coldReadOpener) keys off exactly this field being honestly 0.
+  it('a research-page-only session (engines ran, no real site pages) reports pages_read_count 0 — degraded framing preserved', async () => {
+    const session = seededSession({
+      sources_read: ['company research · web'],
+      pages_read_count: 0,
+      used_web_research: true,
+    });
+    const reply = replyMock();
+    await analyzeHandler({ params: { id: session.id } }, reply);
+
+    expect(reply.statusCode).toBe(200);
     expect(reply.payload.pages_read_count).toBe(0);
   });
 });

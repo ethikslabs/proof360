@@ -199,7 +199,7 @@ function fallbackSignals(website_url, deck_file) {
   // actual scrape (no Firecrawl key, no website_url, or the live scrape read zero
   // pages). pages_read_count: 0 is the honest-degradation flag the client uses to
   // decide between "read complete" and "perimeter read only" (INVARIANTS §1).
-  return { signals, sources_read, enterprise_signals, competitor_mentions: [], pages_read_count: 0 };
+  return { signals, sources_read, enterprise_signals, competitor_mentions: [], pages_read_count: 0, used_web_research: false };
 }
 
 const SIGNAL_READABLE = {
@@ -280,6 +280,16 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
       reconCompany(domain, session_id).catch(() => null),
     ]);
 
+    // Real scraped site pages, counted BEFORE the synthetic company-research page is
+    // unshifted in below. This is the honest pages_read_count: a session where recon-
+    // company.js's perplexity/gemini research contributed but the site itself returned
+    // zero real pages must still report 0 here — the synthetic page feeds extraction
+    // content, it is never a "page read" (R-3 finding, live rehearsal: an all-research
+    // session was reporting pages_read_count 1 and flipping the frontend's degraded-read
+    // framing off).
+    const real_pages_count = pages.length;
+    const used_web_research = !!company_research;
+
     if (company_research) {
       pages.unshift(company_research);
       log({ text: `  ✓  company research · web`, type: 'ok' });
@@ -288,7 +298,7 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
     if (pages.length === 0) {
       log({ text: '  ✗  No pages could be read from this site', type: 'err' });
       log({ text: '  ↳  Falling back to domain-level signals only', type: 'muted' });
-      return { ...fallbackSignals(website_url, deck_file), recon_context };
+      return { ...fallbackSignals(website_url, deck_file), recon_context, used_web_research };
     }
 
     log({ text: '', type: 'blank' });
@@ -325,12 +335,13 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
       log({ text: '  ↳  Falling back to domain-level signals only', type: 'muted' });
       // Pages WERE actually read here — the site opened, extraction just found nothing
       // to say. Overriding fallbackSignals' pages_read_count:0 keeps the honest-read
-      // flag accurate even though the signals themselves are placeholders.
-      return { ...fallbackSignals(website_url, deck_file), recon_context, pages_read_count: pages.length };
+      // flag accurate even though the signals themselves are placeholders. real_pages_count
+      // (not pages.length) so a research-only contribution never counts as a page read.
+      return { ...fallbackSignals(website_url, deck_file), recon_context, pages_read_count: real_pages_count, used_web_research };
     }
 
     const company_summary = extracted.company_summary || null;
-    return { signals, sources_read, enterprise_signals, competitor_mentions, recon_context, company_summary, pages_read_count: pages.length };
+    return { signals, sources_read, enterprise_signals, competitor_mentions, recon_context, company_summary, pages_read_count: real_pages_count, used_web_research };
   } catch (err) {
     console.error('[signal-extractor] pipeline error:', err.message, err.stack);
     // Only emit to terminal if not already emitted by the specific handler above
