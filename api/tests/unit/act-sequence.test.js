@@ -326,7 +326,7 @@ describe('session-start.js — the corpus act + the extraction-failure __done__'
     for (const line of log) assertContractShape(line);
 
     const corpusDone = log.find((l) => l.type === 'act' && l.act === 'corpus' && l.phase === 'done');
-    expect(corpusDone).toMatchObject({ note: '1 holdings' });
+    expect(corpusDone).toMatchObject({ note: '1 holding' });
     const hitLine = log.find((l) => l.type === 'act_body' && l.act === 'corpus' && l.text.includes('acme-raise'));
     expect(hitLine.text).toContain('evidence');
   });

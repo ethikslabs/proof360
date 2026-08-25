@@ -78,7 +78,7 @@ async function extractAndInfer(sessionId, { website_url, deck_file, session_id }
         }
         log({ act: 'corpus', type: 'act_body', text: `↳  ${hit.slug} · ${hit.layer} · score ${Number(hit.score).toFixed(2)}${domain ? ` · ${domain}` : ''}` });
       }
-      log({ type: 'act', act: 'corpus', phase: 'done', note: `${corpus_hits.length} holdings` });
+      log({ type: 'act', act: 'corpus', phase: 'done', note: `${corpus_hits.length} holding${corpus_hits.length === 1 ? '' : 's'}` });
     } else if (corpus_hits !== null) {
       // Reached the corpus fine, nothing scored — an honest zero we DID look for,
       // never confused with the could-not-look case below (ABSENCE RULE).

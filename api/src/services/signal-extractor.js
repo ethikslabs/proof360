@@ -384,7 +384,7 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
       log({ act: 'site', type: 'act_body', text: 'No pages could be read from this site', color: 'err' });
       log({ type: 'act', act: 'site', phase: 'done', note: '0 pages' });
     } else {
-      log({ type: 'act', act: 'site', phase: 'done', note: `${real_pages_count} pages` });
+      log({ type: 'act', act: 'site', phase: 'done', note: `${real_pages_count} page${real_pages_count === 1 ? '' : 's'}` });
     }
 
     // 3 & 4. Perplexity, then Gemini — BOTH run on every read (John ruling
@@ -400,7 +400,7 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
     // 5. Perimeter closes out — correlation (step 6) needs it.
     const recon_context = await reconPromise;
     if (recon_context) {
-      log({ type: 'act', act: 'perimeter', phase: 'done', note: `${perimeterChecks} checks` });
+      log({ type: 'act', act: 'perimeter', phase: 'done', note: `${perimeterChecks} check${perimeterChecks === 1 ? '' : 's'}` });
     } else {
       log({ type: 'act', act: 'perimeter', phase: 'fail', note: reconTimedOut ? 'timed out' : 'failed' });
     }
@@ -461,7 +461,7 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
       return { ...fallbackSignals(website_url, deck_file), recon_context, pages_read_count: real_pages_count, used_web_research, research_engines };
     }
 
-    log({ type: 'act', act: 'correlate', phase: 'done', note: `${signals.length} signals` });
+    log({ type: 'act', act: 'correlate', phase: 'done', note: `${signals.length} signal${signals.length === 1 ? '' : 's'}` });
 
     const company_summary = extracted.company_summary || null;
     return { signals, sources_read, enterprise_signals, competitor_mentions, recon_context, company_summary, pages_read_count: real_pages_count, used_web_research, research_engines };
