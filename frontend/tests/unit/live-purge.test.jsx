@@ -101,3 +101,60 @@ describe('live-purge: analysis.inferences → live signals mapping (rendering/li
     expect(inferencesToSignals(undefined)).toEqual([]);
   });
 });
+
+// Honesty wave (John walk findings 2026-08-25), item 1: a hosting conflict
+// (probe vs extracted text) travels from the API's inference shape through to
+// the chip/drawer shape unchanged, so the frontend can render the "sources
+// disagree" marker without re-deriving anything.
+describe('live-purge: conflict + probe-derived confidence passthrough (item 1)', () => {
+  it('a conflicted inference carries conflicted:true and both witnesses through to the signal', () => {
+    const mapped = inferencesToSignals([{
+      inference_id: 'inf_infrastructure',
+      label: 'Hosted on Oracle',
+      confidence: 'observed',
+      category: 'infrastructure',
+      conflicted: true,
+      conflict: { probe_says: 'Oracle', source_says: 'AWS' },
+    }]);
+    expect(mapped[0].conflicted).toBe(true);
+    expect(mapped[0].conflict).toEqual({ probe_says: 'Oracle', source_says: 'AWS' });
+    expect(mapped[0].source).toBe('live_probe');
+  });
+
+  it('a non-conflicted inference defaults to conflicted:false and conflict:null', () => {
+    const mapped = inferencesToSignals([{
+      inference_id: 'inf_x', label: 'Works with AWS', confidence: 'probable', category: 'infrastructure',
+    }]);
+    expect(mapped[0].conflicted).toBe(false);
+    expect(mapped[0].conflict).toBeNull();
+    expect(mapped[0].source).toBe('url_scrape');
+  });
+
+  it('confidence "observed" (probe-derived) maps to a distinct number and live_probe source', () => {
+    const mapped = inferencesToSignals([{
+      inference_id: 'inf_infrastructure', label: 'Hosted on Oracle', confidence: 'observed', category: 'infrastructure',
+    }]);
+    expect(mapped[0].confidence).toBe(0.85);
+    expect(mapped[0].source).toBe('live_probe');
+  });
+});
+
+// Honesty wave item 3(b): bare-boolean/empty labels must never reach the chip
+// strip, even as a belt-and-braces guard alongside the API-side filter.
+describe('live-purge: bare-boolean/empty label guard (item 3)', () => {
+  it('drops an inference whose label is the literal boolean true', () => {
+    const mapped = inferencesToSignals([
+      { inference_id: 'inf_bad', label: true, confidence: 'probable', category: 'governance' },
+      { inference_id: 'inf_ok', label: 'Uses AI', confidence: 'probable', category: 'product' },
+    ]);
+    expect(mapped).toHaveLength(1);
+    expect(mapped[0].value).toBe('Uses AI');
+  });
+
+  it('drops an inference with a whitespace-only label', () => {
+    const mapped = inferencesToSignals([
+      { inference_id: 'inf_blank', label: '   ', confidence: 'probable', category: 'governance' },
+    ]);
+    expect(mapped).toHaveLength(0);
+  });
+});

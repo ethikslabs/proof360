@@ -1,12 +1,13 @@
 // frontend/src/components/chat/SignalEvidenceDrawer.jsx
 import { useState, Fragment } from 'react';
 import { createPortal } from 'react-dom';
-import { freshnessLabel, signalFreshness } from '../../rendering/protocol.js';
+import { freshnessLabel, signalFreshness, gradeLabel } from '../../rendering/protocol.js';
 
 const SOURCE_LABELS = {
   github_scan: 'GitHub public repo scan',
   conversation: 'Conversation — what you told us',
   url_scrape:   'Website scan',
+  live_probe:   'Live technical probe',
   self_disclosed: 'You told us directly',
 };
 
@@ -51,18 +52,26 @@ export function SignalEvidenceDrawer({ signal, onClose, onCorrect, onIgnore, onA
         <div style={{ width: 36, height: 3, background: '#e0d8c9', borderRadius: 2, margin: '0 auto 18px' }} />
 
         {/* Signal label */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 4,
-            background: isGap ? '#dcfce7' : '#fef3c7',
-            border: `1px solid ${isGap ? '#86efac' : '#fcd34d'}`,
+            background: signal.conflicted ? '#fee2e2' : (isGap ? '#dcfce7' : '#fef3c7'),
+            border: `1px solid ${signal.conflicted ? '#fca5a5' : (isGap ? '#86efac' : '#fcd34d')}`,
             borderRadius: 4, padding: '3px 10px',
             fontSize: 11, fontWeight: 700,
-            color: isGap ? '#15803d' : '#92400e',
+            color: signal.conflicted ? '#b91c1c' : (isGap ? '#15803d' : '#92400e'),
           }}>
             <span style={{ fontSize: 8 }}>◆</span>
             {signal.value}
           </span>
+          {signal.conflicted && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4,
+              fontSize: 10, fontWeight: 700, color: '#b91c1c',
+            }}>
+              ⚡ sources disagree
+            </span>
+          )}
           {isStale && (
             <span style={{ fontSize: 10, color: '#b0956e', fontStyle: 'italic' }}>stale</span>
           )}
@@ -72,7 +81,7 @@ export function SignalEvidenceDrawer({ signal, onClose, onCorrect, onIgnore, onA
         <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '6px 12px', marginBottom: 16 }}>
           {[
             ['Source', SOURCE_LABELS[signal.source] || signal.source],
-            ['Confidence', `${Math.round(signal.confidence * 100)}% (observation confidence — how certain we are this is true)`],
+            ['Confidence', gradeLabel(signal)],
             ['Freshness', freshnessLabel(signal)],
             ['Domain', signal.domain],
             ['Observed', `Turn ${signal.conversation_turn}`],
@@ -85,6 +94,18 @@ export function SignalEvidenceDrawer({ signal, onClose, onCorrect, onIgnore, onA
             </Fragment>
           ))}
         </div>
+
+        {/* Evidence conflict — a question, never a verdict (lamp register) */}
+        {signal.conflicted && signal.conflict && (
+          <div style={{ marginBottom: 16, padding: '10px 13px', background: '#fff7f7', borderRadius: 8, border: '1px solid #fca5a5' }}>
+            <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#b91c1c', marginBottom: 5 }}>
+              ⚡ Sources disagree
+            </div>
+            <div style={{ fontSize: 12, color: '#5a5267', lineHeight: 1.55 }}>
+              Our probe sees {signal.conflict.probe_says} today. Your public materials mention {signal.conflict.source_says}. Which is right?
+            </div>
+          </div>
+        )}
 
         {/* What would disprove this */}
         {signal.disprovable_by && (

@@ -6,8 +6,11 @@ export function buildInferences(signals, sources_read, website_url, recon = {}) 
   const correctable_fields = [];
   const followup_questions = [];
 
-  // Map each raw signal to a display inference
+  // Map each raw signal to a display inference — skip 'infrastructure' and
+  // 'works_with' here, they need the recon-reconciliation pass below (a hosting
+  // claim can conflict with the live probe; a works_with claim never does).
   for (const signal of signals) {
+    if (signal.type === 'infrastructure' || signal.type === 'works_with') continue;
     inferences.push({
       inference_id: `inf_${signal.type}`,
       label: inferenceLabel(signal),
@@ -16,7 +19,7 @@ export function buildInferences(signals, sources_read, website_url, recon = {}) 
     });
   }
 
-  // Always include compliance and infrastructure at "probable" when no direct evidence
+  // Always include compliance at "probable" when no direct evidence
   const inferredTypes = new Set(signals.map((s) => s.type));
   if (!inferredTypes.has('compliance_status')) {
     inferences.push({
@@ -26,55 +29,90 @@ export function buildInferences(signals, sources_read, website_url, recon = {}) 
       category: 'governance',
     });
   }
-  if (!inferredTypes.has('infrastructure')) {
+
+  // Hosting: truth ladder says the live probe outranks any text-derived claim
+  // (INVARIANTS honest degradation + lamp register — surface conflicts as
+  // questions, never silent picks). recon.cloud_provider/hosting_provider is an
+  // IP lookup, not a guess; a text-derived 'infrastructure' signal is only ever
+  // an EXPLICIT self-hosting statement (signal-extractor re-types anything else
+  // as 'works_with'). When both exist and disagree, the probe becomes primary
+  // and the extracted claim is kept visible as the conflicting witness — never
+  // silently dropped, never silently picked.
+  const reconInfra = recon.cloud_provider || recon.hosting_provider || null;
+  const hostingSignal = signals.find((s) => s.type === 'infrastructure');
+
+  if (reconInfra && hostingSignal && !sameProvider(reconInfra, hostingSignal.value)) {
     inferences.push({
       inference_id: 'inf_infrastructure',
-      label: 'Hosted on AWS',
-      confidence: 'probable',
+      label: `Hosted on ${reconInfra}`,
+      confidence: 'observed',
       category: 'infrastructure',
+      conflicted: true,
+      conflict: { probe_says: reconInfra, source_says: hostingSignal.value },
+    });
+  } else if (reconInfra) {
+    inferences.push({
+      inference_id: 'inf_infrastructure',
+      label: `Hosted on ${reconInfra}`,
+      confidence: 'observed',
+      category: 'infrastructure',
+      conflicted: false,
+    });
+  } else if (hostingSignal) {
+    inferences.push({
+      inference_id: 'inf_infrastructure',
+      label: `Hosted on ${hostingSignal.value}`,
+      confidence: hostingSignal.confidence,
+      category: 'infrastructure',
+      conflicted: false,
+    });
+  }
+  // Neither a probe fact nor an explicit self-hosting statement: say nothing —
+  // no canned "Hosted on AWS" guess (this WAS the bug: a hardcoded default that
+  // fired unconditionally and rendered next to the probe's real finding with no
+  // reconciliation).
+
+  // Vendor relationships ("works with AWS") are business facts, not hosting —
+  // they never conflict with the probe and always render.
+  for (const signal of signals.filter((s) => s.type === 'works_with')) {
+    inferences.push({
+      inference_id: `inf_works_with_${slugify(signal.value)}`,
+      label: `Works with ${signal.value}`,
+      confidence: signal.confidence,
+      category: 'infrastructure',
+      conflicted: false,
     });
   }
 
-  // Build correctable fields for high-value signals
-  // Recon cloud_provider overrides Claude's inferred infrastructure — it's an IP lookup, not a guess
-  const reconInfra = recon.cloud_provider || null;
+  // No blank/bare-boolean chips ever reach the wire — filter at the source so
+  // the frontend never has to guess what an empty or `true` label meant.
+  const validInferences = inferences.filter((inf) => isRenderableLabel(inf.label));
 
-  const correctableTypes = ['customer_type', 'data_sensitivity', 'infrastructure'];
+  // Build correctable fields for high-value signals
+  const correctableTypes = ['customer_type', 'data_sensitivity'];
   for (const type of correctableTypes) {
     const signal = signals.find((s) => s.type === type);
     if (signal) {
-      const isInfra = type === 'infrastructure';
-      // For infrastructure: Claude often guesses wrong from logos/integrations on the page.
-      // Prefer recon cloud_provider (IP-derived fact) if available.
-      // If neither is reliable, show as unknown so founder corrects it.
-      let inferredValue;
-      if (isInfra) {
-        const isUnreliable = ['Multi-cloud', 'Unknown', 'unknown'].includes(signal.value);
-        inferredValue = isUnreliable
-          ? (reconInfra || 'Unknown — please correct')
-          : signal.value + (signal.confidence === 'probable' ? ' (probable)' : '');
-      } else {
-        inferredValue = signal.value + (signal.confidence === 'probable' ? ' (probable)' : '');
-      }
       correctable_fields.push({
         key: signal.type,
         label: fieldLabel(signal.type),
-        inferred_value: inferredValue,
+        inferred_value: signal.value + (signal.confidence === 'probable' ? ' (probable)' : ''),
       });
     }
   }
 
-  // Always include infrastructure as correctable
-  // If we know the CDN/edge layer (e.g. Cloudflare) but not the underlying host, surface that
+  // Infrastructure correctable field: same resolution as the inference above —
+  // probe wins when both exist, otherwise whichever we have, otherwise honest "Unknown".
+  // If we know the CDN/edge layer (e.g. Cloudflare) but not the underlying host, surface that.
   const edgeProvider = recon.cdn_provider || recon.waf_detected || null;
-  const infraDisplay = reconInfra || (edgeProvider ? `Behind ${edgeProvider}` : 'Unknown');
-  if (!correctable_fields.find((f) => f.key === 'infrastructure')) {
-    correctable_fields.push({
-      key: 'infrastructure',
-      label: 'Infrastructure',
-      inferred_value: infraDisplay,
-    });
-  }
+  const infraDisplay = reconInfra
+    || (hostingSignal ? hostingSignal.value + (hostingSignal.confidence === 'probable' ? ' (probable)' : '') : null)
+    || (edgeProvider ? `Behind ${edgeProvider}` : 'Unknown');
+  correctable_fields.push({
+    key: 'infrastructure',
+    label: 'Infrastructure',
+    inferred_value: infraDisplay,
+  });
 
   // Follow-up questions only for signal types NOT inferred
   // Ask about infrastructure when recon couldn't detect it (Cloudflare proxy hides cloud provider)
@@ -146,7 +184,7 @@ export function buildInferences(signals, sources_read, website_url, recon = {}) 
   return {
     company_name,
     source_summary,
-    inferences,
+    inferences: validInferences,
     correctable_fields,
     followup_questions,
     sources_read,
@@ -154,15 +192,38 @@ export function buildInferences(signals, sources_read, website_url, recon = {}) 
   };
 }
 
+// Boolean signals only ever carry the literal value `true` (mapToSignals only
+// pushes them when explicitly true) — so their label is a static human phrase,
+// never a value-based template. Every boolean signal type signal-extractor.js
+// can emit must have an entry here, or it falls through to `signal.value` (the
+// bare boolean `true`) — the exact bug this closes.
+const BOOLEAN_LABELS = {
+  handles_payments: 'Handles payments',
+  uses_ai: 'Uses AI',
+  handles_personal_data: 'Handles personal data',
+  pen_test_completed: 'Penetration tested',
+  has_backup: 'Has backup / DR',
+  aws_program_enrolled: 'AWS program enrolled',
+  microsoft_program_enrolled: 'Microsoft program enrolled',
+};
+
 function inferenceLabel(signal) {
   const labels = {
-    product_type: signal.value + ' product',
+    product_type: productTypeLabel(signal.value),
     customer_type: 'Targeting ' + String(signal.value).toLowerCase() + ' buyers',
     data_sensitivity: 'Processes ' + String(signal.value).toLowerCase(),
     stage: signal.value + ' stage',
     use_case: signal.value,
+    ...BOOLEAN_LABELS,
   };
   return labels[signal.type] || signal.value;
+}
+
+// "Software product" + " product" doubled to "Software product product" — only
+// append the word when the value doesn't already end with it.
+function productTypeLabel(value) {
+  const v = String(value ?? '').trim();
+  return /\bproduct$/i.test(v) ? v : `${v} product`;
 }
 
 function signalCategory(type) {
@@ -170,6 +231,10 @@ function signalCategory(type) {
     product_type: 'product', customer_type: 'market', data_sensitivity: 'data',
     stage: 'company', use_case: 'market', identity_model: 'identity',
     infrastructure: 'infrastructure', insurance_status: 'governance',
+    handles_payments: 'data', uses_ai: 'product', handles_personal_data: 'data',
+    pen_test_completed: 'governance', has_backup: 'infrastructure',
+    aws_program_enrolled: 'company', microsoft_program_enrolled: 'company',
+    works_with: 'infrastructure',
   };
   return map[type] || 'general';
 }
@@ -181,6 +246,44 @@ function fieldLabel(type) {
     infrastructure: 'Infrastructure',
   };
   return map[type] || type;
+}
+
+// A rendered chip must never be blank or a bare boolean — filter at the source
+// so the frontend never has to guess what an empty/`true` label meant.
+function isRenderableLabel(label) {
+  if (label === null || label === undefined) return false;
+  if (typeof label === 'boolean') return false;
+  if (typeof label === 'string' && label.trim() === '') return false;
+  return true;
+}
+
+// Loose provider-name equality: case/whitespace-insensitive, with the common
+// long-form ↔ short-form aliases a probe and marketing copy might disagree on
+// spelling rather than fact.
+const PROVIDER_ALIASES = {
+  'amazon web services': 'aws',
+  'google cloud platform': 'google cloud',
+  'gcp': 'google cloud',
+  'microsoft azure': 'azure',
+  'oracle cloud infrastructure': 'oracle',
+  'oracle cloud': 'oracle',
+};
+
+function normalizeProvider(value) {
+  const s = String(value ?? '').toLowerCase().trim();
+  return PROVIDER_ALIASES[s] || s;
+}
+
+function sameProvider(a, b) {
+  if (!a || !b) return false;
+  return normalizeProvider(a) === normalizeProvider(b);
+}
+
+function slugify(value) {
+  return String(value ?? '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '') || 'unknown';
 }
 
 function extractCompanyName(url) {

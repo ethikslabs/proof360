@@ -9,7 +9,13 @@
 // the test suite share the same mapper instead of drifting apart.
 import { makeObservedSignal } from './protocol.js';
 
-const CONFIDENCE_MAP = { confirmed: 0.9, probable: 0.6 };
+// 'observed' is inference-builder.js's confidence grade for a live-probe-derived
+// fact (currently the hosting/cloud-provider inference) — mapped to a number
+// here only for freshness/ranking math; the frontend's grade-word display
+// (protocol.js gradeWord) reads the derived `source` field ('live_probe'
+// below), not this number, so the exact value matters less than it being
+// distinct from 'probable'/'confirmed'.
+const CONFIDENCE_MAP = { confirmed: 0.9, probable: 0.6, observed: 0.85 };
 
 // inference-builder.js's signalCategory() emits: product, market, data,
 // company, identity, infrastructure, governance — plus its own 'general'
@@ -37,12 +43,32 @@ const DOMAIN_MAP = {
 // polarity derivation when that wiring lands.
 const DEFAULT_POLARITY = 'capability';
 
+// A chip must never render blank or a bare boolean (e.g. the literal word
+// "True") — belt-and-braces guard alongside the API-side filter in
+// inference-builder.js (defense in depth: this mapper is the one place every
+// live entry point funnels through, so a future API regression still can't
+// reach the chip strip).
+function isRenderableLabel(label) {
+  if (label === null || label === undefined) return false;
+  if (typeof label === 'boolean') return false;
+  if (typeof label === 'string' && label.trim() === '') return false;
+  return true;
+}
+
 export function inferencesToSignals(inferences) {
-  return (inferences ?? []).map(inf => makeObservedSignal({
-    value: inf.label ?? '',
-    domain: DOMAIN_MAP[inf.category] ?? 'compliance',
-    polarity: DEFAULT_POLARITY,
-    source: 'url_scrape',
-    confidence: CONFIDENCE_MAP[inf.confidence] ?? 0.6,
-  })).filter(s => s.value);
+  return (inferences ?? [])
+    .filter(inf => isRenderableLabel(inf?.label))
+    .map(inf => makeObservedSignal({
+      value: inf.label ?? '',
+      domain: DOMAIN_MAP[inf.category] ?? 'compliance',
+      polarity: DEFAULT_POLARITY,
+      // A probe-derived fact (confidence 'observed') is sourced from the live
+      // probe, not a marketing-page scrape — the grade-word display keys off
+      // this to read "observed" instead of a confidence-threshold guess.
+      source: inf.confidence === 'observed' ? 'live_probe' : 'url_scrape',
+      confidence: CONFIDENCE_MAP[inf.confidence] ?? 0.6,
+      conflicted: !!inf.conflicted,
+      conflict: inf.conflict ?? null,
+    }))
+    .filter(s => s.value);
 }

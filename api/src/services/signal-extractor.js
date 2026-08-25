@@ -76,7 +76,7 @@ async function extractWithClaude(pages, log = () => {}, session_id = null) {
 
   const prompt = `Analyze this website content and extract business signals about the company.
 
-IMPORTANT: You are reading marketing copy and public pages. Extract only what the NARRATIVE tells you — who they are, what they sell, who they sell to. Do NOT infer technical infrastructure, security posture, or compliance status from page content — those facts come from technical scans, not marketing pages.
+IMPORTANT: You are reading marketing copy and public pages. Extract only what the NARRATIVE tells you — who they are, what they sell, who they sell to. Do NOT guess at technical infrastructure, security posture, or compliance status — those facts come from technical scans, not marketing pages. The two exceptions are own_hosting_provider and vendor_relationships below, and even those are extracted ONLY from an explicit textual statement, never inferred from logos, integrations, or vibes — a live technical probe always outranks whatever you extract here.
 
 ${content}
 
@@ -103,6 +103,8 @@ Respond with ONLY valid JSON matching this exact schema (no markdown, no explana
   "has_backup": true | false | null,
   "aws_program_enrolled": true | false | null,
   "microsoft_program_enrolled": true | false | null,
+  "own_hosting_provider": "AWS" | "GCP" | "Azure" | "Oracle" | "Cloudflare" | "Unknown",
+  "vendor_relationships": ["array of cloud/tech vendor names mentioned"],
   "confidence": "confident" | "likely" | "probable",
   "company_summary": "2-3 sentence market read: what they build, who they sell to, and where they operate. Be specific — name the sector, geography, and buyer type. Plain English, no jargon."
 }
@@ -113,7 +115,9 @@ Signal rules:
 - pen_test_completed: true only when they explicitly mention penetration testing, third-party security audits, or security assessments. null when not mentioned.
 - has_backup: true only when they explicitly mention backup, disaster recovery, or data redundancy. null when not mentioned.
 - aws_program_enrolled: true only when they explicitly mention AWS Activate, AWS Startup program, or AWS credits. null when not mentioned.
-- microsoft_program_enrolled: true only when they explicitly mention Microsoft for Startups, Founders Hub, Azure credits, or Azure startup program. null when not mentioned.`;
+- microsoft_program_enrolled: true only when they explicitly mention Microsoft for Startups, Founders Hub, Azure credits, or Azure startup program. null when not mentioned.
+- own_hosting_provider: a cloud provider ONLY when the page explicitly states their OWN product/site/company is hosted, built, or run on that provider (e.g. "built on AWS infrastructure", "we host on Oracle Cloud"). "Unknown" otherwise — never guess from a logo or an integration badge.
+- vendor_relationships: cloud/tech vendor names mentioned as something they USE, IMPLEMENT, INTEGRATE, RESELL, or WORK WITH for/with clients — a relationship, not their own hosting. Example: a security consultancy whose page says "we deploy AWS environments for clients" → "AWS" goes here, never into own_hosting_provider. Empty array if none mentioned this way.`;
 
   let response;
   try {
@@ -142,11 +146,14 @@ Signal rules:
   }
 }
 
-function mapToSignals(extracted) {
+export function mapToSignals(extracted) {
   const confidence = extracted.confidence || 'probable';
   const signals = [];
 
-  // Business signals only — infrastructure/compliance/identity come from recon + founder answers
+  // Business signals only — compliance/identity come from recon + founder answers.
+  // Infrastructure is the one exception: own_hosting_provider / vendor_relationships
+  // below, handled separately because they need re-typing (hosting vs relationship),
+  // not the flat value-copy every other business field gets.
   const mappings = [
     ['product_type', extracted.product_type],
     ['customer_type', extracted.customer_type],
@@ -169,6 +176,25 @@ function mapToSignals(extracted) {
     if (extracted[key] === true) {
       signals.push({ type: key, value: true, confidence });
     }
+  }
+
+  // Hosting vs relationship re-typing (John ruling, mid-build amendment): a cloud
+  // mention in marketing text is a claim about THEIR OWN hosting only when the
+  // extraction prompt found an explicit self-hosting statement — everything else
+  // (a vendor they implement/integrate/resell for clients) is a relationship, and
+  // relationships never compete with the live probe's hosting fact.
+  const ownHosting = extracted.own_hosting_provider;
+  if (ownHosting && ownHosting !== 'Unknown' && ownHosting !== 'unknown') {
+    signals.push({ type: 'infrastructure', value: ownHosting, confidence, claim_type: 'hosting' });
+  }
+  const relationships = Array.isArray(extracted.vendor_relationships) ? extracted.vendor_relationships : [];
+  const seenRelationships = new Set();
+  for (const vendor of relationships) {
+    if (!vendor || vendor === 'Unknown' || vendor === 'unknown') continue;
+    const key = String(vendor).toLowerCase();
+    if (seenRelationships.has(key)) continue;
+    seenRelationships.add(key);
+    signals.push({ type: 'works_with', value: vendor, confidence, claim_type: 'relationship' });
   }
 
   return signals;
@@ -221,6 +247,7 @@ const SIGNAL_READABLE = {
   has_backup:             () => 'Has backup/DR',
   aws_program_enrolled:       () => 'AWS program enrolled',
   microsoft_program_enrolled: () => 'Microsoft program enrolled',
+  works_with:              (v) => `Works with ${v}`,
 };
 
 export async function extractSignals({ website_url, deck_file, session_id }, log = () => {}) {
