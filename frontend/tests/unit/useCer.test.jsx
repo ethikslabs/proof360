@@ -87,6 +87,38 @@ describe('useCer', () => {
     await act(async () => { await result.current.withdrawCer('new-cer'); });
     expect(withdrawCerConsent).toHaveBeenCalledWith('new-cer', {});
   });
+
+  // Live rehearsal (2026-08-25, cognisys.co.uk demo): a rejected createCer used to
+  // propagate as an unhandled rejection — confirmCer just went un-busy with the founder
+  // seeing nothing happen. It must catch the failure into an honest, readable message.
+  it('confirmCer catches a rejected createCer into an honest error, never throws, forming survives', async () => {
+    createCer.mockRejectedValueOnce(Object.assign(new Error('not authenticated'), { status: 401 }));
+    const { result } = renderHook(() => useCer(CTX));
+    await waitFor(() => expect(getCers).toHaveBeenCalled());
+
+    act(() => result.current.startRoute('vanta'));
+    let out;
+    await act(async () => { out = await result.current.confirmCer(); });
+
+    expect(out).toBeNull();
+    expect(result.current.error).toMatch(/signed in/i);
+    expect(result.current.busy).toBe(false);
+    // The forming record is NOT discarded on failure — the founder can retry.
+    expect(result.current.forming).not.toBeNull();
+  });
+
+  it('confirmCer clears a prior error on a fresh attempt', async () => {
+    createCer.mockRejectedValueOnce(new Error('network blip'));
+    const { result } = renderHook(() => useCer(CTX));
+    await waitFor(() => expect(getCers).toHaveBeenCalled());
+
+    act(() => result.current.startRoute('vanta'));
+    await act(async () => { await result.current.confirmCer(); });
+    expect(result.current.error).toBe('network blip');
+
+    await act(async () => { await result.current.confirmCer(); }); // succeeds this time (default mock)
+    expect(result.current.error).toBeNull();
+  });
 });
 
 describe('useCer awaitingField', () => {

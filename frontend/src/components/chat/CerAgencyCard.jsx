@@ -19,7 +19,13 @@ function KV({ k, v, mono, tk }) {
   );
 }
 
-export function CerAgencyCard({ proposal, tk, onConfirm, onEdit, busy }) {
+// Live rehearsal (2026-08-25): the second action here used to be labelled "Edit" but
+// wired to dismissForming — clicking it discarded the whole forming record rather than
+// opening anything editable (no field on this card is actually editable yet). The
+// founder read "Edit", clicked it, and watched the card vanish with no explanation.
+// Renamed to say what it actually does until real field-editing exists — never label a
+// button for a behavior it doesn't have (no-canned-text / honest-copy rule).
+export function CerAgencyCard({ proposal, tk, onConfirm, onDiscard, busy, error }) {
   const [consented, setConsented] = useState(false);
   const toneColor = { full: tk.sevOk, later: tk.inkSoft, never: tk.sevHigh };
 
@@ -73,10 +79,10 @@ export function CerAgencyCard({ proposal, tk, onConfirm, onEdit, busy }) {
       <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
         <button
           type="button"
-          onClick={onEdit}
+          onClick={onDiscard}
           style={{ fontFamily: FONT.sans, fontSize: 13, fontWeight: 600, color: tk.inkSoft, background: 'transparent', border: `1px solid ${tk.hairline}`, borderRadius: 9, padding: '9px 15px', cursor: 'pointer' }}
         >
-          Edit
+          Start over
         </button>
         <button
           type="submit"
@@ -92,6 +98,15 @@ export function CerAgencyCard({ proposal, tk, onConfirm, onEdit, busy }) {
           {busy ? 'Creating…' : 'Confirm & create pathway'}
         </button>
       </div>
+
+      {/* Live rehearsal (2026-08-25): confirmCer used to throw on a failed createCer
+          (e.g. not authenticated) as an unhandled rejection — the button just went
+          un-busy with no explanation. Surface the honest reason here instead. */}
+      {error && (
+        <div style={{ marginTop: 10, fontFamily: FONT.sans, fontSize: 12, color: tk.sevHigh }}>
+          {error}
+        </div>
+      )}
     </div>
   );
 }

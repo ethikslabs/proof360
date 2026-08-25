@@ -2928,8 +2928,8 @@ export default function Chat() {
               {cer.forming && cer.agencyReady && cer.proposal && (
                 <div style={{ margin: '12px 0' }}>
                   <CerAgencyCard
-                    proposal={cer.proposal} tk={tk} busy={cer.busy}
-                    onEdit={cer.dismissForming}
+                    proposal={cer.proposal} tk={tk} busy={cer.busy} error={cer.error}
+                    onDiscard={cer.dismissForming}
                     onConfirm={async () => { const created = await cer.confirmCer(); if (created) setJustCreatedCer(created); }}
                   />
                 </div>

@@ -52,7 +52,7 @@ describe('CerBuildCard', () => {
 describe('CerAgencyCard', () => {
   it('renders visibility + evidence and gates Confirm behind consent', () => {
     const onConfirm = vi.fn();
-    render(<CerAgencyCard proposal={PROPOSAL} tk={tk} onConfirm={onConfirm} onEdit={() => {}} />);
+    render(<CerAgencyCard proposal={PROPOSAL} tk={tk} onConfirm={onConfirm} onDiscard={() => {}} />);
     expect(screen.getByText('cloud_invoice.pdf')).toBeInTheDocument();
     expect(screen.getByText('✕ never')).toBeInTheDocument();
 
@@ -65,6 +65,33 @@ describe('CerAgencyCard', () => {
     expect(confirm).not.toBeDisabled();
     fireEvent.click(confirm);
     expect(onConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  // Live rehearsal (2026-08-25): this button used to be labelled "Edit" while wired to
+  // discard the whole forming record — the founder clicked it expecting to change
+  // something and watched the card vanish instead. Renamed to say what it does.
+  it('the second action says "Start over" (not "Edit") and calls onDiscard, not onConfirm', () => {
+    const onDiscard = vi.fn();
+    const onConfirm = vi.fn();
+    render(<CerAgencyCard proposal={PROPOSAL} tk={tk} onConfirm={onConfirm} onDiscard={onDiscard} />);
+    expect(screen.queryByRole('button', { name: /^edit$/i })).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: /start over/i }));
+    expect(onDiscard).toHaveBeenCalledTimes(1);
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  // Live rehearsal (2026-08-25): confirmCer failing (e.g. not authenticated) used to
+  // propagate as an unhandled rejection — the button went un-busy and nothing visible
+  // happened. useCer now catches it into an honest `error` string; this card must show it.
+  it('renders an honest error message when confirming fails, never silently', () => {
+    render(
+      <CerAgencyCard
+        proposal={PROPOSAL} tk={tk} onConfirm={() => {}} onDiscard={() => {}}
+        error="You'll need to be signed in to create this — log in and try again."
+      />
+    );
+    expect(screen.getByText(/you'll need to be signed in/i)).toBeInTheDocument();
   });
 });
 
