@@ -257,3 +257,14 @@ describe('buildInferences — label hygiene (item 3)', () => {
     expect(result.inferences.some((i) => i.label === true || i.label === 'true')).toBe(false);
   });
 });
+
+// Word-boundary canonicalization (follow-up on bbb804c): near-miss org names
+// must not read as a known provider.
+describe('canonicalProviderLabel word boundaries', () => {
+  it('does not match aws inside Awstats', async () => {
+    const { canonicalProviderLabel } = await import('../../src/services/inference-builder.js');
+    expect(canonicalProviderLabel('Awstats Inc')).toBe('Awstats Inc');
+    expect(canonicalProviderLabel('Oracle Corporation')).toBe('Oracle');
+    expect(canonicalProviderLabel('AWS')).toBe('AWS');
+  });
+});

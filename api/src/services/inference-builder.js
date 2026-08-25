@@ -172,7 +172,10 @@ export function buildInferences(signals, sources_read, website_url, recon = {}) 
       options: ['Yes', 'No', 'Partial', 'Not sure'],
     });
   }
-  if (!inferredTypes.has('aws_program_enrolled') && recon.cloud_provider === 'aws') {
+  // Case-insensitive: detectCloudProvider emits 'AWS' — the old lowercase-only
+  // compare silently suppressed this question for every AWS-hosted founder
+  // (pre-existing bug surfaced during the bbb804c review).
+  if (!inferredTypes.has('aws_program_enrolled') && String(recon.cloud_provider ?? '').toLowerCase() === 'aws') {
     followup_questions.push({
       question_id: 'q_aws_program',
       context: "Your infrastructure appears to be on AWS. AWS Activate gives startups up to $100k in credits.",
@@ -306,7 +309,10 @@ function canonicalProviderLabel(value) {
   const s = String(value ?? '').toLowerCase().trim();
   if (!s) return String(value ?? '');
   for (const { pretty, patterns } of CANONICAL_PROVIDERS) {
-    if (patterns.some((p) => s.includes(p))) return pretty;
+    // Word-boundary match, not bare substring — "Awstats Inc" must not read as
+    // AWS; a manufactured agreement is the same dishonesty as a manufactured
+    // conflict (review follow-up on bbb804c).
+    if (patterns.some((p) => new RegExp(`(^|[^a-z0-9])${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z0-9]|$)`).test(s))) return pretty;
   }
   return String(value);
 }

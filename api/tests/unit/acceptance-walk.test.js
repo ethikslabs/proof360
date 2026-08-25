@@ -4,6 +4,10 @@
 // Runs through the REAL session-chat handler; only Bedrock streaming is mocked.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+// The walk exercises multi-step real handler flows — 5000ms default flakes at the
+// boundary (5002-5009ms observed repeatedly, pre-existing). Realistic ceiling:
+vi.setConfig({ testTimeout: 20000 });
+
 // The mock persona "reads the script perfectly": it echoes the system prompt, so any
 // injected confirm/proposal question counts as voiced (the voiced gate requires the
 // reply to actually contain the ask). Individual tests override it to play rogue.
