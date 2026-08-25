@@ -1,0 +1,284 @@
+// api/src/services/cold-reading.js — "the reading": a synthesized, human, hedged
+// cold-read paragraph (John ruling 2026-08-25 — "like the Mentalist or Sherlock Holmes
+// but not a smart ass": the warmth of being accurately seen, zero performance of
+// cleverness). One Bedrock call over evidence already sitting on the session, plus a
+// live corpus lookup for additional graded material.
+//
+// Hard rule this feature lives or dies on (John ruling, verbatim): hedge words are
+// BOUND to evidence grade. A direct-probe/technical-scan fact or a 'confident'-grade
+// inference reads as "we can see / we did see"; a 'likely' or 'probable' inference —
+// still a guess read off marketing copy — reads as "it looks like / probably / we
+// think"; a corpus holding reads as "our research suggests"; anything without a
+// recognised grade is left out of the evidence list entirely (NOT MENTIONED), never
+// spoken as if it were known.
+//
+// Structure (John ruling, mid-build amendment): the reading is a reveal, not a
+// verdict — clues named plainly, then the natural connection drawn from them, then a
+// handover invite. See buildReadingPrompt's STRUCTURE block.
+//
+// INVARIANTS.md's honest-degradation + no-canned-text rules and the EXCERPT-NOT-VOICE
+// canon ruling (docs/plans/2026-08-25-persona-chips-and-proposal-cards.md) both apply:
+// the model synthesizes in its own words, never quotes evidence (corpus text included)
+// verbatim, and is forbidden from adding any fact from its own knowledge of the company.
+//
+// reading_anchors are derived DETERMINISTICALLY from the same inputs fed into the
+// prompt — never parsed from the model's output — so the anchor trail is trustworthy
+// even though the paragraph above it is generated prose.
+//
+// Bedrock failure or empty/whitespace output → { reading: null, anchors: [] }. No
+// retry, no canned substitute — the caller (analyze.js) falls back to the existing
+// bullet opener silently, and the anchor chips disappear with it (the two are atomic).
+import { chatComplete } from '../lib/inference.js';
+import { extractReconContext } from './recon-pipeline.js';
+import { retrieveCorpusEvidence } from './corpus-retrieve.js';
+import { FRAMEWORK_MAP } from '../config/frameworks.js';
+
+const MODEL = 'claude-haiku-4-5-20251001';
+const MAX_TOKENS = 300;
+
+const STRONG = { tag: 'STRONG', instruction: "say 'we can see' / 'we did see' — plain, not boastful" };
+const HEDGE = { tag: 'HEDGE', instruction: "say 'it looks like' / 'probably' / 'we think' — never state it as certain" };
+const CORPUS = { tag: 'CORPUS', instruction: "say 'our research suggests' — a third-party holding, not our own probe" };
+
+// Inference confidence collapses three grades to two hedge registers: 'confident' is
+// close enough to a direct-probe fact to read STRONG; 'likely' and 'probable' are both
+// still a guess read off marketing copy, so both read HEDGE. Anything else (missing or
+// unrecognised) is NOT MENTIONED — excluded from the evidence list entirely.
+function inferenceHedge(confidence) {
+  if (confidence === 'confident') return STRONG;
+  if (confidence === 'likely' || confidence === 'probable') return HEDGE;
+  return null;
+}
+
+// customer_type inference value → frameworks.js key. Only the two values that map
+// cleanly onto a FRAMEWORK_MAP key are wired; 'Consumer (B2C)' / 'Mixed' / 'Unknown'
+// have no defensible mapping and are left unresolved on purpose — frameworks are
+// omitted rather than guessed.
+const CUSTOMER_TYPE_TO_FRAMEWORK_KEY = {
+  'Enterprise (B2B)': 'enterprise',
+  'SMB (B2B)': 'smb',
+};
+
+const FRAMEWORK_LABELS = {
+  soc2: 'SOC 2',
+  iso27001: 'ISO 27001',
+  apra_cps234: 'APRA CPS 234',
+  pci_dss: 'PCI DSS',
+  irap: 'IRAP',
+  essential_eight: 'Essential Eight',
+  basic_controls: 'basic security controls',
+};
+
+function factLine(hedge, label, value, confidence) {
+  const detail = confidence ? ` (confidence: ${confidence})` : '';
+  const text = value != null ? `${label}: ${value}` : label;
+  return `- [${hedge.tag}]${detail} ${text}`;
+}
+
+// Direct-probe / technical-scan facts (DNS, HTTP, IP, SSL Labs, HIBP, jobs) — never an
+// LLM narrative read, always STRONG. Only the fields named in the task are surfaced:
+// hosting/cloud provider, DMARC posture, breach count, security-hiring signal, SSL
+// grade. Each fact carries its own anchor (one recon source = one anchor group), and
+// is included only when the recon pipeline actually captured it — absence is silence,
+// not a fact.
+function reconEvidence(session) {
+  const ctx = extractReconContext(session?.recon_context);
+  const lines = [];
+  const anchors = [];
+
+  const cloud = ctx.cloud_provider || ctx.hosting_provider;
+  if (cloud) {
+    lines.push(factLine(STRONG, 'Hosting / cloud provider', cloud));
+    anchors.push({ label: `${cloud} hosting`, source: 'ip probe' });
+  }
+
+  if (ctx.dmarc_policy) {
+    lines.push(factLine(STRONG, 'DMARC posture', ctx.dmarc_policy));
+    anchors.push({ label: `DMARC: ${ctx.dmarc_policy}`, source: 'dns scan' });
+  }
+
+  if (ctx.domain_in_breach && ctx.breach_count) {
+    lines.push(factLine(STRONG, 'Breach history', `${ctx.breach_count} known breach(es) on record`));
+    anchors.push({ label: `${ctx.breach_count} known breach(es)`, source: 'breach scan' });
+  }
+
+  if (ctx.security_hire_signal === true) {
+    lines.push(factLine(STRONG, 'Security hiring signal', 'actively hiring for a security role'));
+    anchors.push({ label: 'Security hiring signal', source: 'jobs scan' });
+  }
+
+  if (ctx.ssl_grade) {
+    lines.push(factLine(STRONG, 'SSL Labs grade', ctx.ssl_grade));
+    anchors.push({ label: `SSL grade: ${ctx.ssl_grade}`, source: 'ssl scan' });
+  }
+
+  return { lines, anchors };
+}
+
+// session.inferences — the LLM's narrative read of the marketing pages. Each carries
+// its own confidence grade; hedge is bound to that grade per inferenceHedge() above.
+// Collapsed to a single anchor group (site narrative signals) rather than one anchor
+// per inference — these all share one source (the same page scrape + extraction call).
+function inferenceEvidence(session) {
+  const list = Array.isArray(session?.inferences) ? session.inferences : [];
+  const lines = [];
+  for (const inf of list) {
+    if (!inf?.label) continue;
+    const hedge = inferenceHedge(inf.confidence);
+    if (!hedge) continue; // unrecognised/missing grade → NOT MENTIONED
+    lines.push(factLine(hedge, inf.label, null, inf.confidence));
+  }
+  return lines;
+}
+
+// session.company_summary — a holistic market read (industry, buyer, geography), fed
+// by the scraped pages plus recon-company.js's live perplexity/gemini research where
+// available. Always HEDGE register ("we think you're in…") — never promoted to
+// STRONG, because it is a synthesis, not a direct probe.
+function companySummaryEvidence(session) {
+  const summary = typeof session?.company_summary === 'string' ? session.company_summary.trim() : '';
+  if (!summary) return null;
+  return factLine(HEDGE, 'Company summary (market read)', summary);
+}
+
+// Applicable compliance frameworks, resolved from the customer_type inference only
+// (never invented, never sourced from the model's own knowledge). Returns display
+// labels — never asserted as required, only offered to the prompt as a possible
+// question to raise.
+function resolveFrameworks(session) {
+  const list = Array.isArray(session?.raw_signals) ? session.raw_signals : [];
+  const customerType = list.find((s) => s?.type === 'customer_type')?.value;
+  const key = CUSTOMER_TYPE_TO_FRAMEWORK_KEY[customerType];
+  const ids = key ? FRAMEWORK_MAP[key] : null;
+  if (!ids || !ids.length) return [];
+  return ids.map((id) => FRAMEWORK_LABELS[id] || id);
+}
+
+function domainOf(session) {
+  const url = session?.website_url;
+  if (!url) return null;
+  try {
+    const u = url.startsWith('http') ? url : `https://${url}`;
+    return new URL(u).hostname;
+  } catch {
+    return url;
+  }
+}
+
+// Live corpus lookup (John ruling — corpus at read time). Failure or no hits →
+// honest absence: no corpus material in the prompt, no corpus anchor. The model is
+// told to reason from this material in its own words, never quote it (EXCERPT-NOT-VOICE).
+async function corpusEvidence(session) {
+  const query = session?.company_name || domainOf(session);
+  if (!query) return { lines: [], anchor: null };
+
+  const hits = await retrieveCorpusEvidence(query, { company_name: session?.company_name }).catch(() => null);
+  if (!hits?.length) return { lines: [], anchor: null };
+
+  const lines = hits.map((h) => factLine(CORPUS, 'Corpus holding', (h.text || '').replace(/\s+/g, ' ').trim()));
+  const anchor = { label: `${hits.length} corpus holding${hits.length === 1 ? '' : 's'}`, source: 'corpus' };
+  return { lines, anchor };
+}
+
+export async function buildReadingContext(session) {
+  const recon = reconEvidence(session);
+  const inferenceLines = inferenceEvidence(session);
+  const summaryLine = companySummaryEvidence(session);
+  const frameworks = resolveFrameworks(session);
+  const pagesRead = Number(session?.pages_read_count) || 0;
+  const corpus = await corpusEvidence(session);
+
+  const anchors = [...recon.anchors];
+  if (pagesRead === 0) {
+    anchors.push({ label: 'No pages readable', source: 'scrape' });
+  } else if (inferenceLines.length) {
+    anchors.push({ label: 'Site narrative signals', source: 'site scrape' });
+  }
+  if (summaryLine) anchors.push({ label: 'Company research', source: 'perplexity+gemini' });
+  if (corpus.anchor) anchors.push(corpus.anchor);
+
+  const evidenceLines = [...recon.lines, ...inferenceLines];
+  if (summaryLine) evidenceLines.push(summaryLine);
+  evidenceLines.push(...corpus.lines);
+
+  const lines = [
+    'You are writing "the reading" — a short, warm, deductive opening paragraph a',
+    'founder sees right after we read their public record.',
+    '',
+    'Register: like the Mentalist or Sherlock Holmes, but NOT a smart-ass — the warmth',
+    'of being accurately seen, with zero performance of cleverness.',
+    '',
+    `Company: ${session?.company_name || 'unknown'}`,
+    `Pages actually read from their site: ${pagesRead}.`,
+    '',
+    'EVIDENCE — the ONLY facts you may use. Do not add anything about this company, or',
+    'companies like it, from your own knowledge:',
+    evidenceLines.length ? evidenceLines.join('\n') : '(no graded evidence available)',
+    '',
+    'HEDGE-BINDING RULE — follow exactly, this is the rule the whole feature lives or',
+    'dies on:',
+    `- Facts marked [STRONG]: ${STRONG.instruction}.`,
+    `- Facts marked [HEDGE]: ${HEDGE.instruction}.`,
+    `- Facts marked [CORPUS]: ${CORPUS.instruction}.`,
+    '- Never upgrade a HEDGE or CORPUS fact into confident language, and never hedge a',
+    '  STRONG fact.',
+    '- Never mention any fact not listed above.',
+  ];
+
+  if (frameworks.length) {
+    lines.push(
+      '',
+      'Possible compliance angle(s) worth raising AS A QUESTION, never as an assertion',
+      `or a prescription: ${frameworks.join(', ')}. Only raise one of these if it`,
+      'plausibly follows from the evidence above — never invent a framework not listed here.',
+    );
+  }
+
+  lines.push(
+    '',
+    'STRUCTURE — follow this exact three-beat shape (a reveal, not a verdict; the',
+    'reader should feel "all the clues were sitting there"):',
+    '  1. CLUES — one or two plain sentences naming the observations themselves, each',
+    '     hedged per its own grade above.',
+    '  2. CONNECTION — one sentence drawing the natural conclusion from those clues,',
+    "     framed as a conclusion (\"So …\"), never asserted harder than the underlying",
+    '     grades allow.',
+    '  3. INVITE — a short, genuine handover for the founder to correct anything wrong.',
+    'Worked example of the shape (do not copy the wording, this is illustrative only):',
+    '  "Your site talks enterprise procurement. You\'re hiring in Sydney and Singapore.',
+    '  Your security page mentions AWS but no certification. So you\'re probably moving',
+    '  upmarket into APAC — and compliance may be about to become a sales constraint.',
+    '  That\'s what we see. Are we reading it correctly?"',
+    '',
+    'Forbidden words/phrases: "obviously", "clearly", "elementary", "of course", any',
+    'self-congratulation, any numeric score.',
+    '',
+    'Write in your own words, synthesizing the evidence into a natural read — do not',
+    'copy the evidence lines above verbatim into the paragraph, including any [CORPUS]',
+    'lines (paraphrase corpus holdings, never quote them).',
+    'One paragraph, about 120 words or fewer, plain prose — no bullet points, no',
+    'headers, no markdown.',
+    '',
+    'Reply with ONLY the paragraph — no preamble, no quotes around it, no labels.',
+  );
+
+  return { prompt: lines.join('\n'), anchors };
+}
+
+export async function generateReading(session) {
+  try {
+    const { prompt, anchors } = await buildReadingContext(session);
+    const response = await chatComplete({
+      model: MODEL,
+      max_tokens: MAX_TOKENS,
+      messages: [{ role: 'user', content: prompt }],
+      correlation_id: session?.id,
+    });
+    const text = response?.choices?.[0]?.message?.content;
+    const trimmed = typeof text === 'string' ? text.trim() : '';
+    if (!trimmed) return { reading: null, anchors: [] };
+    return { reading: trimmed, anchors };
+  } catch {
+    return { reading: null, anchors: [] };
+  }
+}

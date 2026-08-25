@@ -2,8 +2,14 @@
 // John walk feedback (2026-08-25) item 1+2: kill the score-led opener, make degraded
 // reads honest, and present the inferred narrative as a correctable invite rather than
 // a verdict. INVARIANTS §6 (lamp register — never grade, never push).
+//
+// "The reading" (John ruling 2026-08-25, mid-build amendment): when the API hands
+// back a synthesized cold-read paragraph, it replaces the bullet list; when it's null
+// (honest degradation), behavior is exactly the pre-reading bullet list. readingAnchorLabels
+// is the deterministic evidence-anchor trail — chips only ever appear alongside a
+// non-empty reading, never without one.
 import { describe, it, expect } from 'vitest';
-import { coldReadOpener } from '../../src/rendering/coldReadOpener.js';
+import { coldReadOpener, readingAnchorLabels } from '../../src/rendering/coldReadOpener.js';
 
 describe('coldReadOpener', () => {
   it('a full read never mentions a numeric score and leads with "read complete"', () => {
@@ -61,5 +67,82 @@ describe('coldReadOpener', () => {
     });
     expect(msg).toContain('- Seed stage (probable)');
     expect((msg.match(/^- /gm) || []).length).toBe(1);
+  });
+
+  it('a non-empty reading replaces the bullet list — headline kept, reading included, no bullets, no numeric score', () => {
+    const reading = "We think you're in fintech, selling to enterprise buyers. How'd we do — anything to correct?";
+    const msg = coldReadOpener({
+      name: 'Acme',
+      sourcesRead: 3,
+      inferences: [{ label: 'Software product', confidence: 'probable' }],
+      reading,
+    });
+    expect(msg).toMatch(/^Acme — read complete\./);
+    expect(msg).toContain(reading);
+    expect(msg).not.toContain('What we\'ve inferred so far:');
+    expect(msg).not.toContain('- Software product (probable)');
+    expect(msg).not.toContain('Does this sound right? Anything to change?');
+    expect(msg).not.toMatch(/\d+\s*\/\s*100/);
+  });
+
+  it('a non-empty reading on a degraded read keeps the honest "site wouldn\'t open" headline', () => {
+    const reading = "It looks like your site was unreachable, so this is a perimeter read. Anything to correct?";
+    const msg = coldReadOpener({ name: 'Acme', sourcesRead: 0, inferences: [], reading });
+    expect(msg).toMatch(/^Acme — their site wouldn't open for us/);
+    expect(msg).toContain('perimeter read only');
+    expect(msg).toContain(reading);
+    expect(msg).not.toContain("We couldn't infer much from the outside");
+  });
+
+  it('reading === null → exactly current bullet behavior, unchanged', () => {
+    const msg = coldReadOpener({
+      name: 'Acme',
+      sourcesRead: 2,
+      inferences: [{ label: 'Software product', confidence: 'probable' }],
+      reading: null,
+    });
+    expect(msg).toContain('What we\'ve inferred so far:');
+    expect(msg).toContain('- Software product (probable)');
+    expect(msg).toContain('Does this sound right? Anything to change?');
+  });
+
+  it('a whitespace-only reading is treated as absent — falls back to bullets', () => {
+    const msg = coldReadOpener({
+      name: 'Acme',
+      sourcesRead: 2,
+      inferences: [{ label: 'Software product', confidence: 'probable' }],
+      reading: '   \n  ',
+    });
+    expect(msg).toContain('What we\'ve inferred so far:');
+  });
+});
+
+describe('readingAnchorLabels', () => {
+  const anchors = [
+    { label: 'aws hosting', source: 'ip probe' },
+    { label: 'Security hiring signal', source: 'jobs scan' },
+  ];
+
+  it('returns the anchor labels when a reading is present', () => {
+    expect(readingAnchorLabels('We think you sell to enterprise. Anything to correct?', anchors))
+      .toEqual(['aws hosting', 'Security hiring signal']);
+  });
+
+  it('returns [] when reading is null, even with anchors supplied', () => {
+    expect(readingAnchorLabels(null, anchors)).toEqual([]);
+  });
+
+  it('returns [] when reading is whitespace-only', () => {
+    expect(readingAnchorLabels('   ', anchors)).toEqual([]);
+  });
+
+  it('returns [] when there is a reading but no anchors', () => {
+    expect(readingAnchorLabels('We think you sell to enterprise.', [])).toEqual([]);
+    expect(readingAnchorLabels('We think you sell to enterprise.', undefined)).toEqual([]);
+  });
+
+  it('drops anchors with a missing label rather than rendering a blank chip', () => {
+    expect(readingAnchorLabels('reading text', [{ source: 'jobs scan' }, { label: 'SSL grade: A', source: 'ssl scan' }]))
+      .toEqual(['SSL grade: A']);
   });
 });

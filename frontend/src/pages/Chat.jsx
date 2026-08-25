@@ -22,7 +22,7 @@ import { DEMO_STAGES, DEFAULT_STAGE_ID } from '../data/demoCompany.js';
 import { OperationalField } from '../components/OperationalField';
 import { useSignals }       from '../hooks/useSignals.js';
 import { inferencesToSignals } from '../rendering/live-signals.js';
-import { coldReadOpener } from '../rendering/coldReadOpener.js';
+import { coldReadOpener, readingAnchorLabels } from '../rendering/coldReadOpener.js';
 import { ObservationStrip } from '../components/chat/ObservationStrip.jsx';
 import { GuidanceBlock }      from '../components/chat/GuidanceBlock.jsx';
 import { MOCK_GUIDANCE_BLOCK } from '../data/mock/signals.js';
@@ -2069,13 +2069,22 @@ export default function Chat() {
           // than presenting guessed signals as a real read. pages_read_count (not
           // sources_read.length) is the honest signal — fallback signals still carry a
           // placeholder 'homepage' label even when nothing was actually fetched.
+          //
+          // "The reading" (John ruling 2026-08-25): when analyze.js hands back a
+          // synthesized paragraph it replaces the bullet list; analysis.reading is null
+          // on honest degradation (Bedrock failure/empty output) and coldReadOpener
+          // falls back to the bullets unchanged. reading_anchors is the deterministic
+          // evidence trail rendered as a quiet chip row under it (Bubble.jsx) — [] when
+          // there's no reading, atomically.
           setMessages(prev => prev.map(m => m.id === statusId ? {
             ...m,
             content: coldReadOpener({
               name: analysis.company_name || domain,
               sourcesRead: analysis.pages_read_count,
               inferences: analysis.inferences,
+              reading: analysis.reading,
             }),
+            readingAnchors: readingAnchorLabels(analysis.reading, analysis.reading_anchors),
           } : m));
 
           // If this cold-read was answering a lens's ask, the company is now guaranteed

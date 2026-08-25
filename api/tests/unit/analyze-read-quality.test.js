@@ -4,7 +4,19 @@
 // must expose `sources_read` and `pages_read_count` from the session record on both
 // the fresh-analysis path and the cached-result path — anything less and the client
 // can't tell honest from guessed.
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// analyzeHandler now calls generateReading() (cold-reading.js) on the fresh-analysis
+// path, which otherwise means a real Bedrock call + real corpus HTTP call per test.
+// Mock both so this suite stays hermetic and fast — read-quality pass-through is what
+// it's actually testing, not "the reading" itself (that's cold-reading.test.js).
+vi.mock('../../src/lib/inference.js', () => ({
+  chatComplete: vi.fn().mockResolvedValue({ choices: [{ message: { content: '' } }] }),
+}));
+vi.mock('../../src/services/corpus-retrieve.js', () => ({
+  retrieveCorpusEvidence: vi.fn().mockResolvedValue(null),
+}));
+
 import { createSession, updateSession } from '../../src/services/session-store.js';
 import { analyzeHandler } from '../../src/handlers/analyze.js';
 
