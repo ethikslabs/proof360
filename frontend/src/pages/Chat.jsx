@@ -1300,6 +1300,7 @@ export default function Chat() {
   const [browserTabs, setBrowserTabs] = useState([]);
   const [scanLines, setScanLines]         = useState([]);
   const [scanDone, setScanDone]           = useState(false);
+  const [scanOwnerId, setScanOwnerId]     = useState(null);
 
   const [activeStageId,   setActiveStageId]   = useState(DEFAULT_STAGE_ID);
   const [companyData,     setCompanyData]     = useState(null);
@@ -1626,6 +1627,9 @@ export default function Chat() {
   const inputRef    = useRef(null);
   const scrollRef   = useRef(null);
   const browserTabsRef = useRef([]);
+  const scanEsRef   = useRef(null);
+
+  useEffect(() => () => scanEsRef.current?.close(), []);
 
   useEffect(() => {
     if (!logoCard) return;
@@ -1895,16 +1899,18 @@ export default function Chat() {
 
           // Stream the real per-probe extraction log ("show the thinking") —
           // honest degradation per INVARIANTS.md: render exactly what the API sends.
-          setScanLines([]); setScanDone(false);
+          setScanLines([]); setScanDone(false); setScanOwnerId(statusId);
+          scanEsRef.current?.close();
           const es = new EventSource(`/api/v1/session/${session_id}/log`);
+          scanEsRef.current = es;
           es.onmessage = (ev) => {
             try {
               const line = JSON.parse(ev.data);
-              if (line.type === '__done__') { setScanDone(true); es.close(); return; }
+              if (line.type === '__done__') { setScanDone(true); es.close(); scanEsRef.current = null; return; }
               setScanLines(prev => [...prev, line]);
             } catch { /* malformed line — drop */ }
           };
-          es.onerror = () => { setScanDone(true); es.close(); };
+          es.onerror = () => { setScanDone(true); es.close(); scanEsRef.current = null; };
 
           // Update status label with session context
           setMessages(prev => prev.map(m => m.id === statusId
@@ -1957,6 +1963,7 @@ export default function Chat() {
             cer.clearAwaiting();
           }
         } catch {
+          scanEsRef.current?.close(); scanEsRef.current = null;
           setScanDone(true); // failed read must not leave a live-streaming block
           setMessages(prev => prev.map(m => m.id === statusId ? {
             ...m, content: `Couldn't read ${domain}. Check the URL or try a different one.`,
@@ -2719,7 +2726,7 @@ export default function Chat() {
                       onProgramFocus={setFocusedProgram}
                     />
                     {m.working && <OurWorking receipt={m.working} tk={tk} />}
-                    {m.id.startsWith('status-') && (
+                    {m.id === scanOwnerId && (
                       <ScanTrace lines={scanLines} done={scanDone} tk={tk} />
                     )}
                   </div>
