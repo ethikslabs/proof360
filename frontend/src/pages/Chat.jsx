@@ -822,17 +822,20 @@ function TriageCards({ onSelect, tk }) {
 
 /* ─── Cinematic intro ───────────────────────────────────────────────── */
 
+// Register ruled by John 2026-08-25 (landing emotional contract: the founder never
+// feels evaluated) — mirror names the three-sided marketplace, sequence lands on the
+// invitation, never on surveillance.
 const INTRO_CARDS = [
   { style: 'logo' },
-  { style: 'hero',   text: "Investors and enterprise buyers are evaluating you right now." },
-  { style: 'large',  text: "Before the pitch. Before the meeting. Before you even know they're looking." },
+  { style: 'hero',   text: "Investors, buyers, partners — everyone's forming a picture of your company." },
   { style: 'stats' },
   { style: 'medium', text: "Most founders never see what investors and enterprise buyers are actually checking." },
   { style: 'team' },
+  { style: 'large',  text: "Let's build the real one, together — a living record of your company, your evidence, you." },
 ];
 
-const CARD_HOLD = [1800, 2800, 2500, 8200, 2000, 3000];
-// stats card (index 3) holds 8.2s — enough for 3 stats × ~2.5s each + transitions
+const CARD_HOLD = [1800, 2800, 8200, 2000, 3000, 3200];
+// stats card (index 2) holds 8.2s — enough for 3 stats × ~2.5s each + transitions
 
 const STATS_FALLBACK = [
   { number: '75%',  text: 'of investors say management track record is the top factor before they agree to take a meeting', source: 'CapitalHQ Investor Survey, 2026' },
