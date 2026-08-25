@@ -25,6 +25,7 @@ import { ObservationStrip } from '../components/chat/ObservationStrip.jsx';
 import { GuidanceBlock }      from '../components/chat/GuidanceBlock.jsx';
 import { MOCK_GUIDANCE_BLOCK } from '../data/mock/signals.js';
 import { CompanionPanel } from '../components/chat/CompanionPanel.jsx';
+import { ScanTrace } from '../components/chat/ScanTrace.jsx';
 import { rankVendorsBySignals } from '../data/mock/vendors.js';
 import { AuthorityLayer }      from '../components/chat/AuthorityLayer.jsx';
 import { useSurfaceAuthority } from '../hooks/useSurfaceAuthority.js';
@@ -1297,6 +1298,8 @@ export default function Chat() {
   const [previewUrl, setPreviewUrl]       = useState(null);
   const [previewOpen, setPreviewOpen]     = useState(false);
   const [browserTabs, setBrowserTabs] = useState([]);
+  const [scanLines, setScanLines]         = useState([]);
+  const [scanDone, setScanDone]           = useState(false);
 
   const [activeStageId,   setActiveStageId]   = useState(DEFAULT_STAGE_ID);
   const [companyData,     setCompanyData]     = useState(null);
@@ -1890,9 +1893,22 @@ export default function Chat() {
           const { session_id } = await startRes.json();
           spine.rememberSessionId(session_id);
 
+          // Stream the real per-probe extraction log ("show the thinking") —
+          // honest degradation per INVARIANTS.md: render exactly what the API sends.
+          setScanLines([]); setScanDone(false);
+          const es = new EventSource(`/api/v1/session/${session_id}/log`);
+          es.onmessage = (ev) => {
+            try {
+              const line = JSON.parse(ev.data);
+              if (line.type === '__done__') { setScanDone(true); es.close(); return; }
+              setScanLines(prev => [...prev, line]);
+            } catch { /* malformed line — drop */ }
+          };
+          es.onerror = () => { setScanDone(true); es.close(); };
+
           // Update status label with session context
           setMessages(prev => prev.map(m => m.id === statusId
-            ? { ...m, content: `Scanning ${domain} — this takes about 30 seconds…` }
+            ? { ...m, content: `Reading ${domain} — watch the scan below…` }
             : m
           ));
 
@@ -1941,6 +1957,7 @@ export default function Chat() {
             cer.clearAwaiting();
           }
         } catch {
+          setScanDone(true); // failed read must not leave a live-streaming block
           setMessages(prev => prev.map(m => m.id === statusId ? {
             ...m, content: `Couldn't read ${domain}. Check the URL or try a different one.`,
           } : m));
@@ -2702,6 +2719,9 @@ export default function Chat() {
                       onProgramFocus={setFocusedProgram}
                     />
                     {m.working && <OurWorking receipt={m.working} tk={tk} />}
+                    {m.id.startsWith('status-') && (
+                      <ScanTrace lines={scanLines} done={scanDone} tk={tk} />
+                    )}
                   </div>
                 );
               })}
