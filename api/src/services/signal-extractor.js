@@ -5,7 +5,7 @@ import FirecrawlApp from '@mendable/firecrawl-js';
 import { ENTERPRISE_SIGNALS_SCHEMA } from '../config/gaps.js';
 import { chatComplete } from '../lib/inference.js';
 import { runReconPipeline } from './recon-pipeline.js';
-import { reconCompany } from './recon-company.js';
+import { researchQuery, fetchPerplexityResearch, fetchGeminiResearch } from './recon-company.js';
 import { record as recordConsumption } from './consumption-emitter.js';
 import { resolve as resolveModel } from '../lib/model-resolver.mjs';
 import * as meter from '../lib/meter.mjs';
@@ -225,7 +225,7 @@ function fallbackSignals(website_url, deck_file) {
   // actual scrape (no Firecrawl key, no website_url, or the live scrape read zero
   // pages). pages_read_count: 0 is the honest-degradation flag the client uses to
   // decide between "read complete" and "perimeter read only" (INVARIANTS §1).
-  return { signals, sources_read, enterprise_signals, competitor_mentions: [], pages_read_count: 0, used_web_research: false };
+  return { signals, sources_read, enterprise_signals, competitor_mentions: [], pages_read_count: 0, used_web_research: false, research_engines: [] };
 }
 
 const SIGNAL_READABLE = {
@@ -250,6 +250,65 @@ const SIGNAL_READABLE = {
   works_with:              (v) => `Works with ${v}`,
 };
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Wraps plain text at ~width chars on word boundaries — used only to display the
+// verbatim research query without one giant unreadable line. Never alters content.
+function wrapText(text, width = 110) {
+  const words = text.split(/\s+/).filter(Boolean);
+  const lines = [];
+  let current = '';
+  for (const word of words) {
+    const next = current ? `${current} ${word}` : word;
+    if (next.length > width && current) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = next;
+    }
+  }
+  if (current) lines.push(current);
+  return lines;
+}
+
+// Splits real returned research content into sentences for a paced reveal — this
+// paces REAL returned content, it never invents any; capped by the caller at 12 lines.
+function splitSentences(text) {
+  return text
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+const RESEARCH_SKIP_NOTES = { 'no key': 'no key configured', 'no answer': 'no answer', 'too thin': 'answer too thin' };
+
+// Shared body for the perplexity/gemini acts — SAME shape for both engines by
+// construction (one implementation, two call sites in extractSignals below).
+// Emits the verbatim query, then a paced reveal of the real returned content
+// (never invented — this is pacing, not generation), then closes the act honestly.
+async function runResearchAct(act, query, fetchFn, log) {
+  log({ act, type: 'act_body', text: 'we asked:', color: 'query' });
+  for (const line of wrapText(query, 110)) {
+    log({ act, type: 'act_body', text: line, color: 'query' });
+  }
+
+  const result = await fetchFn();
+
+  if (result.content) {
+    const sentences = splitSentences(result.content);
+    const capped = sentences.length > 12 ? [...sentences.slice(0, 11), '…'] : sentences;
+    for (const sentence of capped) {
+      log({ act, type: 'act_body', text: sentence, color: 'muted' });
+      await sleep(250);
+    }
+    log({ type: 'act', act, phase: 'done', note: 'answered' });
+  } else {
+    log({ type: 'act', act, phase: 'skip', note: RESEARCH_SKIP_NOTES[result.skip] || 'no answer' });
+  }
+
+  return result;
+}
+
 export async function extractSignals({ website_url, deck_file, session_id }, log = () => {}) {
   // No Firecrawl key — fall back to simulation (gateway handles AI credentials)
   if (!process.env.FIRECRAWL_API_KEY) {
@@ -260,6 +319,12 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
   if (!website_url) {
     return fallbackSignals(null, deck_file);
   }
+
+  // Wraps a sub-routine's existing {text,type} log line as this act's act_body
+  // shape. scrapePages/extractWithClaude/recon's onSourceComplete keep emitting
+  // exactly the honest lines they always did — this only retags the envelope so
+  // the frontend can bucket them under the right accordion.
+  const actLine = (act) => (line) => log({ act, type: 'act_body', text: line.text, color: line.color ?? line.type });
 
   try {
     const baseUrl = normalizeUrl(website_url);
@@ -273,83 +338,108 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
     });
 
     log({ text: `$ proof360 --url ${domain}`, type: 'cmd' });
-    log({ text: '', type: 'blank' });
-    log({ text: '  Fetching public signals...', type: 'muted' });
-    for (const { path, label } of PAGES_TO_CHECK) {
-      log({ text: `  ↳  ${label} ${baseUrl + path}`, type: 'muted' });
-    }
 
-    // Run scraping + recon + company research in parallel
-    const [pages, recon_context, company_research] = await Promise.all([
-      scrapePages(firecrawl, baseUrl, log, session_id),
-      new Promise((resolve) => {
-        let timer = setTimeout(() => {
-          timer = null;
-          log({ text: '  ✗  Recon timed out after 20s — continuing without it', type: 'err' });
-          resolve(null);
-        }, 20000);
-        runReconPipeline(website_url, companyName, {
-          firecrawl,
-          abuseIpdbKey: process.env.ABUSEIPDB_API_KEY || null,
-          onSourceComplete: (source, line) => log(line),
-          session_id,
-        }).then((result) => {
-          if (timer) { clearTimeout(timer); timer = null; }
-          resolve(result);
-        }).catch((err) => {
-          if (timer) { clearTimeout(timer); timer = null; }
-          resolve(null);
-        });
+    // 1. Perimeter scan — commodity, demoted. Fired now, awaited later (step 5)
+    // so its probe lines can stream in throughout every other act below.
+    log({ type: 'act', act: 'perimeter', phase: 'start', title: 'Perimeter scan', note: 'running in the background' });
+    let perimeterChecks = 0;
+    let reconTimedOut = false;
+    const reconPromise = new Promise((resolve) => {
+      let timer = setTimeout(() => {
+        timer = null;
+        reconTimedOut = true;
+        log({ act: 'perimeter', type: 'act_body', text: 'Recon timed out after 20s — continuing without it', color: 'err' });
+        resolve(null);
+      }, 20000);
+      runReconPipeline(website_url, companyName, {
+        firecrawl,
+        abuseIpdbKey: process.env.ABUSEIPDB_API_KEY || null,
+        onSourceComplete: (source, line) => {
+          perimeterChecks++;
+          log({ act: 'perimeter', type: 'act_body', text: line.text, color: line.color ?? line.type });
+        },
+        session_id,
+      }).then((result) => {
+        if (timer) { clearTimeout(timer); timer = null; }
+        resolve(result);
       }).catch((err) => {
-        log({ text: `  ✗  Recon: ${err.message}`, type: 'err' });
-        return null;
-      }),
-      reconCompany(domain, session_id).catch(() => null),
-    ]);
+        if (timer) { clearTimeout(timer); timer = null; }
+        log({ act: 'perimeter', type: 'act_body', text: `Recon: ${err.message}`, color: 'err' });
+        resolve(null);
+      });
+    });
 
-    // Real scraped site pages, counted BEFORE the synthetic company-research page is
-    // unshifted in below. This is the honest pages_read_count: a session where recon-
-    // company.js's perplexity/gemini research contributed but the site itself returned
-    // zero real pages must still report 0 here — the synthetic page feeds extraction
-    // content, it is never a "page read" (R-3 finding, live rehearsal: an all-research
-    // session was reporting pages_read_count 1 and flipping the frontend's degraded-read
-    // framing off).
-    const real_pages_count = pages.length;
-    const used_web_research = !!company_research;
-
-    if (company_research) {
-      pages.unshift(company_research);
-      log({ text: `  ✓  company research · web`, type: 'ok' });
+    // 2. Reading the site — awaited now, the first thing the founder actually sees land.
+    log({ type: 'act', act: 'site', phase: 'start', title: 'Reading your site' });
+    for (const { path, label } of PAGES_TO_CHECK) {
+      log({ act: 'site', type: 'act_body', text: `↳  ${label} ${baseUrl + path}`, color: 'muted' });
     }
+    const pages = await scrapePages(firecrawl, baseUrl, actLine('site'), session_id);
+    const real_pages_count = pages.length;
+    if (real_pages_count === 0) {
+      log({ act: 'site', type: 'act_body', text: 'No pages could be read from this site', color: 'err' });
+      log({ type: 'act', act: 'site', phase: 'done', note: '0 pages' });
+    } else {
+      log({ type: 'act', act: 'site', phase: 'done', note: `${real_pages_count} pages` });
+    }
+
+    // 3 & 4. Perplexity, then Gemini — BOTH run on every read (John ruling
+    // 2026-08-25: no longer primary/fallback). Same shape, two independent acts.
+    const query = researchQuery(domain);
+
+    log({ type: 'act', act: 'perplexity', phase: 'start', title: 'Asking the live web about you', note: 'perplexity · sonar' });
+    const perplexityResult = await runResearchAct('perplexity', query, () => fetchPerplexityResearch(domain), log);
+
+    log({ type: 'act', act: 'gemini', phase: 'start', title: 'A second, independent read', note: 'gemini · 2.5 flash' });
+    const geminiResult = await runResearchAct('gemini', query, () => fetchGeminiResearch(domain), log);
+
+    // 5. Perimeter closes out — correlation (step 6) needs it.
+    const recon_context = await reconPromise;
+    if (recon_context) {
+      log({ type: 'act', act: 'perimeter', phase: 'done', note: `${perimeterChecks} checks` });
+    } else {
+      log({ type: 'act', act: 'perimeter', phase: 'done', note: reconTimedOut ? 'timed out' : 'failed' });
+    }
+
+    // Each answered engine becomes its own synthetic research page feeding
+    // extraction — real_pages_count above was taken BEFORE this unshift, so it
+    // never counts a synthetic page as a genuinely scraped one.
+    const researchPages = [];
+    const research_engines = [];
+    if (perplexityResult.content) {
+      researchPages.push({ label: `company research (${perplexityResult.source})`, content: perplexityResult.content });
+      research_engines.push('perplexity');
+    }
+    if (geminiResult.content) {
+      researchPages.push({ label: `company research (${geminiResult.source})`, content: geminiResult.content });
+      research_engines.push('gemini');
+    }
+    pages.unshift(...researchPages);
+    const used_web_research = research_engines.length > 0;
 
     if (pages.length === 0) {
-      log({ text: '  ✗  No pages could be read from this site', type: 'err' });
-      log({ text: '  ↳  Falling back to domain-level signals only', type: 'muted' });
-      return { ...fallbackSignals(website_url, deck_file), recon_context, used_web_research };
+      return { ...fallbackSignals(website_url, deck_file), recon_context, used_web_research, research_engines };
     }
 
-    log({ text: '', type: 'blank' });
-    log({ text: `  ✓  ${pages.length} pages read`, type: 'ok' });
-    log({ text: '', type: 'blank' });
-    log({ text: '  Querying VERITAS corpus...', type: 'muted' });
-    log({ text: '  ↳  SOC 2 / ISO 27001 / APRA CPS 234', type: 'query' });
-    log({ text: '  ↳  NIST CSF 2.0 / Essential Eight', type: 'query' });
-    log({ text: '', type: 'blank' });
-    log({ text: '  Extracting signals...', type: 'muted' });
-    log({ text: '  ↳  Sending to Claude Haiku for analysis', type: 'muted' });
+    // 6. Correlate — the haiku extraction call, over every witness gathered so far.
+    log({ type: 'act', act: 'correlate', phase: 'start', title: 'Correlating what every witness saw', note: 'claude haiku · bedrock' });
+    const perimeterPart = recon_context ? 'perimeter context' : 'no perimeter context';
+    log({ act: 'correlate', type: 'act_body', text: `${real_pages_count} pages + ${research_engines.length} research answers + ${perimeterPart} → signal extraction` });
 
     const sources_read = pages.map((p) => p.label);
-    const extracted = await extractWithClaude(pages, log, session_id);
+    let extracted;
+    try {
+      extracted = await extractWithClaude(pages, actLine('correlate'), session_id);
+    } catch (err) {
+      log({ type: 'act', act: 'correlate', phase: 'done', note: 'failed' });
+      throw err;
+    }
     const signals = mapToSignals(extracted);
 
     for (const signal of signals) {
       const label = SIGNAL_READABLE[signal.type]?.(signal.value);
-      if (label) log({ text: `  ↳  ${label}`, type: 'query' });
+      if (label) log({ act: 'correlate', type: 'act_body', text: `↳  ${label}`, color: 'query' });
     }
-
-    log({ text: '', type: 'blank' });
-    log({ text: `  ✓  ${signals.length} signals detected`, type: 'ok' });
-    log({ text: '  Building your read...', type: 'muted' });
 
     const enterprise_signals = {
       ...ENTERPRISE_SIGNALS_SCHEMA,
@@ -358,17 +448,19 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
     const competitor_mentions = extracted.competitor_mentions || [];
 
     if (signals.length === 0) {
-      log({ text: '  ✗  Claude returned no signals from page content', type: 'err' });
-      log({ text: '  ↳  Falling back to domain-level signals only', type: 'muted' });
+      log({ act: 'correlate', type: 'act_body', text: 'Claude returned no signals from page content', color: 'err' });
+      log({ type: 'act', act: 'correlate', phase: 'done', note: '0 signals' });
       // Pages WERE actually read here — the site opened, extraction just found nothing
       // to say. Overriding fallbackSignals' pages_read_count:0 keeps the honest-read
       // flag accurate even though the signals themselves are placeholders. real_pages_count
       // (not pages.length) so a research-only contribution never counts as a page read.
-      return { ...fallbackSignals(website_url, deck_file), recon_context, pages_read_count: real_pages_count, used_web_research };
+      return { ...fallbackSignals(website_url, deck_file), recon_context, pages_read_count: real_pages_count, used_web_research, research_engines };
     }
 
+    log({ type: 'act', act: 'correlate', phase: 'done', note: `${signals.length} signals` });
+
     const company_summary = extracted.company_summary || null;
-    return { signals, sources_read, enterprise_signals, competitor_mentions, recon_context, company_summary, pages_read_count: real_pages_count, used_web_research };
+    return { signals, sources_read, enterprise_signals, competitor_mentions, recon_context, company_summary, pages_read_count: real_pages_count, used_web_research, research_engines };
   } catch (err) {
     console.error('[signal-extractor] pipeline error:', err.message, err.stack);
     // Only emit to terminal if not already emitted by the specific handler above

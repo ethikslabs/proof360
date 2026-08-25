@@ -39,6 +39,7 @@ function baseSession(overrides = {}) {
     ],
     company_summary: 'Acme builds compliance tooling for enterprise SaaS buyers in AU/NZ.',
     used_web_research: true,
+    research_engines: ['perplexity', 'gemini'],
     recon_context: {
       dns: { dmarc_policy: 'reject' },
       ip: { cloud_provider: 'aws', hosting_provider: 'AWS' },
@@ -169,7 +170,7 @@ describe('buildReadingContext — anchors (deterministic, never from model outpu
     expect(anchors).toContainEqual({ label: 'Security hiring signal', source: 'jobs scan' });
     expect(anchors).toContainEqual({ label: 'SSL grade: A', source: 'ssl scan' });
     expect(anchors).toContainEqual({ label: 'Site narrative signals', source: 'site scrape' });
-    expect(anchors).toContainEqual({ label: 'Company research', source: 'perplexity+gemini' });
+    expect(anchors).toContainEqual({ label: 'Company research · perplexity + gemini', source: 'perplexity+gemini' });
   });
 
   it('degraded read (0 pages) anchors "No pages readable" instead of site narrative signals', async () => {
@@ -190,21 +191,26 @@ describe('buildReadingContext — anchors (deterministic, never from model outpu
     expect(anchors).toEqual([{ label: 'No pages readable', source: 'scrape' }]);
   });
 
-  // I-1 (review ruling): the anchor must never claim engines that didn't run.
-  // signal-extractor.js only sets used_web_research when reconCompany's perplexity/
-  // gemini research actually contributed (company_research truthy).
-  it('used_web_research true → summary anchors as "Company research" (engines ran)', async () => {
-    const { anchors } = await buildReadingContext(baseSession({ used_web_research: true }));
-    expect(anchors).toContainEqual({ label: 'Company research', source: 'perplexity+gemini' });
+  // I-1 (review ruling), truthful list (John ruling 2026-08-25): the anchor must
+  // name exactly the engines that ran and answered — signal-extractor.js sets
+  // research_engines to the real list, never a boolean.
+  it('research_engines: [perplexity, gemini] → summary anchors names both engines', async () => {
+    const { anchors } = await buildReadingContext(baseSession({ research_engines: ['perplexity', 'gemini'] }));
+    expect(anchors).toContainEqual({ label: 'Company research · perplexity + gemini', source: 'perplexity+gemini' });
     expect(anchors.find((a) => a.label === 'Company summary')).toBeUndefined();
   });
 
-  it('summary present but used_web_research false/absent → anchors as "Company summary" (site synthesis only, engines never ran)', async () => {
-    const session = baseSession({ used_web_research: false });
+  it('research_engines: [perplexity] only → summary anchors names just that engine', async () => {
+    const { anchors } = await buildReadingContext(baseSession({ research_engines: ['perplexity'] }));
+    expect(anchors).toContainEqual({ label: 'Company research · perplexity', source: 'perplexity' });
+  });
+
+  it('summary present but research_engines empty/absent → anchors as "Company summary" (site synthesis only, engines never ran)', async () => {
+    const session = baseSession({ research_engines: [] });
     const { anchors } = await buildReadingContext(session);
 
     expect(anchors).toContainEqual({ label: 'Company summary', source: 'site synthesis' });
-    expect(anchors.find((a) => a.label === 'Company research')).toBeUndefined();
+    expect(anchors.find((a) => a.label?.startsWith('Company research'))).toBeUndefined();
   });
 });
 

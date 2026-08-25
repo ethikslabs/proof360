@@ -187,14 +187,29 @@ function domainOf(session) {
   }
 }
 
-// Live corpus lookup (John ruling — corpus at read time). Failure or no hits →
-// honest absence: no corpus material in the prompt, no corpus anchor. The model is
-// told to reason from this material in its own words, never quote it (EXCERPT-NOT-VOICE).
-async function corpusEvidence(session) {
-  const query = session?.company_name || domainOf(session);
-  if (!query) return { lines: [], anchor: null };
+// Shared with the corpus act (session-start.js step 8) so the scan-time cache
+// lookup and this read-time lookup are provably the SAME retrieval — same
+// query construction, one call, one bill.
+export function corpusQueryFor(session) {
+  return session?.company_name || domainOf(session);
+}
 
-  const hits = await retrieveCorpusEvidence(query, { company_name: session?.company_name }).catch(() => null);
+// Corpus evidence — cache-first (John ruling 2026-08-25: retrieval moved to
+// scan time, the corpus act in session-start.js, so the reading never re-bills
+// it). Cache contract on session.corpus_hits: field ABSENT = never attempted
+// (fall back to a live retrieval here, e.g. an older session from before this
+// cache existed); `null` = attempted, nothing/unreachable (honest absence, no
+// retry); an array = the hits. Either way, failure or no hits → no corpus
+// material in the prompt, no corpus anchor — the model reasons from this
+// material in its own words, never quoting it (EXCERPT-NOT-VOICE).
+async function corpusEvidence(session) {
+  let hits;
+  if (Object.prototype.hasOwnProperty.call(session || {}, 'corpus_hits')) {
+    hits = session.corpus_hits; // null (attempted, nothing) or an array (hits) — no retry either way
+  } else {
+    const query = corpusQueryFor(session);
+    hits = query ? await retrieveCorpusEvidence(query, { company_name: session?.company_name }).catch(() => null) : null;
+  }
   if (!hits?.length) return { lines: [], anchor: null };
 
   const lines = hits.map((h) => factLine(CORPUS, 'Corpus holding', (h.text || '').replace(/\s+/g, ' ').trim()));
@@ -216,13 +231,15 @@ export async function buildReadingContext(session) {
   } else if (inferenceLines.length) {
     anchors.push({ label: 'Site narrative signals', source: 'site scrape' });
   }
-  // I-1 (review ruling): only claim the perplexity/gemini engines when they actually
-  // ran. signal-extractor.js threads used_web_research = !!company_research onto the
-  // session — a summary can exist purely from site-page synthesis (no engines
-  // contributed), and that must never be presented as "company research".
+  // I-1 (review ruling), truthful list (John ruling 2026-08-25): only claim the
+  // engines that actually ran and answered. signal-extractor.js threads
+  // research_engines — the real list ('perplexity', 'gemini', both, or neither)
+  // — onto the session; a summary can exist purely from site-page synthesis (no
+  // engines contributed), and that must never be presented as "company research".
+  const engines = Array.isArray(session?.research_engines) ? session.research_engines : [];
   if (summaryLine) {
-    anchors.push(session?.used_web_research
-      ? { label: 'Company research', source: 'perplexity+gemini' }
+    anchors.push(engines.length
+      ? { label: `Company research · ${engines.join(' + ')}`, source: engines.join('+') }
       : { label: 'Company summary', source: 'site synthesis' });
   }
   if (corpus.anchor) anchors.push(corpus.anchor);
