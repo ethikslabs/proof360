@@ -2109,6 +2109,10 @@ export default function Chat() {
               reading: analysis.reading,
             }),
             readingAnchors: readingAnchorLabels(analysis.reading, analysis.reading_anchors),
+            // Citation cards (THE GATE): corpus hits render as OurWorking under the read.
+            // null/absent (no hits, or pre-round-1 API) attaches nothing — the corpus act
+            // in the trace already told that story honestly.
+            ...(analysis.corpus_citations ? { working: analysis.corpus_citations } : {}),
           } : m));
 
           // If this cold-read was answering a lens's ask, the company is now guaranteed
