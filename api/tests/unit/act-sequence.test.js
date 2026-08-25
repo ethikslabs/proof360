@@ -1,8 +1,10 @@
 // The narrated-act SSE sequence (commit f4af95f) is a cross-task contract with
-// the frontend: {type:'act', act, phase:'start'|'done'|'skip', title?, note?} /
+// the frontend: {type:'act', act, phase:'start'|'done'|'skip'|'fail', title?, note?} /
 // {type:'act_body', act, text, color?} / {type:'__done__'} / an untagged
 // {type:'cmd'} header line. Act ids: perimeter, site, perplexity, gemini,
-// correlate, corpus, reading.
+// correlate, corpus, reading. 'fail' (whole-wave review finding 2) is terminal
+// and means "ran and failed" — distinct from 'skip' ("didn't run") — emitted
+// by the act's own emitter site, never inferred by the renderer from a note.
 //
 // This file runs the REAL pipeline code (signal-extractor.js's extractSignals,
 // session-start.js's sessionStartHandler) with externals mocked at the same
@@ -72,6 +74,7 @@ vi.mock('../../src/services/inference-builder.js', async (importOriginal) => {
 import { chatComplete } from '../../src/lib/inference.js';
 import { query } from '../../src/db/pool.js';
 import { retrieveCorpusEvidence } from '../../src/services/corpus-retrieve.js';
+import { runGapAnalysis } from '../../src/services/gap-mapper.js';
 import { extractSignals } from '../../src/services/signal-extractor.js';
 import { researchQuery } from '../../src/services/recon-company.js';
 import { sessionStartHandler } from '../../src/handlers/session-start.js';
@@ -112,7 +115,7 @@ function assertContractShape(line) {
   switch (line.type) {
     case 'act':
       expect(line.act, `act event missing 'act': ${JSON.stringify(line)}`).toBeTruthy();
-      expect(['start', 'done', 'skip'], `bad phase: ${JSON.stringify(line)}`).toContain(line.phase);
+      expect(['start', 'done', 'skip', 'fail'], `bad phase: ${JSON.stringify(line)}`).toContain(line.phase);
       if (line.phase === 'start') {
         expect(typeof line.title, `start event missing title: ${JSON.stringify(line)}`).toBe('string');
       }
@@ -166,7 +169,11 @@ describe('extractSignals — the narrated act sequence (fresh success path)', ()
     const perplexitySkip = idx(isAct('perplexity', 'skip'));
     const geminiStart = idx(isAct('gemini', 'start'));
     const geminiSkip = idx(isAct('gemini', 'skip'));
-    const perimeterDone = idx(isAct('perimeter', 'done'));
+    // The recon-pipeline mock (top of file) always resolves null — recon never
+    // actually completes in this suite, so perimeter honestly closes 'fail'
+    // (not 'done') here. This is the exact shape finding 2 fixed: a failed
+    // closure must never render as a plain 'done'.
+    const perimeterFail = idx(isAct('perimeter', 'fail'));
     const correlateStart = idx(isAct('correlate', 'start'));
     const correlateDone = idx(isAct('correlate', 'done'));
 
@@ -178,9 +185,11 @@ describe('extractSignals — the narrated act sequence (fresh success path)', ()
     expect(perplexityStart).toBeLessThan(perplexitySkip);
     expect(perplexitySkip).toBeLessThan(geminiStart);
     expect(geminiStart).toBeLessThan(geminiSkip);
-    expect(geminiSkip).toBeLessThan(perimeterDone);
-    expect(perimeterDone).toBeLessThan(correlateStart);
+    expect(geminiSkip).toBeLessThan(perimeterFail);
+    expect(perimeterFail).toBeLessThan(correlateStart);
     expect(correlateStart).toBeLessThan(correlateDone);
+    // Never rendered as a plain success closure.
+    expect(log.find(isAct('perimeter', 'done'))).toBeUndefined();
 
     // correlate's 'done' is the true last emission on the success path (it
     // fires after every per-signal act_body line correlate writes).
@@ -220,6 +229,14 @@ describe('extractSignals — extraction failure never reaches __done__ itself', 
     // outer try/catch stay reserved for genuinely unexpected failures.
     expect(result.pages_read_count).toBe(0);
     expect(log.find((l) => l.type === '__done__')).toBeUndefined();
+
+    // Finding 2 (whole-wave review): the correlate act ran and threw (chatComplete
+    // rejected) — that closes 'fail', never a bare 'done' with a 'failed' note
+    // hiding behind a green checkmark.
+    const correlateClose = log.find(
+      (l) => l.type === 'act' && l.act === 'correlate' && (l.phase === 'done' || l.phase === 'fail')
+    );
+    expect(correlateClose).toMatchObject({ phase: 'fail', note: 'failed' });
   });
 });
 
@@ -443,6 +460,28 @@ describe('analyze.js — the "reading" act closes the whole-thinking stream', ()
     const bodies = log.filter((l) => l.type === 'act_body');
     expect(bodies.length).toBeGreaterThan(0);
     for (const b of bodies) expect(b.act).toBe('reading');
+  });
+
+  // Finding 2 (whole-wave review): the "reading" act ran and threw — that closes
+  // 'fail', never a bare 'done' with a 'failed' note rendering as a green ✓.
+  it('a throw inside the reading act closes it \'fail\' (not \'done\'), then __done__, then a 500', async () => {
+    runGapAnalysis.mockRejectedValueOnce(new Error('gap analysis blew up'));
+    const session = seededSession();
+    const reply = replyMock();
+    await analyzeHandler({ params: { id: session.id } }, reply);
+
+    expect(reply.statusCode).toBe(500);
+    const log = getLogs(session.id);
+    for (const line of log) assertContractShape(line);
+
+    const readingFail = log.find((l) => l.type === 'act' && l.act === 'reading' && l.phase === 'fail');
+    expect(readingFail).toMatchObject({ note: 'failed' });
+    expect(log.find((l) => l.type === 'act' && l.act === 'reading' && l.phase === 'done')).toBeUndefined();
+
+    // __done__ still closes the stream on failure — never strand the frontend mid-open.
+    const doneMarkerIdx = log.findIndex((l) => l.type === '__done__');
+    expect(doneMarkerIdx).toBe(log.length - 1);
+    expect(log.findIndex((l) => l === readingFail)).toBeLessThan(doneMarkerIdx);
   });
 
   // Finding 4 (live rehearsal, cosmetic): the reading act's anchor body line printed

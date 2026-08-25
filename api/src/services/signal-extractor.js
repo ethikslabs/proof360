@@ -402,7 +402,7 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
     if (recon_context) {
       log({ type: 'act', act: 'perimeter', phase: 'done', note: `${perimeterChecks} checks` });
     } else {
-      log({ type: 'act', act: 'perimeter', phase: 'done', note: reconTimedOut ? 'timed out' : 'failed' });
+      log({ type: 'act', act: 'perimeter', phase: 'fail', note: reconTimedOut ? 'timed out' : 'failed' });
     }
 
     // Each answered engine becomes its own synthetic research page feeding
@@ -435,7 +435,7 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
     try {
       extracted = await extractWithClaude(pages, actLine('correlate'), session_id);
     } catch (err) {
-      log({ type: 'act', act: 'correlate', phase: 'done', note: 'failed' });
+      log({ type: 'act', act: 'correlate', phase: 'fail', note: 'failed' });
       throw err;
     }
     const signals = mapToSignals(extracted);

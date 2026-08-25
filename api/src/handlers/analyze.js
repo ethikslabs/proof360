@@ -76,7 +76,7 @@ export async function analyzeHandler(request, reply) {
       appendLog(id, { act: 'reading', type: 'act_body', text: "the read didn't come together — falling back to plain signals", color: 'muted' });
     }
   } catch (err) {
-    appendLog(id, { type: 'act', act: 'reading', phase: 'done', note: 'failed' });
+    appendLog(id, { type: 'act', act: 'reading', phase: 'fail', note: 'failed' });
     appendLog(id, { type: '__done__' });
     request.log?.error?.(err, 'analyze failed');
     return reply.status(500).send({ error: 'analyze_failed' });

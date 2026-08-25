@@ -81,9 +81,9 @@ function partitionLines(lines) {
         if (line.title !== undefined) act.title = line.title;
         act.note = line.note;
         act.phase = 'start';
-      } else if (line.phase === 'done' || line.phase === 'skip') {
+      } else if (line.phase === 'done' || line.phase === 'skip' || line.phase === 'fail') {
         act.phase = line.phase;
-        // note on done/skip REPLACES the start note only when the event carries one.
+        // note on done/skip/fail REPLACES the start note only when the event carries one.
         if (line.note !== undefined) act.note = line.note;
       }
       continue;
@@ -114,6 +114,11 @@ export function ActTrace({ lines, done, composing = false, tk }) {
     // The perimeter act is the demoted background lane — collapsed by default
     // even while it is the active act; every other act auto-opens while active.
     if (act.id === 'perimeter') return false;
+    // Finding 1 (whole-wave review): a dead stream (done=true) never demotes an
+    // in-flight act out of 'start' — the stream just stopped updating it. Once
+    // done, an orphaned act collapses like any other closed act (still
+    // user-openable via the toggle below) instead of staying pinned open.
+    if (done && act.phase === 'start') return false;
     return act.phase === 'start';
   }
 
@@ -160,8 +165,20 @@ export function ActTrace({ lines, done, composing = false, tk }) {
       {acts.map(act => {
         const open = isOpen(act);
         const hasBody = act.body.length > 0;
-        const glyph = act.phase === 'done' ? '✓' : act.phase === 'skip' ? '↳' : '●';
-        const glyphColor = act.phase === 'done' ? COLORS.ok : act.phase === 'skip' ? COLORS.muted : COLORS.query;
+        // Finding 1: a dead stream leaves this act pulsing forever unless we
+        // render it as orphaned — static and muted, never an invented failure
+        // (ABSENCE RULE: the stream ended, that's all we know).
+        const orphaned = done && act.phase === 'start';
+        const glyph = orphaned ? '·'
+          : act.phase === 'done' ? '✓'
+          : act.phase === 'fail' ? '✗'
+          : act.phase === 'skip' ? '↳'
+          : '●';
+        const glyphColor = orphaned ? COLORS.muted
+          : act.phase === 'done' ? COLORS.ok
+          : act.phase === 'fail' ? COLORS.err
+          : act.phase === 'skip' ? COLORS.muted
+          : COLORS.query;
         return (
           <div key={act.id} style={{ marginBottom: 4 }}>
             <div
@@ -181,7 +198,7 @@ export function ActTrace({ lines, done, composing = false, tk }) {
             >
               <span style={{
                 width: 12, flexShrink: 0, color: glyphColor,
-                animation: act.phase === 'start' ? 'fqPulse 1.6s ease-in-out infinite' : 'none',
+                animation: !orphaned && act.phase === 'start' ? 'fqPulse 1.6s ease-in-out infinite' : 'none',
               }}>
                 {glyph}
               </span>

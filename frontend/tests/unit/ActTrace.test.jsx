@@ -93,6 +93,54 @@ describe('ActTrace', () => {
     expect(screen.queryByText('● …')).not.toBeInTheDocument();
   });
 
+  // Finding 2 (whole-wave review): emitters now close a failed act with the new
+  // 'fail' phase instead of a plain 'done' + failure note (which rendered as a
+  // green checkmark). 'fail' renders ✗ in the err color, terminal like done/skip
+  // (auto-collapse, still user-openable), note in inkSoft same as the others.
+  it('a failed act renders ✗ in the err color, collapses its body, and reopens on click', () => {
+    const lines = [
+      { type: 'act', act: 'correlate', phase: 'start', title: 'Correlating what every witness saw' },
+      { type: 'act_body', act: 'correlate', text: 'extraction threw', color: 'err' },
+      { type: 'act', act: 'correlate', phase: 'fail', note: 'failed' },
+    ];
+    render(<ActTrace lines={lines} done={true} tk={tk} />);
+    const glyph = screen.getByText('✗');
+    expect(glyph).toBeInTheDocument();
+    expect(glyph).toHaveStyle({ color: '#c84b4b' });
+    expect(screen.getByText(/failed/)).toBeInTheDocument();
+    expect(screen.queryByText(/extraction threw/)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText(/Correlating what every witness saw/));
+    expect(screen.getByText(/extraction threw/)).toBeInTheDocument();
+  });
+
+  // Finding 1 (whole-wave review): a dead stream (es.onerror, the 160s safety
+  // close, a frontend poll-timeout) never demotes an in-flight act out of
+  // 'start'. Once done=true, any act still 'start' renders as orphaned — a
+  // static muted glyph, no pulse animation, body collapsed (still openable).
+  // We don't invent a failure we didn't observe — the stream ended, that's all
+  // we know (ABSENCE RULE).
+  it('done=true demotes any still-\'start\' act to a static muted glyph, never an invented failure', () => {
+    const lines = [
+      { type: 'act', act: 'correlate', phase: 'start', title: 'Correlating what every witness saw' },
+      { type: 'act_body', act: 'correlate', text: 'still working when the stream died', color: 'muted' },
+    ];
+    render(<ActTrace lines={lines} done={true} tk={tk} />);
+
+    expect(screen.getByText(/Correlating what every witness saw/)).toBeInTheDocument();
+    // Orphaned glyph: muted '·', not the active '●', a checkmark, or a cross.
+    const glyph = screen.getByText('·');
+    expect(glyph).toHaveStyle({ color: '#94a3b8', animation: 'none' });
+    expect(screen.queryByText('●')).not.toBeInTheDocument();
+    expect(screen.queryByText('✓')).not.toBeInTheDocument();
+    expect(screen.queryByText('✗')).not.toBeInTheDocument();
+    // No auto-expanded body — collapsed, but still user-openable.
+    expect(screen.queryByText(/still working when the stream died/)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText(/Correlating what every witness saw/));
+    expect(screen.getByText(/still working when the stream died/)).toBeInTheDocument();
+  });
+
   // Finding 4 (live rehearsal): the perplexity/gemini research engine returns raw
   // markdown emphasis markers, and they were rendering verbatim (`**penetration
   // testing**`) in the act body — readable substance, unreadable presentation.
