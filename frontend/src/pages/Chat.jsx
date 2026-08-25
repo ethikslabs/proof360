@@ -1625,6 +1625,9 @@ export default function Chat() {
         // than leave it stood up under a now-live session id (final-review C2).
         replaceSignals([]);
         refreshSpine(sid);
+        // A returning session shows already-fired proposals immediately — not
+        // only after the next reply ("simple to return to", task-3 review I-1).
+        fetchPendingProposals(sid);
       } catch {
         // stored session no longer on the box (retention or reset) — start fresh
         spine.forgetSessionId();
@@ -2443,7 +2446,7 @@ export default function Chat() {
                   {!hasMessages && (
                     <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 18 }}>
                       {[
-                        { id: 'sofia',    label: 'Sophia',   color: '#a8651e', note: 'Narrative & trust · the human story behind the numbers' },
+                        { id: 'sofia',    label: 'Sophia',   color: '#92400e', note: 'Narrative & trust · the human story behind the numbers' },
                         { id: 'edison',   label: 'Edison',   color: '#176577', note: 'Technical & execution · what to fix and in what order' },
                         { id: 'leonardo', label: 'Leonardo', color: '#6b4ea8', note: 'Strategy & market · fundraising and deal consequences' },
                       ].map(p => {
@@ -2661,7 +2664,7 @@ export default function Chat() {
                   {!hasMessages && (
                     <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 18 }}>
                       {[
-                        { id: 'sofia',    label: 'Sophia',   color: '#a8651e', note: 'Narrative & trust · the human story behind the numbers' },
+                        { id: 'sofia',    label: 'Sophia',   color: '#92400e', note: 'Narrative & trust · the human story behind the numbers' },
                         { id: 'edison',   label: 'Edison',   color: '#176577', note: 'Technical & execution · what to fix and in what order' },
                         { id: 'leonardo', label: 'Leonardo', color: '#6b4ea8', note: 'Strategy & market · fundraising and deal consequences' },
                       ].map(p => {

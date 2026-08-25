@@ -37,7 +37,7 @@ function VendorChips({ content, onProgramFocus }) {
           style={{
             fontFamily: '"IBM Plex Mono", monospace',
             fontSize: 9, fontWeight: 600, letterSpacing: '0.06em',
-            color: '#a8651e', background: '#fdf3e3',
+            color: '#92400e', background: '#fdf3e3',
             border: '1px solid #e8c98a', borderRadius: 10,
             padding: '2px 8px', cursor: 'pointer',
           }}

@@ -592,7 +592,7 @@ export function AccountButton({ collapsed, onSignIn }) {
       >
         <div style={{
           width: 28, height: 28, borderRadius: '50%',
-          background: '#a8651e', color: '#ffffff',
+          background: '#92400e', color: '#ffffff',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 11, fontWeight: 700, letterSpacing: '0.05em',
           fontFamily: '"IBM Plex Mono", monospace', flexShrink: 0,

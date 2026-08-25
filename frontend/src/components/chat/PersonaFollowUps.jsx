@@ -2,7 +2,7 @@
 // chips-and-proposal-cards.md, Task 2). Renders exactly what the /followups
 // endpoint returned for THIS session — no canned text in live. Empty/null in,
 // nothing out (honest degradation; INVARIANTS no-canned-text).
-export const PERSONA_COLORS = { sofia: '#a8651e', edison: '#176577', leonardo: '#6b4ea8' };
+export const PERSONA_COLORS = { sofia: '#92400e', edison: '#176577', leonardo: '#6b4ea8' };
 export const PERSONA_NAMES = { sofia: 'Sophia', edison: 'Edison', leonardo: 'Leonardo' };
 export const PERSONA_LENSES = {
   sofia: 'Narrative & trust',

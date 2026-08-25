@@ -53,7 +53,7 @@ export function ObservationStrip({ signals, isDemoMode, onCorrect, onIgnore, onA
         }}>
           Observed this session
           {isDemoMode && (
-            <span style={{ marginLeft: 8, color: '#a8651e', fontWeight: 400, fontStyle: 'italic', textTransform: 'none' }}>
+            <span style={{ marginLeft: 8, color: '#92400e', fontWeight: 400, fontStyle: 'italic', textTransform: 'none' }}>
               · example company
             </span>
           )}
