@@ -10,7 +10,7 @@
 //                                guess (no-invented-number doctrine, testimony flavour).
 
 const VALUE_DISPLAY = {
-  aws: 'AWS', gcp: 'GCP', azure: 'Azure', cloudflare: 'Cloudflare',
+  aws: 'AWS', gcp: 'GCP', azure: 'Azure', oracle: 'Oracle', cloudflare: 'Cloudflare',
   'on-premise': 'on-premise',
 };
 
@@ -29,7 +29,16 @@ const FIELD_QUESTIONS = {
   'data.sensitivity': (v) => `It looks like you handle ${String(v).toLowerCase()} — is that accurate?`,
 };
 
+// A conflicted claim (I3, review 2026-08-25) has TWO witnesses disagreeing —
+// the probe and the founder's own materials. The ceremony must ask which is
+// right, never silently confirm the probe's pick or ask a single-value
+// confirm as if only one witness existed (lamp register: conflict = question).
 export function fieldQuestion(claim) {
+  if (claim.conflicted && claim.conflict) {
+    const probe = displayValue(claim.conflict.probe_says);
+    const source = displayValue(claim.conflict.source_says);
+    return `Our probe sees ${probe}; your materials say ${source} — which is right?`;
+  }
   const v = displayValue(claim.value);
   const phrase = FIELD_QUESTIONS[claim.field];
   return phrase ? phrase(v) : `We've inferred ${claim.field.split('.').pop().replace(/_/g, ' ')} is ${v} — is that right?`;
@@ -37,10 +46,13 @@ export function fieldQuestion(claim) {
 
 export function confirmPromptBlock(claim) {
   if (!claim) return '';
+  const factLine = claim.conflicted && claim.conflict
+    ? `Conflicting witnesses: ${claim.field} — our probe says ${displayValue(claim.conflict.probe_says)}, your materials say ${displayValue(claim.conflict.source_says)}`
+    : `Inferred: ${claim.field} = ${displayValue(claim.value)} (source: ${claim.provenance?.detail || claim.provenance?.method || 'inference'})`;
   return [
     '',
     '--- CONFIRM CEREMONY (one inferred fact to verify this exchange) ---',
-    `Inferred: ${claim.field} = ${displayValue(claim.value)} (source: ${claim.provenance?.detail || claim.provenance?.method || 'inference'})`,
+    factLine,
     `Ask, woven naturally into your reply as conversation (never a form): "${fieldQuestion(claim)}"`,
     'Ask at most this one confirm question. If the user already answered it in their message, do not ask again.',
     'Never re-ask a fact the user has already confirmed, and never ask what our probes can detect.',

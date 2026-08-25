@@ -4,6 +4,9 @@
 // the KIND of evidence instead: observed (a live probe watched it happen),
 // confirmed (fairly sure), probable (an inference/guess) — paired with a
 // plain-English source description.
+// Component-rendering coverage for the same no-% invariant (GraphView,
+// ProvenanceAccordion) lives in grade-words.render.test.jsx — this file must
+// stay plain .js (no JSX) or the oxc/vite transform refuses it.
 import { describe, it, expect } from 'vitest';
 import { gradeWord, sourceDescription, gradeLabel } from '../../src/rendering/protocol.js';
 

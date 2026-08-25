@@ -17,6 +17,18 @@ const awsClaim = {
   provenance: { method: 'recon-ip', detail: 'ASN AS16509 Amazon', at: '2026-08-22T01:00:00Z' },
 };
 
+// I3 (review 2026-08-25): two witnesses disagree — the probe (primary,
+// claim.value) and the founder's own materials (conflict.source_says).
+const conflictedClaim = {
+  claim_id: 'clm-oracle-conflict',
+  field: 'infrastructure.cloud_provider',
+  value: 'oracle',
+  status: 'inferred',
+  provenance: { method: 'recon-ip', detail: 'ASN AS31898 Oracle-BMC', at: '2026-08-22T01:00:00Z' },
+  conflicted: true,
+  conflict: { probe_says: 'oracle', source_says: 'AWS' },
+};
+
 describe('confirmPromptBlock', () => {
   it('instructs the persona to ask exactly one natural confirm, citing the source', () => {
     const block = confirmPromptBlock(awsClaim);
@@ -39,6 +51,30 @@ describe('fieldQuestion — human phrasing per field', () => {
   it('falls back to a generic phrasing for unmapped fields', () => {
     const q = fieldQuestion({ field: 'x.y', value: 'zed' });
     expect(q).toContain('zed');
+  });
+});
+
+describe('fieldQuestion / confirmPromptBlock — conflicted claim asks the both-witnesses question (I3)', () => {
+  it('fieldQuestion names both witnesses and asks which is right, not a single-value confirm', () => {
+    const q = fieldQuestion(conflictedClaim);
+    expect(q).toMatch(/probe/i);
+    expect(q).toContain('Oracle');
+    expect(q).toContain('AWS');
+    expect(q).toMatch(/which is right/i);
+    // never the single-witness phrasing for a conflicted claim
+    expect(q).not.toMatch(/looks like you'?re on/i);
+  });
+
+  it('confirmPromptBlock names both witnesses in the fact line, never just the probe value', () => {
+    const block = confirmPromptBlock(conflictedClaim);
+    expect(block).toMatch(/conflicting witnesses/i);
+    expect(block).toContain('Oracle');
+    expect(block).toContain('AWS');
+    expect(block).toMatch(/which is right/i);
+  });
+
+  it('a non-conflicted claim still gets the ordinary single-value question', () => {
+    expect(fieldQuestion(awsClaim)).toMatch(/looks like you'?re on AWS/i);
   });
 });
 

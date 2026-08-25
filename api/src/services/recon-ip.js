@@ -84,12 +84,17 @@ function isCloudflareIp(ip) {
   return CF_RANGES.some(([lo, hi]) => n >= lo && n <= hi);
 }
 
+// Oracle ASNs: AS31898 (Oracle-BMC — Oracle Cloud Infrastructure's primary
+// range) and AS36996 (Oracle-BMC-36996). Matched by exact ASN token, never a
+// bare 'oci' substring — that string appears inside unrelated words (e.g.
+// "social") and would manufacture a false classification.
 function classifyHosting(org = '', asn = '', isCfProxy = false) {
   if (isCfProxy) return 'Cloudflare';
   const s = `${org} ${asn}`.toLowerCase();
   if (s.includes('amazon') || s.includes('aws') || s.includes('as16509') || s.includes('as14618')) return 'AWS';
   if (s.includes('google') || s.includes('as15169') || s.includes('as396982'))                    return 'GCP';
   if (s.includes('microsoft') || s.includes('azure') || s.includes('as8075'))                     return 'Azure';
+  if (s.includes('oracle') || s.includes('as31898') || s.includes('as36996'))                      return 'Oracle';
   if (s.includes('cloudflare') || s.includes('as13335'))                                           return 'Cloudflare';
   if (s.includes('fastly') || s.includes('as54113'))                                               return 'Fastly';
   if (s.includes('digitalocean') || s.includes('as14061'))                                         return 'DigitalOcean';
@@ -100,15 +105,22 @@ function classifyHosting(org = '', asn = '', isCfProxy = false) {
   return org || null;
 }
 
+// cloud_provider feeds infrastructure gap analysis (AWS Activate follow-up,
+// etc.) — every provider signal-extractor.js's own_hosting_provider enum can
+// name (AWS/GCP/Azure/Oracle/Cloudflare) must canonicalize here too, or the
+// probe silently returns null for a provider the founder can legitimately
+// claim, and the reconciliation in inference-builder.js never sees a probe
+// fact to compare against.
 function detectCloudProvider(org = '', asn = '') {
   const s = `${org} ${asn}`.toLowerCase();
   if (s.includes('amazon') || s.includes('aws') || s.includes('as16509') || s.includes('as14618')) return 'AWS';
   if (s.includes('google') || s.includes('as15169') || s.includes('as396982'))                    return 'GCP';
   if (s.includes('microsoft') || s.includes('azure') || s.includes('as8075'))                     return 'Azure';
+  if (s.includes('oracle') || s.includes('as31898') || s.includes('as36996'))                      return 'Oracle';
   return null;
 }
 
 function isCloudHosted(org = '', asn = '') {
   const provider = classifyHosting(org, asn);
-  return ['AWS', 'GCP', 'Azure', 'Cloudflare', 'Fastly', 'DigitalOcean', 'Linode/Akamai', 'Vultr'].includes(provider);
+  return ['AWS', 'GCP', 'Azure', 'Oracle', 'Cloudflare', 'Fastly', 'DigitalOcean', 'Linode/Akamai', 'Vultr'].includes(provider);
 }

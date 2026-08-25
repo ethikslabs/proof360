@@ -18,17 +18,24 @@ import { makeObservedSignal } from './protocol.js';
 const CONFIDENCE_MAP = { confirmed: 0.9, probable: 0.6, observed: 0.85 };
 
 // inference-builder.js's signalCategory() emits: product, market, data,
-// company, identity, infrastructure, governance — plus its own 'general'
-// fallback for anything not in its map. Only categories with a clear
-// frontend-domain home are mapped explicitly below; every other category
-// (including 'general' and any future addition) falls back to 'compliance',
-// the frontend ObservedSignal domain enum's catch-all.
+// company, identity, infrastructure, governance, relationship — plus its own
+// 'general' fallback for anything not in its map. Only categories with a
+// clear frontend-domain home are mapped explicitly below; every other
+// category (including 'general' and any future addition) falls back to
+// 'compliance', the frontend ObservedSignal domain enum's catch-all.
 const DOMAIN_MAP = {
   identity: 'identity',
   infrastructure: 'security',
   data: 'security',
   governance: 'compliance',
   company: 'financial', // stage/entity signals — matches the seed_stage mock precedent (data/mock/signals.js)
+  // works_with ("works with AWS") is a vendor RELATIONSHIP — a business fact,
+  // not a hosting/security posture claim (M6, review 2026-08-25). It never
+  // conflicts with the probe's hosting fact and shouldn't render next to
+  // actual security signals as if it were one. 'financial' is the frontend's
+  // business-context bucket — same precedent as `company` above, not a
+  // literal claim this is financial data.
+  relationship: 'financial',
 };
 
 // The builder never sends polarity — these are neutral, unverified

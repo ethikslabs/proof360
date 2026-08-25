@@ -39,21 +39,22 @@ export function buildInferences(signals, sources_read, website_url, recon = {}) 
   // and the extracted claim is kept visible as the conflicting witness — never
   // silently dropped, never silently picked.
   const reconInfra = recon.cloud_provider || recon.hosting_provider || null;
+  const reconInfraLabel = reconInfra ? canonicalProviderLabel(reconInfra) : null;
   const hostingSignal = signals.find((s) => s.type === 'infrastructure');
 
   if (reconInfra && hostingSignal && !sameProvider(reconInfra, hostingSignal.value)) {
     inferences.push({
       inference_id: 'inf_infrastructure',
-      label: `Hosted on ${reconInfra}`,
+      label: `Hosted on ${reconInfraLabel}`,
       confidence: 'observed',
       category: 'infrastructure',
       conflicted: true,
-      conflict: { probe_says: reconInfra, source_says: hostingSignal.value },
+      conflict: { probe_says: reconInfraLabel, source_says: canonicalProviderLabel(hostingSignal.value) },
     });
   } else if (reconInfra) {
     inferences.push({
       inference_id: 'inf_infrastructure',
-      label: `Hosted on ${reconInfra}`,
+      label: `Hosted on ${reconInfraLabel}`,
       confidence: 'observed',
       category: 'infrastructure',
       conflicted: false,
@@ -61,7 +62,7 @@ export function buildInferences(signals, sources_read, website_url, recon = {}) 
   } else if (hostingSignal) {
     inferences.push({
       inference_id: 'inf_infrastructure',
-      label: `Hosted on ${hostingSignal.value}`,
+      label: `Hosted on ${canonicalProviderLabel(hostingSignal.value)}`,
       confidence: hostingSignal.confidence,
       category: 'infrastructure',
       conflicted: false,
@@ -73,13 +74,17 @@ export function buildInferences(signals, sources_read, website_url, recon = {}) 
   // reconciliation).
 
   // Vendor relationships ("works with AWS") are business facts, not hosting —
-  // they never conflict with the probe and always render.
+  // they never conflict with the probe and always render. Own category
+  // 'relationship' (M6, review 2026-08-25): 'infrastructure' put this in the
+  // frontend's security bucket, next to actual hosting/security posture
+  // signals, which misrepresented a business relationship as a security
+  // fact. See live-signals.js DOMAIN_MAP for where this lands on the frontend.
   for (const signal of signals.filter((s) => s.type === 'works_with')) {
     inferences.push({
       inference_id: `inf_works_with_${slugify(signal.value)}`,
       label: `Works with ${signal.value}`,
       confidence: signal.confidence,
-      category: 'infrastructure',
+      category: 'relationship',
       conflicted: false,
     });
   }
@@ -105,8 +110,8 @@ export function buildInferences(signals, sources_read, website_url, recon = {}) 
   // probe wins when both exist, otherwise whichever we have, otherwise honest "Unknown".
   // If we know the CDN/edge layer (e.g. Cloudflare) but not the underlying host, surface that.
   const edgeProvider = recon.cdn_provider || recon.waf_detected || null;
-  const infraDisplay = reconInfra
-    || (hostingSignal ? hostingSignal.value + (hostingSignal.confidence === 'probable' ? ' (probable)' : '') : null)
+  const infraDisplay = reconInfraLabel
+    || (hostingSignal ? canonicalProviderLabel(hostingSignal.value) + (hostingSignal.confidence === 'probable' ? ' (probable)' : '') : null)
     || (edgeProvider ? `Behind ${edgeProvider}` : 'Unknown');
   correctable_fields.push({
     key: 'infrastructure',
@@ -234,7 +239,11 @@ function signalCategory(type) {
     handles_payments: 'data', uses_ai: 'product', handles_personal_data: 'data',
     pen_test_completed: 'governance', has_backup: 'infrastructure',
     aws_program_enrolled: 'company', microsoft_program_enrolled: 'company',
-    works_with: 'infrastructure',
+    // Dead entry in practice — buildInferences() skips 'works_with' in the loop
+    // this map serves and assigns its category directly (see the vendor
+    // relationships block below); kept in sync here so this map stays a
+    // truthful reference of every signal type's category.
+    works_with: 'relationship',
   };
   return map[type] || 'general';
 }
@@ -274,10 +283,47 @@ function normalizeProvider(value) {
   return PROVIDER_ALIASES[s] || s;
 }
 
-function sameProvider(a, b) {
-  if (!a || !b) return false;
-  return normalizeProvider(a) === normalizeProvider(b);
+// Canonical display names, matched by substring against ANY raw text — a live
+// probe's raw org string ("Oracle Corporation"), a mis-cased alias ("aws"),
+// or the signal-extractor's own_hosting_provider enum (already clean). Most
+// specific pattern first so "oracle cloud infrastructure" doesn't fall
+// through to a generic match. Unrecognised text (DigitalOcean, Hetzner, a raw
+// ASN string, ...) renders exactly as given — never invent a name for
+// something we can't classify.
+const CANONICAL_PROVIDERS = [
+  { pretty: 'AWS', patterns: ['amazon web services', 'amazon', 'aws'] },
+  { pretty: 'GCP', patterns: ['google cloud platform', 'google cloud', 'gcp', 'google'] },
+  { pretty: 'Azure', patterns: ['microsoft azure', 'azure', 'microsoft'] },
+  { pretty: 'Oracle', patterns: ['oracle cloud infrastructure', 'oracle cloud', 'oracle'] },
+  { pretty: 'Cloudflare', patterns: ['cloudflare'] },
+];
+
+// Display labels use the canonical pretty name, never a raw probe org string
+// or a mis-cased alias — a rendered "Hosted on Oracle Corporation" or "Hosted
+// on aws" is a cosmetic honesty gap the same way a fake percentage is (review
+// M7).
+function canonicalProviderLabel(value) {
+  const s = String(value ?? '').toLowerCase().trim();
+  if (!s) return String(value ?? '');
+  for (const { pretty, patterns } of CANONICAL_PROVIDERS) {
+    if (patterns.some((p) => s.includes(p))) return pretty;
+  }
+  return String(value);
 }
+
+// Loose provider equality: exact normalized match first, then a fuzzy
+// fallback that recognises a known provider name embedded in either raw
+// string (a probe's "Oracle Corporation" vs a text claim's "Oracle") and
+// compares canonical names. A raw org string must MATCH a shorter text claim
+// naming the same provider — never manufacture a conflict over spelling or
+// verbosity alone.
+export function sameProvider(a, b) {
+  if (!a || !b) return false;
+  if (normalizeProvider(a) === normalizeProvider(b)) return true;
+  return canonicalProviderLabel(a) === canonicalProviderLabel(b);
+}
+
+export { canonicalProviderLabel };
 
 function slugify(value) {
   return String(value ?? '')

@@ -1,4 +1,5 @@
-// Honesty wave (John walk findings 2026-08-25), items 1 + 3:
+// Honesty wave (John walk findings 2026-08-25), items 1 + 3, plus the
+// complete-review follow-ups (C1/C2 2026-08-25):
 //
 // Item 1 — hosting conflicts are surfaced as a question, never a silent pick.
 // The live rehearsal bug: an extraction-derived "Hosted on AWS" claim and the
@@ -17,10 +18,27 @@
 // self-hosting statement becomes `type: 'infrastructure'`; everything else is
 // `type: 'works_with'`, which never competes with the probe.
 //
+// C1/C2 (review 2026-08-25) — the ORIGINAL fixtures above fed `recon =
+// { cloud_provider: 'Oracle' }` directly. That is not a shape the real
+// pipeline can emit: recon-ip.js's detectCloudProvider() only ever returned
+// AWS/GCP/Azure/null (no Oracle branch), and classifyHosting() fell through
+// to the RAW org string ("Oracle Corporation") for anything it couldn't
+// classify — so a real probe hit would produce `hosting_provider: 'Oracle
+// Corporation'`, never a clean `cloud_provider: 'Oracle'`. Two bugs followed:
+// (a) recon-ip.js never taught to canonicalize Oracle — fixed by adding
+// Oracle branches to classifyHosting()/detectCloudProvider(); (b)
+// inference-builder.js's sameProvider() only did exact-key matching, so a raw
+// "Oracle Corporation" probe hit against a text claim of "Oracle" registered
+// as a MANUFACTURED conflict. Fixed by canonicalProviderLabel() + a fuzzy
+// substring fallback in sameProvider(), reused for display labels too (no
+// raw org text or mis-cased alias ever reaches the founder — review M7).
+// Below, fixtures now use the real raw-org shape recon-ip.js actually
+// produces for a provider it recognises by name but not by ASN pattern.
+//
 // Item 3 — label hygiene: no "Software product product" doubling, no bare
 // boolean chips ("True"/empty), every boolean signal type gets a human label.
 import { describe, it, expect } from 'vitest';
-import { buildInferences } from '../../src/services/inference-builder.js';
+import { buildInferences, sameProvider, canonicalProviderLabel } from '../../src/services/inference-builder.js';
 
 function infra(inferences) {
   return inferences.find((i) => i.inference_id === 'inf_infrastructure');
@@ -29,6 +47,8 @@ function infra(inferences) {
 describe('buildInferences — hosting conflict (probe vs extracted text)', () => {
   it('marks a true conflict: explicit self-hosting claim disagrees with the live probe', () => {
     const signals = [{ type: 'infrastructure', value: 'AWS', confidence: 'probable', claim_type: 'hosting' }];
+    // Real shape: recon-ip.js's cloud_provider field, now that Oracle
+    // canonicalizes cleanly there too.
     const recon = { cloud_provider: 'Oracle' };
 
     const result = buildInferences(signals, ['homepage'], 'https://cognisys.example', recon);
@@ -56,6 +76,9 @@ describe('buildInferences — hosting conflict (probe vs extracted text)', () =>
     expect(hosting.conflicted).toBe(false);
     expect(relationship.label).toBe('Works with AWS');
     expect(relationship.conflicted).toBe(false);
+    // M6 (review 2026-08-25): works_with gets its own category — never
+    // 'infrastructure', which the frontend buckets as a security signal.
+    expect(relationship.category).toBe('relationship');
   });
 
   it('probe fact alone (no text-derived hosting claim): observed, not conflicted', () => {
@@ -76,18 +99,110 @@ describe('buildInferences — hosting conflict (probe vs extracted text)', () =>
     expect(hosting.conflicted).toBe(false);
   });
 
-  it('agreement (aliased spelling): probe and text-derived claim naming the same provider — no conflict', () => {
+  it('agreement (aliased spelling): probe and text-derived claim naming the same provider — no conflict, canonical label (review M7)', () => {
     const signals = [{ type: 'infrastructure', value: 'Amazon Web Services', confidence: 'probable', claim_type: 'hosting' }];
     const result = buildInferences(signals, ['homepage'], 'https://example.com', { cloud_provider: 'aws' });
     const hosting = infra(result.inferences);
     expect(hosting.conflicted).toBe(false);
-    expect(hosting.label).toBe('Hosted on aws');
+    // Display always uses the canonical pretty name, never the raw/mis-cased probe value.
+    expect(hosting.label).toBe('Hosted on AWS');
   });
 
   it('nothing known: no canned "Hosted on AWS" guess — honest omission', () => {
     const result = buildInferences([], ['homepage'], 'https://example.com', {});
     expect(infra(result.inferences)).toBeUndefined();
     expect(result.inferences.some((i) => i.label === 'Hosted on AWS')).toBe(false);
+  });
+});
+
+describe('buildInferences — Oracle canonicalization (C1/C2, real probe shapes)', () => {
+  it('real-shape agree case: probe raw org text + a matching text claim → NO conflict, clean canonical label', () => {
+    // recon-ip.js's classifyHosting() falls back to the raw org string for
+    // anything an ASN/org pattern didn't classify BEFORE the Oracle branch —
+    // this is the exact raw shape a live probe hit produces for an org whose
+    // ipapi.co org string reads "Oracle Corporation".
+    const signals = [{ type: 'infrastructure', value: 'Oracle', confidence: 'probable', claim_type: 'hosting' }];
+    const recon = { cloud_provider: null, hosting_provider: 'Oracle Corporation' };
+
+    const result = buildInferences(signals, ['homepage'], 'https://example.com', recon);
+    const hosting = infra(result.inferences);
+
+    expect(hosting.conflicted).toBe(false);
+    expect(hosting.conflict).toBeUndefined();
+    expect(hosting.label).toBe('Hosted on Oracle');
+    expect(hosting.confidence).toBe('observed');
+  });
+
+  it('real-shape true-conflict case: text explicit own-hosting AWS + probe raw Oracle org → conflicted, canonical witnesses', () => {
+    const signals = [{ type: 'infrastructure', value: 'AWS', confidence: 'probable', claim_type: 'hosting' }];
+    const recon = { cloud_provider: null, hosting_provider: 'Oracle Corporation' };
+
+    const result = buildInferences(signals, ['homepage'], 'https://example.com', recon);
+    const hosting = infra(result.inferences);
+
+    expect(hosting.conflicted).toBe(true);
+    // Both witnesses are named with their canonical pretty name — never the raw org string.
+    expect(hosting.conflict).toEqual({ probe_says: 'Oracle', source_says: 'AWS' });
+    expect(hosting.label).toBe('Hosted on Oracle');
+  });
+
+  it('raw-org-only fallback: no text claim → canonicalized label, not the raw org string', () => {
+    const recon = { cloud_provider: null, hosting_provider: 'Oracle Corporation' };
+    const result = buildInferences([], ['homepage'], 'https://example.com', recon);
+    const hosting = infra(result.inferences);
+
+    expect(hosting.label).toBe('Hosted on Oracle');
+    expect(hosting.confidence).toBe('observed');
+    expect(hosting.conflicted).toBe(false);
+  });
+});
+
+describe('sameProvider / canonicalProviderLabel — the fuzzy fallback directly', () => {
+  it('a raw probe org string matches a shorter text claim naming the same provider', () => {
+    expect(sameProvider('Oracle Corporation', 'Oracle')).toBe(true);
+    expect(sameProvider('Oracle', 'Oracle Corporation')).toBe(true);
+  });
+
+  it('genuinely different providers never match, even with raw org noise', () => {
+    expect(sameProvider('Oracle Corporation', 'AWS')).toBe(false);
+    expect(sameProvider('Amazon.com, Inc.', 'Azure')).toBe(false);
+  });
+
+  it('canonicalProviderLabel returns the pretty name for a raw org string, and the raw value for unknowns', () => {
+    expect(canonicalProviderLabel('Oracle Corporation')).toBe('Oracle');
+    expect(canonicalProviderLabel('aws')).toBe('AWS');
+    expect(canonicalProviderLabel('DigitalOcean, LLC')).toBe('DigitalOcean, LLC');
+  });
+});
+
+describe('buildInferences — correctable_fields.infrastructure precedence (M5)', () => {
+  function infraField(result) {
+    return result.correctable_fields.find((f) => f.key === 'infrastructure');
+  }
+
+  it('probe wins over a text-derived hosting claim and a CDN hint', () => {
+    const signals = [{ type: 'infrastructure', value: 'AWS', confidence: 'probable', claim_type: 'hosting' }];
+    const recon = { cloud_provider: 'Oracle', cdn_provider: 'Cloudflare' };
+    const result = buildInferences(signals, ['homepage'], 'https://example.com', recon);
+    expect(infraField(result).inferred_value).toBe('Oracle');
+  });
+
+  it('text-derived claim wins over a CDN hint when there is no probe fact', () => {
+    const signals = [{ type: 'infrastructure', value: 'AWS', confidence: 'probable', claim_type: 'hosting' }];
+    const recon = { cdn_provider: 'Cloudflare' };
+    const result = buildInferences(signals, ['homepage'], 'https://example.com', recon);
+    expect(infraField(result).inferred_value).toBe('AWS (probable)');
+  });
+
+  it('a CDN/edge hint surfaces honestly when neither probe nor text claim exist', () => {
+    const recon = { cdn_provider: 'Cloudflare' };
+    const result = buildInferences([], ['homepage'], 'https://example.com', recon);
+    expect(infraField(result).inferred_value).toBe('Behind Cloudflare');
+  });
+
+  it('falls back to the honest "Unknown" when nothing is known at all', () => {
+    const result = buildInferences([], ['homepage'], 'https://example.com', {});
+    expect(infraField(result).inferred_value).toBe('Unknown');
   });
 });
 

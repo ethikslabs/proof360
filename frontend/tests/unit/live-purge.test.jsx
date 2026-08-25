@@ -122,12 +122,17 @@ describe('live-purge: conflict + probe-derived confidence passthrough (item 1)',
   });
 
   it('a non-conflicted inference defaults to conflicted:false and conflict:null', () => {
+    // Real shape (M6, review 2026-08-25): works_with inferences carry
+    // category 'relationship', not 'infrastructure' — a vendor relationship
+    // is a business fact, never a hosting/security claim.
     const mapped = inferencesToSignals([{
-      inference_id: 'inf_x', label: 'Works with AWS', confidence: 'probable', category: 'infrastructure',
+      inference_id: 'inf_x', label: 'Works with AWS', confidence: 'probable', category: 'relationship',
     }]);
     expect(mapped[0].conflicted).toBe(false);
     expect(mapped[0].conflict).toBeNull();
     expect(mapped[0].source).toBe('url_scrape');
+    // relationship → financial (business-context bucket), never security.
+    expect(mapped[0].domain).toBe('financial');
   });
 
   it('confidence "observed" (probe-derived) maps to a distinct number and live_probe source', () => {
