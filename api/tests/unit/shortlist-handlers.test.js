@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { createSession, updateSession, getSession } from '../../src/services/session-store.js';
-import { proposalsHandler, proposalAcceptHandler, shortlistHandler } from '../../src/handlers/shortlist.js';
+import { proposalsHandler, proposalAcceptHandler, proposalDeclineHandler, shortlistHandler } from '../../src/handlers/shortlist.js';
 import { buildClaimRecord, buildClaimEvent } from '../../src/services/claims-projection.js';
 
 function replyMock() {
@@ -117,5 +117,55 @@ describe('POST /api/v1/session/:id/proposals/:proposalId/accept — the Move', (
     const list = replyMock();
     await shortlistHandler({ params: { id: session.id } }, list);
     expect(list.payload.shortlist).toHaveLength(1);
+  });
+});
+
+describe('POST /api/v1/session/:id/proposals/:proposalId/decline — "Not now" (I1)', () => {
+  it('declining a proposal filters it from subsequent GET /proposals', async () => {
+    const session = walkSession();
+
+    const before = replyMock();
+    await proposalsHandler({ params: { id: session.id } }, before);
+    expect(before.payload.proposals.some((p) => p.id === 'aws-activate-founders')).toBe(true);
+
+    const decline = replyMock();
+    await proposalDeclineHandler(
+      { params: { id: session.id, proposalId: 'aws-activate-founders' } }, decline);
+    expect(decline.statusCode).toBe(200);
+    expect(decline.payload.declined).toBe('aws-activate-founders');
+
+    const after = replyMock();
+    await proposalsHandler({ params: { id: session.id } }, after);
+    expect(after.payload.proposals.some((p) => p.id === 'aws-activate-founders')).toBe(false);
+  });
+
+  it('declining the currently-pending proposal clears pending_proposal so a later "yes" cannot silently accept it', async () => {
+    const session = walkSession();
+    updateSession(session.id, { pending_proposal: 'aws-activate-founders' });
+
+    await proposalDeclineHandler(
+      { params: { id: session.id, proposalId: 'aws-activate-founders' } }, replyMock());
+
+    const updated = getSession(session.id);
+    expect(updated.pending_proposal).toBeNull();
+    expect(updated.declined_proposals).toContain('aws-activate-founders');
+  });
+
+  it('declining a proposal that is not the pending one leaves pending_proposal untouched', async () => {
+    const session = walkSession();
+    updateSession(session.id, { pending_proposal: 'cap-vanta' });
+
+    await proposalDeclineHandler(
+      { params: { id: session.id, proposalId: 'aws-activate-founders' } }, replyMock());
+
+    const updated = getSession(session.id);
+    expect(updated.pending_proposal).toBe('cap-vanta');
+  });
+
+  it('404s for an unknown session', async () => {
+    const reply = replyMock();
+    await proposalDeclineHandler(
+      { params: { id: 'no-such-session', proposalId: 'aws-activate-founders' } }, reply);
+    expect(reply.statusCode).toBe(404);
   });
 });

@@ -78,6 +78,11 @@ export const acceptProposal = (sessionId, proposalId, editedReason = null) =>
   postJson(`/api/v1/session/${sessionId}/proposals/${proposalId}/accept`,
     editedReason ? { edited_reason: editedReason } : {});
 
+// A declined proposal is remembered server-side so a later affirmative chat reply
+// can't silently accept a card the founder already dismissed (I1 final-review).
+export const declineProposal = (sessionId, proposalId) =>
+  postJson(`/api/v1/session/${sessionId}/proposals/${proposalId}/decline`, {});
+
 // Live persona follow-up chips — three lenses, record-grounded; 0 or 3 entries.
 export const getFollowups = (sessionId) =>
   getJson(`/api/v1/session/${sessionId}/followups`);

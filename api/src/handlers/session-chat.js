@@ -15,6 +15,10 @@ import { retrieveCorpusEvidence, evidenceBlock } from '../services/corpus-retrie
 
 const MODEL = 'claude-haiku-4-5-20251001';
 
+// persona_override whitelist — accepts both 'sofia' (frontend persona id) and
+// 'sophia' (canonical persona name), normalized to 'sophia' internally.
+const PERSONA_OVERRIDE_MAP = { sofia: 'sophia', sophia: 'sophia', leonardo: 'leonardo', edison: 'edison' };
+
 const INTENT_RULES = [
   {
     persona: 'leonardo',
@@ -87,9 +91,11 @@ export async function sessionChatHandler(request, reply) {
   }
 
   // Persona selection: explicit override → @mention → keyword classifier
+  // 'sofia' is accepted alongside 'sophia' (frontend chip/hero-pill persona ids use
+  // 'sofia') and normalized to 'sophia' internally — see PERSONA_OVERRIDE_MAP.
   let persona, cleanMessage;
-  if (persona_override && ['sophia', 'leonardo', 'edison'].includes(persona_override)) {
-    persona = persona_override;
+  if (persona_override && PERSONA_OVERRIDE_MAP[persona_override]) {
+    persona = PERSONA_OVERRIDE_MAP[persona_override];
     cleanMessage = message;
   } else {
     ({ persona, cleanMessage } = classifyIntent(message));

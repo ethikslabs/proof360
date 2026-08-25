@@ -27,7 +27,7 @@ import { GuidanceBlock }      from '../components/chat/GuidanceBlock.jsx';
 import { MOCK_GUIDANCE_BLOCK } from '../data/mock/signals.js';
 import { CompanionPanel } from '../components/chat/CompanionPanel.jsx';
 import { ScanTrace } from '../components/chat/ScanTrace.jsx';
-import { PersonaFollowUps, PERSONA_NAMES } from '../components/chat/PersonaFollowUps.jsx';
+import { PersonaFollowUps } from '../components/chat/PersonaFollowUps.jsx';
 import { ProposalCard } from '../components/chat/ProposalCard.jsx';
 import { rankVendorsBySignals } from '../data/mock/vendors.js';
 import { AuthorityLayer }      from '../components/chat/AuthorityLayer.jsx';
@@ -1326,6 +1326,9 @@ export default function Chat() {
   // api/src/handlers/shortlist.js: `declined_proposals` is read-side only).
   const [pendingProposals,   setPendingProposals]   = useState([]);
   const [dismissedProposalIds, setDismissedProposalIds] = useState(() => new Set());
+  // Accepted this session — kept alongside dismissedProposalIds so a stale-response
+  // fetch (I2/M2 final-review) can't resurface a card the founder already acted on.
+  const [acceptedProposalIds, setAcceptedProposalIds] = useState(() => new Set());
   const [busyProposalId,     setBusyProposalId]     = useState(null);
   const [companyProfile,  setCompanyProfile]  = useState({
     name: DEMO_FOUNDER ? DEMO_COMPANY.name : null,
@@ -1511,16 +1514,25 @@ export default function Chat() {
   // after claim-confirm actions and after each live reply completes (same hook
   // points as the followups fetch). Fire-and-forget: failure is an honest
   // empty list, never invented content (INVARIANTS honest-degradation).
-  const fetchPendingProposals = useCallback(async (sessionIdArg) => {
+  // `turn` (optional) is the token captured by the caller at issue-time (I2 final-
+  // review) — if a newer turn has started by the time this resolves, the stale
+  // response is dropped rather than repopulating cards for a turn that moved on.
+  const fetchPendingProposals = useCallback(async (sessionIdArg, turn) => {
     const sid = sessionIdArg ?? liveSessionId ?? spine.storedSessionId();
     if (!sid) return;
     try {
       const { proposals } = await spine.getProposals(sid);
-      setPendingProposals(proposals ?? []);
+      if (turn !== undefined && turnRef.current !== turn) return; // superseded by a later turn
+      // Set-time filter (also fixes M2): never resurface a proposal already accepted
+      // or dismissed this session, even if the response landed in the same turn window.
+      setPendingProposals((proposals ?? []).filter(
+        p => !dismissedProposalIds.has(p.id) && !acceptedProposalIds.has(p.id)
+      ));
     } catch {
+      if (turn !== undefined && turnRef.current !== turn) return;
       setPendingProposals([]);
     }
-  }, [liveSessionId]);
+  }, [liveSessionId, dismissedProposalIds, acceptedProposalIds]);
 
   // Proposal-card actions (Task 3): accept mints a Move via the same "Add to
   // shortlist" verb as everywhere else, then refreshes the server shortlist so
@@ -1532,6 +1544,7 @@ export default function Chat() {
     setBusyProposalId(proposalId);
     try {
       await spine.acceptProposal(sid, proposalId);
+      setAcceptedProposalIds(prev => new Set(prev).add(proposalId));
       setPendingProposals(prev => prev.filter(p => p.id !== proposalId));
       await refreshSpine(sid);
     } catch {
@@ -1541,9 +1554,21 @@ export default function Chat() {
     }
   }, [liveSessionId, refreshSpine]);
 
-  const handleDeferProposal = useCallback((proposalId) => {
+  // "Not now" (I1 final-review): tell the server so the ceremony disarms —
+  // otherwise the next affirmative chat reply can silently accept a card the
+  // founder already dismissed. Honest degradation: if the decline call fails,
+  // fall back to the local-only dismiss rather than blocking the interaction.
+  const handleDeferProposal = useCallback(async (proposalId) => {
+    const sid = liveSessionId ?? spine.storedSessionId();
+    if (sid) {
+      try {
+        await spine.declineProposal(sid, proposalId);
+      } catch {
+        // decline endpoint unreachable — local dismiss only, honest degradation
+      }
+    }
     setDismissedProposalIds(prev => new Set(prev).add(proposalId));
-  }, []);
+  }, [liveSessionId]);
 
   const shortlistedNames = useMemo(() => new Set([
     ...serverShortlist.map(m => (m.item?.name ?? m.label ?? '').toLowerCase()).filter(Boolean),
@@ -1590,10 +1615,10 @@ export default function Chat() {
     ...shortlist,
   ], [serverShortlist, shortlist]);
 
-  // Pending proposals minus this session's local "Not now" dismissals.
+  // Pending proposals minus this session's local "Not now" dismissals and accepts.
   const visibleProposals = useMemo(
-    () => pendingProposals.filter(p => !dismissedProposalIds.has(p.id)),
-    [pendingProposals, dismissedProposalIds]
+    () => pendingProposals.filter(p => !dismissedProposalIds.has(p.id) && !acceptedProposalIds.has(p.id)),
+    [pendingProposals, dismissedProposalIds, acceptedProposalIds]
   );
 
   // Live-session presence readable inside async closures — the resume effect must
@@ -1707,6 +1732,11 @@ export default function Chat() {
   const scrollRef   = useRef(null);
   const browserTabsRef = useRef([]);
   const scanEsRef   = useRef(null);
+  // I2 final-review: an in-flight followups/proposals fetch from a prior turn must
+  // not repopulate cleared chips/cards once a newer turn has started. Incremented
+  // once per submit (where liveFollowups is cleared); a fetch only applies its
+  // result if this ref still matches the turn it was issued under.
+  const turnRef = useRef(0);
 
   useEffect(() => () => scanEsRef.current?.close(), []);
 
@@ -1880,14 +1910,17 @@ export default function Chat() {
     }
   }, []);
 
-  const submit = useCallback(async (input) => {
+  const submit = useCallback(async (input, explicitPersona) => {
     resetAuthorityTurn();
     const text = input.trim();
     if (!text || !inputReady || isProcessing) return;
 
     // A new user message is going out — stale live follow-up chips from the
-    // previous reply must not linger while the new one streams in.
+    // previous reply must not linger while the new one streams in. The turn
+    // token advances here too (I2 final-review) — any followups/proposals fetch
+    // still in flight from the previous turn is now stale and must not repopulate.
     setLiveFollowups([]);
+    const myTurn = ++turnRef.current;
 
     // If a lens asked for a missing CER field, this message answers it.
     // A URL reply (extractAwaitedUrl also catches "we're at northwind.io") hands the SAME
@@ -2088,7 +2121,7 @@ export default function Chat() {
       }]);
 
       try {
-        const personaOverride = (heroPersonas.size > 0 ? [...heroPersonas][0] : null) ?? PROFILE_PERSONA[analysisProfile] ?? undefined;
+        const personaOverride = explicitPersona ?? (heroPersonas.size > 0 ? [...heroPersonas][0] : null) ?? PROFILE_PERSONA[analysisProfile] ?? undefined;
         const modeSnapshot = [...activeModes];
         const effectiveModel = modeSnapshot.includes('web-search') ? 'perplexity-sonar'
           : modeSnapshot.includes('deep-research') ? 'claude-opus-4-7'
@@ -2145,11 +2178,13 @@ export default function Chat() {
         // never canned text (INVARIANTS no-canned-text). Batched with the
         // proposals fetch below (Task 3) — each independently failure-safe;
         // claims may have been confirmed as part of this same exchange, so a
-        // reply completion is also a claim-confirm moment.
+        // reply completion is also a claim-confirm moment. Both are gated on
+        // `myTurn` (I2 final-review) — a slow response from this turn must not
+        // repopulate chips/cards after a newer submit already cleared them.
         spine.getFollowups(sessionId)
-          .then(({ followups }) => setLiveFollowups(followups ?? []))
-          .catch(() => setLiveFollowups([]));
-        fetchPendingProposals(sessionId);
+          .then(({ followups }) => { if (turnRef.current === myTurn) setLiveFollowups(followups ?? []); })
+          .catch(() => { if (turnRef.current === myTurn) setLiveFollowups([]); });
+        fetchPendingProposals(sessionId, myTurn);
 
         refreshSpine(sessionId);
       } catch {
@@ -2885,8 +2920,14 @@ export default function Chat() {
 
               {/* Pending proposals in-stream (Task 3) — persona-attributed, reason on the
                   face, lamp register. Derived and re-evaluated on every fetch; live
-                  sessions only, never in the demo sandbox. */}
-              {!isProcessing && hasMessages && !inDemoMode && liveSessionId && visibleProposals.map(proposal => (
+                  sessions only, never in the demo sandbox. Capped at ONE card at a time
+                  (C2: the full register can fire 9+ cards for a typical gap set) — the
+                  rest stay pending server-side and surface on later turns as earlier ones
+                  are accepted or dismissed. The server's currently-voiced pending_proposal
+                  id is not exposed to the client on any response (chat stream headers only
+                  carry X-Persona/X-Model; GET /proposals returns no pending marker), so
+                  suppression-by-id is not possible here — the one-card cap is the fix. */}
+              {!isProcessing && hasMessages && !inDemoMode && liveSessionId && visibleProposals.slice(0, 1).map(proposal => (
                 <ProposalCard
                   key={proposal.id}
                   proposal={proposal}
@@ -2903,8 +2944,10 @@ export default function Chat() {
                 <PersonaFollowUps
                   followups={liveFollowups}
                   onAsk={(persona, question) => {
-                    const name = PERSONA_NAMES[persona] ?? persona;
-                    submit(`@${name} ${question}`);
+                    // Bare question, persona sent explicitly as an override — no @mention
+                    // text enters chat_history (C1: chip submits were leaking mentions into
+                    // the record and losing the chip's persona to the profile default).
+                    submit(question, persona === 'sofia' ? 'sophia' : persona);
                   }}
                   tk={tk}
                 />

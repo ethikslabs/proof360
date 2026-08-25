@@ -210,3 +210,29 @@ export async function proposalAcceptHandler(request, reply) {
   if (result.error) return reply.status(409).send({ error: result.error });
   return reply.status(201).send({ move: result.move });
 }
+
+// The decline verb (I1 final-review): a "Not now" that only clears client-side state
+// leaves the server ceremony armed — the next affirmative chat reply can silently
+// accept a card the founder already dismissed. This mirrors accept's persistence
+// discipline: liveProposals() already reads session.declined_proposals to filter the
+// register (shortlist.js:89-92), so declining here is honored everywhere proposals
+// are derived, not just in this response.
+export function declineProposal(session, proposalId) {
+  session.declined_proposals = [...(session.declined_proposals || []), proposalId];
+  if (session.pending_proposal === proposalId) {
+    session.pending_proposal = null;
+  }
+  updateSession(session.id, {
+    declined_proposals: session.declined_proposals,
+    pending_proposal: session.pending_proposal,
+  });
+}
+
+// POST /api/v1/session/:id/proposals/:proposalId/decline
+export async function proposalDeclineHandler(request, reply) {
+  const session = getSession(request.params.id);
+  if (!session) return reply.status(404).send({ error: 'session_not_found' });
+
+  declineProposal(session, request.params.proposalId);
+  return reply.status(200).send({ declined: request.params.proposalId });
+}
