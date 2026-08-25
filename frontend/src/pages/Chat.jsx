@@ -2358,12 +2358,12 @@ export default function Chat() {
                     fontSize: hasMessages ? 'clamp(20px, 2.6vw, 30px)' : 'clamp(26px, 3.6vw, 42px)',
                     letterSpacing: '-0.022em', color: tk.ink, lineHeight: 1.18, marginBottom: 10,
                   }}>
-                    Investors are evaluating you<span style={{ color: tk.plum }}> right now.</span>
+                    What you&apos;re building has a story.<span style={{ color: tk.plum }}> Investors, buyers and partners each hear it in their own language.</span>
                   </div>
                   <div style={{
                     fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
                     fontSize: 13.5, color: tk.inkSoft, letterSpacing: '0.01em',
-                  }}>Before the pitch. Before the meeting. Before you know they&apos;re looking.</div>
+                  }}>Let&apos;s make sure it translates — their questions into yours, your evidence into theirs.</div>
                   <div style={{
                     fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
                     fontSize: 14, color: tk.inkSoft,
@@ -2576,12 +2576,12 @@ export default function Chat() {
                     fontSize: 'clamp(24px, 3vw, 38px)',
                     letterSpacing: '-0.022em', color: tk.ink, lineHeight: 1.18, marginBottom: 10,
                   }}>
-                    Investors are evaluating you<span style={{ color: tk.plum }}> right now.</span>
+                    What you&apos;re building has a story.<span style={{ color: tk.plum }}> Investors, buyers and partners each hear it in their own language.</span>
                   </div>
                   <div style={{
                     fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
                     fontSize: 13.5, color: tk.inkSoft, letterSpacing: '0.01em',
-                  }}>Before the pitch. Before the meeting. Before you know they&apos;re looking.</div>
+                  }}>Let&apos;s make sure it translates — their questions into yours, your evidence into theirs.</div>
                   <div style={{
                     fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
                     fontSize: 14, color: tk.inkSoft,
