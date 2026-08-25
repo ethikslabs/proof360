@@ -27,7 +27,7 @@ import { ObservationStrip } from '../components/chat/ObservationStrip.jsx';
 import { GuidanceBlock }      from '../components/chat/GuidanceBlock.jsx';
 import { MOCK_GUIDANCE_BLOCK } from '../data/mock/signals.js';
 import { CompanionPanel } from '../components/chat/CompanionPanel.jsx';
-import { ScanTrace } from '../components/chat/ScanTrace.jsx';
+import { ActTrace } from '../components/chat/ActTrace.jsx';
 import { PersonaFollowUps } from '../components/chat/PersonaFollowUps.jsx';
 import { ProposalCard } from '../components/chat/ProposalCard.jsx';
 import { rankVendorsBySignals } from '../data/mock/vendors.js';
@@ -1308,6 +1308,12 @@ export default function Chat() {
   const [scanLines, setScanLines]         = useState([]);
   const [scanDone, setScanDone]           = useState(false);
   const [scanOwnerId, setScanOwnerId]     = useState(null);
+  // __done__ now arrives at the END of analyze (the reading act emits it), so the
+  // acts stream through extraction AND the reading. This flag covers the one
+  // client-side gap the SSE can't: between the infer-status poll loop exiting and
+  // the reading act's first event landing on the still-open stream — without it
+  // the page goes quiet between the collapsed acts and the opener.
+  const [composingRead, setComposingRead] = useState(false);
   // True for the span of a cold-read attempt (entry → success or failure).
   // Gates demo furniture off the live scan window even before companyData
   // lands (final-review I2 — inDemoMode alone only flips post-analyze).
@@ -2018,18 +2024,23 @@ export default function Chat() {
 
           // Stream the real per-probe extraction log ("show the thinking") —
           // honest degradation per INVARIANTS.md: render exactly what the API sends.
-          setScanLines([]); setScanDone(false); setScanOwnerId(statusId); setColdReadActive(true);
+          setScanLines([]); setScanDone(false); setComposingRead(false); setScanOwnerId(statusId); setColdReadActive(true);
           scanEsRef.current?.close();
           const es = new EventSource(`/api/v1/session/${session_id}/log`);
           scanEsRef.current = es;
           es.onmessage = (ev) => {
             try {
               const line = JSON.parse(ev.data);
-              if (line.type === '__done__') { setScanDone(true); es.close(); scanEsRef.current = null; return; }
+              if (line.type === '__done__') {
+                // __done__ now arrives at the end of ANALYZE (the reading act
+                // emits it) — the opener is about to replace the status bubble
+                // next, so there is no bubble content to flip here anymore.
+                setScanDone(true); es.close(); scanEsRef.current = null; return;
+              }
               setScanLines(prev => [...prev, line]);
             } catch { /* malformed line — drop */ }
           };
-          es.onerror = () => { setScanDone(true); es.close(); scanEsRef.current = null; };
+          es.onerror = () => { setScanDone(true); setComposingRead(true); es.close(); scanEsRef.current = null; };
 
           // Update status label with session context
           setMessages(prev => prev.map(m => m.id === statusId
@@ -2045,6 +2056,15 @@ export default function Chat() {
             inferStatus = (await r.json()).status;
           }
           if (inferStatus !== 'complete') throw new Error('inference timeout');
+
+          // Extraction's acts are done but the work isn't: gap analysis + the
+          // reading's Bedrock call run next (5–15s) — say what phase the work
+          // is actually in while we wait on the reading act's first event.
+          setComposingRead(true);
+          setMessages(prev => prev.map(m => m.id === statusId
+            ? { ...m, content: `Scan of ${domain} finished — writing your read…` }
+            : m
+          ));
 
           // Run gap analysis
           const analyzeRes = await fetch(`/api/v1/session/${session_id}/analyze`, { method: 'POST' });
@@ -2063,6 +2083,7 @@ export default function Chat() {
           setShortlist([]); // live session starting — the demo sandbox shortlist must not mix in
           replaceSignals(inferencesToSignals(analysis.inferences)); // live session starting — the demo mock signal seed must not carry over
           setColdReadActive(false); // companyData is live now — inDemoMode already gated on liveSessionId
+          setComposingRead(false); // the opener replaces the status bubble next — writing phase over
           attachCurrentSessionToProfile(session_id, analysis);
           refreshSpine(session_id); // the cold read's inferred claims light the rail immediately
 
@@ -2102,6 +2123,7 @@ export default function Chat() {
         } catch {
           scanEsRef.current?.close(); scanEsRef.current = null;
           setScanDone(true); // failed read must not leave a live-streaming block
+          setComposingRead(false); // failed read must not leave a pulsing "writing" line either
           setColdReadActive(false); // failed read with no prior session — demo furniture returning is correct
           setMessages(prev => prev.map(m => m.id === statusId ? {
             ...m, content: `Couldn't read ${domain}. Check the URL or try a different one.`,
@@ -2882,7 +2904,7 @@ export default function Chat() {
                     />
                     {m.working && <OurWorking receipt={m.working} tk={tk} />}
                     {m.id === scanOwnerId && (
-                      <ScanTrace lines={scanLines} done={scanDone} tk={tk} />
+                      <ActTrace lines={scanLines} done={scanDone} composing={composingRead} tk={tk} />
                     )}
                   </div>
                 );
