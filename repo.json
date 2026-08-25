@@ -520,6 +520,22 @@
       "approved_by": "john-coates",
       "source": "makethebed-edge:2026-08-25-walk-day",
       "added": "2026-08-25"
+    },
+    {
+      "id": "PROOF360-CORPUS-CITATION-CARDS-001",
+      "status": "next",
+      "boundary": "THE GATE (John ruling 2026-08-25 deploy night): 'I don't want to do a walk through unless I can see CORPUS — that is more than half the thing; when you see the references, the links — it changes the entire flow.' Opening slice of the corpus-surfacing wave: render corpus hits as clickable citation cards in the read and chat — every hit already carries source_url + fetched_at end-to-end (verified live: warm /search 3.3s, soc2auditors.org hit score 0.86 with both fields); only the render layer is missing. Excerpt-not-voice holds: attributed excerpts in printed-media register, never persona voice. Then the disclosure ladder (anchor chip -> curtain -> excerpt -> original source, Octalysis: they need to look). Build and rehearse against LIVE proof360.au corpus, never the thin local snapshot. No walkthrough, no recording, until this is visible.",
+      "approved_by": "john-coates",
+      "source": "makethebed-edge:2026-08-25-deploy-night (task_enhancement, John approve + gate ruling)",
+      "added": "2026-08-25"
+    },
+    {
+      "id": "PROOF360-ONE-DEPLOY-DOOR-001",
+      "status": "ready",
+      "boundary": "Two deploy writers both write api/.env on the box, last-writer-wins: deploy.yml (fires on every push to main — Actions unfrozen since the Aug free-tier reset) and scripts/deploy.sh (SSM, on-box). They had diverged (deploy.yml lacked the perplexity/gemini engine keys) and a push after an SSM deploy silently went dark on both engines — caught live 2026-08-25, aligned at ddd7da8. The fix-the-class: John rules WHICH is THE door; demote the other to break-glass with a tripwire comment at the top pointing at the chosen door; align the two .env heredocs or extract one shared env-writer so drift is structural-impossible. Related board-known audit FAILs on deploy.yml credential fallbacks (lines 52/187) get fixed in the same pass.",
+      "approved_by": "john-coates",
+      "source": "makethebed-edge:2026-08-25-deploy-night (standardisation, John approve)",
+      "added": "2026-08-25"
     }
   ]
 }
