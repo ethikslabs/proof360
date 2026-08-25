@@ -14,7 +14,10 @@ export function CompanionPanel({ items, claims, isDemoMode, onShortlist, onDefer
   // Cold-human test: "Your record · N entries" reads as "what record? what entries?"
   // (John live-walk feedback 2026-08-25). companyName isn't always wired through by the
   // caller — fall back to a neutral "your story so far" rather than an empty label.
-  const recordLabel = companyName ? `${companyName} · ${count} noted` : `Your story so far · ${count} noted`;
+  // Demo boundary (INVARIANTS §4): the collapsed chip must never show a demo
+  // company's name unmarked — in demo mode the label carries "Example ·".
+  const baseLabel = companyName ? `${companyName} · ${count} noted` : `Your story so far · ${count} noted`;
+  const recordLabel = isDemoMode && companyName ? `Example · ${baseLabel}` : baseLabel;
 
   const shell = {
     position: 'fixed', right: 16, bottom: 16, zIndex: 40,
@@ -25,7 +28,7 @@ export function CompanionPanel({ items, claims, isDemoMode, onShortlist, onDefer
     return (
       <div style={shell}>
         <button
-          aria-label="Open record panel"
+          aria-label="Open story panel"
           onClick={() => setOpen(true)}
           style={{
             padding: '8px 14px', borderRadius: 20, cursor: 'pointer',
@@ -60,7 +63,7 @@ export function CompanionPanel({ items, claims, isDemoMode, onShortlist, onDefer
           }}>Example company</span>
         )}
         <button
-          aria-label="Collapse record panel"
+          aria-label="Collapse story panel"
           onClick={() => setOpen(false)}
           style={{
             marginLeft: 'auto', background: 'transparent', border: 'none',

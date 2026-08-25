@@ -31,9 +31,9 @@ describe('CompanionPanel', () => {
   it('collapses to a chip and reopens', () => {
     render(<CompanionPanel items={[item]} claims={[]} isDemoMode={false}
       onShortlist={() => {}} onDefer={() => {}} />);
-    fireEvent.click(screen.getByLabelText('Collapse record panel'));
+    fireEvent.click(screen.getByLabelText('Collapse story panel'));
     expect(screen.queryByText('Vanta')).toBeNull();
-    fireEvent.click(screen.getByLabelText('Open record panel'));
+    fireEvent.click(screen.getByLabelText('Open story panel'));
     expect(screen.getByText('Vanta')).toBeTruthy();
   });
 
@@ -55,5 +55,20 @@ describe('CompanionPanel', () => {
     // No per-claim tap handler exists yet, so the honest copy is "so far", not
     // a tap invite (John live-walk feedback 2026-08-25).
     expect(screen.getByText(/2 things we've noted so far/)).toBeTruthy();
+  });
+});
+
+// Demo boundary on the collapsed chip (review I-1, 2026-08-25): a demo company's
+// name must never float unmarked.
+import { render as render2, screen as screen2 } from '@testing-library/react';
+describe('CompanionPanel collapsed demo boundary', () => {
+  it('collapsed chip carries Example marker in demo mode with a company name', () => {
+    const { container } = render2(
+      <CompanionPanel items={[{ id: 'x', vendor: 'Vanta' }]} claims={[]} isDemoMode={true}
+        companyName="Hive & Co" onShortlist={() => {}} onDefer={() => {}} />
+    );
+    const collapse = screen2.getByLabelText('Collapse story panel');
+    collapse.click();
+    expect(container.textContent).toContain('Example ·');
   });
 });
