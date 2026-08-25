@@ -77,7 +77,7 @@ describe('buildReadingContext — prompt', () => {
 
     // STRONG recon facts (direct-probe)
     expect(prompt).toMatch(/\[STRONG\].*Hosting \/ cloud provider: aws/);
-    expect(prompt).toMatch(/\[STRONG\].*DMARC posture: reject/);
+    expect(prompt).toMatch(/\[STRONG\].*DMARC enforced \(p=reject\)/);
     expect(prompt).toMatch(/\[STRONG\].*Breach history: 2 known breach\(es\)/);
     expect(prompt).toMatch(/\[STRONG\].*Security hiring signal: actively hiring/);
     expect(prompt).toMatch(/\[STRONG\].*SSL Labs grade: A/);
@@ -133,7 +133,7 @@ describe('buildReadingContext — prompt', () => {
     const { prompt } = await buildReadingContext(session);
 
     expect(prompt).not.toMatch(/SSL Labs grade/);
-    expect(prompt).toMatch(/DMARC posture: reject/);
+    expect(prompt).toMatch(/DMARC enforced \(p=reject\)/);
   });
 
   it('includes corpus hits as CORPUS-graded material with an anti-quoting instruction, and never fabricates hits', async () => {
@@ -210,12 +210,32 @@ describe('reconEvidence — ABSENCE RULE: a failed DNS lookup must never anchor 
     expect(anchors.find((a) => a.label?.startsWith('DMARC'))).toBeUndefined();
   });
 
-  it('legitimate DMARC observations (missing/none/quarantine/reject) still anchor as STRONG', async () => {
-    for (const policy of ['missing', 'none', 'quarantine', 'reject']) {
+  // Finding 1 (live rehearsal, ground-truthed against `dig TXT _dmarc.cognisys.co.uk`
+  // → v=DMARC1; p=none; a record EXISTS, monitoring-only): 'none' must never read as
+  // "no DMARC record" — that is the factual overclaim that dies in front of a
+  // pentest firm. Each policy value gets its own honest factline + anchor.
+  it('missing → "no DMARC record published" factline, "DMARC: missing" anchor', async () => {
+    const session = baseSession({ recon_context: { dns: { dmarc_policy: 'missing' } } });
+    const { prompt, anchors } = await buildReadingContext(session);
+    expect(prompt).toMatch(/\[STRONG\] no DMARC record published on the domain/);
+    expect(prompt).not.toMatch(/DMARC posture/);
+    expect(anchors).toContainEqual({ label: 'DMARC: missing', source: 'dns scan' });
+  });
+
+  it('none → "published but not enforcing (p=none)" factline, "DMARC: not enforcing" anchor — never "no record"', async () => {
+    const session = baseSession({ recon_context: { dns: { dmarc_policy: 'none' } } });
+    const { prompt, anchors } = await buildReadingContext(session);
+    expect(prompt).toMatch(/\[STRONG\] a DMARC record is published but not enforcing \(p=none, monitoring only\)/);
+    expect(prompt).not.toMatch(/no DMARC record/);
+    expect(anchors).toContainEqual({ label: 'DMARC: not enforcing', source: 'dns scan' });
+  });
+
+  it('quarantine/reject → "DMARC enforced (p=<value>)" factline, "DMARC: enforced" anchor', async () => {
+    for (const policy of ['quarantine', 'reject']) {
       const session = baseSession({ recon_context: { dns: { dmarc_policy: policy } } });
       const { prompt, anchors } = await buildReadingContext(session);
-      expect(prompt, policy).toMatch(new RegExp(`\\[STRONG\\].*DMARC posture: ${policy}`));
-      expect(anchors, policy).toContainEqual({ label: `DMARC: ${policy}`, source: 'dns scan' });
+      expect(prompt, policy).toMatch(new RegExp(`\\[STRONG\\] DMARC enforced \\(p=${policy}\\)`));
+      expect(anchors, policy).toContainEqual({ label: 'DMARC: enforced', source: 'dns scan' });
     }
   });
 });
@@ -225,7 +245,7 @@ describe('buildReadingContext — anchors (deterministic, never from model outpu
     const { anchors } = await buildReadingContext(baseSession());
 
     expect(anchors).toContainEqual({ label: 'aws hosting', source: 'ip probe' });
-    expect(anchors).toContainEqual({ label: 'DMARC: reject', source: 'dns scan' });
+    expect(anchors).toContainEqual({ label: 'DMARC: enforced', source: 'dns scan' });
     expect(anchors).toContainEqual({ label: '2 known breach(es)', source: 'breach scan' });
     expect(anchors).toContainEqual({ label: 'Security hiring signal', source: 'jobs scan' });
     expect(anchors).toContainEqual({ label: 'SSL grade: A', source: 'ssl scan' });

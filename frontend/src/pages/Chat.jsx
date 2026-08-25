@@ -2025,6 +2025,7 @@ export default function Chat() {
           // Stream the real per-probe extraction log ("show the thinking") —
           // honest degradation per INVARIANTS.md: render exactly what the API sends.
           setScanLines([]); setScanDone(false); setComposingRead(false); setScanOwnerId(statusId); setColdReadActive(true);
+          replaceSignals([]); // scan window opening — the demo mock signal seed must not bleed into a live read (finding 2, live rehearsal)
           scanEsRef.current?.close();
           const es = new EventSource(`/api/v1/session/${session_id}/log`);
           scanEsRef.current = es;
@@ -3027,6 +3028,12 @@ export default function Chat() {
                 messages={messages}
                 mode={analysisProfile}
                 onModeChange={setAnalysisProfile}
+                // Finding 3 (live rehearsal): STARTER_CHIPS/FOLLOWUP_CHIPS are canned
+                // demo furniture (Hive&Co-flavoured suggestions) — a live session gets
+                // server-driven persona follow-ups (PersonaFollowUps) instead, which
+                // already have their own flow. Never render the canned list outside
+                // demo mode.
+                hideChips={!inDemoMode}
                 hideModelPicker={true}
                 model={selectedModel}
                 onModelChange={setSelectedModel}

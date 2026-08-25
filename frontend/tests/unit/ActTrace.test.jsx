@@ -92,4 +92,23 @@ describe('ActTrace', () => {
     rerender(<ActTrace lines={activeLine} done={false} composing={true} tk={tk} />);
     expect(screen.queryByText('● …')).not.toBeInTheDocument();
   });
+
+  // Finding 4 (live rehearsal): the perplexity/gemini research engine returns raw
+  // markdown emphasis markers, and they were rendering verbatim (`**penetration
+  // testing**`) in the act body — readable substance, unreadable presentation.
+  // Display-only strip: **, __, and single * markers come off; citation markers
+  // like [1] and a lone underscore inside a word are untouched.
+  it('strips **, __, and * emphasis markers from act_body text at render time, leaving citations and lone underscores intact', () => {
+    const lines = [
+      { type: 'act', act: 'perplexity', phase: 'start', title: 'Checking Perplexity' },
+      {
+        type: 'act_body', act: 'perplexity',
+        text: 'Known for **penetration testing**, *managed detection*, and __threat hunting__ services [1]. Not_stripped stays.',
+      },
+    ];
+    render(<ActTrace lines={lines} done={false} tk={tk} />);
+    expect(screen.getByText(
+      'Known for penetration testing, managed detection, and threat hunting services [1]. Not_stripped stays.'
+    )).toBeInTheDocument();
+  });
 });

@@ -20,6 +20,19 @@ function lineColor(line, tk) {
   return COLORS[key] ?? COLORS.muted;
 }
 
+// Finding 4 (live rehearsal): research-engine act bodies (perplexity/gemini) carry
+// the engine's raw markdown emphasis markers (`**penetration testing**`) straight
+// into the trace — verbatim substance, unreadable presentation. Display-only strip
+// at render time — act.body itself is never mutated, this only touches what
+// LineBlock paints. Citation markers like [1] use square brackets, untouched here.
+function stripEmphasisMarkers(text) {
+  if (typeof text !== 'string') return text;
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/__(.+?)__/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1');
+}
+
 function LineBlock({ lines, tk, scrollRef }) {
   return (
     <div
@@ -36,7 +49,7 @@ function LineBlock({ lines, tk, scrollRef }) {
     >
       {lines.map((line, i) => (
         <div key={i} style={{ color: lineColor(line, tk) }}>
-          {line.type === 'blank' ? ' ' : line.text}
+          {line.type === 'blank' ? ' ' : stripEmphasisMarkers(line.text)}
         </div>
       ))}
     </div>

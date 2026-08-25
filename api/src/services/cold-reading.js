@@ -118,9 +118,21 @@ function reconEvidence(session) {
   // timeout / refused) — not a real observation. A failed look must never anchor as
   // "we can see" (ABSENCE RULE: could-not-look ≠ looked-and-absent). 'missing' /
   // 'none' / 'quarantine' / 'reject' are genuine, legitimate observations.
-  if (ctx.dmarc_policy && ctx.dmarc_policy !== 'unknown') {
-    lines.push(factLine(STRONG, 'DMARC posture', ctx.dmarc_policy));
-    anchors.push({ label: `DMARC: ${ctx.dmarc_policy}`, source: 'dns scan' });
+  //
+  // 'none' is NOT "no DMARC record" — a record IS published, just in monitoring-only
+  // mode (p=none). Collapsing 'none' into "no record" is the exact factual overclaim
+  // that dies in front of a pentest firm (live rehearsal finding, ground-truthed
+  // against `dig TXT _dmarc.cognisys.co.uk` → v=DMARC1; p=none; a record exists).
+  // Each policy value gets its own honest factline/anchor pair.
+  if (ctx.dmarc_policy === 'missing') {
+    lines.push(factLine(STRONG, 'no DMARC record published on the domain'));
+    anchors.push({ label: 'DMARC: missing', source: 'dns scan' });
+  } else if (ctx.dmarc_policy === 'none') {
+    lines.push(factLine(STRONG, 'a DMARC record is published but not enforcing (p=none, monitoring only)'));
+    anchors.push({ label: 'DMARC: not enforcing', source: 'dns scan' });
+  } else if (ctx.dmarc_policy === 'quarantine' || ctx.dmarc_policy === 'reject') {
+    lines.push(factLine(STRONG, `DMARC enforced (p=${ctx.dmarc_policy})`));
+    anchors.push({ label: 'DMARC: enforced', source: 'dns scan' });
   }
 
   if (ctx.domain_in_breach && ctx.breach_count) {
