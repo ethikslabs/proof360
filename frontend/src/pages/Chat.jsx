@@ -2110,9 +2110,11 @@ export default function Chat() {
             }),
             readingAnchors: readingAnchorLabels(analysis.reading, analysis.reading_anchors),
             // Citation cards (THE GATE): corpus hits render as OurWorking under the read.
-            // null/absent (no hits, or pre-round-1 API) attaches nothing — the corpus act
-            // in the trace already told that story honestly.
-            ...(analysis.corpus_citations ? { working: analysis.corpus_citations } : {}),
+            // Atomic with the reading, like the anchors above — a degraded read falls
+            // back to bullets that drew on no corpus, so cards under it would over-claim
+            // influence. null/absent (no hits, or pre-round-1 API) attaches nothing —
+            // the corpus act in the trace already told that story honestly.
+            ...(analysis.reading && analysis.corpus_citations ? { working: analysis.corpus_citations } : {}),
           } : m));
 
           // If this cold-read was answering a lens's ask, the company is now guaranteed
