@@ -133,6 +133,11 @@ export async function sessionFollowupsHandler(request, reply) {
   }
 
   const followups = await generateFollowups(session);
-  updateSession(session.id, { followups_cache: { turn_key: key, followups } });
+  // Cache only real results — a marginal/failed generation must not blank the
+  // whole turn's chips; the next fetch gets another chance (still one call per
+  // fetch, so no hammering). Caught live 2026-08-25: first call cached [].
+  if (followups.length) {
+    updateSession(session.id, { followups_cache: { turn_key: key, followups } });
+  }
   return reply.send({ followups });
 }
