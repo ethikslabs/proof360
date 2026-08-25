@@ -2000,7 +2000,9 @@ export default function Chat() {
         const statusId = `status-${Date.now()}`;
         const domain = detectedUrl.replace(/^https?:\/\//i, '').replace(/\/.*$/, '');
         setMessages(prev => [...prev, {
-          id: statusId, role: 'assistant', persona: 'edison',
+          // House voice, not a lens (John ruling 2026-08-25): the cold read and
+          // the reading are the record itself speaking; personas are invited.
+          id: statusId, role: 'assistant', persona: 'proof360',
           model: 'proof360', content: `Reading ${domain}…`,
         }]);
 
