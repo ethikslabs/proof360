@@ -6,6 +6,7 @@
 // receipt: { ts, query, hits: [{ n, slug, layer, evidence_id, score, excerpt,
 //                                source_url, fetched_at }] }
 import { useState } from 'react';
+import { tidyExcerpt } from '../../rendering/tidyExcerpt.js';
 
 function holdingLine(hit) {
   // How we hold it — corpus holding + fetched date when we have one.
@@ -13,6 +14,26 @@ function holdingLine(hit) {
     ? new Date(hit.fetched_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
     : null;
   return fetched ? `Corpus holding · fetched ${fetched}` : 'Corpus holding';
+}
+
+function publisherOf(hit) {
+  if (hit.source_url) {
+    try { return new URL(hit.source_url).hostname.replace(/^www\./, ''); } catch { /* fall through */ }
+  }
+  return null;
+}
+
+// One row per DOCUMENT (slug), chunks kept in first-seen order with their
+// original n — inline [n] citations in chat answers must keep resolving.
+function groupBySlug(hits) {
+  const groups = [];
+  const bySlug = new Map();
+  for (const hit of hits) {
+    let g = bySlug.get(hit.slug);
+    if (!g) { g = { slug: hit.slug, layer: hit.layer, hits: [] }; bySlug.set(hit.slug, g); groups.push(g); }
+    g.hits.push(hit);
+  }
+  return groups;
 }
 
 function CitationCard({ hit, tk }) {
@@ -30,14 +51,15 @@ function CitationCard({ hit, tk }) {
           fontStyle: 'italic', fontSize: 13.5, lineHeight: 1.55,
           color: tk?.ink ?? '#1f2430', marginBottom: 8,
         }}>
-          “{hit.excerpt}”
+          “{tidyExcerpt(hit.excerpt)}”
         </div>
       )}
       <div style={{
         fontFamily: '"IBM Plex Mono", monospace', fontSize: 10,
         color: tk?.inkSoft ?? '#94a3b8', letterSpacing: '0.06em',
       }}>
-        {holdingLine(hit)}
+        <div>{holdingLine(hit)}</div>
+        <div>{hit.slug}</div>
       </div>
       {hit.source_url && (
         <a
@@ -61,12 +83,13 @@ function CitationCard({ hit, tk }) {
 
 export function OurWorking({ receipt, tk }) {
   const [open, setOpen] = useState(false);
-  const [openHit, setOpenHit] = useState(null);
+  const [openSlug, setOpenSlug] = useState(null);
   if (!receipt) return null;
 
   const hits = receipt.hits || [];
-  const summary = hits.length > 0
-    ? `Our working · ${hits.length} source${hits.length === 1 ? '' : 's'}`
+  const groups = groupBySlug(hits);
+  const summary = groups.length > 0
+    ? `Our working · ${groups.length} source${groups.length === 1 ? '' : 's'}`
     : 'Our working · no sources retrieved';
 
   return (
@@ -100,10 +123,10 @@ export function OurWorking({ receipt, tk }) {
               conversation alone.
             </div>
           )}
-          {hits.map((hit) => (
-            <div key={hit.n ?? hit.evidence_id}>
+          {groups.map((g) => (
+            <div key={g.slug}>
               <button
-                onClick={() => setOpenHit(openHit === hit.n ? null : hit.n)}
+                onClick={() => setOpenSlug(openSlug === g.slug ? null : g.slug)}
                 style={{
                   background: 'transparent', border: 'none', cursor: 'pointer',
                   display: 'flex', gap: 8, alignItems: 'baseline',
@@ -113,18 +136,23 @@ export function OurWorking({ receipt, tk }) {
                 <span style={{
                   fontFamily: '"IBM Plex Mono", monospace', fontSize: 10,
                   color: tk?.teal ?? '#0f766e', flexShrink: 0,
-                }}>[{hit.n}]</span>
+                }}>{g.hits.map((h) => `[${h.n}]`).join('')}</span>
                 <span style={{
                   fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 11.5,
                   color: tk?.inkMid ?? '#64748b',
                 }}>
-                  {hit.slug}
-                  {hit.layer ? (
-                    <span style={{ color: tk?.inkSoft ?? '#94a3b8' }}> · {hit.layer}</span>
+                  {publisherOf(g.hits[0]) ?? g.slug}
+                  {g.layer ? (
+                    <span style={{ color: tk?.inkSoft ?? '#94a3b8' }}> · {g.layer}</span>
+                  ) : null}
+                  {g.hits.length > 1 ? (
+                    <span style={{ color: tk?.inkSoft ?? '#94a3b8' }}> · {g.hits.length} excerpts</span>
                   ) : null}
                 </span>
               </button>
-              {openHit === hit.n && <CitationCard hit={hit} tk={tk} />}
+              {openSlug === g.slug && g.hits.map((hit) => (
+                <CitationCard key={hit.n ?? hit.evidence_id} hit={hit} tk={tk} />
+              ))}
             </div>
           ))}
         </div>
