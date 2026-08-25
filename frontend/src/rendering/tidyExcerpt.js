@@ -7,10 +7,14 @@ export function tidyExcerpt(raw) {
   if (!raw) return raw;
   let text = raw.replace(/\s+/g, ' ').trim();
 
-  // Leading navigation-breadcrumb run: 2+ short slash-terminated segments
+  // Leading navigation-breadcrumb run: 3+ short slash-terminated segments
   // ("Home/ Service Firms/ Readiness Firms/ ") before the prose starts.
+  // 3+, not 2+ — real breadcrumbs run 3+ deep, while slash-separated PROSE
+  // ("Readiness/ Penetration testing/ … are the three services") hits 2 and
+  // must never be deleted: an over-fire here makes a card present the source
+  // as saying less than it said (final-review finding, verified on live corpus).
   let ledTrim = false;
-  const crumb = text.match(/^(?:[A-Za-z][\w&' .,-]{0,30}\/\s*){2,}/);
+  const crumb = text.match(/^(?:[A-Za-z][\w&' .,-]{0,30}\/\s*){3,}/);
   if (crumb) {
     text = text.slice(crumb[0].length).trim();
     ledTrim = true;

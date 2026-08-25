@@ -29,8 +29,11 @@ function groupBySlug(hits) {
   const groups = [];
   const bySlug = new Map();
   for (const hit of hits) {
-    let g = bySlug.get(hit.slug);
-    if (!g) { g = { slug: hit.slug, layer: hit.layer, hits: [] }; bySlug.set(hit.slug, g); groups.push(g); }
+    // Key falls back per-hit when slug is absent — unrelated documents must
+    // never merge into one row under one publisher's name (provenance).
+    const key = hit.slug ?? hit.evidence_id ?? hit.n;
+    let g = bySlug.get(key);
+    if (!g) { g = { key, slug: hit.slug, layer: hit.layer, hits: [] }; bySlug.set(key, g); groups.push(g); }
     g.hits.push(hit);
   }
   return groups;
@@ -124,9 +127,9 @@ export function OurWorking({ receipt, tk }) {
             </div>
           )}
           {groups.map((g) => (
-            <div key={g.slug}>
+            <div key={g.key}>
               <button
-                onClick={() => setOpenSlug(openSlug === g.slug ? null : g.slug)}
+                onClick={() => setOpenSlug(openSlug === g.key ? null : g.key)}
                 style={{
                   background: 'transparent', border: 'none', cursor: 'pointer',
                   display: 'flex', gap: 8, alignItems: 'baseline',
@@ -150,7 +153,7 @@ export function OurWorking({ receipt, tk }) {
                   ) : null}
                 </span>
               </button>
-              {openSlug === g.slug && g.hits.map((hit) => (
+              {openSlug === g.key && g.hits.map((hit) => (
                 <CitationCard key={hit.n ?? hit.evidence_id} hit={hit} tk={tk} />
               ))}
             </div>

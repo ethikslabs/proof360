@@ -7,6 +7,11 @@ describe('tidyExcerpt — honest excerpt windowing', () => {
     expect(tidyExcerpt(raw)).toBe('… Cognisys Cognisys is a SOC 2 support firm in Leeds, UK.');
   });
 
+  it('never strips slash-separated PROSE — two slash segments are not a breadcrumb (live-corpus regression)', () => {
+    const raw = 'Readiness/ Penetration testing/ Compliance consulting are the three services Cognisys sells.';
+    expect(tidyExcerpt(raw)).toBe(raw);
+  });
+
   it('cuts a mid-sentence tail at the last sentence boundary and marks it', () => {
     const raw = 'Cognisys is a SOC 2 support firm in Leeds, UK founded in 2019. Facts come from the';
     expect(tidyExcerpt(raw)).toBe('Cognisys is a SOC 2 support firm in Leeds, UK founded in 2019. …');
