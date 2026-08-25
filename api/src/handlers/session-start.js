@@ -71,7 +71,12 @@ async function extractAndInfer(sessionId, { website_url, deck_file, session_id }
     }
     if (corpus_hits?.length) {
       for (const hit of corpus_hits) {
-        log({ act: 'corpus', type: 'act_body', text: `↳  ${hit.slug} · ${hit.layer} · score ${Number(hit.score).toFixed(2)}` });
+        // Name the publisher in the trace — the reference is the point (gate ruling).
+        let domain = null;
+        if (hit.source_url) {
+          try { domain = new URL(hit.source_url).hostname.replace(/^www\./, ''); } catch { /* malformed URL — show without it */ }
+        }
+        log({ act: 'corpus', type: 'act_body', text: `↳  ${hit.slug} · ${hit.layer} · score ${Number(hit.score).toFixed(2)}${domain ? ` · ${domain}` : ''}` });
       }
       log({ type: 'act', act: 'corpus', phase: 'done', note: `${corpus_hits.length} holdings` });
     } else if (corpus_hits !== null) {

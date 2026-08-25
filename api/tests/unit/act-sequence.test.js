@@ -331,6 +331,45 @@ describe('session-start.js — the corpus act + the extraction-failure __done__'
     expect(hitLine.text).toContain('evidence');
   });
 
+  it('corpus act body line carries the source domain when the hit has a source_url', async () => {
+    retrieveCorpusEvidence.mockResolvedValue([
+      { slug: 'disc-soc2auditors-org', layer: 'evidence', score: 0.86, source_url: 'https://www.soc2auditors.org/security-firms/cognisys/' },
+    ]);
+    const reply = replyMock();
+    await sessionStartHandler({ body: { website_url: 'https://acme.example' } }, reply);
+    const sessionId = reply.payload.session_id;
+
+    await vi.waitFor(() => {
+      expect(getSession(sessionId).infer_status).toBe('complete');
+    });
+
+    const log = getLogs(sessionId);
+    for (const line of log) assertContractShape(line);
+
+    const hitLine = log.find((l) => l.type === 'act_body' && l.act === 'corpus' && l.text.includes('disc-'));
+    expect(hitLine.text).toMatch(/↳ {2}disc-.+ · score 0\.86 · soc2auditors\.org/);
+  });
+
+  it('corpus act body line omits the domain segment when source_url is null', async () => {
+    retrieveCorpusEvidence.mockResolvedValue([
+      { slug: 'disc-soc2auditors-org', layer: 'evidence', score: 0.86, source_url: null },
+    ]);
+    const reply = replyMock();
+    await sessionStartHandler({ body: { website_url: 'https://acme.example' } }, reply);
+    const sessionId = reply.payload.session_id;
+
+    await vi.waitFor(() => {
+      expect(getSession(sessionId).infer_status).toBe('complete');
+    });
+
+    const log = getLogs(sessionId);
+    for (const line of log) assertContractShape(line);
+
+    const hitLine = log.find((l) => l.type === 'act_body' && l.act === 'corpus' && l.text.includes('disc-'));
+    expect(hitLine.text).toBe('↳  disc-soc2auditors-org · evidence · score 0.86');
+    expect(hitLine.text.endsWith(' · ')).toBe(false);
+  });
+
   // Finding 1 (live rehearsal, cognisys.co.uk, session ed51d850): corpus-retrieve.js
   // used to return null for BOTH "unreachable" and "reached fine, zero hits" — the
   // body line said "no holdings touch this company yet" while the skip note said

@@ -18,7 +18,7 @@ vi.mock('../../src/services/corpus-retrieve.js', () => ({
 }));
 
 import { chatComplete } from '../../src/lib/inference.js';
-import { createSession, updateSession } from '../../src/services/session-store.js';
+import { createSession, updateSession, getSession } from '../../src/services/session-store.js';
 import { analyzeHandler } from '../../src/handlers/analyze.js';
 
 function replyMock() {
@@ -120,5 +120,82 @@ describe('analyzeHandler read-quality pass-through', () => {
 
     expect(reply.statusCode).toBe(200);
     expect(reply.payload.pages_read_count).toBe(0);
+  });
+});
+
+describe('corpus_citations (PROOF360-CORPUS-CITATION-CARDS-001)', () => {
+  const HIT = {
+    n: 1, slug: 'disc-soc2auditors-org', layer: 'vendor/cognisys',
+    evidence_id: 'ev-1', score: 0.86,
+    text: 'Cognisys maintains SOC 2 Type II attestation…',
+    source_url: 'https://soc2auditors.org/security-firms/cognisys/',
+    fetched_at: '2026-08-20T23:23:14.582Z',
+  };
+
+  it('fresh path: non-empty corpus_hits → corpus_citations with receipt-shaped hits (text renamed excerpt)', async () => {
+    const session = seededSession({ corpus_hits: [HIT] });
+    const reply = replyMock();
+    await analyzeHandler({ params: { id: session.id } }, reply);
+
+    expect(reply.statusCode).toBe(200);
+    expect(reply.payload.corpus_citations).toBeTruthy();
+    expect(reply.payload.corpus_citations.hits[0]).toMatchObject({
+      n: 1, slug: HIT.slug, layer: HIT.layer, evidence_id: 'ev-1', score: 0.86,
+      excerpt: HIT.text, source_url: HIT.source_url, fetched_at: HIT.fetched_at,
+    });
+    expect(typeof reply.payload.corpus_citations.query).toBe('string');
+    expect(reply.payload.corpus_citations.query.length).toBeGreaterThan(0);
+
+    expect(getSession(session.id).corpus_citations).toEqual(reply.payload.corpus_citations);
+  });
+
+  it('fresh path: corpus_hits [] (looked, nothing scored) → corpus_citations null', async () => {
+    const session = seededSession({ corpus_hits: [] });
+    const reply = replyMock();
+    await analyzeHandler({ params: { id: session.id } }, reply);
+
+    expect(reply.statusCode).toBe(200);
+    expect(reply.payload.corpus_citations).toBeNull();
+  });
+
+  it('fresh path: corpus_hits null (could not look) → corpus_citations null', async () => {
+    const session = seededSession({ corpus_hits: null });
+    const reply = replyMock();
+    await analyzeHandler({ params: { id: session.id } }, reply);
+
+    expect(reply.statusCode).toBe(200);
+    expect(reply.payload.corpus_citations).toBeNull();
+  });
+
+  it('fresh path: corpus_hits absent (pre-cache session) → corpus_citations null', async () => {
+    const session = seededSession();
+    const reply = replyMock();
+    await analyzeHandler({ params: { id: session.id } }, reply);
+
+    expect(reply.statusCode).toBe(200);
+    expect(reply.payload.corpus_citations).toBeNull();
+  });
+
+  it('cached path: serves stored corpus_citations without recomputation', async () => {
+    const storedCitations = {
+      query: 'Acme',
+      hits: [{ n: 1, slug: HIT.slug, layer: HIT.layer, evidence_id: HIT.evidence_id, score: HIT.score, excerpt: HIT.text, source_url: HIT.source_url, fetched_at: HIT.fetched_at }],
+    };
+    const session = seededSession({ trust_score: 72, gaps: [], deal_readiness: 'partial', corpus_citations: storedCitations });
+    const reply = replyMock();
+    await analyzeHandler({ params: { id: session.id } }, reply);
+
+    expect(reply.statusCode).toBe(200);
+    expect(reply.payload.corpus_citations).toEqual(storedCitations);
+  });
+
+  it('cached path: legacy cached session without corpus_citations → null, not undefined', async () => {
+    const session = seededSession({ trust_score: 72, gaps: [], deal_readiness: 'partial' });
+    const reply = replyMock();
+    await analyzeHandler({ params: { id: session.id } }, reply);
+
+    expect(reply.statusCode).toBe(200);
+    expect(reply.payload.corpus_citations).toBeNull();
+    expect(reply.payload).toHaveProperty('corpus_citations');
   });
 });

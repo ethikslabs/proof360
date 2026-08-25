@@ -27,6 +27,22 @@ function projectRecord(session) {
   };
 }
 
+// Receipt hit shape — the cross-tree citation contract (chat receipts AND the
+// analyze response's corpus_citations use exactly this): text arrives as the
+// corpus-retrieve hit's `text`, leaves as `excerpt`.
+export function toReceiptHits(hits) {
+  return (hits ?? []).map((h) => ({
+    n: h.n,
+    slug: h.slug,
+    layer: h.layer,
+    evidence_id: h.evidence_id,
+    score: h.score,
+    excerpt: h.text,
+    source_url: h.source_url ?? null,
+    fetched_at: h.fetched_at ?? null,
+  }));
+}
+
 // The chat's audit trail ("Our working", 2026-08-23): every grounded exchange appends
 // one receipt — what was asked, what was retrieved, card-ready fields per hit. Honest
 // by construction: corpus down = an empty-hits receipt, never a fabricated line.
@@ -36,16 +52,7 @@ export function appendChatReceipt(session, { query, hits }) {
   const receipt = {
     ts: new Date().toISOString(),
     query,
-    hits: (hits ?? []).map((h) => ({
-      n: h.n,
-      slug: h.slug,
-      layer: h.layer,
-      evidence_id: h.evidence_id,
-      score: h.score,
-      excerpt: h.text,
-      source_url: h.source_url ?? null,
-      fetched_at: h.fetched_at ?? null,
-    })),
+    hits: toReceiptHits(hits),
   };
   const receipts = [...(session.chat_receipts || []), receipt].slice(-MAX_RECEIPTS);
   updateSession(session.id, { chat_receipts: receipts });

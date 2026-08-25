@@ -6,7 +6,8 @@
 import { getSession, updateSession, appendLog } from '../services/session-store.js';
 import { normalizeContext } from '../services/context-normalizer.js';
 import { runGapAnalysis } from '../services/gap-mapper.js';
-import { generateReading } from '../services/cold-reading.js';
+import { generateReading, corpusQueryFor } from '../services/cold-reading.js';
+import { toReceiptHits } from './record.js';
 
 export async function analyzeHandler(request, reply) {
   const { id } = request.params;
@@ -35,6 +36,7 @@ export async function analyzeHandler(request, reply) {
       pages_read_count: session.pages_read_count ?? 0,
       reading: session.reading ?? null,
       reading_anchors: session.reading_anchors ?? [],
+      corpus_citations: session.corpus_citations ?? null,
     });
   }
 
@@ -85,6 +87,15 @@ export async function analyzeHandler(request, reply) {
   appendLog(id, { type: 'act', act: 'reading', phase: 'done' });
   appendLog(id, { type: '__done__' });
 
+  // Citation cards (PROOF360-CORPUS-CITATION-CARDS-001): the scan-time corpus hits,
+  // receipt-shaped, so the frontend renders them with the same OurWorking cards the
+  // chat already uses. Attached ONLY when hits exist — [] (looked, nothing) and null
+  // (could not look) both surface in the scan trace's corpus act instead; rendering
+  // a chat-tuned zero-state under the reading would misstate what happened (ABSENCE RULE).
+  const corpus_citations = Array.isArray(session.corpus_hits) && session.corpus_hits.length
+    ? { query: corpusQueryFor(session) ?? null, hits: toReceiptHits(session.corpus_hits) }
+    : null;
+
   updateSession(id, {
     trust_score,
     gaps,
@@ -94,6 +105,7 @@ export async function analyzeHandler(request, reply) {
     analysis_status: 'complete',
     reading,
     reading_anchors,
+    corpus_citations,
   });
 
   return reply.send({
@@ -107,5 +119,6 @@ export async function analyzeHandler(request, reply) {
     pages_read_count: session.pages_read_count ?? 0,
     reading,
     reading_anchors,
+    corpus_citations,
   });
 }
