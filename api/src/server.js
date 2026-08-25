@@ -35,7 +35,8 @@ import {
 } from './handlers/profile.js';
 import { sessionAttachHandler } from './handlers/session-attach.js';
 import { recordHandler, claimAnswerHandler, chatReceiptsHandler } from './handlers/record.js';
-import { proposalsHandler, shortlistHandler, proposalAcceptHandler, shortlistAddHandler } from './handlers/shortlist.js';
+import { proposalsHandler, shortlistHandler, proposalAcceptHandler, proposalDeclineHandler, shortlistAddHandler } from './handlers/shortlist.js';
+import { sessionFollowupsHandler } from './handlers/session-followups.js';
 import {
   cersListHandler,
   cerCreateHandler,
@@ -67,7 +68,12 @@ app.get('/api/v1/session/:id/chat/receipts', chatReceiptsHandler);
 app.get('/api/v1/session/:id/proposals', proposalsHandler);
 app.get('/api/v1/session/:id/shortlist', shortlistHandler);
 app.post('/api/v1/session/:id/proposals/:proposalId/accept', proposalAcceptHandler);
+app.post('/api/v1/session/:id/proposals/:proposalId/decline', proposalDeclineHandler);
 app.post('/api/v1/session/:id/shortlist', shortlistAddHandler);
+
+// Live persona follow-up chips (2026-08-25): one Bedrock call over the Record snapshot,
+// three record-grounded questions, one per persona. Honest empty on failure — never canned.
+app.get('/api/v1/session/:id/followups', sessionFollowupsHandler);
 
 // --- Phase 2: Follow-up ---
 app.get('/api/v1/session/:id/followup-questions', followupQuestionsHandler);

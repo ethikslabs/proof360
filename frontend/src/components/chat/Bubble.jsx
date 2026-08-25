@@ -37,7 +37,7 @@ function VendorChips({ content, onProgramFocus }) {
           style={{
             fontFamily: '"IBM Plex Mono", monospace',
             fontSize: 9, fontWeight: 600, letterSpacing: '0.06em',
-            color: '#a8651e', background: '#fdf3e3',
+            color: '#92400e', background: '#fdf3e3',
             border: '1px solid #e8c98a', borderRadius: 10,
             padding: '2px 8px', cursor: 'pointer',
           }}
@@ -298,6 +298,20 @@ export function Bubble({ msg, t, isLatest, onPersonaRef, onProgramFocus }) {
 
   const vendorChips = <VendorChips content={msg.content} onProgramFocus={onProgramFocus} />;
 
+  // "The reading" evidence-anchor trail (John ruling 2026-08-25) — a single quiet row
+  // of small chips directly under the reading, label only, no interactivity. Only ever
+  // present on the message that carries a reading (readingAnchors is [] otherwise).
+  const anchorsEl = msg.readingAnchors?.length > 0 && (
+    <div style={{
+      marginTop: 8,
+      fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
+      fontSize: 10,
+      color: '#94a3b8',
+    }}>
+      {msg.readingAnchors.join(' · ')}
+    </div>
+  );
+
   if (t.bubble === 'card') {
     return (
       <div style={{ marginBottom: 22 }}>
@@ -308,6 +322,7 @@ export function Bubble({ msg, t, isLatest, onPersonaRef, onProgramFocus }) {
         }}>
           <RichContent content={msg.content} theme={t.theme} tk={tk} onPersonaRef={onPersonaRef} />
         </div>
+        {anchorsEl}
         {sourceEl}
         {vendorChips}
         {crumbEl}
@@ -329,6 +344,7 @@ export function Bubble({ msg, t, isLatest, onPersonaRef, onProgramFocus }) {
       }}>
         {labelEl}
         {body}
+        {anchorsEl}
         {sourceEl}
         {vendorChips}
         {crumbEl}
@@ -341,6 +357,7 @@ export function Bubble({ msg, t, isLatest, onPersonaRef, onProgramFocus }) {
     <div style={{ marginBottom: 26, paddingLeft: 16, borderLeft: `2px solid ${color}` }}>
       {labelEl}
       {body}
+      {anchorsEl}
       {sourceEl}
       {vendorChips}
       {crumbEl}

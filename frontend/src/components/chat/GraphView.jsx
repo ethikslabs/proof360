@@ -1,3 +1,9 @@
+// No-% invariant (honesty wave item 2 / review I4): a numeric confidence
+// rendered as "60%" implies false statistical precision. Grade words name the
+// KIND of evidence instead — reuse the exact mapping SignalEvidenceDrawer
+// uses so the same fact never reads two different ways across surfaces.
+import { gradeWord } from '../../rendering/protocol.js';
+
 const TYPE_COLOR = {
   company: '#6366f1',
   claim:   '#0891b2',
@@ -31,7 +37,7 @@ function NodeRow({ node }) {
       <span style={{ fontSize: 11, color: '#9ca3af', minWidth: 48 }}>{typeLabel}</span>
       <span style={{ fontSize: 13, color: '#111827', flex: 1 }}>{node.label}</span>
       {node.confidence != null && (
-        <span style={{ fontSize: 10, color: '#9ca3af' }}>{Math.round(node.confidence * 100)}%</span>
+        <span style={{ fontSize: 10, color: '#9ca3af' }}>{gradeWord(node)}</span>
       )}
     </div>
   );

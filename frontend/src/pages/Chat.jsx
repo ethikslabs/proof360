@@ -21,10 +21,15 @@ import { getThinkingSteps } from '../data/mock/thinking.js';
 import { DEMO_STAGES, DEFAULT_STAGE_ID } from '../data/demoCompany.js';
 import { OperationalField } from '../components/OperationalField';
 import { useSignals }       from '../hooks/useSignals.js';
+import { inferencesToSignals } from '../rendering/live-signals.js';
+import { coldReadOpener, readingAnchorLabels } from '../rendering/coldReadOpener.js';
 import { ObservationStrip } from '../components/chat/ObservationStrip.jsx';
 import { GuidanceBlock }      from '../components/chat/GuidanceBlock.jsx';
 import { MOCK_GUIDANCE_BLOCK } from '../data/mock/signals.js';
-import { VendorShortlist } from '../components/chat/VendorShortlist.jsx';
+import { CompanionPanel } from '../components/chat/CompanionPanel.jsx';
+import { ActTrace } from '../components/chat/ActTrace.jsx';
+import { PersonaFollowUps } from '../components/chat/PersonaFollowUps.jsx';
+import { ProposalCard } from '../components/chat/ProposalCard.jsx';
 import { rankVendorsBySignals } from '../data/mock/vendors.js';
 import { AuthorityLayer }      from '../components/chat/AuthorityLayer.jsx';
 import { useSurfaceAuthority } from '../hooks/useSurfaceAuthority.js';
@@ -820,17 +825,20 @@ function TriageCards({ onSelect, tk }) {
 
 /* ─── Cinematic intro ───────────────────────────────────────────────── */
 
+// Register ruled by John 2026-08-25 (landing emotional contract: the founder never
+// feels evaluated) — mirror names the three-sided marketplace, sequence lands on the
+// invitation, never on surveillance.
 const INTRO_CARDS = [
   { style: 'logo' },
-  { style: 'hero',   text: "Investors and enterprise buyers are evaluating you right now." },
-  { style: 'large',  text: "Before the pitch. Before the meeting. Before you even know they're looking." },
+  { style: 'hero',   text: "Investors, buyers, partners — everyone's forming a picture of your company." },
   { style: 'stats' },
   { style: 'medium', text: "Most founders never see what investors and enterprise buyers are actually checking." },
   { style: 'team' },
+  { style: 'large',  text: "Let's build the real one, together — a living record of your company, your evidence, you." },
 ];
 
-const CARD_HOLD = [1800, 2800, 2500, 8200, 2000, 3000];
-// stats card (index 3) holds 8.2s — enough for 3 stats × ~2.5s each + transitions
+const CARD_HOLD = [1800, 2800, 8200, 2000, 3000, 3200];
+// stats card (index 2) holds 8.2s — enough for 3 stats × ~2.5s each + transitions
 
 const STATS_FALLBACK = [
   { number: '75%',  text: 'of investors say management track record is the top factor before they agree to take a meeting', source: 'CapitalHQ Investor Survey, 2026' },
@@ -1297,6 +1305,19 @@ export default function Chat() {
   const [previewUrl, setPreviewUrl]       = useState(null);
   const [previewOpen, setPreviewOpen]     = useState(false);
   const [browserTabs, setBrowserTabs] = useState([]);
+  const [scanLines, setScanLines]         = useState([]);
+  const [scanDone, setScanDone]           = useState(false);
+  const [scanOwnerId, setScanOwnerId]     = useState(null);
+  // __done__ now arrives at the END of analyze (the reading act emits it), so the
+  // acts stream through extraction AND the reading. This flag covers the one
+  // client-side gap the SSE can't: between the infer-status poll loop exiting and
+  // the reading act's first event landing on the still-open stream — without it
+  // the page goes quiet between the collapsed acts and the opener.
+  const [composingRead, setComposingRead] = useState(false);
+  // True for the span of a cold-read attempt (entry → success or failure).
+  // Gates demo furniture off the live scan window even before companyData
+  // lands (final-review I2 — inDemoMode alone only flips post-analyze).
+  const [coldReadActive, setColdReadActive] = useState(false);
 
   const [activeStageId,   setActiveStageId]   = useState(DEFAULT_STAGE_ID);
   const [companyData,     setCompanyData]     = useState(null);
@@ -1304,6 +1325,18 @@ export default function Chat() {
   const [heroPersonas,    setHeroPersonas]    = useState(() => new Set());
   const [heroPersonaHover,setHeroPersonaHover]= useState(null);
   const [activeModes,     setActiveModes]     = useState([]);
+  const [liveFollowups,   setLiveFollowups]   = useState([]);
+  // Pending proposals rendered in-stream (Task 3, docs/plans/2026-08-25-persona-
+  // chips-and-proposal-cards.md) — derived from the register, fetched fresh
+  // after each live reply completes. `dismissedProposalIds` is a same-session,
+  // local-only "Not now" (no defer endpoint exists on the API — checked
+  // api/src/handlers/shortlist.js: `declined_proposals` is read-side only).
+  const [pendingProposals,   setPendingProposals]   = useState([]);
+  const [dismissedProposalIds, setDismissedProposalIds] = useState(() => new Set());
+  // Accepted this session — kept alongside dismissedProposalIds so a stale-response
+  // fetch (I2/M2 final-review) can't resurface a card the founder already acted on.
+  const [acceptedProposalIds, setAcceptedProposalIds] = useState(() => new Set());
+  const [busyProposalId,     setBusyProposalId]     = useState(null);
   const [companyProfile,  setCompanyProfile]  = useState({
     name: DEMO_FOUNDER ? DEMO_COMPANY.name : null,
     stage: DEMO_FOUNDER ? DEMO_COMPANY.stage : null,
@@ -1354,6 +1387,7 @@ export default function Chat() {
     correctSignal,
     ignoreSignal,
     addContextSignal,
+    replaceSignals,
   } = useSignals();
 
   const {
@@ -1464,12 +1498,83 @@ export default function Chat() {
   const [recordClaims, setRecordClaims]       = useState([]);
   const liveSessionId = companyData?.session_id ?? null;
 
+  // The demo/workspace discriminator (INVARIANTS.md §4): true only while the
+  // demo stage is selected AND no live session has started AND no cold read
+  // is currently in flight. `isDemoMode` alone means "the demo stage is
+  // selected" — it stays true after a live session begins, because the demo
+  // stage id never changes. `liveSessionId` alone only flips once companyData
+  // lands post-analyze, which leaves demo furniture visible for the whole
+  // scan window; `coldReadActive` closes that gap. Every consumer that uses
+  // the flag to mean "this is the sandbox, not the user's reality" must be
+  // gated on `inDemoMode`, not the raw `isDemoMode`.
+  const inDemoMode = isDemoMode && !liveSessionId && !coldReadActive;
+
   const refreshSpine = useCallback(async (sessionIdArg) => {
     const sid = sessionIdArg ?? liveSessionId ?? spine.storedSessionId();
     if (!sid) return;
     const [rec, sl] = await Promise.allSettled([spine.getRecord(sid), spine.getShortlist(sid)]);
     if (rec.status === 'fulfilled') setRecordClaims(rec.value.record?.claims ?? []);
     if (sl.status === 'fulfilled') setServerShortlist(sl.value.shortlist ?? []);
+  }, [liveSessionId]);
+
+  // Pending proposals (Task 3) — derived, re-evaluated on every read; fetched
+  // after claim-confirm actions and after each live reply completes (same hook
+  // points as the followups fetch). Fire-and-forget: failure is an honest
+  // empty list, never invented content (INVARIANTS honest-degradation).
+  // `turn` (optional) is the token captured by the caller at issue-time (I2 final-
+  // review) — if a newer turn has started by the time this resolves, the stale
+  // response is dropped rather than repopulating cards for a turn that moved on.
+  const fetchPendingProposals = useCallback(async (sessionIdArg, turn) => {
+    const sid = sessionIdArg ?? liveSessionId ?? spine.storedSessionId();
+    if (!sid) return;
+    try {
+      const { proposals } = await spine.getProposals(sid);
+      if (turn !== undefined && turnRef.current !== turn) return; // superseded by a later turn
+      // Set-time filter (also fixes M2): never resurface a proposal already accepted
+      // or dismissed this session, even if the response landed in the same turn window.
+      setPendingProposals((proposals ?? []).filter(
+        p => !dismissedProposalIds.has(p.id) && !acceptedProposalIds.has(p.id)
+      ));
+    } catch {
+      if (turn !== undefined && turnRef.current !== turn) return;
+      setPendingProposals([]);
+    }
+  }, [liveSessionId, dismissedProposalIds, acceptedProposalIds]);
+
+  // Proposal-card actions (Task 3): accept mints a Move via the same "Add to
+  // shortlist" verb as everywhere else, then refreshes the server shortlist so
+  // the companion panel updates (reuses refreshSpine, same as shortlistCtx.add
+  // above). Defer is local-only for this session — no defer endpoint exists.
+  const handleAcceptProposal = useCallback(async (proposalId) => {
+    const sid = liveSessionId ?? spine.storedSessionId();
+    if (!sid) return;
+    setBusyProposalId(proposalId);
+    try {
+      await spine.acceptProposal(sid, proposalId);
+      setAcceptedProposalIds(prev => new Set(prev).add(proposalId));
+      setPendingProposals(prev => prev.filter(p => p.id !== proposalId));
+      await refreshSpine(sid);
+    } catch {
+      // accept failed — proposal stays in the list, nothing pretended
+    } finally {
+      setBusyProposalId(null);
+    }
+  }, [liveSessionId, refreshSpine]);
+
+  // "Not now" (I1 final-review): tell the server so the ceremony disarms —
+  // otherwise the next affirmative chat reply can silently accept a card the
+  // founder already dismissed. Honest degradation: if the decline call fails,
+  // fall back to the local-only dismiss rather than blocking the interaction.
+  const handleDeferProposal = useCallback(async (proposalId) => {
+    const sid = liveSessionId ?? spine.storedSessionId();
+    if (sid) {
+      try {
+        await spine.declineProposal(sid, proposalId);
+      } catch {
+        // decline endpoint unreachable — local dismiss only, honest degradation
+      }
+    }
+    setDismissedProposalIds(prev => new Set(prev).add(proposalId));
   }, [liveSessionId]);
 
   const shortlistedNames = useMemo(() => new Set([
@@ -1508,6 +1613,7 @@ export default function Chat() {
       name: m.item?.name ?? m.label ?? m.route,
       category: m.item?.category ?? m.pathway_type,
       synthesis: m.reason?.user_text || m.reason?.text || null,
+      context: m.reason?.context ?? null,
       timing: 'now',
       cta: m.cta,
       url: m.item?.url ?? null,
@@ -1515,6 +1621,17 @@ export default function Chat() {
     })),
     ...shortlist,
   ], [serverShortlist, shortlist]);
+
+  // Pending proposals minus this session's local "Not now" dismissals and accepts.
+  const visibleProposals = useMemo(
+    () => pendingProposals.filter(p => !dismissedProposalIds.has(p.id) && !acceptedProposalIds.has(p.id)),
+    [pendingProposals, dismissedProposalIds, acceptedProposalIds]
+  );
+
+  // Live-session presence readable inside async closures — the resume effect must
+  // not stomp a cold read that completed while its fetch was in flight (re-review race).
+  const companyDataRef = useRef(null);
+  useEffect(() => { companyDataRef.current = companyData; }, [companyData]);
 
   // ── The return path ("simple to return to", John 2026-08-23): a stored session
   // restores the twin — history, Record, shortlist — no login, no ceremony.
@@ -1527,7 +1644,7 @@ export default function Chat() {
     (async () => {
       try {
         const { history } = await spine.getChatHistory(sid);
-        if (cancelled || !history?.length) return;
+        if (cancelled || !history?.length || companyDataRef.current) return;
         setShowIntro(false);
         setPhase('active');
         setInputReady(true);
@@ -1535,7 +1652,14 @@ export default function Chat() {
           id: `resume-${i}`, role: h.role, persona: h.persona ?? 'edison', content: h.content,
         })));
         setCompanyData(prev => prev ?? { session_id: sid, company_name: null });
+        // getChatHistory's payload carries no inferences (`{ history }` only —
+        // see api/src/handlers/session-chat.js) — purge the mock seed rather
+        // than leave it stood up under a now-live session id (final-review C2).
+        replaceSignals([]);
         refreshSpine(sid);
+        // A returning session shows already-fired proposals immediately — not
+        // only after the next reply ("simple to return to", task-3 review I-1).
+        fetchPendingProposals(sid);
       } catch {
         // stored session no longer on the box (retention or reset) — start fresh
         spine.forgetSessionId();
@@ -1614,6 +1738,14 @@ export default function Chat() {
   const inputRef    = useRef(null);
   const scrollRef   = useRef(null);
   const browserTabsRef = useRef([]);
+  const scanEsRef   = useRef(null);
+  // I2 final-review: an in-flight followups/proposals fetch from a prior turn must
+  // not repopulate cleared chips/cards once a newer turn has started. Incremented
+  // once per submit (where liveFollowups is cleared); a fetch only applies its
+  // result if this ref still matches the turn it was issued under.
+  const turnRef = useRef(0);
+
+  useEffect(() => () => scanEsRef.current?.close(), []);
 
   useEffect(() => {
     if (!logoCard) return;
@@ -1785,10 +1917,17 @@ export default function Chat() {
     }
   }, []);
 
-  const submit = useCallback(async (input) => {
+  const submit = useCallback(async (input, explicitPersona) => {
     resetAuthorityTurn();
     const text = input.trim();
     if (!text || !inputReady || isProcessing) return;
+
+    // A new user message is going out — stale live follow-up chips from the
+    // previous reply must not linger while the new one streams in. The turn
+    // token advances here too (I2 final-review) — any followups/proposals fetch
+    // still in flight from the previous turn is now stale and must not repopulate.
+    setLiveFollowups([]);
+    const myTurn = ++turnRef.current;
 
     // If a lens asked for a missing CER field, this message answers it.
     // A URL reply (extractAwaitedUrl also catches "we're at northwind.io") hands the SAME
@@ -1867,7 +2006,9 @@ export default function Chat() {
         const statusId = `status-${Date.now()}`;
         const domain = detectedUrl.replace(/^https?:\/\//i, '').replace(/\/.*$/, '');
         setMessages(prev => [...prev, {
-          id: statusId, role: 'assistant', persona: 'edison',
+          // House voice, not a lens (John ruling 2026-08-25): the cold read and
+          // the reading are the record itself speaking; personas are invited.
+          id: statusId, role: 'assistant', persona: 'proof360',
           model: 'proof360', content: `Reading ${domain}…`,
         }]);
 
@@ -1881,9 +2022,30 @@ export default function Chat() {
           const { session_id } = await startRes.json();
           spine.rememberSessionId(session_id);
 
+          // Stream the real per-probe extraction log ("show the thinking") —
+          // honest degradation per INVARIANTS.md: render exactly what the API sends.
+          setScanLines([]); setScanDone(false); setComposingRead(false); setScanOwnerId(statusId); setColdReadActive(true);
+          replaceSignals([]); // scan window opening — the demo mock signal seed must not bleed into a live read (finding 2, live rehearsal)
+          scanEsRef.current?.close();
+          const es = new EventSource(`/api/v1/session/${session_id}/log`);
+          scanEsRef.current = es;
+          es.onmessage = (ev) => {
+            try {
+              const line = JSON.parse(ev.data);
+              if (line.type === '__done__') {
+                // __done__ now arrives at the end of ANALYZE (the reading act
+                // emits it) — the opener is about to replace the status bubble
+                // next, so there is no bubble content to flip here anymore.
+                setScanDone(true); es.close(); scanEsRef.current = null; return;
+              }
+              setScanLines(prev => [...prev, line]);
+            } catch { /* malformed line — drop */ }
+          };
+          es.onerror = () => { setScanDone(true); setComposingRead(true); es.close(); scanEsRef.current = null; };
+
           // Update status label with session context
           setMessages(prev => prev.map(m => m.id === statusId
-            ? { ...m, content: `Scanning ${domain} — this takes about 30 seconds…` }
+            ? { ...m, content: `Reading ${domain} — watch the scan below…` }
             : m
           ));
 
@@ -1895,6 +2057,15 @@ export default function Chat() {
             inferStatus = (await r.json()).status;
           }
           if (inferStatus !== 'complete') throw new Error('inference timeout');
+
+          // Extraction's acts are done but the work isn't: gap analysis + the
+          // reading's Bedrock call run next (5–15s) — say what phase the work
+          // is actually in while we wait on the reading act's first event.
+          setComposingRead(true);
+          setMessages(prev => prev.map(m => m.id === statusId
+            ? { ...m, content: `Scan of ${domain} finished — writing your read…` }
+            : m
+          ));
 
           // Run gap analysis
           const analyzeRes = await fetch(`/api/v1/session/${session_id}/analyze`, { method: 'POST' });
@@ -1910,14 +2081,34 @@ export default function Chat() {
             deal_readiness: analysis.deal_readiness,
             inferences: analysis.inferences,
           });
+          setShortlist([]); // live session starting — the demo sandbox shortlist must not mix in
+          replaceSignals(inferencesToSignals(analysis.inferences)); // live session starting — the demo mock signal seed must not carry over
+          setColdReadActive(false); // companyData is live now — inDemoMode already gated on liveSessionId
+          setComposingRead(false); // the opener replaces the status bubble next — writing phase over
           attachCurrentSessionToProfile(session_id, analysis);
           refreshSpine(session_id); // the cold read's inferred claims light the rail immediately
 
-          const gapCount = analysis.gaps?.length ?? 0;
-          const score = analysis.trust_score ?? 0;
+          // Lamp-register opener (INVARIANTS §6 — never grade, never push): no numeric
+          // score leads the conversation, and a failed scrape says so honestly rather
+          // than presenting guessed signals as a real read. pages_read_count (not
+          // sources_read.length) is the honest signal — fallback signals still carry a
+          // placeholder 'homepage' label even when nothing was actually fetched.
+          //
+          // "The reading" (John ruling 2026-08-25): when analyze.js hands back a
+          // synthesized paragraph it replaces the bullet list; analysis.reading is null
+          // on honest degradation (Bedrock failure/empty output) and coldReadOpener
+          // falls back to the bullets unchanged. reading_anchors is the deterministic
+          // evidence trail rendered as a quiet chip row under it (Bubble.jsx) — [] when
+          // there's no reading, atomically.
           setMessages(prev => prev.map(m => m.id === statusId ? {
             ...m,
-            content: `${analysis.company_name || domain} — trust score ${score}/100, ${gapCount} gap${gapCount !== 1 ? 's' : ''} found. Ask me anything.`,
+            content: coldReadOpener({
+              name: analysis.company_name || domain,
+              sourcesRead: analysis.pages_read_count,
+              inferences: analysis.inferences,
+              reading: analysis.reading,
+            }),
+            readingAnchors: readingAnchorLabels(analysis.reading, analysis.reading_anchors),
           } : m));
 
           // If this cold-read was answering a lens's ask, the company is now guaranteed
@@ -1931,6 +2122,10 @@ export default function Chat() {
             cer.clearAwaiting();
           }
         } catch {
+          scanEsRef.current?.close(); scanEsRef.current = null;
+          setScanDone(true); // failed read must not leave a live-streaming block
+          setComposingRead(false); // failed read must not leave a pulsing "writing" line either
+          setColdReadActive(false); // failed read with no prior session — demo furniture returning is correct
           setMessages(prev => prev.map(m => m.id === statusId ? {
             ...m, content: `Couldn't read ${domain}. Check the URL or try a different one.`,
           } : m));
@@ -1968,7 +2163,7 @@ export default function Chat() {
       }]);
 
       try {
-        const personaOverride = (heroPersonas.size > 0 ? [...heroPersonas][0] : null) ?? PROFILE_PERSONA[analysisProfile] ?? undefined;
+        const personaOverride = explicitPersona ?? (heroPersonas.size > 0 ? [...heroPersonas][0] : null) ?? PROFILE_PERSONA[analysisProfile] ?? undefined;
         const modeSnapshot = [...activeModes];
         const effectiveModel = modeSnapshot.includes('web-search') ? 'perplexity-sonar'
           : modeSnapshot.includes('deep-research') ? 'claude-opus-4-7'
@@ -2019,6 +2214,20 @@ export default function Chat() {
             setMessages(prev => prev.map(m => m.id === msgId ? { ...m, working: receipt } : m));
           }
         } catch { /* receipts unavailable — render nothing, invent nothing */ }
+
+        // Live persona follow-up chips — record-grounded, generated fresh for
+        // this turn. Fire-and-forget: any failure is an honest empty list,
+        // never canned text (INVARIANTS no-canned-text). Batched with the
+        // proposals fetch below (Task 3) — each independently failure-safe;
+        // claims may have been confirmed as part of this same exchange, so a
+        // reply completion is also a claim-confirm moment. Both are gated on
+        // `myTurn` (I2 final-review) — a slow response from this turn must not
+        // repopulate chips/cards after a newer submit already cleared them.
+        spine.getFollowups(sessionId)
+          .then(({ followups }) => { if (turnRef.current === myTurn) setLiveFollowups(followups ?? []); })
+          .catch(() => { if (turnRef.current === myTurn) setLiveFollowups([]); });
+        fetchPendingProposals(sessionId, myTurn);
+
         refreshSpine(sessionId);
       } catch {
         setMessages(prev => prev.map(m => m.id === msgId
@@ -2041,6 +2250,8 @@ export default function Chat() {
         const fh = await spine.firehose(text);
         spine.rememberSessionId(fh.session_id);
         setCompanyData({ session_id: fh.session_id, company_name: null });
+        setShortlist([]); // live session starting — the demo sandbox shortlist must not mix in
+        replaceSignals([]); // live session starting — the demo mock signal seed must not carry over
         setMessages(prev => [...prev, {
           id: `fh-${Date.now()}`, role: 'assistant', persona: 'edison', model: 'proof360',
           content: fh.reflect_back,
@@ -2183,7 +2394,7 @@ export default function Chat() {
       }} />}
 
       <AuthorityLayer
-        isDemoMode={isDemoMode}
+        isDemoMode={inDemoMode}
         entity={authorityEntity}
         activeLens={analysisProfile}
         surfaceAuthority={surfaceAuthority}
@@ -2298,12 +2509,12 @@ export default function Chat() {
                     fontSize: hasMessages ? 'clamp(20px, 2.6vw, 30px)' : 'clamp(26px, 3.6vw, 42px)',
                     letterSpacing: '-0.022em', color: tk.ink, lineHeight: 1.18, marginBottom: 10,
                   }}>
-                    Investors are evaluating you<span style={{ color: tk.plum }}> right now.</span>
+                    What you&apos;re building has a story.<span style={{ color: tk.plum }}> Investors, buyers and partners each hear it in their own language.</span>
                   </div>
                   <div style={{
                     fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
                     fontSize: 13.5, color: tk.inkSoft, letterSpacing: '0.01em',
-                  }}>Before the pitch. Before the meeting. Before you know they&apos;re looking.</div>
+                  }}>Let&apos;s make sure it translates — their questions into yours, your evidence into theirs.</div>
                   <div style={{
                     fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
                     fontSize: 14, color: tk.inkSoft,
@@ -2312,7 +2523,7 @@ export default function Chat() {
                   {!hasMessages && (
                     <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 18 }}>
                       {[
-                        { id: 'sofia',    label: 'Sophia',   color: '#a8651e', note: 'Narrative & trust · the human story behind the numbers' },
+                        { id: 'sofia',    label: 'Sophia',   color: '#92400e', note: 'Narrative & trust · the human story behind the numbers' },
                         { id: 'edison',   label: 'Edison',   color: '#176577', note: 'Technical & execution · what to fix and in what order' },
                         { id: 'leonardo', label: 'Leonardo', color: '#6b4ea8', note: 'Strategy & market · fundraising and deal consequences' },
                       ].map(p => {
@@ -2516,12 +2727,12 @@ export default function Chat() {
                     fontSize: 'clamp(24px, 3vw, 38px)',
                     letterSpacing: '-0.022em', color: tk.ink, lineHeight: 1.18, marginBottom: 10,
                   }}>
-                    Investors are evaluating you<span style={{ color: tk.plum }}> right now.</span>
+                    What you&apos;re building has a story.<span style={{ color: tk.plum }}> Investors, buyers and partners each hear it in their own language.</span>
                   </div>
                   <div style={{
                     fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
                     fontSize: 13.5, color: tk.inkSoft, letterSpacing: '0.01em',
-                  }}>Before the pitch. Before the meeting. Before you know they&apos;re looking.</div>
+                  }}>Let&apos;s make sure it translates — their questions into yours, your evidence into theirs.</div>
                   <div style={{
                     fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
                     fontSize: 14, color: tk.inkSoft,
@@ -2530,7 +2741,7 @@ export default function Chat() {
                   {!hasMessages && (
                     <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 18 }}>
                       {[
-                        { id: 'sofia',    label: 'Sophia',   color: '#a8651e', note: 'Narrative & trust · the human story behind the numbers' },
+                        { id: 'sofia',    label: 'Sophia',   color: '#92400e', note: 'Narrative & trust · the human story behind the numbers' },
                         { id: 'edison',   label: 'Edison',   color: '#176577', note: 'Technical & execution · what to fix and in what order' },
                         { id: 'leonardo', label: 'Leonardo', color: '#6b4ea8', note: 'Strategy & market · fundraising and deal consequences' },
                       ].map(p => {
@@ -2650,37 +2861,27 @@ export default function Chat() {
 
               <ObservationStrip
                 signals={activeSignals}
-                isDemoMode={isDemoMode}
+                isDemoMode={inDemoMode}
                 onCorrect={handleCorrectSignal}
                 onIgnore={ignoreSignal}
                 onAddContext={addContextSignal}
                 regeneratingDomains={regeneratingDomains}
               />
 
-              {/* Demo GuidanceBlock — Edison three-beat render (AC-4) */}
-              <div style={{ alignSelf: 'flex-start', maxWidth: '72%' }}>
-                <div style={{
-                  fontSize: 11, fontWeight: 700, letterSpacing: '0.5px',
-                  textTransform: 'uppercase', color: '#176577', marginBottom: 4,
-                }}>
-                  Edison · operational lens
+              {/* Demo GuidanceBlock — Edison three-beat render (AC-4). Demo-only: live sessions must never render canned guidance (INVARIANTS no-canned-text). */}
+              {inDemoMode && (
+                <div style={{ alignSelf: 'flex-start', maxWidth: '72%' }}>
+                  <div style={{
+                    fontSize: 11, fontWeight: 700, letterSpacing: '0.5px',
+                    textTransform: 'uppercase', color: '#176577', marginBottom: 4,
+                  }}>
+                    Edison · operational lens
+                  </div>
+                  <GuidanceBlock
+                    block={MOCK_GUIDANCE_BLOCK}
+                    isRegenerating={regeneratingDomains.size > 0}
+                  />
                 </div>
-                <GuidanceBlock
-                  block={MOCK_GUIDANCE_BLOCK}
-                  isRegenerating={regeneratingDomains.size > 0}
-                />
-              </div>
-
-              {shortlistPanelItems.length > 0 && (
-                // The shortlist IS the engagement page (John 2026-08-23): server Moves
-                // (with note + real engage action) merged with demo-sandbox items, all
-                // marked selected. shortlistedIds drives the "✓ Shortlisted" state per card.
-                <VendorShortlist
-                  vendors={shortlistPanelItems}
-                  shortlistedIds={shortlistPanelItems}
-                  onShortlist={handleShortlist}
-                  onDefer={handleDefer}
-                />
               )}
 
               {messages.map((m, i) => {
@@ -2703,6 +2904,9 @@ export default function Chat() {
                       onProgramFocus={setFocusedProgram}
                     />
                     {m.working && <OurWorking receipt={m.working} tk={tk} />}
+                    {m.id === scanOwnerId && (
+                      <ActTrace lines={scanLines} done={scanDone} composing={composingRead} tk={tk} />
+                    )}
                   </div>
                 );
               })}
@@ -2724,8 +2928,8 @@ export default function Chat() {
               {cer.forming && cer.agencyReady && cer.proposal && (
                 <div style={{ margin: '12px 0' }}>
                   <CerAgencyCard
-                    proposal={cer.proposal} tk={tk} busy={cer.busy}
-                    onEdit={cer.dismissForming}
+                    proposal={cer.proposal} tk={tk} busy={cer.busy} error={cer.error}
+                    onDiscard={cer.dismissForming}
                     onConfirm={async () => { const created = await cer.confirmCer(); if (created) setJustCreatedCer(created); }}
                   />
                 </div>
@@ -2744,8 +2948,8 @@ export default function Chat() {
 
               {thinkingSteps.length > 0 && <ThinkingStream steps={thinkingSteps} visible t={t} />}
 
-              {/* Follow-up suggestions — after last AI response, not while processing */}
-              {!isProcessing && hasMessages && (() => {
+              {/* Follow-up suggestions — after last AI response, not while processing. Demo-only: canned chips must never render in a live session (INVARIANTS no-canned-text). */}
+              {!isProcessing && hasMessages && inDemoMode && (() => {
                 const lastAi = [...messages].reverse().find(m => m.role === 'assistant' && m.content);
                 return lastAi ? (
                   <FollowUpChips
@@ -2755,6 +2959,41 @@ export default function Chat() {
                   />
                 ) : null;
               })()}
+
+              {/* Pending proposals in-stream (Task 3) — persona-attributed, reason on the
+                  face, lamp register. Derived and re-evaluated on every fetch; live
+                  sessions only, never in the demo sandbox. Capped at ONE card at a time
+                  (C2: the full register can fire 9+ cards for a typical gap set) — the
+                  rest stay pending server-side and surface on later turns as earlier ones
+                  are accepted or dismissed. The server's currently-voiced pending_proposal
+                  id is not exposed to the client on any response (chat stream headers only
+                  carry X-Persona/X-Model; GET /proposals returns no pending marker), so
+                  suppression-by-id is not possible here — the one-card cap is the fix. */}
+              {!isProcessing && hasMessages && !inDemoMode && liveSessionId && visibleProposals.slice(0, 1).map(proposal => (
+                <ProposalCard
+                  key={proposal.id}
+                  proposal={proposal}
+                  onAccept={handleAcceptProposal}
+                  onDefer={handleDeferProposal}
+                  busy={busyProposalId === proposal.id}
+                  tk={tk}
+                />
+              ))}
+
+              {/* Live persona follow-ups — record-grounded, generated per turn. Never
+                  alongside the demo-only canned chips above (live sessions only). */}
+              {!isProcessing && hasMessages && !inDemoMode && liveSessionId && (
+                <PersonaFollowUps
+                  followups={liveFollowups}
+                  onAsk={(persona, question) => {
+                    // Bare question, persona sent explicitly as an override — no @mention
+                    // text enters chat_history (C1: chip submits were leaking mentions into
+                    // the record and losing the chip's persona to the profile default).
+                    submit(question, persona === 'sofia' ? 'sophia' : persona);
+                  }}
+                  tk={tk}
+                />
+              )}
 
             </div>
           </div>
@@ -2789,6 +3028,12 @@ export default function Chat() {
                 messages={messages}
                 mode={analysisProfile}
                 onModeChange={setAnalysisProfile}
+                // Finding 3 (live rehearsal): STARTER_CHIPS/FOLLOWUP_CHIPS are canned
+                // demo furniture (Hive&Co-flavoured suggestions) — a live session gets
+                // server-driven persona follow-ups (PersonaFollowUps) instead, which
+                // already have their own flow. Never render the canned list outside
+                // demo mode.
+                hideChips={!inDemoMode}
                 hideModelPicker={true}
                 model={selectedModel}
                 onModelChange={setSelectedModel}
@@ -2826,7 +3071,7 @@ export default function Chat() {
                   onAsk={q => setInputValue(q)}
                   focusedProgram={focusedProgram}
                   onVendorSelect={id => { setActiveSpace(id); setDrawerCollapsed(false); setMobileActiveTab('Vendors'); commitAuthority(VENDOR_AUTHORITY); }}
-                  isDemoMode={isDemoMode}
+                  isDemoMode={inDemoMode}
                   activeSignals={activeSignals}
                   rankedVendors={rankedVendors}
                   ctaEarned={ctaEarned}
@@ -3004,6 +3249,14 @@ export default function Chat() {
       )}
 
     </div>
+    <CompanionPanel
+      items={shortlistPanelItems}
+      claims={recordClaims}
+      isDemoMode={inDemoMode}
+      onShortlist={handleShortlist}
+      onDefer={handleDefer}
+      companyName={founderProfileName ?? companyProfile.name ?? companyData?.company_name ?? null}
+    />
     </ShortlistContext.Provider>
   );
 }

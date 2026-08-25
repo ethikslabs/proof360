@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { sameProvider } from './inference-builder.js';
 
 // The Record (ETHL-WRK-SPEC-011 D0/D1) — the customer's evidence record, claim by claim.
 // NOT a new store: claims ride the founder-memory append-only transaction log as two
@@ -46,6 +47,12 @@ export function buildClaimRecord({ field, value, provenance = {}, actor = 'syste
       at: provenance.at || iso(),
     },
     confirmed: null,
+    // Whether a second witness disagrees with this claim (I3, review
+    // 2026-08-25) — always present as a boolean, never left undefined, so
+    // every consumer can assert `conflicted` directly instead of guessing
+    // whether absence means false or means "not evaluated yet".
+    conflicted: false,
+    conflict: null,
   };
 }
 
@@ -92,6 +99,11 @@ function foldOne(claim, events) {
     status,
     provenance: claim.provenance,
     confirmed,
+    // A second witness disagreeing with this claim (I3, review 2026-08-25) —
+    // never dropped, carried through the fold so the confirm ceremony can
+    // ask the both-witnesses question instead of a single-value confirm.
+    conflicted: !!claim.conflicted,
+    conflict: claim.conflict ?? null,
     events: evs,
   };
 }
@@ -151,9 +163,20 @@ const SIGNAL_CLAIM_MAP = {
   insurance_status: 'governance.cyber_insurance',
 };
 
+// Two witnesses claiming the same field disagree — the field precedent is
+// provider identity (infrastructure.cloud_provider), so reuse the same
+// fuzzy provider match inference-builder.js uses to avoid manufacturing a
+// conflict over spelling/verbosity alone (e.g. probe "Oracle Corporation" vs
+// text claim "Oracle" is agreement, not a conflict). Any other field that
+// might someday collide falls back to plain case-insensitive inequality.
+function valuesConflict(field, existingValue, newValue) {
+  if (field === 'infrastructure.cloud_provider') return !sameProvider(existingValue, newValue);
+  return String(existingValue).trim().toLowerCase() !== String(newValue).trim().toLowerCase();
+}
+
 export function buildInferredClaims({ recon = {}, signals = [] } = {}) {
   const claims = [];
-  const claimedFields = new Set();
+  const claimedFields = new Map(); // field -> value already claimed (by recon)
 
   // Recon first — an IP lookup is a fact-grade read; it outranks a Claude guess
   // for the same field (inference-builder already applies this precedence).
@@ -165,13 +188,32 @@ export function buildInferredClaims({ recon = {}, signals = [] } = {}) {
       value,
       provenance: { method: cfg.method, detail: cfg.detail(recon) },
     }));
-    claimedFields.add(cfg.field);
+    claimedFields.set(cfg.field, value);
   }
 
   for (const signal of signals) {
     const field = SIGNAL_CLAIM_MAP[signal.type];
-    if (!field || claimedFields.has(field)) continue;
+    if (!field) continue;
     if (signal.value === undefined || signal.value === null || signal.value === '') continue;
+
+    if (claimedFields.has(field)) {
+      // Recon already claimed this field. Reconcile, don't drop: when the
+      // two witnesses disagree, attach the conflict to the already-minted
+      // recon claim so the confirm ceremony can ask "our probe sees X; your
+      // materials say Y — which is right?" instead of silently keeping only
+      // the probe's value with the text claim vanishing unseen (the exact
+      // bug closed here — I3, review 2026-08-25).
+      const existingValue = claimedFields.get(field);
+      if (valuesConflict(field, existingValue, signal.value)) {
+        const reconClaim = claims.find((c) => c.field === field);
+        if (reconClaim) {
+          reconClaim.conflicted = true;
+          reconClaim.conflict = { probe_says: existingValue, source_says: signal.value };
+        }
+      }
+      continue; // recon still wins the field itself — the witness is kept via .conflict, never a second claim
+    }
+
     claims.push(buildClaimRecord({
       field,
       value: signal.value,
@@ -180,7 +222,7 @@ export function buildInferredClaims({ recon = {}, signals = [] } = {}) {
         detail: `website extraction (${signal.confidence || 'unstated'} confidence)`,
       },
     }));
-    claimedFields.add(field);
+    claimedFields.set(field, signal.value);
   }
 
   return claims;

@@ -194,6 +194,44 @@ describe('buildInferredClaims — cold read → inferred claims', () => {
   });
 });
 
+describe('buildInferredClaims — reconcile, never drop the conflicting witness (I3, review 2026-08-25)', () => {
+  it('a disagreeing text-derived hosting claim is attached as .conflict, not silently dropped', () => {
+    const claims = buildInferredClaims({
+      recon: { cloud_provider: 'Oracle' },
+      signals: [{ type: 'infrastructure', value: 'AWS', confidence: 'probable' }],
+    });
+    // Still exactly one claim on the field — recon wins the field itself —
+    // but the disagreeing witness is visible, not vanished.
+    const infraClaims = claims.filter((c) => c.field === 'infrastructure.cloud_provider');
+    expect(infraClaims).toHaveLength(1);
+    const infra = infraClaims[0];
+    expect(infra.value).toBe('Oracle');
+    expect(infra.provenance.method).toBe('recon-ip');
+    expect(infra.conflicted).toBe(true);
+    expect(infra.conflict).toEqual({ probe_says: 'Oracle', source_says: 'AWS' });
+  });
+
+  it('agreement (fuzzy provider match) never manufactures a conflict', () => {
+    const claims = buildInferredClaims({
+      recon: { cloud_provider: 'Oracle' },
+      signals: [{ type: 'infrastructure', value: 'Oracle', confidence: 'probable' }],
+    });
+    const infra = claims.find((c) => c.field === 'infrastructure.cloud_provider');
+    expect(infra.conflicted).toBe(false);
+    expect(infra.conflict).toBeNull();
+  });
+
+  it('the conflict survives the claimsProjection fold', () => {
+    const claims = buildInferredClaims({
+      recon: { cloud_provider: 'Oracle' },
+      signals: [{ type: 'infrastructure', value: 'AWS', confidence: 'probable' }],
+    });
+    const [projected] = claimsProjection(snapshotFrom(claims));
+    expect(projected.conflicted).toBe(true);
+    expect(projected.conflict).toEqual({ probe_says: 'Oracle', source_says: 'AWS' });
+  });
+});
+
 describe('store reconstruct() carries Record primitives', () => {
   it('record_claim and claim_event ride the transaction log into the snapshot verbatim', async () => {
     const { _internals } = await import('../../src/services/memory-store-file.js');

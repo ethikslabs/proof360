@@ -1,4 +1,8 @@
 import { useState } from 'react';
+// No-% invariant (honesty wave item 2 / review I4) — currently dead code
+// (unused in the app) but same class of bug as GraphView: never render a raw
+// percentage, use the grade-word mapping every other surface uses.
+import { gradeWord } from '../../rendering/protocol.js';
 
 function SourceRow({ label, url }) {
   return (
@@ -62,7 +66,7 @@ export function ProvenanceAccordion({ trails = [] }) {
               )}
               {trail.confidence != null && (
                 <div style={{ fontSize: 12, color: '#6b7280' }}>
-                  Confidence: {Math.round(trail.confidence * 100)}%
+                  Confidence: {gradeWord(trail)}
                 </div>
               )}
             </div>

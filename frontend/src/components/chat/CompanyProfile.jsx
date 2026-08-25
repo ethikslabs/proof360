@@ -230,7 +230,7 @@ function DiscoveryView({ tk, onVendorSelect, isDemoMode, rankedVendors }) {
 
             {/* Programs count badge — old schema only */}
             {!useNewSchema && v.programs?.length > 0 && (
-              <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9, fontWeight: 700, color: '#a8651e', background: '#f5e6cc', border: '1px solid #e8c98a', borderRadius: 10, padding: '1px 7px', letterSpacing: '0.04em' }}>
+              <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9, fontWeight: 700, color: '#92400e', background: '#f5e6cc', border: '1px solid #e8c98a', borderRadius: 10, padding: '1px 7px', letterSpacing: '0.04em' }}>
                 {v.programs.length}
               </span>
             )}

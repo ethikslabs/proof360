@@ -404,7 +404,7 @@ function IntegrationsFlyout({ pos, onClose, enabled, onToggle }) {
 
 // ── Mention support ───────────────────────────────────────────────────────────
 const MENTION_COLORS = {
-  sophia: '#a8651e', leonardo: '#6b4ea8', edison: '#176577',
+  sophia: '#92400e', leonardo: '#6b4ea8', edison: '#176577',
   vanta: '#2563a8', perplexity: '#2563a8', cisco: '#2563a8',
   microsoft: '#2563a8', nvidia: '#2563a8', anthropic: '#2563a8', aws: '#2563a8',
 };

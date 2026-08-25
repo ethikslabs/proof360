@@ -287,7 +287,8 @@ export default function Lab() {
                           proposal={cer.proposal}
                           tk={CONSENT_TK}
                           busy={cer.busy}
-                          onEdit={cancelMove}
+                          error={cer.error}
+                          onDiscard={cancelMove}
                           onConfirm={() => confirmMove(m)}
                         />
                       </div>

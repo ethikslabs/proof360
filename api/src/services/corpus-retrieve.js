@@ -6,6 +6,13 @@
 // document, fail-closed; nothing here elevates or filters. Retrieval is an
 // enhancement: any failure returns null and the chat proceeds unretrieved — the
 // persona must then say what the corpus doesn't hold, never invent (show-the-work).
+//
+// Contract (John ruling — the ABSENCE RULE: could-not-look ≠ looked-and-found-nothing):
+//   array (non-empty)  — reached the corpus, hits scored ≥ MIN_SCORE
+//   []                 — reached the corpus fine, nothing scored (a real, honest zero)
+//   null               — could NOT look: unreachable, timed out, or !ok. ONLY this case.
+// Every consumer must keep these three states distinct — collapsing [] into null turns
+// "we looked and found nothing" into a lie about "we couldn't look".
 const CORPUS_SEARCH_URL = process.env.CORPUS_SEARCH_URL || 'http://localhost:3009/search';
 
 const MIN_SCORE = 0.35;
@@ -21,10 +28,10 @@ export async function retrieveCorpusEvidence(userMessage, context = {}) {
       body: JSON.stringify({ queries: [query], topK: MAX_CHUNKS + 2 }),
       signal: AbortSignal.timeout(3500),
     });
-    if (!resp.ok) return null;
+    if (!resp.ok) return null; // could not look — !ok is an infrastructure/response failure
     const [results] = await resp.json();
     const hits = (results ?? []).filter((r) => r.score >= MIN_SCORE).slice(0, MAX_CHUNKS);
-    if (!hits.length) return null;
+    if (!hits.length) return []; // reached fine, nothing scored — a real, honest zero
     return hits.map((r, i) => ({
       n: i + 1,
       slug: r.object_slug,

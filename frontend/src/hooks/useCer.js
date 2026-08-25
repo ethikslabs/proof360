@@ -11,6 +11,7 @@ export function useCer({ companyName, contactName, evidenceRefs = [], enabled = 
   const [createdCers, setCreatedCers] = useState([]);
   const [agencyOpen, setAgencyOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
   const [awaitingField, setAwaitingField] = useState(null);
   const awaitField = useCallback((field) => setAwaitingField(field), []);
   const clearAwaiting = useCallback(() => setAwaitingField(null), []);
@@ -46,7 +47,7 @@ export function useCer({ companyName, contactName, evidenceRefs = [], enabled = 
   }, []);
 
   const confirmRoute = useCallback(() => setForming((p) => (p ? { ...p, routeConfirmed: true } : p)), []);
-  const dismissForming = useCallback(() => { setForming(null); setAgencyOpen(false); setAwaitingField(null); }, []);
+  const dismissForming = useCallback(() => { setForming(null); setAgencyOpen(false); setAwaitingField(null); setError(null); }, []);
   const openAgency = useCallback(() => setAgencyOpen(true), []);
 
   const fields = useMemo(
@@ -65,6 +66,7 @@ export function useCer({ companyName, contactName, evidenceRefs = [], enabled = 
     // or auto-grant consent (CER-CONSENT-GATES-001).
     if (!forming || forming.routeConfirmed !== true) return null;
     setBusy(true);
+    setError(null);
     try {
       const res = await createCer({ route: forming.route, evidence_refs: evidenceRefs });
       await refresh();
@@ -72,6 +74,15 @@ export function useCer({ companyName, contactName, evidenceRefs = [], enabled = 
       setAgencyOpen(false);
       setAwaitingField(null);
       return res?.cer || null;
+    } catch (err) {
+      // Live rehearsal (2026-08-25): a rejected createCer (e.g. 401 not
+      // authenticated) used to propagate as an unhandled rejection — the
+      // button just went un-busy and nothing visibly happened, stranding the
+      // founder with no explanation. Surface it honestly instead.
+      setError(err?.status === 401
+        ? "You'll need to be signed in to create this — log in and try again."
+        : (err?.message || 'Could not create this pathway — try again.'));
+      return null;
     } finally {
       setBusy(false);
     }
@@ -96,6 +107,7 @@ export function useCer({ companyName, contactName, evidenceRefs = [], enabled = 
     proposal,
     createdCers,
     busy,
+    error,
     awaitingField,
     awaitField,
     clearAwaiting,

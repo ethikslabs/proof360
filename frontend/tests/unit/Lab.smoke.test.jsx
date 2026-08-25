@@ -43,14 +43,19 @@ describe('Lab — CER consent gate (CER-CONSENT-GATES-001)', () => {
     expect(await screen.findByRole('button', { name: /aws pathway open/i })).toBeDisabled();
   });
 
-  it('Edit dismisses the consent card without persisting', async () => {
+  // Live rehearsal (2026-08-25): this button used to be labelled "Edit" while wired to
+  // discard the whole consent card — nothing on it is actually editable. Renamed to
+  // "Start over" so the label matches the behavior; the discard-without-persisting
+  // behavior itself is unchanged and still gated here.
+  it('Start over dismisses the consent card without persisting', async () => {
     demoMode();
     render(<Lab />);
 
     fireEvent.click(screen.getByRole('button', { name: /get covered/i }));
     await screen.findByRole('button', { name: /confirm & create pathway/i });
 
-    fireEvent.click(screen.getByRole('button', { name: /^edit$/i }));
+    expect(screen.queryByRole('button', { name: /^edit$/i })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /start over/i }));
     await waitFor(() =>
       expect(screen.queryByRole('button', { name: /confirm & create pathway/i })).toBeNull()
     );

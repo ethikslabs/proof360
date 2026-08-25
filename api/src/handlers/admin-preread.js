@@ -108,7 +108,7 @@ async function runWithConcurrency(tasks, maxConcurrent = 4) {
 async function triggerColdRead(url, sessionId) {
   try {
     const log = (line) => appendLog(sessionId, line);
-    const { signals, sources_read, enterprise_signals, competitor_mentions, recon_context } =
+    const { signals, sources_read, enterprise_signals, competitor_mentions, recon_context, pages_read_count, used_web_research } =
       await extractSignals({ website_url: url, session_id: sessionId }, log);
 
     const reconFlat = extractReconContext(recon_context);
@@ -124,10 +124,12 @@ async function triggerColdRead(url, sessionId) {
       company_name: inferenceResult.company_name,
       source_summary: inferenceResult.source_summary,
       sources_read: inferenceResult.sources_read,
+      pages_read_count: pages_read_count ?? 0,
       signals_detected: inferenceResult.signals_detected,
       enterprise_signals,
       competitor_mentions,
       recon_context: recon_context || null,
+      used_web_research: !!used_web_research,
     });
   } catch (err) {
     console.error(JSON.stringify({

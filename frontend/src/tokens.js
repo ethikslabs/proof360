@@ -11,7 +11,7 @@ export const TOKEN = {
     hairline:   '#e6e8ec',
     hairStrong: '#d3d7df',
     plum:       '#5b4cc4',
-    umber:      '#a8651e',
+    umber:      '#92400e',
     teal:       '#176577',
     indigo:     '#3d3aa0',
     aws:        '#ff9900',
@@ -32,7 +32,7 @@ export const TOKEN = {
     hairline:   '#ece4d4',
     hairStrong: '#d8cebc',
     plum:       '#6b4ea8',
-    umber:      '#a8651e',
+    umber:      '#92400e',
     teal:       '#176577',
     indigo:     '#3d3aa0',
     aws:        '#ff9900',
@@ -72,6 +72,10 @@ export const PERSONA = {
   leonardo: { label: 'Leonardo', token: 'plum',   note: 'Strategy & market',     bio: 'Translates trust gaps into fundraising and deal consequences.' },
   edison:   { label: 'Edison',   token: 'teal',   note: 'Technical & execution', bio: 'Sequences what to fix, in what order, and how fast.' },
   john_ai:  { label: 'John',     token: 'indigo', note: "John's AI assistant",   bio: 'Relays your message to John directly.' },
+  // The house voice (John ruling 2026-08-25): the record itself speaking — the
+  // default meta-persona for the reading, opener, and scan narration. Personas
+  // are present but invited; the house reads, the lenses interpret.
+  proof360: { label: 'proof360', token: 'ink',    note: 'Reading your public trail', bio: 'The record itself — what the evidence shows, before any lens.' },
 };
 
 export function personaColor(persona, theme) {

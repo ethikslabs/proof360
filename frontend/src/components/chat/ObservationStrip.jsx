@@ -3,18 +3,19 @@ import { SignalEvidenceDrawer } from './SignalEvidenceDrawer.jsx';
 
 function Chip({ signal, isDemoMode, onActivate }) {
   const isGap = signal.polarity === 'gap';
+  const conflicted = !!signal.conflicted;
   return (
     <button
       onClick={() => !isDemoMode && onActivate(signal)}
       style={{
         display: 'inline-flex', alignItems: 'center', gap: 4,
-        background: isGap ? '#dcfce7' : '#fef3c7',
-        border: `1px solid ${isGap ? '#86efac' : '#fcd34d'}`,
+        background: conflicted ? '#fee2e2' : (isGap ? '#dcfce7' : '#fef3c7'),
+        border: `1px solid ${conflicted ? '#fca5a5' : (isGap ? '#86efac' : '#fcd34d')}`,
         borderRadius: 4,
         padding: '2px 8px',
         fontSize: 10.5,
         fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-        color: isGap ? '#15803d' : '#92400e',
+        color: conflicted ? '#b91c1c' : (isGap ? '#15803d' : '#92400e'),
         fontWeight: 600,
         cursor: isDemoMode ? 'default' : 'pointer',
         opacity: isDemoMode ? 0.6 : 1,
@@ -23,6 +24,7 @@ function Chip({ signal, isDemoMode, onActivate }) {
     >
       <span style={{ fontSize: 7 }}>◆</span>
       {signal.value}
+      {conflicted && <span style={{ fontWeight: 700 }}>⚡ sources disagree</span>}
     </button>
   );
 }
@@ -53,7 +55,7 @@ export function ObservationStrip({ signals, isDemoMode, onCorrect, onIgnore, onA
         }}>
           Observed this session
           {isDemoMode && (
-            <span style={{ marginLeft: 8, color: '#a8651e', fontWeight: 400, fontStyle: 'italic', textTransform: 'none' }}>
+            <span style={{ marginLeft: 8, color: '#92400e', fontWeight: 400, fontStyle: 'italic', textTransform: 'none' }}>
               · example company
             </span>
           )}
