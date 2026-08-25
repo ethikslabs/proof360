@@ -27,6 +27,7 @@ import { GuidanceBlock }      from '../components/chat/GuidanceBlock.jsx';
 import { MOCK_GUIDANCE_BLOCK } from '../data/mock/signals.js';
 import { CompanionPanel } from '../components/chat/CompanionPanel.jsx';
 import { ScanTrace } from '../components/chat/ScanTrace.jsx';
+import { PersonaFollowUps, PERSONA_NAMES } from '../components/chat/PersonaFollowUps.jsx';
 import { rankVendorsBySignals } from '../data/mock/vendors.js';
 import { AuthorityLayer }      from '../components/chat/AuthorityLayer.jsx';
 import { useSurfaceAuthority } from '../hooks/useSurfaceAuthority.js';
@@ -1316,6 +1317,7 @@ export default function Chat() {
   const [heroPersonas,    setHeroPersonas]    = useState(() => new Set());
   const [heroPersonaHover,setHeroPersonaHover]= useState(null);
   const [activeModes,     setActiveModes]     = useState([]);
+  const [liveFollowups,   setLiveFollowups]   = useState([]);
   const [companyProfile,  setCompanyProfile]  = useState({
     name: DEMO_FOUNDER ? DEMO_COMPANY.name : null,
     stage: DEMO_FOUNDER ? DEMO_COMPANY.stage : null,
@@ -1827,6 +1829,10 @@ export default function Chat() {
     const text = input.trim();
     if (!text || !inputReady || isProcessing) return;
 
+    // A new user message is going out — stale live follow-up chips from the
+    // previous reply must not linger while the new one streams in.
+    setLiveFollowups([]);
+
     // If a lens asked for a missing CER field, this message answers it.
     // A URL reply (extractAwaitedUrl also catches "we're at northwind.io") hands the SAME
     // extracted URL to the cold-read below, and the wait stays ARMED until that cold-read
@@ -2077,6 +2083,14 @@ export default function Chat() {
             setMessages(prev => prev.map(m => m.id === msgId ? { ...m, working: receipt } : m));
           }
         } catch { /* receipts unavailable — render nothing, invent nothing */ }
+
+        // Live persona follow-up chips — record-grounded, generated fresh for
+        // this turn. Fire-and-forget: any failure is an honest empty list,
+        // never canned text (INVARIANTS no-canned-text).
+        spine.getFollowups(sessionId)
+          .then(({ followups }) => setLiveFollowups(followups ?? []))
+          .catch(() => setLiveFollowups([]));
+
         refreshSpine(sessionId);
       } catch {
         setMessages(prev => prev.map(m => m.id === msgId
@@ -2808,6 +2822,19 @@ export default function Chat() {
                   />
                 ) : null;
               })()}
+
+              {/* Live persona follow-ups — record-grounded, generated per turn. Never
+                  alongside the demo-only canned chips above (live sessions only). */}
+              {!isProcessing && hasMessages && !inDemoMode && liveSessionId && (
+                <PersonaFollowUps
+                  followups={liveFollowups}
+                  onAsk={(persona, question) => {
+                    const name = PERSONA_NAMES[persona] ?? persona;
+                    submit(`@${name} ${question}`);
+                  }}
+                  tk={tk}
+                />
+              )}
 
             </div>
           </div>

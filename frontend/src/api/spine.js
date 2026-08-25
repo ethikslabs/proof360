@@ -78,6 +78,10 @@ export const acceptProposal = (sessionId, proposalId, editedReason = null) =>
   postJson(`/api/v1/session/${sessionId}/proposals/${proposalId}/accept`,
     editedReason ? { edited_reason: editedReason } : {});
 
+// Live persona follow-up chips — three lenses, record-grounded; 0 or 3 entries.
+export const getFollowups = (sessionId) =>
+  getJson(`/api/v1/session/${sessionId}/followups`);
+
 export const getShortlist = (sessionId) =>
   getJson(`/api/v1/session/${sessionId}/shortlist`);
 
