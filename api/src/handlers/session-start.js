@@ -42,7 +42,7 @@ export async function sessionStartHandler(request, reply) {
 
 async function extractAndInfer(sessionId, { website_url, deck_file, session_id }, log) {
   try {
-    const { signals, sources_read, enterprise_signals, competitor_mentions, recon_context, company_summary } =
+    const { signals, sources_read, enterprise_signals, competitor_mentions, recon_context, company_summary, pages_read_count } =
       await extractSignals({ website_url, deck_file, session_id }, log);
 
     const reconFlat = extractReconContext(recon_context);
@@ -64,6 +64,7 @@ async function extractAndInfer(sessionId, { website_url, deck_file, session_id }
       company_name: inferenceResult.company_name,
       source_summary: inferenceResult.source_summary,
       sources_read: inferenceResult.sources_read,
+      pages_read_count: pages_read_count ?? 0,
       signals_detected: inferenceResult.signals_detected,
       enterprise_signals,
       competitor_mentions,

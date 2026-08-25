@@ -27,6 +27,8 @@ export async function analyzeHandler(request, reply) {
       gaps: session.gaps,
       deal_readiness: session.deal_readiness,
       inferences: session.inferences,
+      sources_read: session.sources_read,
+      pages_read_count: session.pages_read_count ?? 0,
     });
   }
 
@@ -49,5 +51,7 @@ export async function analyzeHandler(request, reply) {
     gaps,
     deal_readiness: readiness,
     inferences: session.inferences,
+    sources_read: session.sources_read,
+    pages_read_count: session.pages_read_count ?? 0,
   });
 }

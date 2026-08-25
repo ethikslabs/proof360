@@ -22,6 +22,7 @@ import { DEMO_STAGES, DEFAULT_STAGE_ID } from '../data/demoCompany.js';
 import { OperationalField } from '../components/OperationalField';
 import { useSignals }       from '../hooks/useSignals.js';
 import { inferencesToSignals } from '../rendering/live-signals.js';
+import { coldReadOpener } from '../rendering/coldReadOpener.js';
 import { ObservationStrip } from '../components/chat/ObservationStrip.jsx';
 import { GuidanceBlock }      from '../components/chat/GuidanceBlock.jsx';
 import { MOCK_GUIDANCE_BLOCK } from '../data/mock/signals.js';
@@ -2063,11 +2064,18 @@ export default function Chat() {
           attachCurrentSessionToProfile(session_id, analysis);
           refreshSpine(session_id); // the cold read's inferred claims light the rail immediately
 
-          const gapCount = analysis.gaps?.length ?? 0;
-          const score = analysis.trust_score ?? 0;
+          // Lamp-register opener (INVARIANTS §6 — never grade, never push): no numeric
+          // score leads the conversation, and a failed scrape says so honestly rather
+          // than presenting guessed signals as a real read. pages_read_count (not
+          // sources_read.length) is the honest signal — fallback signals still carry a
+          // placeholder 'homepage' label even when nothing was actually fetched.
           setMessages(prev => prev.map(m => m.id === statusId ? {
             ...m,
-            content: `${analysis.company_name || domain} — trust score ${score}/100, ${gapCount} gap${gapCount !== 1 ? 's' : ''} found. Ask me anything.`,
+            content: coldReadOpener({
+              name: analysis.company_name || domain,
+              sourcesRead: analysis.pages_read_count,
+              inferences: analysis.inferences,
+            }),
           } : m));
 
           // If this cold-read was answering a lens's ask, the company is now guaranteed
@@ -3207,6 +3215,7 @@ export default function Chat() {
       isDemoMode={inDemoMode}
       onShortlist={handleShortlist}
       onDefer={handleDefer}
+      companyName={founderProfileName ?? companyProfile.name ?? companyData?.company_name ?? null}
     />
     </ShortlistContext.Provider>
   );

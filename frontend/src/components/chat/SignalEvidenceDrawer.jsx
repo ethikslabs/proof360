@@ -1,5 +1,6 @@
 // frontend/src/components/chat/SignalEvidenceDrawer.jsx
 import { useState, Fragment } from 'react';
+import { createPortal } from 'react-dom';
 import { freshnessLabel, signalFreshness } from '../../rendering/protocol.js';
 
 const SOURCE_LABELS = {
@@ -15,7 +16,16 @@ export function SignalEvidenceDrawer({ signal, onClose, onCorrect, onIgnore, onA
   const isStale = signalFreshness(signal) === 'stale';
   const isGap = signal.polarity === 'gap';
 
-  return (
+  // Portal to document.body — ObservationStrip (this drawer's caller) lives inside
+  // the scrollable message list, which sets its own zIndex as a flex item and so
+  // establishes a local stacking context. Any position:fixed descendant of that
+  // context is capped there for paint order no matter how high its own z-index is
+  // set, so a nested z-index of 200 still loses to the pinned composer's z-index of
+  // 3 rendered outside that context — the drawer showed up clipped/behind the
+  // composer at the bottom of the screen (John's live-walk screenshot). Rendering
+  // via a portal escapes the whole ancestor stacking chain, the same fix React's own
+  // docs prescribe for modals/sheets — no z-index number can substitute for it here.
+  return createPortal((
     <div
       onClick={onClose}
       style={{
@@ -159,5 +169,5 @@ export function SignalEvidenceDrawer({ signal, onClose, onCorrect, onIgnore, onA
         )}
       </div>
     </div>
-  );
+  ), document.body);
 }

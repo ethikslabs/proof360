@@ -195,7 +195,11 @@ function fallbackSignals(website_url, deck_file) {
     sources_read.push('homepage');
   }
 
-  return { signals, sources_read, enterprise_signals, competitor_mentions: [] };
+  // No real page was fetched here — this is simulated/placeholder signal, never an
+  // actual scrape (no Firecrawl key, no website_url, or the live scrape read zero
+  // pages). pages_read_count: 0 is the honest-degradation flag the client uses to
+  // decide between "read complete" and "perimeter read only" (INVARIANTS §1).
+  return { signals, sources_read, enterprise_signals, competitor_mentions: [], pages_read_count: 0 };
 }
 
 const SIGNAL_READABLE = {
@@ -319,11 +323,14 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
     if (signals.length === 0) {
       log({ text: '  ✗  Claude returned no signals from page content', type: 'err' });
       log({ text: '  ↳  Falling back to domain-level signals only', type: 'muted' });
-      return { ...fallbackSignals(website_url, deck_file), recon_context };
+      // Pages WERE actually read here — the site opened, extraction just found nothing
+      // to say. Overriding fallbackSignals' pages_read_count:0 keeps the honest-read
+      // flag accurate even though the signals themselves are placeholders.
+      return { ...fallbackSignals(website_url, deck_file), recon_context, pages_read_count: pages.length };
     }
 
     const company_summary = extracted.company_summary || null;
-    return { signals, sources_read, enterprise_signals, competitor_mentions, recon_context, company_summary };
+    return { signals, sources_read, enterprise_signals, competitor_mentions, recon_context, company_summary, pages_read_count: pages.length };
   } catch (err) {
     console.error('[signal-extractor] pipeline error:', err.message, err.stack);
     // Only emit to terminal if not already emitted by the specific handler above

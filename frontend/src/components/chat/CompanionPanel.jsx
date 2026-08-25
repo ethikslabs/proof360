@@ -6,10 +6,15 @@
 import { useState } from 'react';
 import { VendorShortlist } from './VendorShortlist.jsx';
 
-export function CompanionPanel({ items, claims, isDemoMode, onShortlist, onDefer }) {
+export function CompanionPanel({ items, claims, isDemoMode, onShortlist, onDefer, companyName }) {
   const [open, setOpen] = useState(true);
   const count = (items?.length ?? 0) + (claims?.length ?? 0);
   if (count === 0) return null;
+
+  // Cold-human test: "Your record · N entries" reads as "what record? what entries?"
+  // (John live-walk feedback 2026-08-25). companyName isn't always wired through by the
+  // caller — fall back to a neutral "your story so far" rather than an empty label.
+  const recordLabel = companyName ? `${companyName} · ${count} noted` : `Your story so far · ${count} noted`;
 
   const shell = {
     position: 'fixed', right: 16, bottom: 16, zIndex: 40,
@@ -28,7 +33,7 @@ export function CompanionPanel({ items, claims, isDemoMode, onShortlist, onDefer
             fontSize: 12,
           }}
         >
-          Your record · {count}
+          {recordLabel}
         </button>
       </div>
     );
@@ -46,7 +51,7 @@ export function CompanionPanel({ items, claims, isDemoMode, onShortlist, onDefer
         padding: '10px 14px', borderBottom: '1px solid #1e293b',
       }}>
         <span style={{ fontSize: 12, fontWeight: 700, color: '#f1f5f9' }}>
-          Your record · {count} entries
+          {recordLabel}
         </span>
         {isDemoMode && (
           <span style={{
@@ -64,9 +69,12 @@ export function CompanionPanel({ items, claims, isDemoMode, onShortlist, onDefer
         >—</button>
       </div>
       <div style={{ overflowY: 'auto', padding: '12px 14px 4px' }}>
+        {/* No per-claim tap-to-correct handler exists on this strip today — the
+            "so far" phrasing is the honest one; switch to the tap-invite copy only
+            once tapping a claim actually does something. */}
         {claims?.length > 0 && (
           <div style={{ fontSize: 11, color: '#94a3b8', padding: '0 0 10px' }}>
-            {claims.length} facts on your record
+            {claims.length} thing{claims.length !== 1 ? 's' : ''} we&apos;ve noted so far
           </div>
         )}
         <VendorShortlist
