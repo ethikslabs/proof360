@@ -28,6 +28,7 @@ import { MOCK_GUIDANCE_BLOCK } from '../data/mock/signals.js';
 import { CompanionPanel } from '../components/chat/CompanionPanel.jsx';
 import { ScanTrace } from '../components/chat/ScanTrace.jsx';
 import { PersonaFollowUps, PERSONA_NAMES } from '../components/chat/PersonaFollowUps.jsx';
+import { ProposalCard } from '../components/chat/ProposalCard.jsx';
 import { rankVendorsBySignals } from '../data/mock/vendors.js';
 import { AuthorityLayer }      from '../components/chat/AuthorityLayer.jsx';
 import { useSurfaceAuthority } from '../hooks/useSurfaceAuthority.js';
@@ -1318,6 +1319,14 @@ export default function Chat() {
   const [heroPersonaHover,setHeroPersonaHover]= useState(null);
   const [activeModes,     setActiveModes]     = useState([]);
   const [liveFollowups,   setLiveFollowups]   = useState([]);
+  // Pending proposals rendered in-stream (Task 3, docs/plans/2026-08-25-persona-
+  // chips-and-proposal-cards.md) — derived from the register, fetched fresh
+  // after each live reply completes. `dismissedProposalIds` is a same-session,
+  // local-only "Not now" (no defer endpoint exists on the API — checked
+  // api/src/handlers/shortlist.js: `declined_proposals` is read-side only).
+  const [pendingProposals,   setPendingProposals]   = useState([]);
+  const [dismissedProposalIds, setDismissedProposalIds] = useState(() => new Set());
+  const [busyProposalId,     setBusyProposalId]     = useState(null);
   const [companyProfile,  setCompanyProfile]  = useState({
     name: DEMO_FOUNDER ? DEMO_COMPANY.name : null,
     stage: DEMO_FOUNDER ? DEMO_COMPANY.stage : null,
@@ -1498,6 +1507,44 @@ export default function Chat() {
     if (sl.status === 'fulfilled') setServerShortlist(sl.value.shortlist ?? []);
   }, [liveSessionId]);
 
+  // Pending proposals (Task 3) — derived, re-evaluated on every read; fetched
+  // after claim-confirm actions and after each live reply completes (same hook
+  // points as the followups fetch). Fire-and-forget: failure is an honest
+  // empty list, never invented content (INVARIANTS honest-degradation).
+  const fetchPendingProposals = useCallback(async (sessionIdArg) => {
+    const sid = sessionIdArg ?? liveSessionId ?? spine.storedSessionId();
+    if (!sid) return;
+    try {
+      const { proposals } = await spine.getProposals(sid);
+      setPendingProposals(proposals ?? []);
+    } catch {
+      setPendingProposals([]);
+    }
+  }, [liveSessionId]);
+
+  // Proposal-card actions (Task 3): accept mints a Move via the same "Add to
+  // shortlist" verb as everywhere else, then refreshes the server shortlist so
+  // the companion panel updates (reuses refreshSpine, same as shortlistCtx.add
+  // above). Defer is local-only for this session — no defer endpoint exists.
+  const handleAcceptProposal = useCallback(async (proposalId) => {
+    const sid = liveSessionId ?? spine.storedSessionId();
+    if (!sid) return;
+    setBusyProposalId(proposalId);
+    try {
+      await spine.acceptProposal(sid, proposalId);
+      setPendingProposals(prev => prev.filter(p => p.id !== proposalId));
+      await refreshSpine(sid);
+    } catch {
+      // accept failed — proposal stays in the list, nothing pretended
+    } finally {
+      setBusyProposalId(null);
+    }
+  }, [liveSessionId, refreshSpine]);
+
+  const handleDeferProposal = useCallback((proposalId) => {
+    setDismissedProposalIds(prev => new Set(prev).add(proposalId));
+  }, []);
+
   const shortlistedNames = useMemo(() => new Set([
     ...serverShortlist.map(m => (m.item?.name ?? m.label ?? '').toLowerCase()).filter(Boolean),
     ...shortlist.map(v => (v.name ?? '').toLowerCase()).filter(Boolean),
@@ -1542,6 +1589,12 @@ export default function Chat() {
     })),
     ...shortlist,
   ], [serverShortlist, shortlist]);
+
+  // Pending proposals minus this session's local "Not now" dismissals.
+  const visibleProposals = useMemo(
+    () => pendingProposals.filter(p => !dismissedProposalIds.has(p.id)),
+    [pendingProposals, dismissedProposalIds]
+  );
 
   // Live-session presence readable inside async closures — the resume effect must
   // not stomp a cold read that completed while its fetch was in flight (re-review race).
@@ -2086,10 +2139,14 @@ export default function Chat() {
 
         // Live persona follow-up chips — record-grounded, generated fresh for
         // this turn. Fire-and-forget: any failure is an honest empty list,
-        // never canned text (INVARIANTS no-canned-text).
+        // never canned text (INVARIANTS no-canned-text). Batched with the
+        // proposals fetch below (Task 3) — each independently failure-safe;
+        // claims may have been confirmed as part of this same exchange, so a
+        // reply completion is also a claim-confirm moment.
         spine.getFollowups(sessionId)
           .then(({ followups }) => setLiveFollowups(followups ?? []))
           .catch(() => setLiveFollowups([]));
+        fetchPendingProposals(sessionId);
 
         refreshSpine(sessionId);
       } catch {
@@ -2822,6 +2879,20 @@ export default function Chat() {
                   />
                 ) : null;
               })()}
+
+              {/* Pending proposals in-stream (Task 3) — persona-attributed, reason on the
+                  face, lamp register. Derived and re-evaluated on every fetch; live
+                  sessions only, never in the demo sandbox. */}
+              {!isProcessing && hasMessages && !inDemoMode && liveSessionId && visibleProposals.map(proposal => (
+                <ProposalCard
+                  key={proposal.id}
+                  proposal={proposal}
+                  onAccept={handleAcceptProposal}
+                  onDefer={handleDeferProposal}
+                  busy={busyProposalId === proposal.id}
+                  tk={tk}
+                />
+              ))}
 
               {/* Live persona follow-ups — record-grounded, generated per turn. Never
                   alongside the demo-only canned chips above (live sessions only). */}
