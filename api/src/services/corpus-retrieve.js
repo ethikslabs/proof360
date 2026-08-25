@@ -19,6 +19,11 @@ const MIN_SCORE = 0.35;
 const MAX_CHUNKS = 4;
 const CHUNK_CHARS = 500;
 
+// Default timeout suits the latency-sensitive chat path. The full corpus on the box
+// takes 4-6s for a cold embedding search (caught live 2026-08-25: the scan-time corpus
+// act read "unreachable" against a healthy corpus purely because 3.5s aborted first) —
+// scan-time callers pass a longer timeout_ms; the long-hand read optimises for witness,
+// not speed, so waiting for a real answer is the point.
 export async function retrieveCorpusEvidence(userMessage, context = {}) {
   const query = [userMessage, context.company_name].filter(Boolean).join(' — ');
   try {
@@ -26,7 +31,7 @@ export async function retrieveCorpusEvidence(userMessage, context = {}) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ queries: [query], topK: MAX_CHUNKS + 2 }),
-      signal: AbortSignal.timeout(3500),
+      signal: AbortSignal.timeout(context.timeout_ms ?? 3500),
     });
     if (!resp.ok) return null; // could not look — !ok is an infrastructure/response failure
     const [results] = await resp.json();

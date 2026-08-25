@@ -67,7 +67,7 @@ async function extractAndInfer(sessionId, { website_url, deck_file, session_id }
     let corpus_hits = null;
     if (corpusQuery) {
       log({ act: 'corpus', type: 'act_body', text: corpusQuery, color: 'query' });
-      corpus_hits = await retrieveCorpusEvidence(corpusQuery, { company_name: inferenceResult.company_name }).catch(() => null);
+      corpus_hits = await retrieveCorpusEvidence(corpusQuery, { company_name: inferenceResult.company_name, timeout_ms: 12_000 }).catch(() => null);
     }
     if (corpus_hits?.length) {
       for (const hit of corpus_hits) {
