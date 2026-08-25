@@ -148,6 +148,17 @@ describe('buildReadingContext — prompt', () => {
     expect(anchors).toContainEqual({ label: '1 corpus holding', source: 'corpus' });
   });
 
+  it('corpus anchor counts DOCUMENTS, not chunks — two chunks of one document are one holding (round 3: anchor must agree with the citation cards)', async () => {
+    retrieveCorpusEvidence.mockResolvedValue([
+      { n: 1, slug: 'acme-raise', layer: 'evidence', text: 'Acme raised a Series A in 2025.', score: 0.9 },
+      { n: 2, slug: 'acme-raise', layer: 'evidence', text: 'The round was led by Example Ventures.', score: 0.8 },
+      { n: 3, slug: 'acme-team', layer: 'evidence', text: 'Acme has 12 employees.', score: 0.7 },
+    ]);
+    const { anchors } = await buildReadingContext(baseSession());
+
+    expect(anchors).toContainEqual({ label: '2 corpus holdings', source: 'corpus' });
+  });
+
   it('corpus unreachable (null) → no corpus material, no corpus anchor', async () => {
     retrieveCorpusEvidence.mockResolvedValue(null);
     const { prompt, anchors } = await buildReadingContext(baseSession());

@@ -231,7 +231,11 @@ async function corpusEvidence(session) {
   if (!hits?.length) return { lines: [], anchor: null };
 
   const lines = hits.map((h) => factLine(CORPUS, 'Corpus holding', (h.text || '').replace(/\s+/g, ' ').trim()));
-  const anchor = { label: `${hits.length} corpus holding${hits.length === 1 ? '' : 's'}`, source: 'corpus' };
+  // The anchor counts DOCUMENTS (distinct slugs), not chunks — it sits directly
+  // above the citation cards, which group chunks by document; "4 corpus holdings"
+  // over "3 sources" read as a contradiction (round-3 walkthrough finding).
+  const docCount = new Set(hits.map((h) => h.slug ?? h.evidence_id ?? h.n)).size;
+  const anchor = { label: `${docCount} corpus holding${docCount === 1 ? '' : 's'}`, source: 'corpus' };
   return { lines, anchor };
 }
 
