@@ -235,3 +235,14 @@ describe('generateReading', () => {
     expect(result).toEqual({ reading: null, anchors: [] });
   });
 });
+
+// ABSENCE RULE (John ruling 2026-08-25): no-evidence-of-cert must never become
+// "they likely lack it" — the prompt carries the rule explicitly.
+describe('absence rule in prompt', () => {
+  it('prompt instructs never concluding lack from absent evidence', async () => {
+    const { prompt } = await buildReadingContext(baseSession());
+    expect(prompt).toMatch(/absence of evidence is never evidence of absence/i);
+    expect(prompt).toMatch(/no public evidence of X/);
+    expect(prompt).toMatch(/hold it without it being visible/);
+  });
+});
