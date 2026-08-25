@@ -40,7 +40,9 @@ export function coldReadOpener({ name, sourcesRead, inferences, reading }) {
 
   const trimmedReading = typeof reading === 'string' ? reading.trim() : '';
   if (trimmedReading) {
-    return `${headline}\n\n${trimmedReading}`;
+    // Standing preface (John ruling 2026-08-25): the reading is a report on the
+    // public trail — signals, not opinions — said once, plainly, before the read.
+    return `${headline}\n\nEverything below is read from your public trail — signals, not opinions.\n\n${trimmedReading}`;
   }
 
   const lines = (inferences ?? []).map(inferenceLine).filter(Boolean);
