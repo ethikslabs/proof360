@@ -16,10 +16,12 @@ export async function sessionLogHandler(req, reply) {
 
   let cursor = 0;
   let closed = false;
+  let lastWriteAt = Date.now();
 
   function send(line) {
     if (closed) return;
     reply.raw.write(`data: ${JSON.stringify(line)}\n\n`);
+    lastWriteAt = Date.now();
   }
 
   function close() {
@@ -51,6 +53,14 @@ export async function sessionLogHandler(req, reply) {
       if (line.type === '__done__') { close(); return; }
       send(line);
     }
+
+    // Heartbeat: proxies (and some browsers) drop idle SSE connections after
+    // ~30s of silence. An SSE comment line keeps the connection alive without
+    // reaching the frontend — EventSource ignores lines starting with ':'.
+    if (!closed && Date.now() - lastWriteAt > 15_000) {
+      reply.raw.write(': ping\n\n');
+      lastWriteAt = Date.now();
+    }
   }
 
   const interval = setInterval(flush, 200);
@@ -60,9 +70,10 @@ export async function sessionLogHandler(req, reply) {
     clearInterval(interval);
   });
 
-  // Safety timeout — 2 minutes
+  // Safety timeout — must outlive the frontend's 150s poll ceiling (Chat.jsx)
+  // so a slow analyze never gets its stream cut from under it.
   setTimeout(() => {
     clearInterval(interval);
     close();
-  }, 120_000);
+  }, 160_000);
 }

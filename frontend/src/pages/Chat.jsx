@@ -21,7 +21,7 @@ import { getThinkingSteps } from '../data/mock/thinking.js';
 import { DEMO_STAGES, DEFAULT_STAGE_ID } from '../data/demoCompany.js';
 import { OperationalField } from '../components/OperationalField';
 import { useSignals }       from '../hooks/useSignals.js';
-import { makeObservedSignal } from '../rendering/protocol.js';
+import { inferencesToSignals } from '../rendering/live-signals.js';
 import { ObservationStrip } from '../components/chat/ObservationStrip.jsx';
 import { GuidanceBlock }      from '../components/chat/GuidanceBlock.jsx';
 import { MOCK_GUIDANCE_BLOCK } from '../data/mock/signals.js';
@@ -1302,6 +1302,10 @@ export default function Chat() {
   const [scanLines, setScanLines]         = useState([]);
   const [scanDone, setScanDone]           = useState(false);
   const [scanOwnerId, setScanOwnerId]     = useState(null);
+  // True for the span of a cold-read attempt (entry → success or failure).
+  // Gates demo furniture off the live scan window even before companyData
+  // lands (final-review I2 — inDemoMode alone only flips post-analyze).
+  const [coldReadActive, setColdReadActive] = useState(false);
 
   const [activeStageId,   setActiveStageId]   = useState(DEFAULT_STAGE_ID);
   const [companyData,     setCompanyData]     = useState(null);
@@ -1471,12 +1475,15 @@ export default function Chat() {
   const liveSessionId = companyData?.session_id ?? null;
 
   // The demo/workspace discriminator (INVARIANTS.md §4): true only while the
-  // demo stage is selected AND no live session has started. `isDemoMode` alone
-  // means "the demo stage is selected" — it stays true after a live session
-  // begins, because the demo stage id never changes. Every consumer that uses
+  // demo stage is selected AND no live session has started AND no cold read
+  // is currently in flight. `isDemoMode` alone means "the demo stage is
+  // selected" — it stays true after a live session begins, because the demo
+  // stage id never changes. `liveSessionId` alone only flips once companyData
+  // lands post-analyze, which leaves demo furniture visible for the whole
+  // scan window; `coldReadActive` closes that gap. Every consumer that uses
   // the flag to mean "this is the sandbox, not the user's reality" must be
   // gated on `inDemoMode`, not the raw `isDemoMode`.
-  const inDemoMode = isDemoMode && !liveSessionId;
+  const inDemoMode = isDemoMode && !liveSessionId && !coldReadActive;
 
   const refreshSpine = useCallback(async (sessionIdArg) => {
     const sid = sessionIdArg ?? liveSessionId ?? spine.storedSessionId();
@@ -1550,6 +1557,10 @@ export default function Chat() {
           id: `resume-${i}`, role: h.role, persona: h.persona ?? 'edison', content: h.content,
         })));
         setCompanyData(prev => prev ?? { session_id: sid, company_name: null });
+        // getChatHistory's payload carries no inferences (`{ history }` only —
+        // see api/src/handlers/session-chat.js) — purge the mock seed rather
+        // than leave it stood up under a now-live session id (final-review C2).
+        replaceSignals([]);
         refreshSpine(sid);
       } catch {
         // stored session no longer on the box (retention or reset) — start fresh
@@ -1901,7 +1912,7 @@ export default function Chat() {
 
           // Stream the real per-probe extraction log ("show the thinking") —
           // honest degradation per INVARIANTS.md: render exactly what the API sends.
-          setScanLines([]); setScanDone(false); setScanOwnerId(statusId);
+          setScanLines([]); setScanDone(false); setScanOwnerId(statusId); setColdReadActive(true);
           scanEsRef.current?.close();
           const es = new EventSource(`/api/v1/session/${session_id}/log`);
           scanEsRef.current = es;
@@ -1944,14 +1955,8 @@ export default function Chat() {
             inferences: analysis.inferences,
           });
           setShortlist([]); // live session starting — the demo sandbox shortlist must not mix in
-          const liveSignals = (analysis.inferences ?? []).map(inf => makeObservedSignal({
-            value: inf.statement ?? inf.text ?? inf.value ?? '',
-            domain: inf.domain ?? 'compliance',
-            polarity: inf.polarity ?? 'gap',
-            source: 'url_scrape',
-            confidence: inf.confidence ?? 0.6,
-          })).filter(s => s.value);
-          replaceSignals(liveSignals); // live session starting — the demo mock signal seed must not carry over
+          replaceSignals(inferencesToSignals(analysis.inferences)); // live session starting — the demo mock signal seed must not carry over
+          setColdReadActive(false); // companyData is live now — inDemoMode already gated on liveSessionId
           attachCurrentSessionToProfile(session_id, analysis);
           refreshSpine(session_id); // the cold read's inferred claims light the rail immediately
 
@@ -1975,6 +1980,7 @@ export default function Chat() {
         } catch {
           scanEsRef.current?.close(); scanEsRef.current = null;
           setScanDone(true); // failed read must not leave a live-streaming block
+          setColdReadActive(false); // failed read with no prior session — demo furniture returning is correct
           setMessages(prev => prev.map(m => m.id === statusId ? {
             ...m, content: `Couldn't read ${domain}. Check the URL or try a different one.`,
           } : m));

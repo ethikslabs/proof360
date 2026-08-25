@@ -82,7 +82,12 @@ export function ScanTrace({ lines, done, tk }) {
         role="button"
         tabIndex={0}
         onClick={() => setOpen(o => !o)}
-        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setOpen(o => !o); }}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            if (e.key === ' ') e.preventDefault(); // Space must toggle the trace, not scroll the page
+            setOpen(o => !o);
+          }
+        }}
         style={{
           fontSize: 11, color: tk.inkSoft, cursor: 'pointer',
           fontFamily: '"IBM Plex Mono", monospace',
