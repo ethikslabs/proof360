@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { tokens, PERSONA, personaColor } from '../../tokens.js';
+import { stripEmphasis } from '../../rendering/stripEmphasis.js';
 
 const VENDOR_KEYWORDS = [
   { pattern: /\b(AWS|Amazon Web Services|AWS Activate|AWS Marketplace)\b/i, alt: 'AWS' },
@@ -161,12 +162,19 @@ function PersonaTag({ name, persona, theme, tk, onPersonaRef }) {
   );
 }
 
+// Finding 4 (round 2 live walkthrough): persona chat answers carry raw markdown
+// emphasis/backtick markers straight into the bubble ("*current and valid*",
+// `p=none`) — display-only strip at RENDER, msg.content itself (and the
+// streaming accumulator that fills it) is never mutated. [n] citations are
+// untouched by stripEmphasis. Idempotent on clean text, so this also covers
+// the reading/opener content that flows through the same RichContent path —
+// no special-casing needed.
 function RichContent({ content, theme, tk, onPersonaRef }) {
   const parts = parseContent(content);
   return (
     <>
       {parts.map((part, i) => {
-        if (typeof part === 'string') return part;
+        if (typeof part === 'string') return stripEmphasis(part);
         return (
           <PersonaTag
             key={i}

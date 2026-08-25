@@ -4,6 +4,7 @@
 // Honest degradation (INVARIANTS.md): renders exactly the lines the API
 // sends — never an invented line, never a suppressed failure.
 import { useState, useMemo, useRef, useEffect } from 'react';
+import { stripEmphasis } from '../../rendering/stripEmphasis.js';
 
 const COLORS = {
   ok: '#2f9b69',
@@ -18,19 +19,6 @@ function lineColor(line, tk) {
   const key = line.color ?? line.type;
   if (key === 'cmd') return tk.ink;
   return COLORS[key] ?? COLORS.muted;
-}
-
-// Finding 4 (live rehearsal): research-engine act bodies (perplexity/gemini) carry
-// the engine's raw markdown emphasis markers (`**penetration testing**`) straight
-// into the trace — verbatim substance, unreadable presentation. Display-only strip
-// at render time — act.body itself is never mutated, this only touches what
-// LineBlock paints. Citation markers like [1] use square brackets, untouched here.
-function stripEmphasisMarkers(text) {
-  if (typeof text !== 'string') return text;
-  return text
-    .replace(/\*\*(.+?)\*\*/g, '$1')
-    .replace(/__(.+?)__/g, '$1')
-    .replace(/\*(.+?)\*/g, '$1');
 }
 
 function LineBlock({ lines, tk, scrollRef }) {
@@ -49,7 +37,7 @@ function LineBlock({ lines, tk, scrollRef }) {
     >
       {lines.map((line, i) => (
         <div key={i} style={{ color: lineColor(line, tk) }}>
-          {line.type === 'blank' ? ' ' : stripEmphasisMarkers(line.text)}
+          {line.type === 'blank' ? ' ' : stripEmphasis(line.text)}
         </div>
       ))}
     </div>
