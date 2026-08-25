@@ -29,6 +29,9 @@ export function useSignals(initialSignals = MOCK_SIGNALS) {
     return sig;
   }, []);
 
+  // Wholesale replace the signals array (e.g. swapping mock seed for live analysis output)
+  const replaceSignals = useCallback((next) => { setSignals(next ?? []); }, []);
+
   // User says signal is wrong — confidence → 0, triggers soft regeneration
   const correctSignal = useCallback((signalId) => {
     setSignals(prev => {
@@ -88,6 +91,7 @@ export function useSignals(initialSignals = MOCK_SIGNALS) {
     recordDomainTurn,
     ctaEarned,
     addSignal,
+    replaceSignals,
     correctSignal,
     ignoreSignal,
     addContextSignal,

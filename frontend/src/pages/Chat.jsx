@@ -21,6 +21,7 @@ import { getThinkingSteps } from '../data/mock/thinking.js';
 import { DEMO_STAGES, DEFAULT_STAGE_ID } from '../data/demoCompany.js';
 import { OperationalField } from '../components/OperationalField';
 import { useSignals }       from '../hooks/useSignals.js';
+import { makeObservedSignal } from '../rendering/protocol.js';
 import { ObservationStrip } from '../components/chat/ObservationStrip.jsx';
 import { GuidanceBlock }      from '../components/chat/GuidanceBlock.jsx';
 import { MOCK_GUIDANCE_BLOCK } from '../data/mock/signals.js';
@@ -1358,6 +1359,7 @@ export default function Chat() {
     correctSignal,
     ignoreSignal,
     addContextSignal,
+    replaceSignals,
   } = useSignals();
 
   const {
@@ -1942,6 +1944,14 @@ export default function Chat() {
             inferences: analysis.inferences,
           });
           setShortlist([]); // live session starting — the demo sandbox shortlist must not mix in
+          const liveSignals = (analysis.inferences ?? []).map(inf => makeObservedSignal({
+            value: inf.statement ?? inf.text ?? inf.value ?? '',
+            domain: inf.domain ?? 'compliance',
+            polarity: inf.polarity ?? 'gap',
+            source: 'url_scrape',
+            confidence: inf.confidence ?? 0.6,
+          })).filter(s => s.value);
+          replaceSignals(liveSignals); // live session starting — the demo mock signal seed must not carry over
           attachCurrentSessionToProfile(session_id, analysis);
           refreshSpine(session_id); // the cold read's inferred claims light the rail immediately
 
@@ -2076,6 +2086,7 @@ export default function Chat() {
         spine.rememberSessionId(fh.session_id);
         setCompanyData({ session_id: fh.session_id, company_name: null });
         setShortlist([]); // live session starting — the demo sandbox shortlist must not mix in
+        replaceSignals([]); // live session starting — the demo mock signal seed must not carry over
         setMessages(prev => [...prev, {
           id: `fh-${Date.now()}`, role: 'assistant', persona: 'edison', model: 'proof360',
           content: fh.reflect_back,
@@ -2692,19 +2703,21 @@ export default function Chat() {
                 regeneratingDomains={regeneratingDomains}
               />
 
-              {/* Demo GuidanceBlock — Edison three-beat render (AC-4) */}
-              <div style={{ alignSelf: 'flex-start', maxWidth: '72%' }}>
-                <div style={{
-                  fontSize: 11, fontWeight: 700, letterSpacing: '0.5px',
-                  textTransform: 'uppercase', color: '#176577', marginBottom: 4,
-                }}>
-                  Edison · operational lens
+              {/* Demo GuidanceBlock — Edison three-beat render (AC-4). Demo-only: live sessions must never render canned guidance (INVARIANTS no-canned-text). */}
+              {inDemoMode && (
+                <div style={{ alignSelf: 'flex-start', maxWidth: '72%' }}>
+                  <div style={{
+                    fontSize: 11, fontWeight: 700, letterSpacing: '0.5px',
+                    textTransform: 'uppercase', color: '#176577', marginBottom: 4,
+                  }}>
+                    Edison · operational lens
+                  </div>
+                  <GuidanceBlock
+                    block={MOCK_GUIDANCE_BLOCK}
+                    isRegenerating={regeneratingDomains.size > 0}
+                  />
                 </div>
-                <GuidanceBlock
-                  block={MOCK_GUIDANCE_BLOCK}
-                  isRegenerating={regeneratingDomains.size > 0}
-                />
-              </div>
+              )}
 
               {messages.map((m, i) => {
                 if (m.advisory) {
@@ -2770,8 +2783,8 @@ export default function Chat() {
 
               {thinkingSteps.length > 0 && <ThinkingStream steps={thinkingSteps} visible t={t} />}
 
-              {/* Follow-up suggestions — after last AI response, not while processing */}
-              {!isProcessing && hasMessages && (() => {
+              {/* Follow-up suggestions — after last AI response, not while processing. Demo-only: canned chips must never render in a live session (INVARIANTS no-canned-text). */}
+              {!isProcessing && hasMessages && inDemoMode && (() => {
                 const lastAi = [...messages].reverse().find(m => m.role === 'assistant' && m.content);
                 return lastAi ? (
                   <FollowUpChips
