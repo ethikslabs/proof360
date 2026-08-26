@@ -49,6 +49,7 @@ import { makeOAuthState } from '../utils/oauth-state.js';
 import { EMPTY_TILES, tilesFromProjections } from '../utils/projectionTiles.js';
 import { OurWorking } from '../components/chat/OurWorking.jsx';
 import { HowWeReadThis } from '../components/chat/HowWeReadThis.jsx';
+import { coldReadFailure } from '../rendering/coldReadFailure.js';
 import { TWIN_YOURS } from '../copy.js';
 import { ShortlistContext } from '../components/chat/AddToShortlist.jsx';
 import * as spine from '../api/spine.js';
@@ -2005,6 +2006,7 @@ export default function Chat() {
       const detectedUrl = awaitedUrl ?? extractUrl(text);
       if (detectedUrl) {
         const statusId = `status-${Date.now()}`;
+        const coldReadStartedAt = Date.now();
         const domain = detectedUrl.replace(/^https?:\/\//i, '').replace(/\/.*$/, '');
         setMessages(prev => [...prev, {
           // House voice, not a lens (John ruling 2026-08-25): the cold read and
@@ -2137,13 +2139,23 @@ export default function Chat() {
             setCompanyProfile(prev => ({ ...prev, name: okOutcome.company }));
             cer.clearAwaiting();
           }
-        } catch {
+        } catch (err) {
+          const elapsedMs = Date.now() - coldReadStartedAt;
+          // Loud in the console, always. The UI stays gentle; the operator gets
+          // the stage, the domain, the session and the clock.
+          console.error('[proof360] cold read failed', {
+            domain,
+            stage: err?.message ?? String(err),
+            elapsed_ms: elapsedMs,
+            session_id: spine.sessionId ?? null,
+            error: err,
+          });
           scanEsRef.current?.close(); scanEsRef.current = null;
           setScanDone(true); // failed read must not leave a live-streaming block
           setComposingRead(false); // failed read must not leave a pulsing "writing" line either
           setColdReadActive(false); // failed read with no prior session — demo furniture returning is correct
           setMessages(prev => prev.map(m => m.id === statusId ? {
-            ...m, content: `Couldn't read ${domain}. Check the URL or try a different one.`,
+            ...m, content: coldReadFailure(domain, err, elapsedMs),
           } : m));
 
           // A failed cold-read must not strand an awaited field: the owning lens re-asks
