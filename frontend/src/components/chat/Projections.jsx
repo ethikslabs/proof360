@@ -676,30 +676,56 @@ function SpvProjection({ panel, company, t }) {
 //
 // Leads with what was kept, because that is the thing. Claims come after, as the
 // evidence that earned it.
+// Every text slot on this projection goes through here. An object in a React text
+// child THROWS — it does not stringify — so one unexpected shape replaced the
+// entire chat with a black RENDER ERROR screen: "Minified React error #31,
+// args[]=object with keys {at, turn, spans, recent, note, note_status}" (John,
+// 2026-08-26, after keeping the AWS suggestions).
+//
+// That object is momentContext(). It was rendered as if it were a string because
+// the fixture said so — the same fault that produced "[object Object]" in
+// ClaimStrip, except this one took the application down instead of one line.
+// A projection must never be able to do that: anything that is not text renders
+// as nothing at all.
+function text(v) {
+  if (v === null || v === undefined) return null;
+  if (typeof v === 'string') return v.trim() || null;
+  if (typeof v === 'number') return String(v);
+  return null;
+}
+
 function moveTitle(move) {
   // Titled by the ITEM, never the route. Every AWS offer routes ingram_micro_aws,
   // so titling by route label rendered five different programs as five identical
   // lines reading "AWS pathway via Ingram Micro" (John's screenshot, 2026-08-26).
-  return move.item?.title || move.item?.name || move.label || move.route || 'Kept';
+  return text(move.item?.title) || text(move.item?.name) || text(move.label)
+      || text(move.route) || 'Kept';
 }
 
 function moveWhy(move) {
   const r = move.reason;
   if (!r) return null;
-  return typeof r === 'string' ? r : (r.text || r.user_text || null);
+  if (typeof r === 'string') return text(r);
+  return text(r.user_text) || text(r.text);
 }
 
+// The human sentence lives at context.note ("Added while discussing …"). It
+// already carries its own verb, so it is rendered as-is — prefixing it produced
+// "Kept Added while discussing…" the moment the crash was fixed naively.
 function moveMoment(move) {
   const r = move.reason;
   if (!r || typeof r === 'string') return null;
-  return r.context || r.moment || null;
+  const ctx = r.context;
+  if (typeof ctx === 'string') return text(ctx);
+  if (ctx && typeof ctx === 'object') return text(ctx.note) || text(ctx.moment);
+  return text(r.moment);
 }
 
 export function KeptProjection({ record, company, onAccept, onAnswerClaim, t }) {
   const tk = tokens(t.theme);
   const tile = { kind: 'Record', token: 'plum', glyphKey: 'spv', title: "What you've kept" };
   const kept = (record?.shortlist ?? []).filter((m) => m && m.cer_id && (m.item || m.label || m.route));
-  const open = (record?.proposals ?? []).filter((p) => p && p.id && p.title);
+  const open = (record?.proposals ?? []).filter((p) => p && p.id && text(p.title));
   const claims = (record?.claims ?? []).filter((c) => c && c.claim_id && c.label);
 
   return (
@@ -711,7 +737,7 @@ export function KeptProjection({ record, company, onAccept, onAnswerClaim, t }) 
           fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.inkSoft,
           letterSpacing: '0.06em', margin: '-18px 0 26px',
         }}>
-          {record.company_name}
+          {text(record.company_name)}
           {(record.total_count ?? 0) > 0
             ? ` · ${record.confirmed_count ?? 0} of ${record.total_count} settled in your own words`
             : ''}
@@ -738,12 +764,13 @@ export function KeptProjection({ record, company, onAccept, onAnswerClaim, t }) 
                 <div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 5, flexWrap: 'wrap' }}>
                     <span style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontSize: 22, color: tk.ink, letterSpacing: '-0.01em' }}>{moveTitle(m)}</span>
-                    {m.item?.category && (
-                      <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9, color: tk.inkSoft, letterSpacing: '0.16em', textTransform: 'uppercase' }}>{m.item.category}</span>
+                    {text(m.item?.category) && (
+                      <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9, color: tk.inkSoft, letterSpacing: '0.16em', textTransform: 'uppercase' }}>{text(m.item.category)}</span>
                     )}
                   </div>
-                  {m.label && (
-                    <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9.5, fontWeight: 600, color: tk.umber, letterSpacing: '0.18em', textTransform: 'uppercase' }}>{m.label}</div>
+                  {/* The route, as the smaller line beneath the thing kept. */}
+                  {text(m.label) && text(m.label) !== moveTitle(m) && (
+                    <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9.5, fontWeight: 600, color: tk.umber, letterSpacing: '0.18em', textTransform: 'uppercase' }}>{text(m.label)}</div>
                   )}
                 </div>
                 <div>
@@ -751,7 +778,7 @@ export function KeptProjection({ record, company, onAccept, onAnswerClaim, t }) 
                     <div style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 13.5, color: tk.inkMid, lineHeight: 1.5, marginBottom: 8 }}>{why}</div>
                   )}
                   {moment && (
-                    <div style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontStyle: 'italic', fontSize: 12.5, color: tk.inkSoft, lineHeight: 1.5 }}>Kept {moment}</div>
+                    <div style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontStyle: 'italic', fontSize: 12.5, color: tk.inkSoft, lineHeight: 1.5 }}>{moment}</div>
                   )}
                 </div>
                 {/* The engagement portal: the one real next action for this route.
@@ -766,7 +793,7 @@ export function KeptProjection({ record, company, onAccept, onAnswerClaim, t }) 
                       borderBottom: `1px solid ${tk.teal}55`, alignSelf: 'start', paddingTop: 4,
                     }}
                   >
-                    {m.cta.label || 'Open'} →
+                    {text(m.cta.label) || 'Open'} →
                   </a>
                 ) : <span />}
               </div>
@@ -785,15 +812,15 @@ export function KeptProjection({ record, company, onAccept, onAnswerClaim, t }) 
             }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
-                  <span style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontSize: 20, color: tk.ink }}>{p.title}</span>
-                  <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9, color: tk.inkSoft, letterSpacing: '0.16em', textTransform: 'uppercase' }}>{p.kind}</span>
+                  <span style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontSize: 20, color: tk.ink }}>{text(p.title)}</span>
+                  <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9, color: tk.inkSoft, letterSpacing: '0.16em', textTransform: 'uppercase' }}>{text(p.kind)}</span>
                 </div>
-                {p.description && (
-                  <div style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 13, color: tk.inkMid, marginTop: 5 }}>{p.description}</div>
+                {text(p.description) && (
+                  <div style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 13, color: tk.inkMid, marginTop: 5 }}>{text(p.description)}</div>
                 )}
               </div>
               <div style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 13, color: tk.inkSoft, lineHeight: 1.5, fontStyle: 'italic' }}>
-                {p.reason}
+                {text(p.reason)}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
                 {onAccept && (

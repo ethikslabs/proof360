@@ -7,6 +7,7 @@ import { MorningBrief }  from '../components/chat/MorningBrief.jsx';
 import { MachineDrawer }       from '../components/chat/MachineDrawer.jsx';
 import { Sidebar }             from '../components/chat/Sidebar.jsx';
 import { Projection }          from '../components/chat/Projections.jsx';
+import { PanelBoundary } from '../components/chat/PanelBoundary.jsx';
 import { GraphView }           from '../components/chat/GraphView.jsx';
 import { ProvenanceAccordion } from '../components/chat/ProvenanceAccordion.jsx';
 import { DrawerStats }         from '../components/chat/DrawerStats.jsx';
@@ -3247,6 +3248,13 @@ export default function Chat() {
               }}
             >
               <div style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
+                {/* The sheet fails alone. A bad shape inside a projection used to
+                    reach the app boundary and replace the whole conversation with
+                    a black RENDER ERROR screen (John, 2026-08-26). */}
+                <PanelBoundary onClose={() => {
+                  setActiveSpace('chat');
+                  if (isMobile) { commitAuthority('Chat'); setMobileActiveTab('Chat'); }
+                }}>
                 <Projection
                   id={activeSpace}
                   company={projectionCompany}
@@ -3267,6 +3275,7 @@ export default function Chat() {
                   }}
                   t={t}
                 />
+                </PanelBoundary>
               </div>
             </div>
           </>
