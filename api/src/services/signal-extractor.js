@@ -16,13 +16,29 @@ import * as meter from '../lib/meter.mjs';
 const _registry = JSON.parse(readFileSync(
   join(dirname(fileURLToPath(import.meta.url)), '../../config/models.registry.json'), 'utf8'));
 
-const PAGES_TO_CHECK = [
+// The homepage leads deliberately: it is the page the read cannot do without,
+// so it is scraped alone and is never the page a spent budget drops.
+export const PAGES_TO_CHECK = [
   { path: '/', label: 'homepage' },
   { path: '/pricing', label: 'pricing page' },
   { path: '/about', label: 'about page' },
   { path: '/security', label: 'security page' },
   { path: '/trust', label: 'trust centre' },
 ];
+
+// Firecrawl is self-hosted on a small box it shares with CORPUS, pgvector and
+// this API, and each scrape costs it a playwright browser. Measured live against
+// cognisys.co.uk 2026-08-26: five at once returned four 15s timeouts and one 500
+// — zero pages, on every prod scan — while the same five in sequence returned
+// 200s in 7.0-9.0s each. Two at a time is what the box actually serves; the
+// worker says so itself when pushed past it ("Can't accept connection due to
+// RAM/CPU load"). Raise this only against a measurement, never a guess.
+export const SCRAPE_CONCURRENCY = 2;
+
+// Wall-clock ceiling for the whole site act. The homepage lands first (~9s
+// measured), leaving room for roughly two more pairs. Whatever answered when the
+// budget expires is the read — the act is one of several the scan is waiting on.
+const SITE_BUDGET_MS = 20000;
 
 function normalizeUrl(url) {
   let normalized = url.trim();
@@ -33,8 +49,8 @@ function normalizeUrl(url) {
   return parsed.origin;
 }
 
-async function scrapePages(firecrawl, baseUrl, log, session_id) {
-  const tasks = PAGES_TO_CHECK.map(async ({ path, label }) => {
+export async function scrapePages(firecrawl, baseUrl, log, session_id, { budgetMs = SITE_BUDGET_MS } = {}) {
+  const scrapeOne = async ({ path, label }) => {
     try {
       const result = await firecrawl.scrapeUrl(baseUrl + path, {
         formats: ['markdown'],
@@ -61,12 +77,60 @@ async function scrapePages(firecrawl, baseUrl, log, session_id) {
       }
     }
     return null;
-  });
+  };
 
-  const settled = await Promise.allSettled(tasks);
-  return settled
-    .filter((r) => r.status === 'fulfilled' && r.value)
-    .map((r) => r.value);
+  const deadline = Date.now() + budgetMs;
+  const pages = [];
+  const [homepage, ...rest] = PAGES_TO_CHECK;
+
+  // The homepage alone first — it never competes for a browser.
+  const home = await scrapeOne(homepage);
+  if (home) pages.push(home);
+
+  // The remainder, SCRAPE_CONCURRENCY at a time, until the budget is spent.
+  // A worker that finds the deadline passed stops claiming work rather than
+  // starting a scrape it cannot finish — an unstarted scrape is never billed.
+  let next = 0;
+  let spent = false;
+  const worker = async () => {
+    while (next < rest.length && !spent) {
+      if (Date.now() >= deadline) return;
+      const page = rest[next++];
+      const result = await scrapeOne(page);
+      // A scrape that lands after the budget expired arrives too late to be
+      // part of the read — the act has already closed over what it had.
+      if (result && !spent) pages.push(result);
+    }
+  };
+
+  // The deadline has to bound the wait, not just the claiming: a worker already
+  // inside a scrape cannot check a clock, and firecrawl's own per-scrape ceiling
+  // is 15s — long enough on its own to push the act past its budget. Racing the
+  // pool against the deadline lets the act close with what landed and leaves the
+  // stragglers to finish into a result nobody reads.
+  const remaining = Math.max(0, deadline - Date.now());
+  let timer;
+  const budgetSpent = new Promise((resolve) => {
+    timer = setTimeout(resolve, remaining);
+    timer.unref?.();
+  });
+  await Promise.race([
+    Promise.all(Array.from({ length: SCRAPE_CONCURRENCY }, worker)).then(() => { spent = true; }),
+    budgetSpent.then(() => { spent = true; }),
+  ]);
+  clearTimeout(timer);
+
+  // A page the budget dropped was never read — say so, so it does not read as a
+  // page that failed. Silence here would be indistinguishable from a 500.
+  const read = new Set(pages.map((p) => p.label));
+  const attempted = new Set(PAGES_TO_CHECK.slice(0, 1 + next).map((p) => p.label));
+  for (const { label } of rest) {
+    if (!read.has(label) && !attempted.has(label)) {
+      log({ text: `  ↳  ${label} · not read (${Math.round(budgetMs / 1000)}s site budget)`, type: 'muted' });
+    }
+  }
+
+  return pages;
 }
 
 async function extractWithClaude(pages, log = () => {}, session_id = null) {
