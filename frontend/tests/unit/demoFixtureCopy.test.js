@@ -13,9 +13,11 @@
 // and loses the claim that any of it is already sitting in someone's account.
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 
-const src = readFileSync(resolve(process.cwd(), 'src/components/chat/Projections.jsx'), 'utf8');
+// Relative to the vitest root (frontend/). Deliberately no process.cwd() — the
+// test lint config has no node globals, and CI runs `npm run lint` across tests
+// as well as src, which is how this file failed the deploy on its first push.
+const src = readFileSync('src/components/chat/Projections.jsx', 'utf8');
 const fixtures = src.slice(src.indexOf('const YOURS_AWS'), src.indexOf('function AwsProjection'));
 
 describe('the demo fixtures model the grammar we want copied', () => {
