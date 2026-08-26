@@ -48,6 +48,7 @@ import { socialProviderEnabled } from '../utils/social-login.js';
 import { makeOAuthState } from '../utils/oauth-state.js';
 import { EMPTY_TILES, tilesFromProjections } from '../utils/projectionTiles.js';
 import { OurWorking } from '../components/chat/OurWorking.jsx';
+import { HowWeReadThis } from '../components/chat/HowWeReadThis.jsx';
 import { TWIN_YOURS } from '../copy.js';
 import { ShortlistContext } from '../components/chat/AddToShortlist.jsx';
 import * as spine from '../api/spine.js';
@@ -2115,6 +2116,15 @@ export default function Chat() {
             // influence. null/absent (no hits, or pre-round-1 API) attaches nothing —
             // the corpus act in the trace already told that story honestly.
             ...(analysis.reading && analysis.corpus_citations ? { working: analysis.corpus_citations } : {}),
+            // The reasoning ledger beside the retrieval one (John 2026-08-26:
+            // "how do we rate this... that is all progressive decision based
+            // reveal"). Carries the gaps and the arithmetic so a founder who
+            // chooses to can see the working — nothing renders a number until
+            // they ask twice. Atomic with the reading for the same reason the
+            // cards are: a degraded read did no such reasoning.
+            ...(analysis.reading && analysis.gaps?.length
+              ? { reading_ledger: { gaps: analysis.gaps, trustScore: analysis.trust_score } }
+              : {}),
           } : m));
 
           // If this cold-read was answering a lens's ask, the company is now guaranteed
@@ -2596,6 +2606,20 @@ export default function Chat() {
                             onProgramFocus={setFocusedProgram}
                           />
                           {m.working && <OurWorking receipt={m.working} tk={tk} />}
+                    {m.reading_ledger && (
+                      <HowWeReadThis
+                        gaps={m.reading_ledger.gaps}
+                        trustScore={m.reading_ledger.trustScore}
+                        tk={tk}
+                      />
+                    )}
+                          {m.reading_ledger && (
+                            <HowWeReadThis
+                              gaps={m.reading_ledger.gaps}
+                              trustScore={m.reading_ledger.trustScore}
+                              tk={tk}
+                            />
+                          )}
                         </div>
                       )
                     ))}
@@ -2910,6 +2934,13 @@ export default function Chat() {
                       onProgramFocus={setFocusedProgram}
                     />
                     {m.working && <OurWorking receipt={m.working} tk={tk} />}
+                    {m.reading_ledger && (
+                      <HowWeReadThis
+                        gaps={m.reading_ledger.gaps}
+                        trustScore={m.reading_ledger.trustScore}
+                        tk={tk}
+                      />
+                    )}
                     {m.id === scanOwnerId && (
                       <ActTrace lines={scanLines} done={scanDone} composing={composingRead} tk={tk} />
                     )}
