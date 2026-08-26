@@ -15,37 +15,6 @@ function SeverityDot({ severity, t }) {
   return <span style={{ width: 7, height: 7, borderRadius: '50%', background: c, display: 'inline-block' }} />;
 }
 
-function ScoreRing({ value, max = 100, size = 132, color, label, t }) {
-  const tk = tokens(t.theme);
-  const r = (size - 14) / 2;
-  const c = 2 * Math.PI * r;
-  const dash = c * (value / max);
-  return (
-    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
-      <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size}>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={tk.hairline} strokeWidth="3"/>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth="3"
-          strokeDasharray={`${dash} ${c}`} strokeLinecap="round"
-          transform={`rotate(-90 ${size/2} ${size/2})`}/>
-      </svg>
-      <div style={{
-        position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
-      }}>
-        <div style={{
-          fontFamily: '"Instrument Serif", Georgia, serif',
-          fontSize: size * 0.36, color: tk.ink, lineHeight: 1, letterSpacing: '-0.02em',
-        }}>{value}</div>
-        <div style={{
-          fontFamily: '"IBM Plex Mono", monospace',
-          fontSize: 9.5, color: tk.inkSoft, letterSpacing: '0.16em',
-          textTransform: 'uppercase', marginTop: 4,
-        }}>{label || `/ ${max}`}</div>
-      </div>
-    </div>
-  );
-}
-
 function PSection({ kicker, title, source, children, t }) {
   const tk = tokens(t.theme);
   return (
@@ -181,7 +150,6 @@ function InvestorProjection({ panel, company, t }) {
         background: tk.surface, border: `1px solid ${tk.hairline}`,
         borderRadius: 16, marginBottom: 44,
       }}>
-        <ScoreRing value={d.score} color={color} t={t} />
         <div style={{ flex: 1 }}>
           <div style={{
             fontFamily: '"IBM Plex Mono", monospace',

@@ -125,26 +125,6 @@ function CompanyLogo({ domain, name, size = 44 }) {
   );
 }
 
-function ScoreRing({ score, size = 52 }) {
-  const r = (size - 6) / 2;
-  const circ = 2 * Math.PI * r;
-  const fill = (score / 100) * circ;
-  const color = score >= 70 ? '#15803d' : score >= 50 ? '#b45309' : '#b91c1c';
-  return (
-    <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', flexShrink: 0 }}>
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#e5e7eb" strokeWidth={5}/>
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={5}
-        strokeDasharray={`${fill} ${circ}`} strokeLinecap="round"/>
-      <text x={size/2} y={size/2} dominantBaseline="middle" textAnchor="middle"
-        fill={color} fontSize={size < 40 ? 9 : 13} fontWeight={700}
-        fontFamily="'IBM Plex Mono', monospace"
-        style={{ transform: 'rotate(90deg)', transformOrigin: `${size/2}px ${size/2}px` }}>
-        {score}
-      </text>
-    </svg>
-  );
-}
-
 export default function FounderDashboard() {
   const navigate = useNavigate();
   const [auth, setAuth]               = useState(null);
@@ -305,7 +285,7 @@ export default function FounderDashboard() {
               PROOF360 — TRUST READINESS PLATFORM
             </p>
             <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', lineHeight: 1.55, marginBottom: 6, letterSpacing: '-0.01em' }}>
-              Proof360 scans your company's public signals and scores your security posture — the same checks enterprise partners run before they say yes to a deal.
+              Proof360 reads the public trail your company already leaves — the same trail enterprise buyers and investors read before they say yes.
             </p>
             <p style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.6, marginBottom: mostRecentReport ? 16 : 12 }}>
               When gaps are found, Proof360 matches you directly with the vendors who close them. This page is your remediation pipeline — track every conversation in one place.
@@ -320,7 +300,7 @@ export default function FounderDashboard() {
                     padding: '10px 14px', flex: 1,
                   }}>
                     <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', color: '#15803d', fontFamily: "'IBM Plex Mono', monospace", marginBottom: 5, textTransform: 'uppercase' }}>
-                      Your last scan · {(mostRecentReport.company_name || '').toUpperCase()} · Score {mostRecentReport.trust_score}/100 · {timeAgo(mostRecentReport.saved_at)}
+                      Your last scan · {(mostRecentReport.company_name || '').toUpperCase()} · {timeAgo(mostRecentReport.saved_at)}
                     </p>
                     <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, marginBottom: 8 }}>
                       Found <strong>{mostRecentReport.gaps_count} {mostRecentReport.gaps_count === 1 ? 'gap' : 'gaps'}</strong>. Every vendor in the list below was matched to close one — that's the only reason they're here.
@@ -515,7 +495,7 @@ export default function FounderDashboard() {
                   <div style={{ flex: 1 }}>
                     <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginBottom: 2 }}>{r.company_name}</p>
                     <p style={{ fontSize: 12, color: '#9ca3af', fontFamily: "'IBM Plex Mono', monospace" }}>
-                      Score {r.trust_score} · {r.gaps_count} gaps · {timeAgo(r.saved_at)}
+                      {r.gaps_count} {r.gaps_count === 1 ? 'gap' : 'gaps'} · {timeAgo(r.saved_at)}
                     </p>
                   </div>
                   <Link to={`/report/${r.sessionId}`} style={{

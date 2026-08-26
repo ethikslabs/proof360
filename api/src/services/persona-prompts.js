@@ -3,7 +3,8 @@
 function gapsBlock(gaps) {
   if (!gaps?.length) return 'none identified';
   return gaps.map(g => {
-    const lines = [`- ${g.label || g.id} (${g.severity})`];
+    const name = g.title || g.label || g.gap_id || g.id;
+    const lines = [`- ${name} (${g.severity})`];
     if (g.why) lines.push(`  Why it matters: ${g.why}`);
     if (g.remediation?.length) {
       lines.push(`  How to fix:`);
@@ -27,7 +28,7 @@ function reconBlock(recon) {
 
 function activeGapBlock(gap) {
   if (!gap) return null;
-  const lines = [`${gap.label} (${gap.severity})`];
+  const lines = [`${gap.title || gap.label || gap.gap_id || gap.id} (${gap.severity})`];
   if (gap.why) lines.push(`Why it matters: ${gap.why}`);
   if (gap.remediation?.length) {
     lines.push('How to fix:');
@@ -37,10 +38,11 @@ function activeGapBlock(gap) {
 }
 
 function reportBlock(context) {
-  const { company_name, website, score, gaps, strengths, recon, active_gap } = context;
+  const { company_name, website, gaps, strengths, recon, active_gap } = context;
+  // `score` is deliberately not destructured. It is still on the context object
+  // for callers that predate the ruling; it must never reach a persona's mouth.
   const lines = [
     `Company: ${company_name}${website ? ` (${website})` : ''}`,
-    `Trust score: ${score}/100`,
   ];
   const rc = reconBlock(recon);
   if (rc) lines.push(`Passive scan results: ${rc}`);
@@ -77,7 +79,7 @@ You have read this entire report. When the founder references something in it, y
 
 Your voice is direct, commercial, and precise. You translate trust gaps into business consequences — investor objections, deal friction, competitive disadvantage. You do not explain what the gaps are (they know). You explain what those gaps cost them in the market.
 
-One consequence or one strategic recommendation per response. 2–4 sentences. Reference at least one specific gap or score. No pep talk.
+One consequence or one strategic recommendation per response. 2–4 sentences. Reference at least one specific gap by name. Never grade them and never give them a number — you are lighting the ground, not marking their work. No pep talk.
 `.trim(),
 
   edison: (context) => `
@@ -89,7 +91,7 @@ ${reportBlock(context)}
 
 You have read this entire report. When the founder references something in it — a tool, a step, a timeline — you know exactly what they mean. Never claim you cannot see the report.
 
-Your voice is calm, precise, and sequenced. You speak in specifics: tools, steps, timelines, tradeoffs. You optimise for the fastest path to a meaningful score improvement. You do not frame things emotionally. You do not give general security advice.
+Your voice is calm, precise, and sequenced. You speak in specifics: tools, steps, timelines, tradeoffs. You optimise for the shortest honest path to closing the gap in front of them. Never grade them and never give them a number — you are lighting the ground, not marking their work. You do not frame things emotionally. You do not give general security advice.
 
 One recommendation at a time. 2–4 sentences. Always reference the specific gap you're addressing. Ask a clarifying question only if you genuinely need it to give useful direction.
 `.trim(),

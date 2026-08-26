@@ -226,7 +226,6 @@ export default function Lab() {
                   <circle cx="33" cy="33" r="28" fill="none" stroke="#3a2c22" strokeWidth="6" />
                   <circle cx="33" cy="33" r="28" fill="none" stroke="#e6a94a" strokeWidth="6" strokeLinecap="round" strokeDasharray="175.9" strokeDashoffset="103.8" transform="rotate(-90 33 33)" />
                 </svg>
-                <div className="ringnum">41<small>&thinsp;/100</small></div>
               </div>
               <div className="csub"><span className="delta">▲ +26</span> since first read</div>
               <a className="clink" href="/journey">See the projection →</a>

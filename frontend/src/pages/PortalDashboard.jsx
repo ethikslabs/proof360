@@ -76,26 +76,6 @@ function CompanyLogo({ domain, name, size = 40 }) {
   );
 }
 
-function ScoreRing({ score, size = 40 }) {
-  const r = (size - 6) / 2;
-  const circ = 2 * Math.PI * r;
-  const fill = (score / 100) * circ;
-  const color = score >= 70 ? '#059669' : score >= 50 ? '#d97706' : '#dc2626';
-  return (
-    <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', flexShrink: 0 }}>
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#e5e7eb" strokeWidth={4}/>
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={4}
-        strokeDasharray={`${fill} ${circ}`} strokeLinecap="round"/>
-      <text x={size/2} y={size/2} dominantBaseline="middle" textAnchor="middle"
-        fill={color} fontSize={11} fontWeight={700}
-        fontFamily="'IBM Plex Mono', monospace"
-        style={{ transform: 'rotate(90deg)', transformOrigin: `${size/2}px ${size/2}px` }}>
-        {score}
-      </text>
-    </svg>
-  );
-}
-
 function VendorChip({ vendorId, name, tc }) {
   const logo = VENDOR_LOGOS[vendorId];
   return (
@@ -291,6 +271,12 @@ function LiveCerPanel({ tenantKey, tc, onOpen }) {
 }
 
 function LeadRow({ lead, tenant, tenantKey, engagement, onEngage, index }) {
+  // Derived here, not read from an outer scope. Both uses below referenced a
+  // binding that lived in the page component, so this function has never had one
+  // — exposed when the desk-wide average (its only in-scope reader) was removed
+  // with the grading. A distributor sees every gap as in-lane; a vendor tenant
+  // only the gaps its own catalog closes.
+  const isDistributor = tenant?.role === 'distributor';
   const [expanded, setExpanded] = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [thread, setThread] = useState([]);
@@ -299,7 +285,6 @@ function LeadRow({ lead, tenant, tenantKey, engagement, onEngage, index }) {
   const matchedVendors = getMatchedVendors(lead, tenant);
   const status = engagement?.status || 'new';
   const isNew = status === 'new';
-  const isDistributor = tenant?.role === 'distributor';
   const tc = tenant?.color || '#2563eb';
   const matchedGapTitles = new Set(matchedVendors.flatMap(v => v.gaps));
   const st = STATUSES[status];
@@ -340,7 +325,6 @@ function LeadRow({ lead, tenant, tenantKey, engagement, onEngage, index }) {
         style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '13px 16px', cursor: 'pointer' }}
       >
         <CompanyLogo domain={lead.website} name={lead.company_name} size={40} />
-        <ScoreRing score={lead.trust_score} size={34} />
 
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 5 }}>
@@ -552,7 +536,6 @@ export default function PortalDashboard() {
   if (!auth) return null;
 
   const tenant = TENANTS[auth.tenant];
-  const isDistributor = tenant?.role === 'distributor';
   const tc = tenant?.color || '#2563eb';
   // Live-fed tenants see NO static seed leads — their window renders real CER state
   // exclusively (canon: no invented pipeline beside genuine records). Any tenant wired to
@@ -693,7 +676,7 @@ export default function PortalDashboard() {
               textTransform: 'uppercase', color: '#9ca3af', marginBottom: 5,
             }}>HOW THIS WORKS</p>
             <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.65, marginBottom: allLeads.length > 0 ? 6 : 0 }}>
-              Founders run free security audits on proof360.au. When their gaps match your product catalog, they appear here as a lead — with their trust score, specific gap details, and company context. Engage a lead to reveal their email and start a conversation.
+              Founders read their own public trail on proof360.au. When a gap they found matches your product catalog, they appear here as a lead — with the specific gap, the evidence behind it, and their company context. Engage a lead to reveal their email and start a conversation.
             </p>
             {allLeads.length > 0 && (
               <p style={{ fontSize: 12, color: tc, fontWeight: 600 }}>
@@ -754,11 +737,6 @@ export default function PortalDashboard() {
               background: `${tc}12`, border: `1px solid ${tc}30`,
               padding: '5px 12px', borderRadius: 6,
             }}>{insightText}</span>
-            {!isDistributor && allLeads.length > 0 && (
-              <span style={{ fontSize: 11, color: '#6b7280', fontFamily: "'IBM Plex Mono', monospace" }}>
-                avg trust score {Math.round(allLeads.reduce((s,l) => s + l.trust_score, 0) / allLeads.length)}/100
-              </span>
-            )}
           </div>
         )}
 

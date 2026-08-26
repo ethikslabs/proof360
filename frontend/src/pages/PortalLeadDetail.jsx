@@ -38,27 +38,6 @@ const SEV_COLORS = {
   low:      { color: '#6b7280', bg: '#f3f4f6', border: '#e5e7eb' },
 };
 
-function ScoreArc({ score, size = 76 }) {
-  const sw = 6;
-  const r = (size - sw) / 2;
-  const circ = 2 * Math.PI * r;
-  const fill = (score / 100) * circ;
-  const color = score >= 70 ? '#059669' : score >= 50 ? '#d97706' : '#dc2626';
-  return (
-    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
-      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', position: 'absolute', inset: 0 }}>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#e5e7eb" strokeWidth={sw}/>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={sw}
-          strokeDasharray={`${fill} ${circ}`} strokeLinecap="round"/>
-      </svg>
-      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontSize: 20, fontWeight: 800, color, fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1, letterSpacing: '-0.02em' }}>{score}</span>
-        <span style={{ fontSize: 8, color: '#9ca3af', marginTop: 2, letterSpacing: '0.06em' }}>/100</span>
-      </div>
-    </div>
-  );
-}
-
 function SectionLabel({ children }) {
   return (
     <p style={{ fontSize: 9, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12, fontFamily: "'IBM Plex Mono', monospace" }}>
@@ -102,9 +81,11 @@ export default function PortalLeadDetail() {
   const tenantLogo = TENANT_LOGOS[auth.tenant];
   const matchedVendors = getMatchedVendors(lead, tenant);
   const status = engagement?.status || 'new';
-  const readinessLabel = lead.trust_score >= 70 ? 'Deal ready' : lead.trust_score >= 50 ? 'Partial' : 'Needs work';
-  const readinessColor = lead.trust_score >= 70 ? '#059669' : lead.trust_score >= 50 ? '#d97706' : '#dc2626';
-  const readinessBg = lead.trust_score >= 70 ? '#d1fae5' : lead.trust_score >= 50 ? '#fef3c7' : '#fee2e2';
+  // No verdict on the company. "Deal ready / Partial / Needs work" in green,
+  // amber and red is the report card with the digits filed off — removing the
+  // number and keeping the label leaves the feeling exactly intact.
+  // (John ruling 2026-08-26; landing emotional contract "not a grading rubric".)
+  const readinessColor = '#e5e7eb';
   const st = STATUSES[status];
 
   const engKey = `${leadId}_${auth?.tenant}`;
@@ -190,16 +171,11 @@ export default function PortalLeadDetail() {
           borderLeft: `4px solid ${readinessColor}`,
         }}>
           <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
-            <ScoreArc score={lead.trust_score} />
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
                 <h1 style={{ fontSize: 26, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em', lineHeight: 1 }}>
                   {lead.company_name}
                 </h1>
-                <span style={{
-                  fontSize: 9, fontWeight: 700, color: readinessColor, background: readinessBg,
-                  padding: '3px 8px', borderRadius: 20, letterSpacing: '0.07em', textTransform: 'uppercase',
-                }}>{readinessLabel}</span>
               </div>
               <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#6b7280', marginBottom: 12, flexWrap: 'wrap' }}>
                 <span>{lead.industry}</span>
