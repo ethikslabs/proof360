@@ -7,6 +7,12 @@ on:
       - 'api/**'
       - 'frontend/**'
       - '.github/workflows/deploy.yml'
+      # ecosystem.config.cjs controls how the process actually RUNS (memory
+      # ceiling, env, restart policy) and this job already uploads it — but it was
+      # missing from the trigger, so editing it deployed nothing. Found 2026-08-26
+      # raising max_memory_restart off 256M: the commit landed on main, no run
+      # fired, and the box kept the old limit while I reported it fixed.
+      - 'ecosystem.config.cjs'
   workflow_dispatch:
 
 env:
