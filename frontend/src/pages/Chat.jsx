@@ -49,6 +49,7 @@ import { makeOAuthState } from '../utils/oauth-state.js';
 import { EMPTY_TILES, tilesFromProjections } from '../utils/projectionTiles.js';
 import { OurWorking } from '../components/chat/OurWorking.jsx';
 import { HowWeReadThis } from '../components/chat/HowWeReadThis.jsx';
+import { PriorKnowledge } from '../components/chat/PriorKnowledge.jsx';
 import { coldReadFailure } from '../rendering/coldReadFailure.js';
 import { TWIN_YOURS } from '../copy.js';
 import { ShortlistContext } from '../components/chat/AddToShortlist.jsx';
@@ -2132,6 +2133,18 @@ export default function Chat() {
             ...(analysis.reading && analysis.gaps?.length
               ? { reading_ledger: { gaps: analysis.gaps, trustScore: analysis.trust_score } }
               : {}),
+            // "Before we read your site" — the corpus holdings that predate this
+            // conversation, surfaced as their own beat instead of a clause buried
+            // mid-paragraph. The component decides whether it has anything true to
+            // say and renders nothing if not; the session start is passed so
+            // "already held" is checked against the clock, not asserted.
+            ...(analysis.reading && analysis.corpus_citations?.hits?.length
+              ? { prior_knowledge: {
+                    hits: analysis.corpus_citations.hits,
+                    sessionStartedAt: coldReadStartedAt,
+                    companyName: analysis.company_name,
+                  } }
+              : {}),
           } : m));
 
           // If this cold-read was answering a lens's ask, the company is now guaranteed
@@ -2622,14 +2635,10 @@ export default function Chat() {
                             }}
                             onProgramFocus={setFocusedProgram}
                           />
+                          {m.prior_knowledge && (
+                            <PriorKnowledge {...m.prior_knowledge} tk={tk} />
+                          )}
                           {m.working && <OurWorking receipt={m.working} tk={tk} />}
-                    {m.reading_ledger && (
-                      <HowWeReadThis
-                        gaps={m.reading_ledger.gaps}
-                        trustScore={m.reading_ledger.trustScore}
-                        tk={tk}
-                      />
-                    )}
                           {m.reading_ledger && (
                             <HowWeReadThis
                               gaps={m.reading_ledger.gaps}
@@ -2950,6 +2959,9 @@ export default function Chat() {
                       }}
                       onProgramFocus={setFocusedProgram}
                     />
+                    {m.prior_knowledge && (
+                      <PriorKnowledge {...m.prior_knowledge} tk={tk} />
+                    )}
                     {m.working && <OurWorking receipt={m.working} tk={tk} />}
                     {m.reading_ledger && (
                       <HowWeReadThis
