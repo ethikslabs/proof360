@@ -3251,6 +3251,16 @@ export default function Chat() {
                   id={activeSpace}
                   company={projectionCompany}
                   hiveStage={hiveStage}
+                  record={{
+                    company_name: founderProfileName ?? companyProfile.name ?? companyData?.company_name ?? null,
+                    claims: recordClaims,
+                    proposals: visibleProposals,
+                    shortlist: serverShortlist,
+                    confirmed_count: recordClaims.filter((c) => c.status === 'confirmed' || c.status === 'corrected').length,
+                    total_count: recordClaims.length,
+                  }}
+                  onAcceptProposal={handleAcceptProposal}
+                  onAnswerClaim={handleAnswerClaim}
                   onBack={() => {
                     setActiveSpace('chat');
                     if (isMobile) { commitAuthority('Chat'); setMobileActiveTab('Chat'); }
@@ -3349,6 +3359,7 @@ export default function Chat() {
       onDefer={handleDefer}
       proposals={visibleProposals}
       onAnswerClaim={liveSessionId ? handleAnswerClaim : undefined}
+      onOpenRecord={() => setActiveSpace('kept')}
       onAcceptProposal={liveSessionId ? handleAcceptProposal : undefined}
       companyName={founderProfileName ?? companyProfile.name ?? companyData?.company_name ?? null}
     />

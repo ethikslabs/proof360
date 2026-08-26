@@ -148,7 +148,7 @@ describe('RecordPage — the record, with room to be read', () => {
       confirmed_count: 0, inferred_count: 0, total_count: 0,
     } }));
     const { container } = draw();
-    await waitFor(() => expect(container.textContent).toMatch(/nothing here yet|builds as/i));
+    await waitFor(() => expect(container.textContent).toMatch(/nothing kept here yet|builds as/i));
     expect(container.textContent).not.toMatch(/open to you now/i);
   });
 
@@ -163,7 +163,7 @@ describe('RecordPage — the record, with room to be read', () => {
     const fetchSpy = mockFetch({ record: RECORD });
     vi.stubGlobal('fetch', fetchSpy);
     const { container } = draw();
-    await waitFor(() => expect(container.textContent).toMatch(/nothing here yet|start/i));
+    await waitFor(() => expect(container.textContent).toMatch(/nothing kept here yet|start/i));
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 });

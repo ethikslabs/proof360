@@ -111,10 +111,32 @@ export async function shortlistHandler(request, reply) {
 export function acceptProposal(session, proposalId, { editedReason = null } = {}) {
   // Re-evaluate at point of use — a proposal is only acceptable while its trigger
   // STILL fires on the current Record (default-deny; never book off a stale read).
+  // Keeping a thing twice does not keep two things. Every accept used to append a
+  // CER unconditionally, so a double-tap, a retried request, or the chat ceremony
+  // firing alongside the panel button each added another copy — six rows on John's
+  // record, five of them the same route (2026-08-26). shortlistAddHandler has been
+  // idempotent on item name since the 2026-08-23 ruling; this path never was.
+  //
+  // This check runs BEFORE the open-proposal lookup on purpose: accepting closes
+  // the proposal, so a repeat accept would otherwise fall through to
+  // 'proposal_not_open' and the caller would read a successful keep as a failure.
+  const already = cerProjection(shortlistSnapshot(session))
+    .find((m) => m.reason?.trigger_id === proposalId);
+  if (already) return { move: already, already: true };
+
   const proposal = liveProposals(session).find((p) => p.id === proposalId);
   if (!proposal) return { error: 'proposal_not_open' };
 
   const { cerId, records } = buildCerRecords({
+    // The ITEM is the thing kept; the route is only how it travels. Without this,
+    // a move can only be titled by its route label — and every AWS offer routes
+    // ingram_micro_aws, so different programs render as identical lines.
+    item: {
+      title: proposal.title,
+      name: proposal.title,
+      category: proposal.kind,
+      url: proposal.url ?? null,
+    },
     route: proposal.cer_route,
     person_id: null,
     company_id: session.company_name || null,
@@ -208,6 +230,10 @@ export async function proposalAcceptHandler(request, reply) {
     editedReason: request.body?.edited_reason || null,
   });
   if (result.error) return reply.status(409).send({ error: result.error });
+  // A repeat accept is a conflict, not a second keep — the established contract.
+  // acceptProposal now recognises it explicitly rather than letting it fall
+  // through to 'proposal_not_open', so the reason the caller gets back is true.
+  if (result.already) return reply.status(409).send({ error: 'already_accepted', move: result.move });
   return reply.status(201).send({ move: result.move });
 }
 

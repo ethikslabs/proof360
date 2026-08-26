@@ -8,7 +8,7 @@ import { VendorShortlist } from './VendorShortlist.jsx';
 import { ClaimStrip } from './ClaimStrip.jsx';
 import { PathwaySuggestions } from './PathwaySuggestions.jsx';
 
-export function CompanionPanel({ items, claims, proposals, isDemoMode, onShortlist, onDefer, onAnswerClaim, onAcceptProposal, companyName }) {
+export function CompanionPanel({ items, claims, proposals, isDemoMode, onShortlist, onDefer, onAnswerClaim, onAcceptProposal, onOpenRecord, companyName }) {
   const [open, setOpen] = useState(true);
   const count = (items?.length ?? 0) + (claims?.length ?? 0) + (proposals?.length ?? 0);
   if (count === 0) return null;
@@ -101,21 +101,32 @@ export function CompanionPanel({ items, claims, proposals, isDemoMode, onShortli
             width it was clipping Leonardo mid-sentence — so anything that wants
             room to be read belongs on the record page, not in here. */}
         <div style={{ padding: '10px 0 12px', borderTop: '1px solid rgba(148,163,184,0.15)', marginTop: 6 }}>
-          {/* A real pop-out: the record opens BESIDE the conversation, not over
-              it. A plain anchor rather than a router Link — this panel renders in
-              tests and surfaces that have no router, and a leaf component should
-              not drag one in. */}
-          <a
-            href="/record"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              fontFamily: '"IBM Plex Mono", monospace', fontSize: 10.5, color: '#5eead4',
-              textDecoration: 'none', borderBottom: '1px solid rgba(94,234,212,0.35)',
-            }}
-          >
-            Open the full record →
-          </a>
+          {/* Opens the record OVER the conversation, like every other projection.
+              A callback rather than an href: navigating away remounted Chat, which
+              restores no transcript, so "back to the conversation" booted a fresh
+              proof360 (John, 2026-08-26). No handler, no control. */}
+          {onOpenRecord ? (
+            <button
+              onClick={onOpenRecord}
+              style={{
+                fontFamily: '"IBM Plex Mono", monospace', fontSize: 10.5, color: '#5eead4',
+                background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                borderBottom: '1px solid rgba(94,234,212,0.35)',
+              }}
+            >
+              Open the full record →
+            </button>
+          ) : (
+            <a
+              href="/record"
+              style={{
+                fontFamily: '"IBM Plex Mono", monospace', fontSize: 10.5, color: '#5eead4',
+                textDecoration: 'none', borderBottom: '1px solid rgba(94,234,212,0.35)',
+              }}
+            >
+              Open the full record →
+            </a>
+          )}
         </div>
       </div>
     </div>

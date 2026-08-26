@@ -15,14 +15,18 @@
 // back to being a glance with a door in it.
 //
 // It opens cold, by design: no props, no chat state, no parent. A link, a
-// refresh, a second tab, a phone — it recovers the session itself and re-reads
-// the record from the API. Dark, because the record is its own place; the
-// conversation is the lit room and this is the ledger you step out to.
+// refresh, a phone — it recovers the session itself and re-reads the record from
+// the API.
+//
+// The primary door is now the `kept` PROJECTION, which opens over the
+// conversation and loses nothing. This route stays for the cold cases (a shared
+// link, a second device) and renders the SAME component, so there is one design
+// rather than a black outlier hiding behind a URL (John, 2026-08-26: "opens up
+// this page in the screen that is black").
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { storedSessionId } from '../api/spine.js';
-import { ClaimStrip } from '../components/chat/ClaimStrip.jsx';
-import { PathwaySuggestions } from '../components/chat/PathwaySuggestions.jsx';
+import { KeptProjection } from '../components/chat/Projections.jsx';
 
 const MONO = '"IBM Plex Mono", monospace';
 const SANS = '"IBM Plex Sans", system-ui, sans-serif';
@@ -118,17 +122,17 @@ export function RecordPage() {
   }, [sessionId, load]);
 
   const page = {
-    minHeight: '100vh', background: '#0b1120', color: '#e2e8f0',
-    padding: '38px 24px 80px',
+    minHeight: '100vh', background: '#faf8f5', color: '#1f2430',
+    padding: '20px 0 60px',
   };
-  const inner = { maxWidth: 760, margin: '0 auto' };
+  const inner = { maxWidth: 900, margin: '0 auto', padding: '0 24px' };
 
   const backLink = (
     <Link
       to="/chat"
       style={{
-        fontFamily: MONO, fontSize: 11, color: '#94a3b8', textDecoration: 'none',
-        borderBottom: '1px solid rgba(148,163,184,0.3)',
+        fontFamily: MONO, fontSize: 11, color: '#6b7280', textDecoration: 'none',
+        borderBottom: '1px solid rgba(31,36,48,0.2)',
       }}
     >
       ← Back to the conversation
@@ -138,7 +142,7 @@ export function RecordPage() {
   if (state === 'loading') {
     return (
       <div style={page}><div style={inner}>
-        <div style={{ fontFamily: MONO, fontSize: 12, color: '#64748b' }}>Reading your record…</div>
+        <div style={{ fontFamily: MONO, fontSize: 12, color: '#6b7280' }}>Reading your record…</div>
       </div></div>
     );
   }
@@ -147,7 +151,7 @@ export function RecordPage() {
     return (
       <div style={page}><div style={inner}>
         {backLink}
-        <p style={{ fontFamily: SANS, fontSize: 14, color: '#94a3b8', marginTop: 22 }}>
+        <p style={{ fontFamily: SANS, fontSize: 14, color: '#4b5563', marginTop: 22 }}>
           We couldn&apos;t load your record just now. That&apos;s on us, not you — the
           conversation is still there, and nothing has been lost.
         </p>
@@ -167,56 +171,29 @@ export function RecordPage() {
     return (
       <div style={page}><div style={inner}>
         {backLink}
-        <h1 style={{ fontFamily: SANS, fontSize: 22, fontWeight: 400, margin: '26px 0 10px' }}>
+        <h1 style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontWeight: 400, fontSize: 34, margin: '26px 0 10px' }}>
           Your record
         </h1>
-        <p style={{ fontFamily: SANS, fontSize: 14, color: '#94a3b8', lineHeight: 1.6 }}>
-          There&apos;s nothing here yet. This fills as we talk — every read, every
-          answer you give, and every pathway you keep lands on this page. Start a
+        <p style={{ fontFamily: SANS, fontSize: 15, color: '#4b5563', lineHeight: 1.6, maxWidth: 560 }}>
+          There&apos;s nothing kept here yet. This fills as we talk — every read, every
+          answer you give, and every pathway you keep gathers here. Start a
           conversation and come back.
         </p>
       </div></div>
     );
   }
 
-  const settled = record?.confirmed_count ?? 0;
-  const total = record?.total_count ?? claims.length;
-
+  // The same component the `kept` projection renders, so the record looks like
+  // itself wherever it is opened.
   return (
     <div style={page}>
-      <div style={inner}>
-        {backLink}
-
-        <header style={{ margin: '26px 0 30px' }}>
-          <h1 style={{ fontFamily: SANS, fontSize: 24, fontWeight: 400, margin: 0 }}>
-            {record?.company_name || 'Your record'}
-          </h1>
-          {/* What YOU have settled, out of what we have noted. Not a mark out of
-              anything — the company is never graded (John's ruling, 2026-08-26). */}
-          <div style={{ fontFamily: MONO, fontSize: 11, color: '#64748b', marginTop: 7 }}>
-            {settled} of {total} settled in your own words
-            {record?.website_url ? ` · ${record.website_url.replace(/^https?:\/\//, '')}` : ''}
-          </div>
-        </header>
-
-        {claims.length > 0 && (
-          <Section title="What we've noted">
-            <ClaimStrip claims={claims} onAnswer={answerClaim} />
-          </Section>
-        )}
-
-        {proposals.length > 0 && (
-          <Section title="Open to you now">
-            <PathwaySuggestions proposals={proposals} onAccept={acceptProposal} />
-          </Section>
-        )}
-
-        {shortlist.length > 0 && (
-          <Section title="What you've kept">
-            {shortlist.map((m) => <Move key={m.cer_id} move={m} />)}
-          </Section>
-        )}
-      </div>
+      <div style={inner}>{backLink}</div>
+      <KeptProjection
+        record={record}
+        onAccept={acceptProposal}
+        onAnswerClaim={answerClaim}
+        t={{ theme: 'pearl' }}
+      />
     </div>
   );
 }

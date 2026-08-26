@@ -384,18 +384,21 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
                 when there IS a record — never an invitation to an empty room. */}
             {hasRecord && !collapsed && (
               <div style={{ padding: '0 16px 12px' }}>
-                <a
-                  href="/record"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                {/* Opens OVER the conversation like every other projection. The
+                    first cut navigated to a full page; going back remounted Chat,
+                    which restores no transcript, so it booted a fresh proof360 and
+                    the conversation was gone (John, 2026-08-26). */}
+                <button
+                  onClick={() => onSwitch('kept', { company: 'yours' })}
                   style={{
                     fontFamily: '"IBM Plex Mono", monospace', fontSize: 10,
-                    color: tk.plum, textDecoration: 'none',
+                    color: tk.plum, background: 'none', border: 'none', padding: 0,
+                    cursor: 'pointer', textAlign: 'left',
                     borderBottom: `1px solid ${tk.plum}55`,
                   }}
                 >
                   Open the full record →
-                </a>
+                </button>
               </div>
             )}
             {/* Ghost icons in collapsed mode even when empty — signals parallel structure */}

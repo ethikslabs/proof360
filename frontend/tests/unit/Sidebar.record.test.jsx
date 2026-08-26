@@ -10,8 +10,8 @@
 // was the one thing on screen that wasn't true.
 //
 // It now counts the record, and it is the door to the record's own page.
-import { describe, it, expect } from 'vitest';
-import { render } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { Sidebar } from '../../src/components/chat/Sidebar.jsx';
 
@@ -32,10 +32,15 @@ describe('Sidebar — the company card is the record', () => {
     expect(container.textContent).toContain('4/6');
   });
 
-  it('opens the full record', () => {
-    const { container } = draw({ record: { confirmed: 4, total: 6 } });
-    const hrefs = [...container.querySelectorAll('a')].map((a) => a.getAttribute('href'));
-    expect(hrefs).toContain('/record');
+  // This asserted an href to /record until the full-page version proved wrong:
+  // navigating away remounted Chat, which restores no transcript, so "back to the
+  // conversation" booted a fresh proof360 and the conversation was gone (John,
+  // 2026-08-26). The record now opens OVER the chat like every other projection.
+  it('opens the record over the conversation, never navigating away from it', () => {
+    const onSwitch = vi.fn();
+    const { getByRole } = draw({ record: { confirmed: 4, total: 6 }, onSwitch });
+    fireEvent.click(getByRole('button', { name: /open the full record/i }));
+    expect(onSwitch).toHaveBeenCalledWith('kept', { company: 'yours' });
   });
 
   it('keeps its invitation while the record is genuinely empty', () => {
@@ -44,9 +49,8 @@ describe('Sidebar — the company card is the record', () => {
   });
 
   it('does not offer a door to a record that does not exist yet', () => {
-    const { container } = draw({ record: { confirmed: 0, total: 0 } });
-    const hrefs = [...container.querySelectorAll('a')].map((a) => a.getAttribute('href'));
-    expect(hrefs).not.toContain('/record');
+    const { queryByRole } = draw({ record: { confirmed: 0, total: 0 } });
+    expect(queryByRole('button', { name: /open the full record/i })).toBeNull();
   });
 
   it('still renders for callers that pass no record at all', () => {

@@ -6,6 +6,7 @@ import { HIVE_STAGES } from '../../data/mock/hive.js';
 // no calendar bounce-out mid-thought. Add to shortlist — the real engage actions
 // live on the shortlist page.
 import { AddToShortlist } from './AddToShortlist.jsx';
+import { ClaimStrip } from './ClaimStrip.jsx';
 
 function SeverityDot({ severity, t }) {
   const tk = tokens(t.theme);
@@ -662,12 +663,181 @@ function SpvProjection({ panel, company, t }) {
   );
 }
 
-export function Projection({ id, company, hiveStage, onBack, t }) {
+// ── What you've kept ─────────────────────────────────────────────────────────
+// John, 2026-08-26: "the short list/what you have kept, should be the thing,
+// context around it, and that 'engagement portal' gives you the CTAs. Like you
+// can see for the other part of the left side of the screen."
+//
+// The first cut of this was a black full-page route. It took over the tab, and
+// "back to the conversation" remounted Chat — which restores no transcript — so
+// it booted a fresh proof360 and the conversation was gone. The estate already
+// had the right form on screen: the Vendors projection. Same shell, same idiom,
+// live data, opening OVER the conversation like every other projection.
+//
+// Leads with what was kept, because that is the thing. Claims come after, as the
+// evidence that earned it.
+function moveTitle(move) {
+  // Titled by the ITEM, never the route. Every AWS offer routes ingram_micro_aws,
+  // so titling by route label rendered five different programs as five identical
+  // lines reading "AWS pathway via Ingram Micro" (John's screenshot, 2026-08-26).
+  return move.item?.title || move.item?.name || move.label || move.route || 'Kept';
+}
+
+function moveWhy(move) {
+  const r = move.reason;
+  if (!r) return null;
+  return typeof r === 'string' ? r : (r.text || r.user_text || null);
+}
+
+function moveMoment(move) {
+  const r = move.reason;
+  if (!r || typeof r === 'string') return null;
+  return r.context || r.moment || null;
+}
+
+export function KeptProjection({ record, company, onAccept, onAnswerClaim, t }) {
+  const tk = tokens(t.theme);
+  const tile = { kind: 'Record', token: 'plum', glyphKey: 'spv', title: "What you've kept" };
+  const kept = (record?.shortlist ?? []).filter((m) => m && m.cer_id && (m.item || m.label || m.route));
+  const open = (record?.proposals ?? []).filter((p) => p && p.id && p.title);
+  const claims = (record?.claims ?? []).filter((c) => c && c.claim_id && c.label);
+
+  return (
+    <ProjectionShell tile={tile} company={company} attributedTo="leonardo" lastUpdated="live" t={t}>
+      {/* Whose record this is, and how much of it is in their own words. Opened
+          cold — a shared link, a second device — the page has to say this itself. */}
+      {record?.company_name && (
+        <div style={{
+          fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.inkSoft,
+          letterSpacing: '0.06em', margin: '-18px 0 26px',
+        }}>
+          {record.company_name}
+          {(record.total_count ?? 0) > 0
+            ? ` · ${record.confirmed_count ?? 0} of ${record.total_count} settled in your own words`
+            : ''}
+        </div>
+      )}
+      <p style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 16, lineHeight: 1.55, color: tk.inkMid, margin: '0 0 36px', maxWidth: 640 }}>
+        {kept.length > 0
+          ? 'Everything you have kept, with the reason it was offered and the conversation it came out of. Nothing here was chosen for you.'
+          : 'Nothing kept yet. As you keep pathways from the conversation, they gather here with the reason each one was offered.'}
+      </p>
+
+      {kept.length > 0 && (
+        <PSection kicker="Kept" title="In the order you kept them" source={`${kept.length} on your list`} t={t}>
+          {kept.map((m, i) => {
+            const why = moveWhy(m);
+            const moment = moveMoment(m);
+            return (
+              <div key={m.cer_id} style={{
+                padding: '20px 0',
+                borderBottom: i < kept.length - 1 ? `1px solid ${tk.hairline}` : 'none',
+                display: 'grid', gridTemplateColumns: '28px 1fr 1fr auto', gap: 16,
+              }}>
+                <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: tk.inkSoft, letterSpacing: '0.08em', paddingTop: 4 }}>{String(i + 1).padStart(2, '0')}</span>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 5, flexWrap: 'wrap' }}>
+                    <span style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontSize: 22, color: tk.ink, letterSpacing: '-0.01em' }}>{moveTitle(m)}</span>
+                    {m.item?.category && (
+                      <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9, color: tk.inkSoft, letterSpacing: '0.16em', textTransform: 'uppercase' }}>{m.item.category}</span>
+                    )}
+                  </div>
+                  {m.label && (
+                    <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9.5, fontWeight: 600, color: tk.umber, letterSpacing: '0.18em', textTransform: 'uppercase' }}>{m.label}</div>
+                  )}
+                </div>
+                <div>
+                  {why && (
+                    <div style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 13.5, color: tk.inkMid, lineHeight: 1.5, marginBottom: 8 }}>{why}</div>
+                  )}
+                  {moment && (
+                    <div style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontStyle: 'italic', fontSize: 12.5, color: tk.inkSoft, lineHeight: 1.5 }}>Kept {moment}</div>
+                  )}
+                </div>
+                {/* The engagement portal: the one real next action for this route.
+                    A route with no external_action renders nothing at all — never a
+                    control that goes nowhere. */}
+                {m.cta?.url ? (
+                  <a
+                    href={m.cta.url} target="_blank" rel="noopener noreferrer"
+                    style={{
+                      fontFamily: '"IBM Plex Mono", monospace', fontSize: 10.5,
+                      color: tk.teal, textDecoration: 'none', whiteSpace: 'nowrap',
+                      borderBottom: `1px solid ${tk.teal}55`, alignSelf: 'start', paddingTop: 4,
+                    }}
+                  >
+                    {m.cta.label || 'Open'} →
+                  </a>
+                ) : <span />}
+              </div>
+            );
+          })}
+        </PSection>
+      )}
+
+      {open.length > 0 && (
+        <PSection kicker="Open" title="Open to you now" source={`${open.length} not yet kept`} t={t}>
+          {open.map((p, i) => (
+            <div key={p.id} style={{
+              padding: '18px 0',
+              borderBottom: i < open.length - 1 ? `1px solid ${tk.hairline}` : 'none',
+              display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 16,
+            }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+                  <span style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontSize: 20, color: tk.ink }}>{p.title}</span>
+                  <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9, color: tk.inkSoft, letterSpacing: '0.16em', textTransform: 'uppercase' }}>{p.kind}</span>
+                </div>
+                {p.description && (
+                  <div style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 13, color: tk.inkMid, marginTop: 5 }}>{p.description}</div>
+                )}
+              </div>
+              <div style={{ fontFamily: '"IBM Plex Sans", system-ui, sans-serif', fontSize: 13, color: tk.inkSoft, lineHeight: 1.5, fontStyle: 'italic' }}>
+                {p.reason}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
+                {onAccept && (
+                  <button
+                    onClick={() => onAccept(p.id)}
+                    style={{
+                      fontFamily: '"IBM Plex Mono", monospace', fontSize: 10.5,
+                      background: 'none', border: `1px solid ${tk.teal}55`, borderRadius: 4,
+                      color: tk.teal, cursor: 'pointer', padding: '4px 10px', whiteSpace: 'nowrap',
+                    }}
+                  >
+                    + Add to shortlist
+                  </button>
+                )}
+                {p.url && (
+                  <a
+                    href={p.url} target="_blank" rel="noopener noreferrer"
+                    style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 10, color: tk.inkSoft, textDecoration: 'none', whiteSpace: 'nowrap' }}
+                  >
+                    Read the original →
+                  </a>
+                )}
+              </div>
+            </div>
+          ))}
+        </PSection>
+      )}
+
+      {claims.length > 0 && (
+        <PSection kicker="Evidence" title="What we've noted" source={`${record?.confirmed_count ?? 0} of ${record?.total_count ?? claims.length} in your own words`} t={t}>
+          <ClaimStrip claims={claims} onAnswer={onAnswerClaim} light />
+        </PSection>
+      )}
+    </ProjectionShell>
+  );
+}
+
+export function Projection({ id, company, hiveStage, onBack, record, onAcceptProposal, onAnswerClaim, t }) {
   const tk = tokens(t.theme);
   const hive = company === 'hive';
   const stagePanel = hive ? HIVE_STAGES[hiveStage ?? 1]?.panel : null;
 
-  const inner = id === 'investor'  ? <InvestorProjection   panel={stagePanel?.investor}  company={company} t={t} />
+  const inner = id === 'kept'      ? <KeptProjection       record={record} company={company} onAccept={onAcceptProposal} onAnswerClaim={onAnswerClaim} t={t} />
+              : id === 'investor'  ? <InvestorProjection   panel={stagePanel?.investor}  company={company} t={t} />
               : id === 'vendors'   ? <VendorsProjection    panel={stagePanel?.vendors}   company={company} t={t} />
               : id === 'aws'       ? <AwsProjection        panel={stagePanel?.aws}       company={company} t={t} />
               : id === 'microsoft' ? <MicrosoftProjection  panel={stagePanel?.microsoft} company={company} t={t} />
