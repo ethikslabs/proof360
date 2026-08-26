@@ -34,7 +34,7 @@ import { rankVendorsBySignals } from '../data/mock/vendors.js';
 import { AuthorityLayer }      from '../components/chat/AuthorityLayer.jsx';
 import { useSurfaceAuthority } from '../hooks/useSurfaceAuthority.js';
 import { AUTH0_AUDIENCE, clearTokens } from '../api/auth.js';
-import { attachSessionToProfile, getProfile, getProjections, postProfileEvent } from '../api/client.js';
+import { answerClaim, attachSessionToProfile, getProfile, getProjections, postProfileEvent } from '../api/client.js';
 import { CerBuildCard }         from '../components/chat/CerBuildCard.jsx';
 import { CerAgencyCard }        from '../components/chat/CerAgencyCard.jsx';
 import { CerProjectionCard }    from '../components/chat/CerProjectionCard.jsx';
@@ -1561,6 +1561,24 @@ export default function Chat() {
       // accept failed — proposal stays in the list, nothing pretended
     } finally {
       setBusyProposalId(null);
+    }
+  }, [liveSessionId, refreshSpine]);
+
+  // Answering a claim from the companion panel — the founder's "yes / not quite"
+  // on the record itself. Writes through the SPEC-011 endpoint that has existed
+  // all along and that nothing in the UI called, then refreshes so the strip
+  // re-grades in place: an answered claim becomes first-party testimony, the
+  // highest grade the record holds, with the inference kept underneath rather
+  // than overwritten. A failed write changes nothing on screen — never pretend
+  // a claim was settled when the server did not say so.
+  const handleAnswerClaim = useCallback(async (claimId, action) => {
+    const sid = liveSessionId ?? spine.storedSessionId();
+    if (!sid) return;
+    try {
+      await answerClaim(sid, claimId, action);
+      await refreshSpine(sid);
+    } catch {
+      // write failed — the claim keeps its current grade, nothing invented
     }
   }, [liveSessionId, refreshSpine]);
 
@@ -3321,6 +3339,7 @@ export default function Chat() {
       isDemoMode={inDemoMode}
       onShortlist={handleShortlist}
       onDefer={handleDefer}
+      onAnswerClaim={liveSessionId ? handleAnswerClaim : undefined}
       companyName={founderProfileName ?? companyProfile.name ?? companyData?.company_name ?? null}
     />
     </ShortlistContext.Provider>

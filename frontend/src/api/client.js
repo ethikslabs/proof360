@@ -69,3 +69,13 @@ export const getJourney = () =>
   DEMO_FOUNDER
     ? request('GET', '/api/v1/profile/current/journey')        // demo: no token needed (backend gate is demoAuth)
     : authRequest('GET', '/api/v1/profile/current/journey');   // prod: real Auth0 token
+
+// Answer a claim on the record — the founder's "yes / not quite" verb.
+// The endpoint (POST /claims/:claimId/answer, SPEC-011) has existed since the
+// Record shipped; nothing in the UI called it, so the companion panel could only
+// ever count claims rather than let anyone settle one. action: confirm | correct
+// | reject; `value` applies to correct.
+export async function answerClaim(sessionId, claimId, action, value) {
+  return request('POST', `/api/v1/session/${sessionId}/claims/${claimId}/answer`,
+    value === undefined ? { action } : { action, value });
+}

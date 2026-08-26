@@ -5,8 +5,9 @@
 // nothing to show, no pressure to fill it).
 import { useState } from 'react';
 import { VendorShortlist } from './VendorShortlist.jsx';
+import { ClaimStrip } from './ClaimStrip.jsx';
 
-export function CompanionPanel({ items, claims, isDemoMode, onShortlist, onDefer, companyName }) {
+export function CompanionPanel({ items, claims, isDemoMode, onShortlist, onDefer, onAnswerClaim, companyName }) {
   const [open, setOpen] = useState(true);
   const count = (items?.length ?? 0) + (claims?.length ?? 0);
   if (count === 0) return null;
@@ -72,14 +73,18 @@ export function CompanionPanel({ items, claims, isDemoMode, onShortlist, onDefer
         >—</button>
       </div>
       <div style={{ overflowY: 'auto', padding: '12px 14px 4px' }}>
-        {/* No per-claim tap-to-correct handler exists on this strip today — the
-            "so far" phrasing is the honest one; switch to the tap-invite copy only
-            once tapping a claim actually does something. */}
+        {/* The record is now SHOWN, not counted (John 2026-08-26: "what 6
+            signals? How do you look and change if needed?"). The old comment
+            here noted that tapping a claim did nothing — onAnswerClaim wires it
+            to the confirm/reject endpoint that has existed since SPEC-011, and
+            ClaimStrip offers no buttons at all when that handler is absent, so
+            the invite is never emptier than the action behind it. */}
         {claims?.length > 0 && (
-          <div style={{ fontSize: 11, color: '#94a3b8', padding: '0 0 10px' }}>
+          <div style={{ fontSize: 11, color: '#94a3b8', padding: '0 0 8px' }}>
             {claims.length} thing{claims.length !== 1 ? 's' : ''} we&apos;ve noted so far
           </div>
         )}
+        <ClaimStrip claims={claims} onAnswer={onAnswerClaim} />
         <VendorShortlist
           vendors={items}
           shortlistedIds={items}
