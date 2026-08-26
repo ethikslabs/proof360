@@ -31,10 +31,22 @@ function gradeOf(claim) {
 // A claim that a probe observed AND the founder confirmed has TWO witnesses.
 // Showing only "your word" would drop the probe that saw it first; showing only
 // the probe would drop the testimony that outranks it. Both, in that order.
+// claimsProjection emits provenance as {method, detail, at} — the human phrase
+// lives in `detail` ("IP → hosting provider lookup", "MX records", "DMARC TXT
+// record"). Joining the object itself renders "[object Object]", which is what
+// this shipped as until the live record shape was actually looked at.
+function describeProvenance(p) {
+  if (!p) return null;
+  if (typeof p === 'string') return p;
+  if (typeof p === 'object') return p.detail || p.method || null;
+  return null;
+}
+
 function provenanceOf(claim) {
   const parts = [];
   if (claim.confirmed) parts.push('your word');
-  if (claim.provenance) parts.push(claim.provenance);
+  const src = describeProvenance(claim.provenance);
+  if (src) parts.push(src);
   return parts.length ? parts.join(' · ') : 'inferred';
 }
 

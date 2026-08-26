@@ -54,6 +54,31 @@ describe('ClaimStrip — the record, shown', () => {
     expect(container.textContent).toMatch(/confirmed/i);
   });
 
+  // Live shape check: claimsProjection emits provenance as an OBJECT
+  // {method, detail, at} — e.g. {method:'recon-ip', detail:'IP → hosting provider
+  // lookup'} — not a string. Joining it renders "[object Object]", which is what
+  // the first cut of this component would have shown a founder.
+  it('reads the real provenance object, never "[object Object]"', () => {
+    const realShape = [{
+      claim_id: 'clm_r', field: 'infrastructure', label: 'cloud provider',
+      value: 'Oracle', status: 'inferred',
+      provenance: { method: 'recon-ip', detail: 'IP → hosting provider lookup', at: '2026-08-26T10:11:20.418Z' },
+    }];
+    const { container } = render(<ClaimStrip claims={realShape} />);
+    expect(container.textContent).not.toContain('[object Object]');
+    expect(container.textContent).toContain('IP → hosting provider lookup');
+  });
+
+  it('falls back to the method when there is no human detail', () => {
+    const realShape = [{
+      claim_id: 'clm_m', field: 'x', label: 'thing', value: 'v', status: 'inferred',
+      provenance: { method: 'recon-dns' },
+    }];
+    const { container } = render(<ClaimStrip claims={realShape} />);
+    expect(container.textContent).toContain('recon-dns');
+    expect(container.textContent).not.toContain('[object Object]');
+  });
+
   it('says where each one came from', () => {
     const { container } = render(<ClaimStrip claims={CLAIMS} />);
     expect(container.textContent).toContain('inferred from company research');
