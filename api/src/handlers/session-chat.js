@@ -192,10 +192,20 @@ export async function sessionChatHandler(request, reply) {
   if (askBlock) session.pending_confirm = null;
   if (!askBlock) {
     const claims = claimsProjection(sessionRecordSnapshot(session));
+    // Count how often each claim has been put to the founder, so a question they
+    // keep not answering is eventually dropped instead of closing every reply
+    // forever. Without this the ceremony re-picks the same inferred claim every
+    // exchange — the "Looks like you're on Oracle — right?" tic.
+    const asked = session.confirm_asks || {};
     const toConfirm = session.pending_confirm
       ? claims.find((c) => c.claim_id === session.pending_confirm)
-      : nextConfirmable(claims);
-    if (toConfirm) session.pending_confirm = toConfirm.claim_id;
+      : nextConfirmable(claims, asked);
+    if (toConfirm) {
+      session.pending_confirm = toConfirm.claim_id;
+      session.confirm_asks = { ...asked, [toConfirm.claim_id]: (asked[toConfirm.claim_id] ?? 0) + 1 };
+    } else {
+      session.pending_confirm = null; // nothing worth asking — the reply just answers
+    }
     askedClaim = toConfirm || null;
     askBlock = confirmPromptBlock(toConfirm);
   }

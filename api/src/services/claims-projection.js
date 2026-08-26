@@ -268,9 +268,33 @@ export function fieldLabel(field) {
   return FIELD_LABELS[field] || String(field).split('.').pop().replace(/_/g, ' ');
 }
 
-export function nextConfirmable(claims) {
-  const open = claims.filter((c) => c.status === 'inferred');
+// How many times one claim may be put to the founder before we let it go. A
+// question asked twice and not answered IS an answer — they do not want to
+// engage with it. Asking a third time is the "Looks like you're on Oracle —
+// right?" tic that closed every single persona reply for weeks (John, 2026-08-26)
+// and it was never a prompt fault: the claim stayed 'inferred', so the ceremony
+// re-picked it forever. Nothing recorded that it had already been asked.
+const MAX_ASKS_PER_CLAIM = 2;
+
+/**
+ * @param {Array} claims projected claims
+ * @param {Record<string, number>} [askedCounts] claim_id -> times already asked
+ * @returns {object|null} the claim to put to the founder, or null to ask nothing
+ */
+export function nextConfirmable(claims, askedCounts) {
+  const asked = (askedCounts && typeof askedCounts === 'object') ? askedCounts : {};
+  const timesAsked = (c) => {
+    const n = asked[c.claim_id];
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const open = (claims ?? []).filter(
+    (c) => c.status === 'inferred' && timesAsked(c) < MAX_ASKS_PER_CLAIM,
+  );
+  // Nothing left worth asking — say nothing. The founder can still settle any
+  // claim directly in the companion panel, which lists them all with their grade.
   if (!open.length) return null;
+
   for (const field of CONFIRM_PRIORITY) {
     const hit = open.find((c) => c.field === field);
     if (hit) return hit;
