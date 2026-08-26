@@ -4,6 +4,31 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-08-26 · The AWS and Microsoft panels show real programs now
+
+**Problem.** An inventory of what's built-but-unreachable turned up the worst fabrication left in the product, and its fix sitting one import away.
+
+`api/src/config/` holds **18 AWS programs** (`AWS_PROGRAMS` with per-program trigger conditions and an `evaluateTrigger` evaluator) and **12 Microsoft programs**. The recompute pipeline has matched against them, with tests, for months. The AWS and Microsoft panels in the UI used **none of it** — they rendered two hardcoded constants in `Projections.jsx` for any company that wasn't the Hive & Co demo, and those constants asserted things about the founder's **own accounts**:
+
+- *"Startup Credits — $10k unclaimed — already granted · expires Q4 · log in to redeem"*
+- *"$220k+ in credits and co-sell opportunities are sitting unclaimed at your stage"*
+- *"Founders Hub is unclaimed — that's $150k in Azure credits sitting there"*
+
+"Already granted" and "unclaimed" are claims about a real AWS account nobody has looked at. That's a category beyond an invented number — it's an invented **entitlement**.
+
+**Fix.** `services/programs-matcher.js` joins session → signals → the same trigger evaluation recompute already runs, exposed as `GET /api/v1/session/:id/programs`.
+
+Two design points worth knowing if you extend it:
+
+1. **Confirmed claims outrank read signals.** The signal map is built from what the read inferred, then a claim the founder *confirmed* overwrites it. If that ordering isn't there, answering a question in the record changes nothing about what gets offered — and the whole confirm ceremony is decoration. A rejected claim contributes nothing.
+2. **Unknown field means no match.** A trigger reading a field we have no value for must fail, not pass. Otherwise an empty session matches every program and the catalogue gets dumped on a stranger as though it were personalised. Know nothing, offer nothing.
+
+Each match carries the trigger that earned it — *"Matched because your stage is Seed and your infrastructure is aws"* — the same rule the pathway follows: an offer without the evidence behind it is an advertisement. The two old constants survive as clearly-marked demo fixtures for the Hive & Co walkthrough only.
+
+**Why it matters.** Two panels stopped making financial claims about accounts we've never seen, and 30 real trigger-matched programs became reachable in the same move. The engine was already right; only the surface was lying.
+
+---
+
 ## 2026-08-26 · The record gets a surface of its own
 
 **Problem.** The product had been accumulating a real evidence record for months — every claim read from a company's public trail, graded inferred-until-confirmed, with its provenance attached — and displaying it as a single integer in a floating panel: *"6 things we've noted so far"*. A founder could see that we knew six things about them and had no way to see what the six were, let alone correct one. Meanwhile the same panel's header counted something different (claims + shortlist + pathways = 12) and the sidebar card counted a third thing entirely (a legacy tile count wired to nothing, permanently reading 0/6). Three numbers for one record, on one screen.
