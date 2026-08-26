@@ -2239,7 +2239,11 @@ export default function Chat() {
           body: JSON.stringify({
             message: text,
             ...(personaOverride ? { persona_override: personaOverride } : {}),
-            ...(effectiveModel !== selectedModel ? { model_override: effectiveModel } : {}),
+            // Always send the pick. This used to fire only for web-search /
+            // deep-research, so a plain chat never told the API which model the
+            // founder had chosen — and the API hardcoded Haiku anyway. The badge
+            // said Sonnet 4.6 over every Haiku answer (John, 2026-08-26).
+            ...(effectiveModel ? { model_override: effectiveModel } : {}),
             ...(modeSnapshot.includes('deep-research') ? { deep_research: true } : {}),
           }),
         });

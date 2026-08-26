@@ -78,17 +78,25 @@ function InferenceChip({ selectedModel, onModelChange }) {
                   }}>
                     {provider}
                   </div>
+                  {/* The whole market stays listed — that argument is the point.
+                      But an entry this seam cannot serve is shown as exactly that
+                      rather than offered and silently answered by Haiku wearing
+                      its badge (John's screenshot, 2026-08-26). */}
                   {group.map(m => (
                     <button
                       key={m.id}
-                      onClick={() => { onModelChange(m.id); setOpen(false); }}
+                      disabled={!m.served}
+                      title={m.served ? undefined : 'On the map — not wired to this seam yet'}
+                      onClick={() => { if (!m.served) return; onModelChange(m.id); setOpen(false); }}
                       style={{
                         display: 'flex', alignItems: 'center', gap: 8,
                         width: '100%', padding: '7px 12px',
-                        background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left',
+                        background: 'none', border: 'none',
+                        cursor: m.served ? 'pointer' : 'default', textAlign: 'left',
+                        opacity: m.served ? 1 : 0.45,
                         fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
                       }}
-                      onMouseEnter={e => { e.currentTarget.style.background = '#f9fafb'; }}
+                      onMouseEnter={e => { if (m.served) e.currentTarget.style.background = '#f9fafb'; }}
                       onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}
                     >
                       <span style={{
@@ -97,9 +105,11 @@ function InferenceChip({ selectedModel, onModelChange }) {
                       }} />
                       <div>
                         <div style={{ fontSize: 12, fontWeight: 600, color: '#111827' }}>
-                          {m.label}{m.id === selectedModel ? ' ✓' : ''}
+                          {m.label}{m.id === selectedModel && m.served ? ' ✓' : ''}
                         </div>
-                        <div style={{ fontSize: 10, color: '#9ca3af' }}>{m.desc}</div>
+                        <div style={{ fontSize: 10, color: '#9ca3af' }}>
+                          {m.served ? m.desc : 'not wired here yet'}
+                        </div>
                       </div>
                     </button>
                   ))}

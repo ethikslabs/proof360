@@ -15,6 +15,29 @@ import { retrieveCorpusEvidence, evidenceBlock } from '../services/corpus-retrie
 
 const MODEL = 'claude-haiku-4-5-20251001';
 
+// What this seam can ACTUALLY serve — i.e. what inference.js MODEL_MAP resolves to
+// a real Bedrock inference profile. The picker offers seven models across four
+// providers (Bedrock, NVIDIA, Google, Foundry) because the breadth is the point:
+// this is a market, not a monolith. But breadth in the chrome is a promise, and
+// until the other lanes are wired, picking one of them answered as Haiku wearing
+// its name — which is how "● Claude Sonnet 4.6 · Bedrock" came to sit above a
+// Haiku answer on John's screen (2026-08-26).
+//
+// Azure stays off this list on standing estate ruling regardless of wiring
+// (inference priority: Bedrock → NIM → paid; Azure banned).
+export const SERVED_MODELS = ['claude-haiku-4-5-20251001', 'claude-sonnet-4-6'];
+
+// Default-deny: an unrecognised model_override is a request we cannot honour, not
+// a hint to interpret. We fall back — but we SAY that we fell back, so the surface
+// can report what answered instead of what was asked for. A silent substitution is
+// the bug; a declared one is just an honest limit.
+export function resolveChatModel(requested) {
+  if (requested && SERVED_MODELS.includes(requested)) {
+    return { model: requested, requested, substituted: false };
+  }
+  return { model: MODEL, requested: requested ?? null, substituted: !!requested };
+}
+
 // persona_override whitelist — accepts both 'sofia' (frontend persona id) and
 // 'sophia' (canonical persona name), normalized to 'sophia' internally.
 const PERSONA_OVERRIDE_MAP = { sofia: 'sophia', sophia: 'sophia', leonardo: 'leonardo', edison: 'edison' };
@@ -66,7 +89,10 @@ function classifyIntent(message) {
 
 export async function sessionChatHandler(request, reply) {
   const { id } = request.params;
-  const { message, persona_override } = request.body ?? {};
+  const { message, persona_override, model_override } = request.body ?? {};
+  // Honour the picker. It has been sending model_override since the chrome
+  // redesign; nothing read it, so every answer was Haiku regardless.
+  const { model: servedModel, substituted } = resolveChatModel(model_override);
 
   if (!message?.trim()) {
     return reply.status(400).send({ error: 'message_required' });
@@ -253,7 +279,7 @@ export async function sessionChatHandler(request, reply) {
 
   try {
     const stream = chatStream({
-      model: MODEL,
+      model: servedModel,
       max_tokens: 300,
       messages: [{ role: 'system', content: systemPrompt }, ...apiMessages],
       correlation_id: id,
@@ -268,9 +294,12 @@ export async function sessionChatHandler(request, reply) {
           'Cache-Control': 'no-cache',
           'X-Accel-Buffering': 'no',
           'X-Persona': persona,
-          'X-Model': MODEL,
+          // The model that ANSWERED, never the one that was asked for — the
+          // surface badges what this header says.
+          'X-Model': servedModel,
+          'X-Model-Substituted': substituted ? 'true' : 'false',
           'Access-Control-Allow-Origin': '*',
-          'Access-Control-Expose-Headers': 'X-Persona, X-Model',
+          'Access-Control-Expose-Headers': 'X-Persona, X-Model, X-Model-Substituted',
         });
         headersWritten = true;
       }
