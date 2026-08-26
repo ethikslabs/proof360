@@ -7,7 +7,7 @@ import { HIVE_STAGES } from '../../data/mock/hive.js';
 // live on the shortlist page.
 import { AddToShortlist } from './AddToShortlist.jsx';
 import { ClaimStrip } from './ClaimStrip.jsx';
-import { livePanel } from '../../rendering/livePanel.js';
+import { panelFor } from '../../rendering/livePanel.js';
 
 function SeverityDot({ severity, t }) {
   const tk = tokens(t.theme);
@@ -480,7 +480,10 @@ function AwsProjection({ panel, company, live, t }) {
   // Live matches win; the demo fixture only stands in for the Hive & Co
   // walkthrough. A real company with no matches gets an honest empty note, never
   // a catalogue dump dressed as personalised offers.
-  const d = livePanel(live, 'aws') ?? panel ?? YOURS_AWS;
+  // The fixture is for the Hive & Co walkthrough ONLY. Falling through to it for
+  // a real company that matched nothing is how "$10k unclaimed · Already granted"
+  // re-entered the product through the failure path.
+  const d = panelFor({ live, key: 'aws', fixture: panel ?? YOURS_AWS, demo: company === 'hive' });
   const availableCount = d.programs.filter(p => p.status === 'available').length;
   const statusColor = (s) => s === 'available' ? tk.sevOk : s === 'eligible' ? tk.umber : tk.inkSoft;
   const statusLabel = (s) => s === 'available' ? 'Available' : s === 'eligible' ? 'Eligible' : 'Not enrolled';
@@ -558,7 +561,7 @@ function AwsProjection({ panel, company, live, t }) {
 function MicrosoftProjection({ panel, company, live, t }) {
   const tk = tokens(t.theme);
   const tile = { kind: 'Programs', token: 'teal', glyphKey: 'microsoft', title: 'Microsoft programs matched to your stage' };
-  const d = livePanel(live, 'microsoft') ?? panel ?? YOURS_MICROSOFT;
+  const d = panelFor({ live, key: 'microsoft', fixture: panel ?? YOURS_MICROSOFT, demo: company === 'hive' });
   const statusColor = (s) => s === 'available' ? tk.sevOk : s === 'eligible' ? tk.umber : tk.inkSoft;
   const statusLabel = (s) => s === 'available' ? 'Available' : s === 'eligible' ? 'Eligible' : 'Not enrolled';
 

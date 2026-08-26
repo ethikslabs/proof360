@@ -43,3 +43,27 @@ export function livePanel(live, key) {
 }
 
 export default livePanel;
+
+// Which panel a company actually gets.
+//
+// The first cut read `livePanel(live, key) ?? panel ?? FIXTURE`, which sends a
+// real company that matched ZERO programs straight into the demo fixture — and
+// tells them "$10k unclaimed · Already granted · log in to redeem" about their own
+// AWS account. The fabrication the change removed, re-entered through the failure
+// path. (Caught in the deployed bundle, 2026-08-26.)
+//
+// The fixture is for the Hive & Co walkthrough and nothing else. Every other
+// case gets the truth, including "we matched you against the catalogue and
+// nothing fit yet", which is a real and useful answer.
+export function panelFor({ live, key, fixture, demo = false }) {
+  if (demo && fixture) return fixture;
+
+  const matched = livePanel(live, key);
+  if (matched) return matched;
+
+  return {
+    summary: 'Programs are matched against what we know about you — your stage, what you build, where you run it.',
+    programs: [],
+    emptyNote: 'Nothing matched yet. As we learn more about you — or as you confirm what we have noted — programs appear here with the reason each one fits.',
+  };
+}
