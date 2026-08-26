@@ -9,6 +9,8 @@ import {
   claimsProjection,
   nextConfirmable,
 } from '../services/claims-projection.js';
+import { liveProposals, shortlistSnapshot } from './shortlist.js';
+import { cerProjection } from '../services/cer-projection.js';
 
 export function sessionRecordSnapshot(session) {
   return {
@@ -17,12 +19,37 @@ export function sessionRecordSnapshot(session) {
   };
 }
 
+// A partial record rendered as if it were whole is worse than a missing section:
+// the founder reads "nothing is open to you" when the truth is "we could not work
+// it out just now". Each derived section is therefore isolated — one that throws
+// yields an empty array and the rest of the page still stands.
+function safely(label, fn) {
+  try {
+    const out = fn();
+    return Array.isArray(out) ? out : [];
+  } catch (err) {
+    console.error(JSON.stringify({ event: 'record_section_failed', section: label, error: err.message }));
+    return [];
+  }
+}
+
+// The whole record in one read (John, 2026-08-26: "a pop out to a new page with
+// all of that, not just sitting in the bubble"). A page that had to fan out to
+// /proposals and /shortlist separately would render three partial truths at three
+// different moments — the same fault that put 12, 6 and 0/6 on one screen.
 function projectRecord(session) {
   const claims = claimsProjection(sessionRecordSnapshot(session));
   return {
+    company_name: session.company_name || null,
+    website_url: session.website_url || null,
     claims,
+    proposals: safely('proposals', () => liveProposals(session)),
+    shortlist: safely('shortlist', () => cerProjection(shortlistSnapshot(session))),
     confirmed_count: claims.filter((c) => c.status === 'confirmed' || c.status === 'corrected').length,
     inferred_count: claims.filter((c) => c.status === 'inferred').length,
+    // What the founder has settled, out of what we have noted. A count of your own
+    // answers is not a grade — nothing here marks the company out of anything.
+    total_count: claims.length,
     next_confirmable: nextConfirmable(claims),
   };
 }

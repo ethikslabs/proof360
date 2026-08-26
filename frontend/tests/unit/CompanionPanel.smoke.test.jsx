@@ -49,12 +49,20 @@ describe('CompanionPanel', () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it('renders a claims strip when only claims exist (no items yet), speaking human', () => {
-    render(<CompanionPanel items={[]} claims={[{ claim_id: 'c1' }, { claim_id: 'c2' }]}
+  // This used to assert a second count inside the body — "2 things we've noted so
+  // far" — written when the panel held claims and nothing else. Once it also
+  // carried the shortlist and the pathway, that line said 6 while the header two
+  // rows above said 12: both counting honestly, both counting different things,
+  // and a person reading one screen sees a bug (John's screenshots, 2026-08-26).
+  // The header keeps the count. The panel keeps a door to the page that can hold
+  // the whole record.
+  it('counts the record once, and offers the way through to all of it', () => {
+    const { container } = render(<CompanionPanel items={[]} claims={[{ claim_id: 'c1' }, { claim_id: 'c2' }]}
       isDemoMode={false} onShortlist={() => {}} onDefer={() => {}} />);
-    // No per-claim tap handler exists yet, so the honest copy is "so far", not
-    // a tap invite (John live-walk feedback 2026-08-25).
-    expect(screen.getByText(/2 things we've noted so far/)).toBeTruthy();
+    expect(container.textContent).toMatch(/2 noted/);
+    expect(container.textContent).not.toMatch(/things we've noted so far/);
+    const hrefs = [...container.querySelectorAll('a')].map((a) => a.getAttribute('href'));
+    expect(hrefs).toContain('/record');
   });
 });
 

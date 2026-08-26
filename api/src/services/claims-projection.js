@@ -219,7 +219,12 @@ export function buildInferredClaims({ recon = {}, signals = [] } = {}) {
       value: signal.value,
       provenance: {
         method: 'claude-inference',
-        detail: `website extraction (${signal.confidence || 'unstated'} confidence)`,
+        // signal.confidence is a WORD from the extractor ('confident', 'probable'),
+        // not a number — so the old template rendered "website extraction
+        // (confident confidence)" on John's screen. Say it once, in plain words.
+        detail: signal.confidence
+          ? `website extraction · ${signal.confidence}`
+          : 'website extraction',
       },
     }));
     claimedFields.set(field, signal.value);

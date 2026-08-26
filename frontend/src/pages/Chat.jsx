@@ -2487,6 +2487,10 @@ export default function Chat() {
             if (ctx?.stage !== undefined) setHiveStage(ctx.stage);
           }}
           litTiles={litTiles}
+          record={{
+            confirmed: recordClaims.filter((c) => c.status === 'confirmed' || c.status === 'corrected').length,
+            total: recordClaims.length,
+          }}
           browserTabs={browserTabs}
           onInject={({ persona, content }) => {
             setMessages(prev => [...prev, {

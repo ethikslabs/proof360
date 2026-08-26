@@ -25,7 +25,7 @@ function openGapIds(session) {
     .map((g) => g.id);
 }
 
-function shortlistSnapshot(session) {
+export function shortlistSnapshot(session) {
   const records = session.shortlist_records || [];
   return {
     decisions: records.filter((r) => r.primitive === 'decision'),

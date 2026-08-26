@@ -10,6 +10,7 @@ import FounderAuth from './pages/FounderAuth';
 import FounderDashboard from './pages/FounderDashboard';
 import Chat from './pages/Chat';
 import Journey from './pages/Journey';
+import RecordPage from './pages/RecordPage';
 import Mel from './pages/Mel';
 import Lab from './pages/Lab';
 
@@ -80,6 +81,7 @@ export default function App() {
             <Route path="/admin/preread" element={<AdminPreread />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/journey" element={<Journey />} />
+            <Route path="/record" element={<RecordPage />} />
             <Route path="/mel/:beatId" element={<Mel />} />
             <Route path="/mel" element={<Mel />} />
             {/* The accumulating "lab" home (design/hiveandco-lab). Additive first cut; folds into

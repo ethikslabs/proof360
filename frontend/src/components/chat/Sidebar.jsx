@@ -165,7 +165,7 @@ function AccordionSection({ title, accent, count, total, open, onToggle, collaps
   );
 }
 
-export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, litTiles, browserTabs = [], onInject, hiveStage: hiveStageFromParent, onHiveStageChange, noLogo, yourCompanyName, cers = [], onSignIn, t }) {
+export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, litTiles, browserTabs = [], onInject, hiveStage: hiveStageFromParent, onHiveStageChange, noLogo, yourCompanyName, cers = [], onSignIn, record, t }) {
   const tk = tokens(t.theme);
   const [demoOpen, setDemoOpen]           = useState(true);
   const [hiveStageInternal, setHiveStageInternal] = useState(1);
@@ -192,6 +192,17 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
   const hiveSnap  = HIVE_STAGES[hiveStage].spaces;
   const hiveCount = Object.values(hiveSnap).filter(v => v.lit).length;
   const litCount  = Object.values(litTiles).filter(Boolean).length;
+
+  // The card's fraction is the RECORD, not the surfaces. `litCount` folds
+  // litTiles — the six SPACES projections — which nothing in the live record ever
+  // lights, so with six claims confirmed the card still read 0/6 while the panel
+  // beside it read 12 noted (John, 2026-08-26). It now counts what the founder has
+  // settled out of what we have noted, and fills as they confirm. Callers that
+  // pass no record keep the old behaviour rather than losing the card entirely.
+  const hasRecord   = (record?.total ?? 0) > 0;
+  const recordCount = hasRecord ? record.confirmed : litCount;
+  const recordTotal = hasRecord ? record.total : 6;
+  const yoursLit    = hasRecord ? recordCount > 0 : litCount > 0;
 
   return (
     <aside style={{
@@ -337,28 +348,28 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
         {userTabs.length === 0 ? (
           <div style={{
             margin: '4px 8px 8px',
-            border: `1.5px dashed ${litCount > 0 ? tk.plum + '60' : '#c4b8d0'}`,
+            border: `1.5px dashed ${yoursLit ? tk.plum + '60' : '#c4b8d0'}`,
             borderRadius: 10,
-            background: litCount > 0 ? `${tk.plum}06` : '#f5f3f9',
+            background: yoursLit ? `${tk.plum}06` : '#f5f3f9',
             overflow: 'hidden',
           }}>
           <AccordionSection
             title={yourCompanyName ?? TWIN_YOURS}
-            accent={litCount > 0 ? tk.plum : '#8e7caa'}
-            count={litCount} total={6}
+            accent={yoursLit ? tk.plum : '#8e7caa'}
+            count={recordCount} total={recordTotal}
             open={isSectionOpen('__yours')} onToggle={() => toggleSection('__yours')}
             collapsed={collapsed}
             avatar={!collapsed && (
               <div style={{
                 width: 24, height: 24, borderRadius: 6, flexShrink: 0,
-                background: litCount > 0 ? tk.plum : '#c4b8d0',
+                background: yoursLit ? tk.plum : '#c4b8d0',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontFamily: '"IBM Plex Sans", sans-serif',
                 fontSize: 9, fontWeight: 700, color: '#fff', letterSpacing: '0.04em',
               }}>{TWIN_INITIALS}</div>
             )}
           >
-            {litCount === 0 && !collapsed && (
+            {!hasRecord && litCount === 0 && !collapsed && (
               <div style={{
                 padding: '2px 16px 12px',
                 fontFamily: '"Instrument Serif", Georgia, serif',
@@ -366,6 +377,25 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
                 lineHeight: 1.5,
               }}>
                 Chat to fill this in — it builds as we learn about you.
+              </div>
+            )}
+            {/* The door to the record's own page (John 2026-08-26: "a pop out to a
+                new page with all of that, not just sitting in the bubble"). Only
+                when there IS a record — never an invitation to an empty room. */}
+            {hasRecord && !collapsed && (
+              <div style={{ padding: '0 16px 12px' }}>
+                <a
+                  href="/record"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    fontFamily: '"IBM Plex Mono", monospace', fontSize: 10,
+                    color: tk.plum, textDecoration: 'none',
+                    borderBottom: `1px solid ${tk.plum}55`,
+                  }}
+                >
+                  Open the full record →
+                </a>
               </div>
             )}
             {/* Ghost icons in collapsed mode even when empty — signals parallel structure */}

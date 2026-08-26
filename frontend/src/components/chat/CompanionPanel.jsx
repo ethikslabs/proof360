@@ -79,12 +79,13 @@ export function CompanionPanel({ items, claims, proposals, isDemoMode, onShortli
             here noted that tapping a claim did nothing — onAnswerClaim wires it
             to the confirm/reject endpoint that has existed since SPEC-011, and
             ClaimStrip offers no buttons at all when that handler is absent, so
-            the invite is never emptier than the action behind it. */}
-        {claims?.length > 0 && (
-          <div style={{ fontSize: 11, color: '#94a3b8', padding: '0 0 8px' }}>
-            {claims.length} thing{claims.length !== 1 ? 's' : ''} we&apos;ve noted so far
-          </div>
-        )}
+            the invite is never emptier than the action behind it.
+
+            A second count used to sit here — "N things we've noted so far" —
+            reading 6 while the header three lines above read 12, because one
+            counted claims and the other counted the whole record. Both true,
+            together a bug. The header keeps the count; this line is now the door
+            out to the page that can actually hold it. */}
         <ClaimStrip claims={claims} onAnswer={onAnswerClaim} />
         {/* The supply side: what the register says is open to them right now,
             each with the claim or gap that earned it. Renders nothing until
@@ -96,6 +97,26 @@ export function CompanionPanel({ items, claims, proposals, isDemoMode, onShortli
           onShortlist={onShortlist}
           onDefer={onDefer}
         />
+        {/* The way out. The panel floats over the conversation — at John's window
+            width it was clipping Leonardo mid-sentence — so anything that wants
+            room to be read belongs on the record page, not in here. */}
+        <div style={{ padding: '10px 0 12px', borderTop: '1px solid rgba(148,163,184,0.15)', marginTop: 6 }}>
+          {/* A real pop-out: the record opens BESIDE the conversation, not over
+              it. A plain anchor rather than a router Link — this panel renders in
+              tests and surfaces that have no router, and a leaf component should
+              not drag one in. */}
+          <a
+            href="/record"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              fontFamily: '"IBM Plex Mono", monospace', fontSize: 10.5, color: '#5eead4',
+              textDecoration: 'none', borderBottom: '1px solid rgba(94,234,212,0.35)',
+            }}
+          >
+            Open the full record →
+          </a>
+        </div>
       </div>
     </div>
   );
