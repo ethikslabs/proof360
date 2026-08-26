@@ -6,10 +6,11 @@
 import { useState } from 'react';
 import { VendorShortlist } from './VendorShortlist.jsx';
 import { ClaimStrip } from './ClaimStrip.jsx';
+import { PathwaySuggestions } from './PathwaySuggestions.jsx';
 
-export function CompanionPanel({ items, claims, isDemoMode, onShortlist, onDefer, onAnswerClaim, companyName }) {
+export function CompanionPanel({ items, claims, proposals, isDemoMode, onShortlist, onDefer, onAnswerClaim, onAcceptProposal, companyName }) {
   const [open, setOpen] = useState(true);
-  const count = (items?.length ?? 0) + (claims?.length ?? 0);
+  const count = (items?.length ?? 0) + (claims?.length ?? 0) + (proposals?.length ?? 0);
   if (count === 0) return null;
 
   // Cold-human test: "Your record · N entries" reads as "what record? what entries?"
@@ -85,6 +86,10 @@ export function CompanionPanel({ items, claims, isDemoMode, onShortlist, onDefer
           </div>
         )}
         <ClaimStrip claims={claims} onAnswer={onAnswerClaim} />
+        {/* The supply side: what the register says is open to them right now,
+            each with the claim or gap that earned it. Renders nothing until
+            evidence opens the lane (D4). */}
+        <PathwaySuggestions proposals={proposals} onAccept={onAcceptProposal} />
         <VendorShortlist
           vendors={items}
           shortlistedIds={items}

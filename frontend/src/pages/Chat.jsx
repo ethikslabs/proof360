@@ -3339,7 +3339,9 @@ export default function Chat() {
       isDemoMode={inDemoMode}
       onShortlist={handleShortlist}
       onDefer={handleDefer}
+      proposals={visibleProposals}
       onAnswerClaim={liveSessionId ? handleAnswerClaim : undefined}
+      onAcceptProposal={liveSessionId ? handleAcceptProposal : undefined}
       companyName={founderProfileName ?? companyProfile.name ?? companyData?.company_name ?? null}
     />
     </ShortlistContext.Provider>
