@@ -35,6 +35,16 @@ describe('coldReadFailure — names what happened', () => {
     }
   });
 
+  // The restart case, which is the one that actually bit (2026-08-26): the server
+  // said 'failed', the client called it a timeout, and nobody could tell them apart.
+  it('reports a server-side scan failure distinctly from a client-side timeout', () => {
+    const scanFailed = coldReadFailure(D, new Error('scan failed'));
+    const timedOut = coldReadFailure(D, new Error('inference timeout'));
+    expect(scanFailed).not.toBe(timedOut);
+    expect(scanFailed).toMatch(/restarting under it/i);
+    expect(scanFailed).toMatch(/that's on us, not the url/i);
+  });
+
   it('always names the domain that was being read', () => {
     expect(coldReadFailure(D, new Error('inference timeout'))).toContain(D);
     expect(coldReadFailure(D, new Error('something unmapped'))).toContain(D);

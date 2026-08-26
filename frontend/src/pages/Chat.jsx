@@ -2059,6 +2059,11 @@ export default function Chat() {
             const r = await fetch(`/api/v1/session/${session_id}/infer-status`);
             inferStatus = (await r.json()).status;
           }
+          // A server that says 'failed' is not a timeout. Reporting it as one is
+          // what made a restart-orphaned session look like a slow scan for an
+          // entire afternoon (2026-08-26) — the poll loop exits either way, so
+          // the two were indistinguishable in the message the founder saw.
+          if (inferStatus === 'failed') throw new Error('scan failed');
           if (inferStatus !== 'complete') throw new Error('inference timeout');
 
           // Extraction's acts are done but the work isn't: gap analysis + the

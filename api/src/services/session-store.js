@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { mkdir, rename, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
@@ -207,6 +207,79 @@ export function writeSignal(sessionId, signal) {
   if (!session.raw_signals) session.raw_signals = [];
   session.raw_signals.push(signal);
   persistSession(sessionId);
+}
+
+// Boot-time reaper — the restart case checkStaleSessions structurally cannot see.
+//
+// checkStaleSessions walks the in-memory Map. After a restart the Map is empty,
+// so the sessions the restart just orphaned are invisible to it: the watchdog is
+// blind to exactly the failures it exists to catch. deploy.yml runs `pm2 delete`
+// then `pm2 start`, and extractAndInfer is fire-and-forget inside the process
+// that was deleted — the RECORD rehydrates from disk, the WORK does not. The
+// session then sits on infer_status:'processing' forever and the browser polls
+// for 150s before telling the founder to check a URL that was never wrong.
+// (Diagnosed 2026-08-26 from John's three failed reads during a deploy window.)
+//
+// A process that has just started has nothing in flight, by definition. So every
+// persisted session still marked 'processing' at boot is provably orphaned.
+// Synchronous on purpose: it must finish before the first request is served, or
+// a poll can still catch a session mid-reap.
+export function reapOrphanedSessions() {
+  const dir = storeDir();
+  let reaped = 0;
+  let unreadable = 0;
+
+  let entries;
+  try {
+    entries = readdirSync(dir);
+  } catch {
+    return { reaped: 0, unreadable: 0 }; // first boot — nothing persisted yet
+  }
+
+  for (const name of entries) {
+    if (!name.endsWith('.json')) continue;
+    const path = join(dir, name);
+    let session;
+    try {
+      session = JSON.parse(readFileSync(path, 'utf8'));
+    } catch {
+      // Never delete on a guess — an unreadable file is reported, not destroyed.
+      unreadable++;
+      continue;
+    }
+
+    let changed = false;
+    if (session.infer_status === 'processing') {
+      session.infer_status = 'failed';
+      session.infer_failure_reason = 'interrupted by a restart — the scan was still running when the service was replaced';
+      changed = true;
+    }
+    if (session.analysis_status === 'processing') {
+      session.analysis_status = 'failed';
+      session.analysis_failure_reason = 'interrupted by a restart — the read was still being written when the service was replaced';
+      changed = true;
+    }
+    if (!changed) continue;
+
+    try {
+      writeFileSync(path, JSON.stringify(session), 'utf8');
+      reaped++;
+      console.error(JSON.stringify({
+        event: 'session_reaped_on_boot',
+        session_id: session.id ?? name.replace(/\.json$/, ''),
+        reason: 'orphaned_by_restart',
+      }));
+    } catch (err) {
+      console.error(JSON.stringify({
+        event: 'session_reap_failed', session_id: session.id, error: err.message,
+      }));
+    }
+  }
+
+  if (reaped || unreadable) {
+    console.error(JSON.stringify({ event: 'session_reap_complete', reaped, unreadable }));
+  }
+  return { reaped, unreadable };
 }
 
 // Pipeline timeout utility — scan all sessions and fail any stuck in "processing"

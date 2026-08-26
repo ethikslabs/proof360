@@ -1,6 +1,6 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
-import { checkStaleSessions, flushSessionsNow } from './services/session-store.js';
+import { checkStaleSessions, flushSessionsNow, reapOrphanedSessions } from './services/session-store.js';
 import { sessionStartHandler } from './handlers/session-start.js';
 import { firehoseHandler } from './handlers/firehose.js';
 import { inferStatusHandler } from './handlers/infer-status.js';
@@ -141,6 +141,17 @@ app.get('/api/health', healthHandler);
 app.get('/api/features', featuresHandler);
 app.post('/api/admin/preread', adminPrereadHandler);
 app.get('/api/admin/preread/:batch_id', adminPrereadStatusHandler);
+
+// Fail anything the last process was still working on when it was replaced.
+// checkStaleSessions below cannot do this: it walks the in-memory Map, which a
+// fresh process starts empty, so the sessions a restart just orphaned are
+// invisible to it. Runs BEFORE listen() — a poll arriving mid-reap would read
+// 'processing' and start another 150-second wait for work that no longer exists.
+const reaped = reapOrphanedSessions();
+if (reaped.reaped || reaped.unreadable) {
+  app.log.warn(`reaped ${reaped.reaped} session(s) orphaned by the last restart` +
+    (reaped.unreadable ? `, ${reaped.unreadable} unreadable` : ''));
+}
 
 // Start stale session cleanup on 30-second interval
 const staleInterval = setInterval(checkStaleSessions, 30_000);

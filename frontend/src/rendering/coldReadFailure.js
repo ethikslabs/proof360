@@ -26,6 +26,10 @@ const REASONS = {
     text: 'the scan didn\'t finish in time',
     ours: true,
   },
+  'scan failed': {
+    text: 'the scan stopped before it finished — usually the service restarting under it',
+    ours: true,
+  },
   'analysis failed': {
     text: 'the scan finished but the read didn\'t come back',
     ours: true,
