@@ -7,6 +7,7 @@ import { HIVE_STAGES } from '../../data/mock/hive.js';
 // live on the shortlist page.
 import { AddToShortlist } from './AddToShortlist.jsx';
 import { ClaimStrip } from './ClaimStrip.jsx';
+import { livePanel } from '../../rendering/livePanel.js';
 
 function SeverityDot({ severity, t }) {
   const tk = tokens(t.theme);
@@ -439,6 +440,11 @@ function VendorDetailProjection({ id, company, t }) {
   );
 }
 
+// DEMO FIXTURE ONLY — the Hive & Co walkthrough. This used to render for every
+// real company too, asserting entitlements about accounts nobody had looked at:
+// "$10k unclaimed · already granted · expires Q4 · log in to redeem". A live
+// session now renders matchedPrograms() from the 18-program AWS catalogue instead
+// (John, 2026-08-26: "add them in if we have the data").
 const YOURS_AWS = {
   summary: "Ten programs. Most founders apply for one or two and stop. $220k+ in credits and co-sell opportunities are sitting unclaimed at your stage.",
   programs: [
@@ -455,6 +461,7 @@ const YOURS_AWS = {
   ],
 };
 
+// DEMO FIXTURE ONLY — see the note on YOURS_AWS.
 const YOURS_MICROSOFT = {
   summary: "Six Microsoft programs. Founders Hub is unclaimed — that's $150k in Azure credits sitting there. The other five range from immediate to a 60-day path.",
   programs: [
@@ -467,10 +474,13 @@ const YOURS_MICROSOFT = {
   ],
 };
 
-function AwsProjection({ panel, company, t }) {
+function AwsProjection({ panel, company, live, t }) {
   const tk = tokens(t.theme);
   const tile = { kind: 'AWS', token: 'aws', glyphKey: 'aws', title: 'AWS programs matched to your stage' };
-  const d = panel ?? YOURS_AWS;
+  // Live matches win; the demo fixture only stands in for the Hive & Co
+  // walkthrough. A real company with no matches gets an honest empty note, never
+  // a catalogue dump dressed as personalised offers.
+  const d = livePanel(live, 'aws') ?? panel ?? YOURS_AWS;
   const availableCount = d.programs.filter(p => p.status === 'available').length;
   const statusColor = (s) => s === 'available' ? tk.sevOk : s === 'eligible' ? tk.umber : tk.inkSoft;
   const statusLabel = (s) => s === 'available' ? 'Available' : s === 'eligible' ? 'Eligible' : 'Not enrolled';
@@ -545,10 +555,10 @@ function AwsProjection({ panel, company, t }) {
   );
 }
 
-function MicrosoftProjection({ panel, company, t }) {
+function MicrosoftProjection({ panel, company, live, t }) {
   const tk = tokens(t.theme);
   const tile = { kind: 'Programs', token: 'teal', glyphKey: 'microsoft', title: 'Microsoft programs matched to your stage' };
-  const d = panel ?? YOURS_MICROSOFT;
+  const d = livePanel(live, 'microsoft') ?? panel ?? YOURS_MICROSOFT;
   const statusColor = (s) => s === 'available' ? tk.sevOk : s === 'eligible' ? tk.umber : tk.inkSoft;
   const statusLabel = (s) => s === 'available' ? 'Available' : s === 'eligible' ? 'Eligible' : 'Not enrolled';
 
@@ -858,7 +868,7 @@ export function KeptProjection({ record, company, onAccept, onAnswerClaim, t }) 
   );
 }
 
-export function Projection({ id, company, hiveStage, onBack, record, onAcceptProposal, onAnswerClaim, t }) {
+export function Projection({ id, company, hiveStage, onBack, record, programs, onAcceptProposal, onAnswerClaim, t }) {
   const tk = tokens(t.theme);
   const hive = company === 'hive';
   const stagePanel = hive ? HIVE_STAGES[hiveStage ?? 1]?.panel : null;
@@ -866,8 +876,8 @@ export function Projection({ id, company, hiveStage, onBack, record, onAcceptPro
   const inner = id === 'kept'      ? <KeptProjection       record={record} company={company} onAccept={onAcceptProposal} onAnswerClaim={onAnswerClaim} t={t} />
               : id === 'investor'  ? <InvestorProjection   panel={stagePanel?.investor}  company={company} t={t} />
               : id === 'vendors'   ? <VendorsProjection    panel={stagePanel?.vendors}   company={company} t={t} />
-              : id === 'aws'       ? <AwsProjection        panel={stagePanel?.aws}       company={company} t={t} />
-              : id === 'microsoft' ? <MicrosoftProjection  panel={stagePanel?.microsoft} company={company} t={t} />
+              : id === 'aws'       ? <AwsProjection        panel={stagePanel?.aws}       company={company} live={programs} t={t} />
+              : id === 'microsoft' ? <MicrosoftProjection  panel={stagePanel?.microsoft} company={company} live={programs} t={t} />
               : id === 'posture'   ? <PostureProjection    panel={stagePanel?.posture}   company={company} t={t} />
               : id === 'spv'       ? <SpvProjection        panel={stagePanel?.spv}       company={company} t={t} />
               : VENDOR_PAGES[id]   ? <VendorDetailProjection id={id} company={company} t={t} />

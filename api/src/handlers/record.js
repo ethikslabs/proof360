@@ -10,6 +10,7 @@ import {
   nextConfirmable,
 } from '../services/claims-projection.js';
 import { liveProposals, shortlistSnapshot } from './shortlist.js';
+import { matchedPrograms } from '../services/programs-matcher.js';
 import { cerProjection } from '../services/cer-projection.js';
 
 export function sessionRecordSnapshot(session) {
@@ -90,6 +91,16 @@ export async function chatReceiptsHandler(request, reply) {
   const session = getSession(request.params.id);
   if (!session) return reply.status(404).send({ error: 'session_not_found' });
   return reply.send({ receipts: session.chat_receipts || [] });
+}
+
+// GET /api/v1/session/:id/programs — the AWS and Microsoft programs this company
+// actually qualifies for, matched by the same trigger evaluation recompute runs.
+// Replaces two hardcoded UI constants that asserted entitlements ("$10k unclaimed
+// — already granted") about accounts nobody had looked at (John, 2026-08-26).
+export async function programsHandler(request, reply) {
+  const session = getSession(request.params.id);
+  if (!session) return reply.status(404).send({ error: 'session_not_found' });
+  return reply.send(matchedPrograms(session));
 }
 
 // GET /api/v1/session/:id/record

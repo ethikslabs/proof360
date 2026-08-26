@@ -1,0 +1,45 @@
+// Real matched programs, shaped for the projection panels.
+//
+// The AWS and Microsoft panels rendered hardcoded constants for every company
+// that wasn't the Hive & Co demo, asserting entitlements about the founder's own
+// accounts: "$10k unclaimed · already granted · expires Q4 · log in to redeem".
+// 18 AWS and 12 Microsoft programs with real trigger evaluation were one import
+// away the whole time (John, 2026-08-26: "add them in if we have the data").
+//
+// Returns null when nothing genuinely matched, so the caller falls through
+// rather than rendering an empty panel that still implies a match.
+const STATUS_BY_CONFIDENCE = { high: 'available', medium: 'eligible' };
+
+function why(matched_on) {
+  const parts = (matched_on ?? [])
+    .filter((m) => m && m.field && m.value !== undefined && m.value !== null)
+    .map((m) => `${String(m.field).replace(/_/g, ' ')} is ${m.value}`);
+  return parts.length ? `Matched because your ${parts.join(' and ')}.` : null;
+}
+
+export function livePanel(live, key) {
+  const raw = live?.[key];
+  if (!Array.isArray(raw)) return null;
+
+  // No link, no offer — the same no-dead-controls rule the pathway follows.
+  const programs = raw
+    .filter((p) => p && p.name && typeof p.url === 'string' && p.url.startsWith('https://'))
+    .map((p) => ({
+      name: p.name,
+      status: STATUS_BY_CONFIDENCE[p.confidence] ?? 'eligible',
+      value: p.benefit ?? null,
+      detail: why(p.matched_on),
+      url: p.url,
+    }));
+
+  if (programs.length === 0) return null;
+
+  return {
+    // Counts what it has. The old copy announced a catalogue total ("$220k+ in
+    // credits sitting unclaimed at your stage") regardless of what matched.
+    summary: `${programs.length} program${programs.length === 1 ? '' : 's'} matched to what we know about you so far. Each one lists why it matched — nothing here is a guess about your account.`,
+    programs,
+  };
+}
+
+export default livePanel;

@@ -1500,6 +1500,10 @@ export default function Chat() {
   // sandbox; `serverShortlist` is the founder's real one, restored on return.
   const [serverShortlist, setServerShortlist] = useState([]);
   const [recordClaims, setRecordClaims]       = useState([]);
+  // The programs this company actually qualifies for — matched server-side by the
+  // same trigger evaluation recompute runs. Replaces two hardcoded panels that
+  // asserted entitlements about the founder's own AWS/Azure accounts.
+  const [livePrograms, setLivePrograms]       = useState(null);
   const liveSessionId = companyData?.session_id ?? null;
 
   // The demo/workspace discriminator (INVARIANTS.md §4): true only while the
@@ -1518,6 +1522,12 @@ export default function Chat() {
     if (!sid) return;
     const [rec, sl] = await Promise.allSettled([spine.getRecord(sid), spine.getShortlist(sid)]);
     if (rec.status === 'fulfilled') setRecordClaims(rec.value.record?.claims ?? []);
+    // Re-matched on every spine refresh, so confirming a claim can open a program
+    // the same way it opens a pathway.
+    fetch(`/api/v1/session/${sid}/programs`)
+      .then(r => (r.ok ? r.json() : null))
+      .then(p => setLivePrograms(p))
+      .catch(() => { /* panels fall through to their fixture */ });
     if (sl.status === 'fulfilled') setServerShortlist(sl.value.shortlist ?? []);
   }, [liveSessionId]);
 
@@ -3267,6 +3277,7 @@ export default function Chat() {
                     confirmed_count: recordClaims.filter((c) => c.status === 'confirmed' || c.status === 'corrected').length,
                     total_count: recordClaims.length,
                   }}
+                  programs={livePrograms}
                   onAcceptProposal={handleAcceptProposal}
                   onAnswerClaim={handleAnswerClaim}
                   onBack={() => {
