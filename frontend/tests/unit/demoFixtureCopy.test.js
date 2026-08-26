@@ -20,16 +20,26 @@ import { readFileSync } from 'node:fs';
 const src = readFileSync('src/components/chat/Projections.jsx', 'utf8');
 const fixtures = src.slice(src.indexOf('const YOURS_AWS'), src.indexOf('function AwsProjection'));
 
+// The first cut of this test read only Projections.jsx — and missed the demo data
+// that is ACTUALLY on screen during the walkthrough. hive.js supplies the Hive &
+// Co stage panels, and it still said "Founders Hub is unclaimed — $150k in Azure
+// credits... Most of this is just sitting there." The panel John demos was the one
+// place the grammar survived, because the test looked everywhere except there.
+// Caught by grepping the deployed bundle, not by the suite.
+const hive = readFileSync('src/data/mock/hive.js', 'utf8');
+const allDemoCopy = fixtures + hive;
+
 describe('the demo fixtures model the grammar we want copied', () => {
   it('claims nothing is already granted or waiting to be redeemed', () => {
-    expect(fixtures).not.toMatch(/already granted/i);
-    expect(fixtures).not.toMatch(/log in to redeem/i);
-    expect(fixtures).not.toMatch(/unclaimed/i);
+    expect(allDemoCopy).not.toMatch(/already granted/i);
+    expect(allDemoCopy).not.toMatch(/log in to redeem/i);
+    expect(allDemoCopy).not.toMatch(/unclaimed/i);
   });
 
   it('does not assert a total sitting in the founder’s accounts', () => {
-    expect(fixtures).not.toMatch(/sitting there/i);
-    expect(fixtures).not.toMatch(/\$220k\+/);
+    expect(allDemoCopy).not.toMatch(/sitting there/i);
+    expect(allDemoCopy).not.toMatch(/just sitting/i);
+    expect(allDemoCopy).not.toMatch(/\$220k\+/);
   });
 
   // It must still be worth demoing — real programs, real value, real links.

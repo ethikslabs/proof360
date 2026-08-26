@@ -89,7 +89,7 @@ export const HIVE_STAGES = [
       investor: { lit: true, sub: 'Score 38',   persona: 'sofia',    msg: "Score 38 reflects a company that's started the documentation process but hasn't finished it. Data room is open. Cap table is clean. But the evidence layer underneath is still thin. Enough to start conversations. Not enough to close them." },
       vendors:  { lit: true, sub: '6 matched',  persona: 'leonardo', msg: "Six vendors matched once they started looking: Vanta for compliance, Cloudflare for edge security, two insurance products, two AWS programs. The vendor stack tells investors: this company has started building infrastructure." },
       aws:       { lit: true,  sub: '8 programs', persona: 'edison',   msg: "Eight AWS programs mapped. Two are available right now — including Activate, which doesn't require an AWS footprint to apply. Five unlock when blockchain infrastructure moves to AWS in Stage 3. Most founders at this stage don't know half of these exist." },
-      microsoft: { lit: true,  sub: '6 programs', persona: 'leonardo', msg: "Six Microsoft programs. Founders Hub is unclaimed — $150k in Azure credits, 20-minute application. GitHub Copilot comes with it. The Ingram AMP assessment is free and available immediately. Most of this is just sitting there." },
+      microsoft: { lit: true,  sub: '6 programs', persona: 'leonardo', msg: "Six Microsoft programs you'd qualify for. Founders Hub carries the most — up to $150k in Azure credits, 20-minute application. GitHub Copilot comes with it. The Ingram AMP assessment is free. None of it is automatic; each one still has to be applied for." },
       posture:   { lit: true,  sub: '2 checks',   persona: 'edison',   msg: "Two checks: SSL plus a basic access control audit. Enough to put something in a security questionnaire. Not enough to satisfy enterprise procurement." },
       spv:      { lit: true, sub: 'None',       persona: 'sofia',    msg: "No SPV yet, but SAFE documentation is in progress. An investor could wire money — it would just take two weeks of legal work first." },
     },
@@ -142,7 +142,7 @@ export const HIVE_STAGES = [
         ],
       },
       microsoft: {
-        summary: "Six Microsoft programs. Founders Hub is unclaimed — $150k in credits, 20-minute application. GitHub Copilot comes with it. The other four range from immediate to a 60-day path.",
+        summary: "Six Microsoft programs you'd qualify for. Founders Hub carries the most — up to $150k in credits, 20-minute application. GitHub Copilot comes with it. The other four range from immediate to a 60-day path.",
         programs: [
           { name: 'Microsoft for Startups Founders Hub',  status: 'available',    value: 'Up to $150k Azure credits + GitHub Enterprise + M365', detail: 'Seed stage qualifies · apply now',                            url: 'https://www.microsoft.com/en-us/startups'                             },
           { name: 'GitHub Copilot for Business',          status: 'available',    value: 'Free via Founders Hub',                               detail: 'Included · activate in GitHub after Hub onboarding',          url: 'https://github.com/features/copilot'                                  },
