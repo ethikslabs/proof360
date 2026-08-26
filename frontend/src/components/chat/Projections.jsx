@@ -440,16 +440,23 @@ function VendorDetailProjection({ id, company, t }) {
   );
 }
 
-// DEMO FIXTURE ONLY — the Hive & Co walkthrough. This used to render for every
-// real company too, asserting entitlements about accounts nobody had looked at:
-// "$10k unclaimed · already granted · expires Q4 · log in to redeem". A live
-// session now renders matchedPrograms() from the 18-program AWS catalogue instead
-// (John, 2026-08-26: "add them in if we have the data").
+// DEMO FIXTURE ONLY — the Hive & Co walkthrough. A live session renders
+// matchedPrograms() from the 18-program AWS catalogue instead (John, 2026-08-26:
+// "add them in if we have the data"), and panelFor() keeps this unreachable for
+// any real company, including one that matched nothing.
+//
+// COPY RULE, and it applies here as much as to the live panels: speak in
+// ELIGIBILITY, never entitlement. This fixture used to read "$10k unclaimed ·
+// already granted · expires Q4 · log in to redeem" and "$220k+ sitting unclaimed
+// at your stage". Hive & Co is fictional and marked as an example, so that was
+// defensible — but this is the panel demoed first and therefore the grammar that
+// gets copied. "Typically qualifies for" and "still has to be applied for" are
+// true of every founder; "already granted" is true of none we have checked.
 const YOURS_AWS = {
-  summary: "Ten programs. Most founders apply for one or two and stop. $220k+ in credits and co-sell opportunities are sitting unclaimed at your stage.",
+  summary: "Ten programs a company at this stage typically qualifies for. Most founders apply for one or two and stop — the rest are eligibility, not entitlement: each one still has to be applied for.",
   programs: [
-    { name: 'AWS Activate',                   status: 'available',    value: 'Up to $100k credits',                  detail: 'Portfolio org unlocks higher tier · apply now',                    url: 'https://aws.amazon.com/activate'                                 },
-    { name: 'Startup Credits',                status: 'available',    value: '$10k unclaimed',                       detail: 'Already granted · expires Q4 · log in to redeem',                url: 'https://console.aws.amazon.com'                                  },
+    { name: 'AWS Activate',                   status: 'available',    value: 'Up to $100k credits',                  detail: 'A portfolio org unlocks the higher tier · apply direct',           url: 'https://aws.amazon.com/activate'                                 },
+    { name: 'Startup Credits',                status: 'available',    value: 'Up to $10k credits',                   detail: 'Typical at this stage · apply through the console',              url: 'https://console.aws.amazon.com'                                  },
     { name: 'Well-Architected Review',        status: 'available',    value: 'Free architectural review',            detail: 'No cost · schedule with Solutions Architect this week',           url: 'https://aws.amazon.com/architecture/well-architected'            },
     { name: 'AWS Global Startup Program',     status: 'available',    value: 'Technical mentorship + $25k credits',  detail: 'Startup stage qualifies · 4–6 week engagement',                   url: 'https://aws.amazon.com/startups/startup-programs'                },
     { name: 'AWS ISV Accelerate',             status: 'eligible',     value: 'Co-sell with AWS field reps',          detail: 'Requires Marketplace listing + APN membership',                   url: 'https://aws.amazon.com/partners/programs/isv-accelerate'         },
@@ -461,9 +468,10 @@ const YOURS_AWS = {
   ],
 };
 
-// DEMO FIXTURE ONLY — see the note on YOURS_AWS.
+// DEMO FIXTURE ONLY — see the note on YOURS_AWS, including the copy rule:
+// eligibility, never entitlement.
 const YOURS_MICROSOFT = {
-  summary: "Six Microsoft programs. Founders Hub is unclaimed — that's $150k in Azure credits sitting there. The other five range from immediate to a 60-day path.",
+  summary: "Six Microsoft programs a company at this stage typically qualifies for. Founders Hub carries the most — up to $150k in Azure credits — and takes about twenty minutes to apply for. The other five range from immediate to a 60-day path.",
   programs: [
     { name: 'Microsoft for Startups Founders Hub',  status: 'available',    value: 'Up to $150k Azure credits + GitHub Enterprise + M365', detail: 'Startup stage qualifies · 20-minute application',             url: 'https://www.microsoft.com/en-us/startups'                             },
     { name: 'GitHub Copilot for Business',          status: 'available',    value: 'Free via Founders Hub',                               detail: 'Included · activate in GitHub settings after Hub onboarding', url: 'https://github.com/features/copilot'                                  },
