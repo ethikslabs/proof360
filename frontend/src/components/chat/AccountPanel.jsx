@@ -33,74 +33,25 @@ function Dot({ status }) {
   return <span style={{ display: 'inline-block', width: 7, height: 7, borderRadius: '50%', background: s.color, flexShrink: 0 }} />;
 }
 
-// ── Mock data — demo founder profile ─────────────────────────────────────────
-const DEMO = {
-  name: 'Your company',
-  tagline: 'Founder · Free',
-  initials: 'YC',
-  programs: [
-    {
-      id: 'aws',
-      name: 'AWS Activate',
-      status: 'pending',
-      badge: '$10k credits',
-      detail: 'Application under review. Credits applied to EC2, S3, and RDS on approval.',
-      action: null,
-    },
-    {
-      id: 'msft',
-      name: 'Microsoft for Startups',
-      status: 'active',
-      badge: '2 programs',
-      detail: null,
-      children: [
-        { name: 'Founders Hub', status: 'active', note: 'Azure credits · $1,000' },
-        { name: 'Ingram AMP Assessment', status: 'active', note: 'Free · via Ingram Micro' },
-        { name: 'Xvantage CSP', status: 'eligible', note: 'Cloud subscription resell' },
-      ],
-    },
-    {
-      id: 'cloudflare',
-      name: 'Cloudflare Startup Program',
-      status: 'eligible',
-      badge: 'Eligible',
-      detail: '$1,000 credits + Enterprise DDoS protection.',
-      action: 'Apply now',
-    },
-  ],
-  purchases: [
-    {
-      id: 'vanta',
-      name: 'Vanta',
-      category: 'Compliance automation',
-      status: 'active',
-      note: 'Via proof360 · renews 14 Jun 2026',
-    },
-    {
-      id: 'insurance',
-      name: 'Cyber Insurance',
-      category: 'Austbrokers CyberPro',
-      status: 'quote',
-      note: 'Quote requested · ~3 business days',
-    },
-  ],
-  integrations: [
-    { id: 'aws', name: 'AWS Console', status: 'connected', note: 'us-east-1 · ap-southeast-2' },
-    { id: 'github', name: 'GitHub', status: 'disconnected', note: 'Repo activity + commit signals' },
-    { id: 'xero', name: 'Xero', status: 'disconnected', note: 'Financial signals for investor readiness' },
-  ],
-};
+// The mock founder profile that used to live here is gone (John, 2026-08-26).
+// It hardcoded an AWS Activate application under review, $1,000 of Azure credits,
+// a Vanta subscription renewing 14 Jun 2026, and a connected AWS Console — and
+// rendered all of it to whoever was signed in, as if it were their account.
+// Everything below now derives from deriveAccount(user, moves): the person
+// actually logged in, and the pathways they actually kept. Sections with no real
+// source (Purchases, Integrations, Billing) do not appear at all.
+import { deriveAccount } from '../../rendering/account.js';
 
 // ── Settings sections ─────────────────────────────────────────────────────────
-function ProgramsSection() {
+function ProgramsSection({ programs }) {
   return (
     <div>
       <h2 style={{ fontSize: 18, fontWeight: 600, color: '#111827', margin: '0 0 4px', fontFamily: '"IBM Plex Sans", system-ui, sans-serif' }}>Programs</h2>
       <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 20px', fontFamily: '"IBM Plex Sans", system-ui, sans-serif' }}>
-        Programs you've applied for or are eligible to join through proof360.
+        The pathways you've kept — what each one is, and the next real step on it.
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {DEMO.programs.map(p => (
+        {programs.map(p => (
           <div key={p.id} style={{
             border: '1px solid #e5e7eb', borderRadius: 12,
             padding: '14px 16px', background: '#fafafa',
@@ -159,85 +110,39 @@ function ProgramsSection() {
   );
 }
 
-function PurchasesSection() {
+// Purchases and Integrations had no data source whatsoever. They rendered a Vanta
+// subscription "via proof360 · renews 14 Jun 2026", a pending Austbrokers cyber
+// insurance quote, and an AWS Console connected to two regions — commercial
+// relationships and live connections that do not exist, shown to the person they
+// supposedly belonged to (John, 2026-08-26).
+//
+// Nothing is invented in their place. Each says plainly that it is not wired yet,
+// which is true, checkable, and costs the founder nothing to read.
+function NotWiredYet({ title, blurb }) {
   return (
     <div>
-      <h2 style={{ fontSize: 18, fontWeight: 600, color: '#111827', margin: '0 0 4px', fontFamily: '"IBM Plex Sans", system-ui, sans-serif' }}>Purchases</h2>
+      <h2 style={{ fontSize: 18, fontWeight: 600, color: '#111827', margin: '0 0 4px', fontFamily: '"IBM Plex Sans", system-ui, sans-serif' }}>{title}</h2>
       <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 20px', fontFamily: '"IBM Plex Sans", system-ui, sans-serif' }}>
-        Products and services you've purchased through proof360.
+        {blurb}
       </p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {DEMO.purchases.map(p => (
-          <div key={p.id} style={{
-            display: 'flex', alignItems: 'center', gap: 12,
-            border: '1px solid #e5e7eb', borderRadius: 10,
-            padding: '12px 16px', background: '#fafafa',
-          }}>
-            <Dot status={p.status} />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', fontFamily: '"IBM Plex Sans", system-ui, sans-serif' }}>{p.name}</div>
-              <div style={{ fontSize: 12, color: '#9ca3af', fontFamily: '"IBM Plex Sans", system-ui, sans-serif', marginTop: 2 }}>{p.category}</div>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 11, color: STATUS[p.status]?.color ?? '#9ca3af', fontFamily: '"IBM Plex Mono", monospace', fontWeight: 600 }}>
-                {STATUS[p.status]?.label}
-              </div>
-              <div style={{ fontSize: 11, color: '#b8b1c0', fontFamily: '"IBM Plex Mono", monospace', marginTop: 2 }}>{p.note}</div>
-            </div>
-          </div>
-        ))}
-        <div style={{
-          padding: '12px 16px', borderRadius: 10,
-          background: 'linear-gradient(135deg, #f0f7ff 0%, #faf5ff 100%)',
-          border: '1px solid #dde9ff',
-        }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', fontFamily: '"IBM Plex Sans", system-ui, sans-serif', marginBottom: 4 }}>
-            {Ic.spark} More through proof360
-          </div>
-          <div style={{ fontSize: 12, color: '#6b7280', fontFamily: '"IBM Plex Sans", system-ui, sans-serif', lineHeight: 1.6 }}>
-            Cisco · Cloudflare · Ingram Micro · PaloAlto · Azure Marketplace · Wholesale Investor access
-          </div>
-        </div>
+      <div style={{
+        border: '1px dashed #e5e7eb', borderRadius: 12, padding: '18px 16px',
+        background: '#fafafa', fontSize: 13, color: '#6b7280',
+        fontFamily: '"IBM Plex Sans", system-ui, sans-serif', lineHeight: 1.55,
+      }}>
+        Nothing here yet — this isn&apos;t wired up. When it is, what you see will be
+        your own, and only ever what we can actually show you.
       </div>
     </div>
   );
 }
 
+function PurchasesSection() {
+  return <NotWiredYet title="Purchases" blurb="Products and services you've bought through proof360." />;
+}
+
 function IntegrationsSection() {
-  return (
-    <div>
-      <h2 style={{ fontSize: 18, fontWeight: 600, color: '#111827', margin: '0 0 4px', fontFamily: '"IBM Plex Sans", system-ui, sans-serif' }}>Integrations</h2>
-      <p style={{ fontSize: 13, color: '#6b7280', margin: '0 0 20px', fontFamily: '"IBM Plex Sans", system-ui, sans-serif' }}>
-        Connect your tools so proof360 can surface live signals in your analysis.
-      </p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {DEMO.integrations.map(i => (
-          <div key={i.id} style={{
-            display: 'flex', alignItems: 'center', gap: 12,
-            border: '1px solid #e5e7eb', borderRadius: 10,
-            padding: '12px 16px', background: '#fafafa',
-          }}>
-            <Dot status={i.status} />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', fontFamily: '"IBM Plex Sans", system-ui, sans-serif' }}>{i.name}</div>
-              <div style={{ fontSize: 12, color: '#9ca3af', fontFamily: '"IBM Plex Sans", system-ui, sans-serif', marginTop: 2 }}>{i.note}</div>
-            </div>
-            {i.status === 'connected' ? (
-              <span style={{ fontSize: 11, color: '#16a34a', fontFamily: '"IBM Plex Mono", monospace', fontWeight: 600 }}>Connected ✓</span>
-            ) : (
-              <button style={{
-                padding: '5px 12px', borderRadius: 8,
-                border: '1px solid #e5e7eb', background: '#ffffff',
-                color: '#374151', fontSize: 12, cursor: 'pointer',
-                fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-                fontWeight: 500,
-              }}>Connect</button>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  return <NotWiredYet title="Integrations" blurb="Tools you've connected so proof360 can read live signals." />;
 }
 
 function BillingSection() {
@@ -300,18 +205,23 @@ function GeneralSection() {
 }
 
 // ── Settings modal ─────────────────────────────────────────────────────────────
+// The badges here were literals too — '2', '1', '1' — sitting beside sections
+// whose contents were equally invented. The Programs badge now counts the
+// pathways the founder actually kept; the rest carry none, because there is
+// nothing true to count.
 const SECTIONS = [
   { id: 'general',      label: 'General',      icon: Ic.settings,  Comp: GeneralSection },
-  { id: 'programs',     label: 'Programs',      icon: Ic.programs,  Comp: ProgramsSection,     badge: '2' },
-  { id: 'purchases',    label: 'Purchases',     icon: Ic.cart,      Comp: PurchasesSection,    badge: '1' },
-  { id: 'integrations', label: 'Integrations',  icon: Ic.link,      Comp: IntegrationsSection, badge: '1' },
+  { id: 'programs',     label: 'Programs',      icon: Ic.programs,  Comp: ProgramsSection },
+  { id: 'purchases',    label: 'Purchases',     icon: Ic.cart,      Comp: PurchasesSection },
+  { id: 'integrations', label: 'Integrations',  icon: Ic.link,      Comp: IntegrationsSection },
   { id: 'billing',      label: 'Billing',       icon: Ic.billing,   Comp: BillingSection },
 ];
 
-function AccountSettings({ initialSection = 'programs', onClose }) {
+function AccountSettings({ initialSection = 'programs', account, onClose }) {
   const [activeSection, setActiveSection] = useState(initialSection);
   const current = SECTIONS.find(s => s.id === activeSection) ?? SECTIONS[0];
   const { Comp } = current;
+  const programs = account?.programs ?? [];
 
   return (
     <div style={{
@@ -379,7 +289,7 @@ function AccountSettings({ initialSection = 'programs', onClose }) {
 
         {/* Content */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '28px 28px 28px' }}>
-          <Comp />
+          <Comp programs={programs} />
         </div>
       </div>
     </div>
@@ -387,10 +297,11 @@ function AccountSettings({ initialSection = 'programs', onClose }) {
 }
 
 // ── Account menu popup ─────────────────────────────────────────────────────────
-function AccountMenu({ onClose, onOpenSettings, pos }) {
-  const activeCount = DEMO.programs.filter(p => p.status === 'active').length;
-  const purchaseCount = DEMO.purchases.filter(p => p.status === 'active').length;
-  const linkedCount = DEMO.integrations.filter(i => i.status === 'connected').length;
+function AccountMenu({ onClose, onOpenSettings, pos, account }) {
+  // Real counts, or none. "1 active / 1 active / 1 linked" were constants beside
+  // sections that had no data at all.
+  const programs = account?.programs ?? [];
+  const activeCount = programs.filter(p => p.status === 'active').length;
 
   const menuStyle = {
     background: '#ffffff', border: '1px solid #e5e7eb',
@@ -439,13 +350,13 @@ function AccountMenu({ onClose, onOpenSettings, pos }) {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 12, fontWeight: 700, letterSpacing: '0.05em',
               fontFamily: '"IBM Plex Mono", monospace', flexShrink: 0,
-            }}>{DEMO.initials}</div>
+            }}>{account?.initials ?? '·'}</div>
             <div>
               <div style={{ fontSize: 13, fontWeight: 600, color: '#111827', fontFamily: '"IBM Plex Sans", system-ui, sans-serif' }}>
-                {DEMO.name}
+                {account?.name ?? 'Your account'}
               </div>
               <div style={{ fontSize: 11, color: '#9ca3af', fontFamily: '"IBM Plex Mono", monospace' }}>
-                {DEMO.tagline}
+                {account?.email ?? ''}
               </div>
             </div>
           </div>
@@ -453,9 +364,9 @@ function AccountMenu({ onClose, onOpenSettings, pos }) {
 
         {/* Commercial items */}
         <div style={{ padding: '4px 0' }}>
-          <Row icon={Ic.programs} label="Programs"    value={`${activeCount} active`}   onClick={() => { onClose(); onOpenSettings('programs'); }} />
-          <Row icon={Ic.cart}     label="Purchases"   value={`${purchaseCount} active`} onClick={() => { onClose(); onOpenSettings('purchases'); }} />
-          <Row icon={Ic.link}     label="Integrations" value={`${linkedCount} linked`}  onClick={() => { onClose(); onOpenSettings('integrations'); }} />
+          <Row icon={Ic.programs} label="Programs" value={activeCount ? `${activeCount} kept` : undefined} onClick={() => { onClose(); onOpenSettings('programs'); }} />
+          <Row icon={Ic.cart}     label="Purchases"    onClick={() => { onClose(); onOpenSettings('purchases'); }} />
+          <Row icon={Ic.link}     label="Integrations" onClick={() => { onClose(); onOpenSettings('integrations'); }} />
           <Row icon={Ic.billing}  label="Billing"     onClick={() => { onClose(); onOpenSettings('billing'); }} />
         </div>
 
@@ -488,7 +399,7 @@ function AccountMenu({ onClose, onOpenSettings, pos }) {
 }
 
 // ── Account button — bottom of sidebar ───────────────────────────────────────
-export function AccountButton({ collapsed, onSignIn }) {
+export function AccountButton({ collapsed, onSignIn, moves }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState(null);
   const [settingsSection, setSettingsSection] = useState(null);
@@ -555,6 +466,8 @@ export function AccountButton({ collapsed, onSignIn }) {
 
   const initials = (realUser.name || realUser.email || '?')[0].toUpperCase();
   const displayName = realUser.name?.split(' ')[0] || realUser.email?.split('@')[0] || 'You';
+  // The account, derived: the person signed in, and the pathways they kept.
+  const account = deriveAccount({ user: realUser, moves });
 
   return (
     <div>
@@ -563,12 +476,13 @@ export function AccountButton({ collapsed, onSignIn }) {
           onClose={() => setMenuOpen(false)}
           onOpenSettings={section => setSettingsSection(section)}
           pos={menuPos}
-          realUser={realUser}
+          account={account}
         />
       )}
       {settingsSection !== null && (
         <AccountSettings
           initialSection={settingsSection}
+          account={account}
           onClose={() => setSettingsSection(null)}
         />
       )}

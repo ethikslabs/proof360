@@ -3290,12 +3290,7 @@ export default function Chat() {
       >
         <GraphView nodes={graphNodes} />
         <ProvenanceAccordion trails={[]} />
-        <DrawerStats stats={drawerStatsDerived ? {
-          tokensProcessed: 18420,
-          analysisPasses:  graphNodes.length > 0 ? 2 : 0,
-          sourcesReviewed: companyData?.inferences?.length ?? 0,
-          modelCorrelations: 2,
-        } : null} />
+        <DrawerStats data={companyData} />
         <EscalationCTA
           message={companyData?.gaps?.length > 2
             ? "There are gaps here that typically benefit from a guided conversation. We can introduce relevant partners."

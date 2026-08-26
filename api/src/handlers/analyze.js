@@ -117,6 +117,10 @@ export async function analyzeHandler(request, reply) {
     inferences: session.inferences,
     sources_read: session.sources_read,
     pages_read_count: session.pages_read_count ?? 0,
+    // Which engines actually did the reading. Named rather than counted — "2
+    // engines" tells a founder nothing; "perplexity · gemini" tells them who read
+    // their site, and makes the point that inference here is a market.
+    research_engines: session.research_engines ?? [],
     reading,
     reading_anchors,
     corpus_citations,

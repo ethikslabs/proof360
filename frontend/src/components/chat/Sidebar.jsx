@@ -456,7 +456,7 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
       </div>
 
       {/* Account button — login/save + portal access */}
-      <AccountButton collapsed={collapsed} onSignIn={onSignIn} />
+      <AccountButton collapsed={collapsed} onSignIn={onSignIn} moves={cers} />
 
     </aside>
   );
