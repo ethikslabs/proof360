@@ -7,6 +7,7 @@
 //                                source_url, fetched_at }] }
 import { useState } from 'react';
 import { tidyExcerpt } from '../../rendering/tidyExcerpt.js';
+import { sensitivityOf } from '../../rendering/sensitivity.js';
 
 function holdingLine(hit) {
   // How we hold it — corpus holding + fetched date when we have one.
@@ -64,6 +65,29 @@ function CitationCard({ hit, tk }) {
         <div>{holdingLine(hit)}</div>
         <div>{hit.slug}</div>
       </div>
+      {(() => {
+        const mark = sensitivityOf(hit);
+        if (!mark) return null;
+        return (
+          <div
+            data-sensitive="true"
+            style={{
+              marginTop: 8, paddingTop: 7,
+              borderTop: `1px solid ${tk?.hairline ?? 'rgba(127,127,127,0.22)'}`,
+              fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
+              fontSize: 11, lineHeight: 1.5, color: tk?.inkSoft ?? '#94a3b8',
+            }}
+          >
+            <span style={{
+              fontFamily: '"IBM Plex Mono", monospace', fontSize: 9,
+              letterSpacing: '0.1em', textTransform: 'uppercase',
+            }}>
+              Potentially sensitive · {mark.reasons.join(' · ')}
+            </span>
+            <div style={{ marginTop: 3 }}>{mark.note}</div>
+          </div>
+        );
+      })()}
       {hit.source_url && (
         <a
           href={hit.source_url}

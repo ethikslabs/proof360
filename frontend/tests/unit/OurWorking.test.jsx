@@ -74,3 +74,49 @@ describe('OurWorking citation cards', () => {
     expect(screen.getByText(/Yahoo Finance excerpt two\./)).toBeTruthy();
   });
 });
+
+// The DNX find, at the render layer (John ruling 2026-08-26 — tag it, don't hide
+// it). An anonymous read of dnx.solutions returns our own partner-strategy notes,
+// quotes from a private call included, as a citation card sitting beside a real
+// Yahoo Finance article. Both still appear; only one of them is our own record,
+// and the card has to say which.
+const OUR_OWN_HIT = {
+  n: 1,
+  slug: 'ethiks360-ethiks360-ramble-source-pack',
+  layer: 'vendor/ethiks360',
+  evidence_id: 'ev-ethiks360-ramble',
+  score: 0.56,
+  access_layer: 'public',
+  source_url: null,
+  excerpt: 'DNX\'s response: "Yeah, I do. This is amazing."',
+};
+
+describe('OurWorking — our own record is marked, never disguised as evidence', () => {
+  function openCard(hits, slug) {
+    const api = render(<OurWorking receipt={{ ts: Date.now(), query: 'DNX', hits }} />);
+    fireEvent.click(screen.getByText(/our working/i));
+    const row = api.container.querySelector(`button[data-slug="${slug}"]`)
+      || Array.from(api.container.querySelectorAll('button')).find(b => b.textContent.includes(slug.split('-')[0]));
+    if (row) fireEvent.click(row);
+    return api;
+  }
+
+  it('marks our own material as potentially sensitive, and says why', () => {
+    const { container } = openCard([OUR_OWN_HIT], OUR_OWN_HIT.slug);
+    const marked = container.querySelector('[data-sensitive="true"]');
+    expect(marked).not.toBeNull();
+    expect(marked.textContent).toMatch(/potentially sensitive/i);
+    expect(marked.textContent).toMatch(/our own material/i);
+    expect(marked.textContent).toMatch(/no published source/i);
+  });
+
+  it('still shows the card — this labels, it does not filter', () => {
+    const { container } = openCard([OUR_OWN_HIT], OUR_OWN_HIT.slug);
+    expect(container.textContent).toMatch(/this is amazing/i);
+  });
+
+  it('leaves a genuine third-party source unmarked', () => {
+    const { container } = openCard([HIT], HIT.slug);
+    expect(container.querySelector('[data-sensitive="true"]')).toBeNull();
+  });
+});
