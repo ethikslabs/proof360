@@ -19,7 +19,7 @@ const BASE = 'https://cognisys.co.uk';
 
 // A Firecrawl double that records how many scrapes are in flight at once, in
 // call order — the thing the box actually cares about.
-function trackingFirecrawl({ delayMs = 10, failFor = [], hangFor = [] } = {}) {
+function trackingFirecrawl({ delayMs = 10, failFor = [], hangFor = [], hangMs = 120 } = {}) {
   const state = { inFlight: 0, maxInFlight: 0, order: [], concurrencyAtStart: [] };
   return {
     state,
@@ -30,7 +30,9 @@ function trackingFirecrawl({ delayMs = 10, failFor = [], hangFor = [] } = {}) {
       state.concurrencyAtStart.push(state.inFlight);
       try {
         if (hangFor.some((p) => url.endsWith(p))) {
-          await new Promise((r) => setTimeout(r, 10_000));
+          // Long enough to still be in flight when the budget closes, short
+          // enough to land inside the test — a straggler, not a hang.
+          await new Promise((r) => setTimeout(r, hangMs));
         } else {
           await new Promise((r) => setTimeout(r, delayMs));
         }
@@ -107,6 +109,41 @@ describe('scrapePages concurrency bound', () => {
     expect(text).toMatch(/site budget/i);
     // An unattempted page is named, not silently absent.
     expect(text).toMatch(/not read/i);
+  });
+
+  // Measured on prod 2026-08-26 right after the bound shipped: the act closed
+  // "3 pages", and THEN a fourth page logged "✓ trust centre · read" — a scrape
+  // that landed after the budget expired, reported as a success it was too late
+  // to be. On camera that reads as the trace contradicting its own count, the
+  // same fault as the round-3 "4 corpus holdings" over "3 sources".
+  it('does not report a page that lands after the act has closed', async () => {
+    const fc = trackingFirecrawl({ hangFor: ['/pricing', '/about', '/security', '/trust'] });
+    const lines = [];
+
+    await scrapePages(fc, BASE, (line) => lines.push(line), null, { budgetMs: 60 });
+    // Let every straggler resolve into a read nobody is waiting for.
+    await new Promise((r) => setTimeout(r, 250));
+
+    const text = lines.map((l) => l.text).join('\n');
+    expect(text).toMatch(/✓\s+homepage · read/);
+    // No late page may claim it was read.
+    expect(text).not.toMatch(/✓\s+pricing page · read/);
+    expect(text).not.toMatch(/✓\s+about page · read/);
+  });
+
+  it('accounts for every page that missed the read, in flight or never started', async () => {
+    const fc = trackingFirecrawl({ hangFor: ['/pricing', '/about', '/security', '/trust'] });
+    const lines = [];
+
+    const pages = await scrapePages(fc, BASE, (line) => lines.push(line), null, { budgetMs: 60 });
+
+    const text = lines.map((l) => l.text).join('\n');
+    expect(pages.map((p) => p.label)).toEqual(['homepage']);
+    // All four non-homepage pages are named as not read — the two that were
+    // still in flight when the budget closed, and the two that never started.
+    for (const label of ['pricing page', 'about page', 'security page', 'trust centre']) {
+      expect(text).toContain(`${label} · not read`);
+    }
   });
 
   it('never bills a scrape it did not attempt', async () => {

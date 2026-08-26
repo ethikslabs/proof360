@@ -50,6 +50,14 @@ function normalizeUrl(url) {
 }
 
 export async function scrapePages(firecrawl, baseUrl, log, session_id, { budgetMs = SITE_BUDGET_MS } = {}) {
+  // Set the moment the act closes over what it had. A scrape still in flight at
+  // that point keeps running — we cannot recall it — but it has missed the read,
+  // so it must not narrate. Measured on prod: without this the act logged
+  // "3 pages" and then a fourth page reported "✓ read" underneath it.
+  let closed = false;
+  const reported = new Set();
+  const emit = (label, line) => { if (!closed) { reported.add(label); log(line); } };
+
   const scrapeOne = async ({ path, label }) => {
     try {
       const result = await firecrawl.scrapeUrl(baseUrl + path, {
@@ -57,21 +65,21 @@ export async function scrapePages(firecrawl, baseUrl, log, session_id, { budgetM
         timeout: 15000,
       });
       if (result.success && result.markdown && !(result.statusCode >= 400)) {
-        log({ text: `  ✓  ${label} · read`, type: 'ok' });
+        emit(label, { text: `  ✓  ${label} · read`, type: 'ok' });
         if (session_id) {
           recordConsumption({ session_id, source: 'firecrawl', units: 1, unit_type: 'credits', success: true });
         }
         return { label, content: result.markdown.slice(0, 3000) };
       } else {
         const reason = result.statusCode >= 400 ? `${result.statusCode}` : 'no content returned';
-        log({ text: `  ↳  ${label} · ${reason}`, type: 'muted' });
+        emit(label, { text: `  ↳  ${label} · ${reason}`, type: 'muted' });
         if (session_id) {
           recordConsumption({ session_id, source: 'firecrawl', units: 1, unit_type: 'credits', success: false, error: 'no content returned' });
         }
       }
     } catch (err) {
       const reason = err?.message?.includes('timeout') ? 'timeout' : (err?.message || 'failed');
-      log({ text: `  ✗  ${label} · ${reason}`, type: 'err' });
+      emit(label, { text: `  ✗  ${label} · ${reason}`, type: 'err' });
       if (session_id) {
         recordConsumption({ session_id, source: 'firecrawl', units: 1, unit_type: 'credits', success: false, error: reason });
       }
@@ -91,15 +99,14 @@ export async function scrapePages(firecrawl, baseUrl, log, session_id, { budgetM
   // A worker that finds the deadline passed stops claiming work rather than
   // starting a scrape it cannot finish — an unstarted scrape is never billed.
   let next = 0;
-  let spent = false;
   const worker = async () => {
-    while (next < rest.length && !spent) {
+    while (next < rest.length && !closed) {
       if (Date.now() >= deadline) return;
       const page = rest[next++];
       const result = await scrapeOne(page);
       // A scrape that lands after the budget expired arrives too late to be
       // part of the read — the act has already closed over what it had.
-      if (result && !spent) pages.push(result);
+      if (result && !closed) pages.push(result);
     }
   };
 
@@ -115,17 +122,17 @@ export async function scrapePages(firecrawl, baseUrl, log, session_id, { budgetM
     timer.unref?.();
   });
   await Promise.race([
-    Promise.all(Array.from({ length: SCRAPE_CONCURRENCY }, worker)).then(() => { spent = true; }),
-    budgetSpent.then(() => { spent = true; }),
+    Promise.all(Array.from({ length: SCRAPE_CONCURRENCY }, worker)).then(() => { closed = true; }),
+    budgetSpent.then(() => { closed = true; }),
   ]);
   clearTimeout(timer);
 
-  // A page the budget dropped was never read — say so, so it does not read as a
-  // page that failed. Silence here would be indistinguishable from a 500.
-  const read = new Set(pages.map((p) => p.label));
-  const attempted = new Set(PAGES_TO_CHECK.slice(0, 1 + next).map((p) => p.label));
+  // Every page that never narrated missed the read — whether it was still in
+  // flight when the budget closed or never started at all. Name it, so it does
+  // not read as a page that failed: silence here is indistinguishable from a
+  // 500, and the count above would be the only clue that anything was left out.
   for (const { label } of rest) {
-    if (!read.has(label) && !attempted.has(label)) {
+    if (!reported.has(label)) {
       log({ text: `  ↳  ${label} · not read (${Math.round(budgetMs / 1000)}s site budget)`, type: 'muted' });
     }
   }
