@@ -270,11 +270,14 @@ export function fieldLabel(field) {
 
 // How many times one claim may be put to the founder before we let it go. A
 // question asked twice and not answered IS an answer — they do not want to
-// engage with it. Asking a third time is the "Looks like you're on Oracle —
+// engage with it. Set to ONE from 2026-08-26: two asks still surfaced the tic
+// twice in a three-turn walk, and the companion panel now lists every claim with
+// its own "That's right / Not quite", so chat no longer needs to keep pressing.
+// Asking again is the "Looks like you're on Oracle —
 // right?" tic that closed every single persona reply for weeks (John, 2026-08-26)
 // and it was never a prompt fault: the claim stayed 'inferred', so the ceremony
 // re-picked it forever. Nothing recorded that it had already been asked.
-const MAX_ASKS_PER_CLAIM = 2;
+const MAX_ASKS_PER_CLAIM = 1;
 
 /**
  * @param {Array} claims projected claims

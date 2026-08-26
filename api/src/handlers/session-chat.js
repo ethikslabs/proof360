@@ -202,7 +202,10 @@ export async function sessionChatHandler(request, reply) {
       : nextConfirmable(claims, asked);
     if (toConfirm) {
       session.pending_confirm = toConfirm.claim_id;
-      session.confirm_asks = { ...asked, [toConfirm.claim_id]: (asked[toConfirm.claim_id] ?? 0) + 1 };
+      // NOT counted here. Arming a question is not asking it — the persona can
+      // ignore the injected block entirely (the live 2026-08-22 rogue-reply case
+      // the voiced gate exists for). Counting armings would retire a question the
+      // founder never saw. The count is taken below, against the reply itself.
     } else {
       session.pending_confirm = null; // nothing worth asking — the reply just answers
     }
@@ -279,7 +282,18 @@ export async function sessionChatHandler(request, reply) {
       session.chat_history.push({ role: 'assistant', content: fullResponse, persona, ts: Date.now() });
       // The reply is the evidence: mark the pending ask voiced only if it was
       // actually asked, so next exchange's capture is legitimate testimony.
-      session.pending_confirm_voiced = questionWasVoiced(fullResponse, askedClaim);
+      const voiced = questionWasVoiced(fullResponse, askedClaim);
+      session.pending_confirm_voiced = voiced;
+      // The reply is the evidence for the ask-count too: a question the founder
+      // actually saw and did not answer is what earns fatigue. One unanswered
+      // ask and the ceremony moves on (claims-projection MAX_ASKS_PER_CLAIM).
+      if (voiced && askedClaim) {
+        const prior = session.confirm_asks || {};
+        session.confirm_asks = {
+          ...prior,
+          [askedClaim.claim_id]: (prior[askedClaim.claim_id] ?? 0) + 1,
+        };
+      }
       session.pending_proposal_voiced = proposalWasVoiced(fullResponse, askedProposal);
     }
     persistSession(id); // direct mutations this exchange — write the twin through

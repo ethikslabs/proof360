@@ -34,17 +34,15 @@ describe('nextConfirmable — stops asking a question nobody is answering', () =
     expect(nextConfirmable(CLAIMS)?.claim_id).toBe('clm_cust');
   });
 
-  it('still returns it after a single unanswered ask — once is not a tic', () => {
-    expect(nextConfirmable(CLAIMS, { clm_cust: 1 })?.claim_id).toBe('clm_cust');
-  });
-
-  it('moves on once a claim has been asked twice and not answered', () => {
-    const next = nextConfirmable(CLAIMS, { clm_cust: 2 });
-    expect(next?.claim_id).toBe('clm_infra');
+  // One ask, then move on. Two still surfaced the tic twice inside a three-turn
+  // walk, and the companion panel now carries a per-claim "That's right / Not
+  // quite", so chat has a second route and does not need to keep pressing.
+  it('moves on after a single unanswered ask', () => {
+    expect(nextConfirmable(CLAIMS, { clm_cust: 1 })?.claim_id).toBe('clm_infra');
   });
 
   it('asks NOTHING rather than cycling once every claim has been asked out', () => {
-    const asked = { clm_cust: 2, clm_infra: 2, clm_data: 2 };
+    const asked = { clm_cust: 1, clm_infra: 1, clm_data: 1 };
     expect(nextConfirmable(CLAIMS, asked)).toBeNull();
   });
 
