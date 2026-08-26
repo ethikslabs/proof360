@@ -47,15 +47,23 @@ export function priorHoldings(hits, sessionStartedAt) {
     // (1) strictly before — a holding gathered mid-read is not prior knowledge.
     if (fetched >= start) continue;
 
-    // (4) one row per publisher, keeping the earliest fetch and the longest
-    // excerpt, which is the one most likely to carry the substance.
+    // (4) one row per publisher, keeping the earliest fetch and the chunk the
+    // CORPUS itself scored highest.
+    //
+    // First cut ranked by excerpt LENGTH, on the theory that longer carries more
+    // substance. Live, that surfaced "room with bigger clients, so it really
+    // opens doors…" from the Yahoo piece and buried the line the whole beat
+    // exists for — "120 specialists operating across 19 countries". Length is not
+    // relevance. The retrieval already scored every chunk against the query, so
+    // use its judgement instead of inventing a worse one.
     const existing = byPublisher.get(publisher);
     if (!existing) {
       byPublisher.set(publisher, { ...hit, publisher, fetchedMs: fetched });
       continue;
     }
     if (fetched < existing.fetchedMs) existing.fetchedMs = fetched;
-    if ((hit.excerpt?.length ?? 0) > (existing.excerpt?.length ?? 0)) {
+    if ((hit.score ?? 0) > (existing.score ?? 0)) {
+      existing.score = hit.score;
       existing.excerpt = hit.excerpt;
       existing.source_url = hit.source_url;
     }

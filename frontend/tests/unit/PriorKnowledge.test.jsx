@@ -75,6 +75,19 @@ describe('priorHoldings — only what was genuinely known beforehand', () => {
     expect(held).toHaveLength(2);
   });
 
+  // Live 2026-08-26: ranking by excerpt LENGTH surfaced "room with bigger
+  // clients, so it really opens doors…" from the Yahoo piece and buried
+  // "120 specialists operating across 19 countries" — the line the beat exists
+  // for. Length is not relevance; the retrieval already scored each chunk.
+  it('keeps the chunk the corpus scored highest, not the longest one', () => {
+    const weakButLong = { ...YAHOO, n: 6, score: 0.41,
+      excerpt: 'room with bigger clients, so it really opens doors for businesses and they must prove they can handle data responsibly at length.' };
+    const strongButShort = { ...YAHOO, n: 7, score: 0.88,
+      excerpt: 'Team of 120 specialists operating across 19 countries.' };
+    const [held] = priorHoldings([weakButLong, strongButShort], SESSION_START);
+    expect(held.excerpt).toMatch(/19 countries/);
+  });
+
   it('never throws on malformed input', () => {
     expect(() => priorHoldings(null, SESSION_START)).not.toThrow();
     expect(priorHoldings(null, SESSION_START)).toEqual([]);
