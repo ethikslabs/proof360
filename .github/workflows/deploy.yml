@@ -50,7 +50,11 @@ jobs:
           # Google light SSO client id — public identifier, optional lane: WARN when
           # absent (frontend falls back to demo mode), never fail the deploy on it.
           GOOGLE_CLIENT_ID=$(aws ssm get-parameter --name /proof360/GOOGLE_CLIENT_ID --query "Parameter.Value" --output text 2>/dev/null || echo "")
-          [ -n "$GOOGLE_CLIENT_ID" ] || echo "::warning::/proof360/GOOGLE_CLIENT_ID missing/empty — Google login builds in demo-fallback mode"
+          # optional lane, warn and proceed: absence is a degraded build, not a broken one.
+          # The warning goes to stderr as well as the Actions annotation — an annotation alone
+          # is invisible in a re-run log, and this is the only signal that the deploy shipped
+          # a demo-fallback login.
+          [ -n "$GOOGLE_CLIENT_ID" ] || { echo "::warning::/proof360/GOOGLE_CLIENT_ID missing/empty — optional lane, Google login builds in demo-fallback mode"; echo "WARN: /proof360/GOOGLE_CLIENT_ID missing/empty — optional, building Google login in demo-fallback mode" >&2; }
           echo "google_client_id=$GOOGLE_CLIENT_ID" >> $GITHUB_OUTPUT
 
       - name: Build frontend
@@ -189,6 +193,10 @@ jobs:
             curl -s -m 5 -X PUT localhost:8420/state/proof360:last-deploy \
               -H "Authorization: Bearer $CS_TOKEN" -H "content-type: application/json" \
               -d "{\"value\":{\"health\":\"$STATUS\",\"ts\":\"$(date -u +%FT%TZ)\",\"via\":\"deploy.yml\"},\"actor\":\"deploy:proof360\"}" > /dev/null 2>&1 || true
+          else
+            # Warn and proceed: without this, a missing token is silent and the checkpoint
+            # just stops updating with nothing pointing at why.
+            echo "WARN: continuity-state token absent — optional lane, skipping the proof360:last-deploy checkpoint" >&2
           fi
 
           echo "=== Registering Telegram webhook ==="
