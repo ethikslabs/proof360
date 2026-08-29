@@ -1,0 +1,421 @@
+{
+  "vehicle_id": "veh_hiveandco_01",
+  "passport": "Hive & Co \u2014 Passport",
+  "owner": {
+    "person": "Mel Rivers",
+    "company": "Hive & Co Pty Ltd",
+    "abn": "\u2014",
+    "email": "mel@hiveandco.au"
+  },
+  "identity": {
+    "name": [
+      "Hive & Co",
+      {
+        "label": "LIVE",
+        "cls": "live"
+      }
+    ],
+    "domain": [
+      "hiveandco.au \u2014 live, HTTP/2 200",
+      {
+        "label": "LIVE",
+        "cls": "live"
+      }
+    ],
+    "sector": [
+      "Food & beverage \u2014 raw Australian honey (D2C + wholesale)",
+      {
+        "label": "ILLUSTRATIVE",
+        "cls": "ill"
+      }
+    ],
+    "stage": [
+      "Early-stage, pre-institutional funding",
+      {
+        "label": "ILLUSTRATIVE",
+        "cls": "ill"
+      }
+    ],
+    "abn": [
+      "ABN active, GST-registered, ANZSIC 0161",
+      {
+        "label": "ILLUSTRATIVE",
+        "cls": "ill"
+      }
+    ],
+    "footprint": [
+      "Cloudflare-fronted, Sydney (SYD colo), Google-issued TLS",
+      {
+        "label": "LIVE",
+        "cls": "live"
+      }
+    ]
+  },
+  "context": [
+    "A consumer honey brand differentiating on provenance & traceability; selling online, approaching enterprise grocery (Woolworths-class DD). Signals: SKU expansion, first enterprise conversations, hiring. Stage-appropriate for cloud-credit onboarding; not yet compliance-mature. \u2014 synthesised from public web, 3 cited sources",
+    {
+      "label": "ILLUSTRATIVE",
+      "cls": "ill"
+    }
+  ],
+  "trust_posture": {
+    "domains": [
+      [
+        "Exposure",
+        "STRONG",
+        "TLS present (Google Trust Services), HSTS max-age 1yr, CSP set, X-Frame DENY, Cloudflare WAF",
+        {
+          "label": "LIVE",
+          "cls": "live"
+        }
+      ],
+      [
+        "Identity (registry)",
+        "CLEAR",
+        "ABN active, GST-registered",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ],
+      [
+        "Threat",
+        "CLEAR",
+        "No domain credentials in breach data (HIBP); IP not flagged (Cloudflare)",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ],
+      [
+        "Attestation",
+        "GAP",
+        "No formal certifications yet \u2014 SOC 2 not started",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ],
+      [
+        "Market",
+        "EARLY",
+        "Early-stage; traffic growing; pre-institutional funding",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ],
+      [
+        "Code",
+        "n/a",
+        "No public code footprint material to trust posture",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ]
+    ],
+    "gaps": [
+      [
+        "security_headers",
+        "CLEARED",
+        "medium",
+        "HSTS + CSP + X-Frame present \u2014 verified live",
+        {
+          "label": "LIVE",
+          "cls": "live"
+        }
+      ],
+      [
+        "tls_configuration",
+        "CLEARED",
+        "medium",
+        "Valid Google cert, modern TLS, not near expiry",
+        {
+          "label": "LIVE",
+          "cls": "live"
+        }
+      ],
+      [
+        "staging_exposure",
+        "CLEARED",
+        "high",
+        "No exposed staging subdomains in CT logs",
+        {
+          "label": "LIVE",
+          "cls": "live"
+        }
+      ],
+      [
+        "ip_reputation",
+        "CLEARED",
+        "high",
+        "Behind Cloudflare; origin not directly exposed",
+        {
+          "label": "LIVE",
+          "cls": "live"
+        }
+      ],
+      [
+        "domain_breach",
+        "CLEARED",
+        "critical",
+        "No breached credentials for the domain",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ],
+      [
+        "mfa",
+        "OPEN",
+        "critical",
+        "No evidence of enforced MFA \u2014 first thing enterprise buyers check",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ],
+      [
+        "cyber_insurance",
+        "OPEN",
+        "critical",
+        "No cyber cover on record \u2014 contract insurance gate ahead",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ],
+      [
+        "vendor_questionnaire",
+        "OPEN",
+        "high",
+        "Not ready to answer an enterprise DD questionnaire",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ],
+      [
+        "incident_response",
+        "OPEN",
+        "high",
+        "No documented IR plan",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ],
+      [
+        "edr",
+        "OPEN",
+        "high",
+        "No endpoint detection & response",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ],
+      [
+        "penetration_testing",
+        "OPEN",
+        "high",
+        "No pen test on record",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ],
+      [
+        "backup_dr",
+        "OPEN",
+        "high",
+        "No backup/DR posture recorded",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ],
+      [
+        "founder_trust",
+        "OPEN",
+        "high",
+        "Founder/leadership trust signals not yet captured",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ],
+      [
+        "dmarc",
+        "OPEN",
+        "high",
+        "No DMARC record \u2014 email domain spoofable",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ],
+      [
+        "data_privacy",
+        "OPEN",
+        "high",
+        "Privacy posture undocumented (AU Privacy Act)",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ],
+      [
+        "spf",
+        "PARTIAL",
+        "medium",
+        "SPF present via M365; DMARC still absent",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ],
+      [
+        "sso",
+        "OPEN",
+        "medium",
+        "No SSO for team access",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ],
+      [
+        "aws_program_eligibility",
+        "OPPORTUNITY",
+        "medium",
+        "Eligible for AWS Activate \u2014 credits + dev access",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ],
+      [
+        "microsoft_program_eligibility",
+        "OPPORTUNITY",
+        "medium",
+        "Potential MS founders benefits",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ],
+      [
+        "hipaa_security",
+        "N/A",
+        "critical",
+        "Not a healthcare entity",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ],
+      [
+        "pci_dss",
+        "N/A",
+        "critical",
+        "Payments handled by processor (Stripe) \u2014 out of scope",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ],
+      [
+        "apra_prudential",
+        "N/A",
+        "critical",
+        "Not an APRA-regulated entity",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ],
+      [
+        "essential_eight",
+        "PARTIAL",
+        "high",
+        "Some controls via Cloudflare/M365; not baselined",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ],
+      [
+        "ai_governance",
+        "N/A",
+        "high",
+        "No material AI use",
+        {
+          "label": "ILLUSTRATIVE",
+          "cls": "ill"
+        }
+      ]
+    ]
+  },
+  "engagements": [
+    {
+      "cer": "CER-8F3A",
+      "route": "AWS Activate \u2192 Ingram Micro",
+      "status": "Booked",
+      "consent": "granted 2026-07-19 \u00b7 revocable",
+      "gap": "No cloud cost/scale foundation as online orders grow",
+      "why": "Early-stage + growing workload = textbook Activate; credits fund the build, developer access included",
+      "evidence": [
+        "Cold read #4821 (live)",
+        "Cloudflare/hosting detected \u2014 live 2026-07-19",
+        "Stage: early (illustrative)"
+      ],
+      "reconciles": "ACE opportunity (pending) \u00b7 offer ID (pending) \u00b7 Ingram customer ref"
+    },
+    {
+      "cer": "CER-A17C",
+      "route": "Cisco Duo \u2192 Ingram Micro",
+      "status": "Under review",
+      "consent": "granted 2026-07-19 \u00b7 revocable",
+      "gap": "mfa (critical) \u2014 no enforced MFA; beekeeper/team logins",
+      "why": "Closes the #1 enterprise-DD blocker; off the Ingram shelf",
+      "evidence": [
+        "Gap mfa OPEN (illustrative)",
+        "Framework impact: SOC 2 CC6.1 (blocker)"
+      ],
+      "reconciles": "Ingram line-card SKU \u00b7 offer ID (pending)"
+    },
+    {
+      "cer": "CER-C4E2",
+      "route": "Vanta \u2192 Vanta",
+      "status": "Needs info",
+      "consent": "granted 2026-07-19 \u00b7 revocable",
+      "gap": "vendor_questionnaire + attestation \u2014 no SOC 2, not DD-ready",
+      "why": "Continuous attested compliance; evidence flows straight into this record \u2014 the distributor-compliance gate",
+      "evidence": [
+        "Attestation domain: GAP (illustrative)",
+        "vendor_questionnaire OPEN"
+      ],
+      "reconciles": "Vanta offer ID (pending)"
+    }
+  ],
+  "usage": [
+    [
+      "Cold reads",
+      "1 (read #4821)"
+    ],
+    [
+      "Recon calls metered",
+      "659 events on ledger (real)"
+    ],
+    [
+      "CERs minted",
+      "3"
+    ],
+    [
+      "Consent events",
+      "3 granted, 0 withdrawn"
+    ]
+  ]
+}

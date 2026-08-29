@@ -25,6 +25,12 @@ export function layerRank(layer) {
 // we observed it (inferred) or a third party attested it. `declared` is the founder's
 // story; `corrected` is the founder correcting it after being shown the evidence.
 export function isEvidenceBacked(fact) {
+  // Illustrative content is never evidence, whatever layer it carries. John's seed marks it
+  // with an ILLUSTRATIVE badge and his 2026-07-19 ruling put a visible pill on the mock CER
+  // for the same reason. If demo content could count as evidence it would compute against a
+  // real founder's declared fact and the record would accuse them on the strength of a
+  // placeholder — the defect the 2026-07-20 sequencing ruling exists to prevent.
+  if (fact.illustrative) return false;
   return fact.layer === 'inferred' || fact.layer === 'attested';
 }
 
