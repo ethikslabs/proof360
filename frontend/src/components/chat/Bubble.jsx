@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { tokens, PERSONA, personaColor } from '../../tokens.js';
 import { stripEmphasis } from '../../rendering/stripEmphasis.js';
+import { resolveCitations } from '../../rendering/citations.js';
+import { tidyExcerpt } from '../../rendering/tidyExcerpt.js';
 
 const VENDOR_KEYWORDS = [
   { pattern: /\b(AWS|Amazon Web Services|AWS Activate|AWS Marketplace)\b/i, alt: 'AWS' },
@@ -162,6 +164,71 @@ function PersonaTag({ name, persona, theme, tk, onPersonaRef }) {
   );
 }
 
+// An inline [n] that carries its source. Quiet by construction — the emotional contract
+// asks for calm and unhurried, and a bubble studded with loud badges reads as a graded
+// paper. It looks like the bracket it replaces until the founder reaches for it.
+//
+// What it shows is only what the receipt holds: publisher where a url gave us one,
+// corpus holding otherwise, the fetch date when we have it, and the excerpt VERBATIM
+// (tidyExcerpt may choose the window, never the words). Nothing is asserted that the
+// retrieval did not return.
+function Citation({ cite, tk }) {
+  const [open, setOpen] = useState(false);
+
+  const fetched = cite.fetched_at
+    ? new Date(cite.fetched_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
+    : null;
+  // No publisher to name → say how we hold it instead of inventing an attribution.
+  const source = cite.publisher ?? 'Corpus holding';
+  const held = fetched ? `${source} · fetched ${fetched}` : source;
+
+  return (
+    <span
+      style={{ position: 'relative', whiteSpace: 'nowrap' }}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <a
+        href={cite.source_url || undefined}
+        target={cite.source_url ? '_blank' : undefined}
+        rel={cite.source_url ? 'noopener noreferrer' : undefined}
+        onClick={(e) => { if (!cite.source_url) { e.preventDefault(); setOpen(o => !o); } }}
+        aria-label={`Source ${cite.n}: ${held}`}
+        style={{
+          color: tk.inkMid,
+          textDecoration: 'none',
+          cursor: 'pointer',
+          fontSize: '0.85em',
+          padding: '0 1px',
+          borderBottom: `1px dotted ${tk.hairline}`,
+        }}
+      >[{cite.n}]</a>
+
+      {open && (
+        <span
+          role="tooltip"
+          style={{
+            position: 'absolute', bottom: '1.5em', left: 0, zIndex: 20,
+            width: 300, padding: '10px 12px',
+            background: tk.surface, border: `1px solid ${tk.hairline}`, borderRadius: 8,
+            boxShadow: '0 6px 20px rgba(0,0,0,0.13)',
+            fontSize: 12, lineHeight: 1.5, color: tk.ink,
+            whiteSpace: 'normal', textAlign: 'left', display: 'block',
+          }}
+        >
+          <span style={{ display: 'block', color: tk.inkMid, marginBottom: 6 }}>{held}</span>
+          {cite.excerpt && (
+            <span style={{ display: 'block', color: tk.ink }}>“{tidyExcerpt(cite.excerpt)}”</span>
+          )}
+          {cite.source_url && (
+            <span style={{ display: 'block', marginTop: 6, color: tk.inkMid }}>Open source ↗</span>
+          )}
+        </span>
+      )}
+    </span>
+  );
+}
+
 // Finding 4 (round 2 live walkthrough): persona chat answers carry raw markdown
 // emphasis/backtick markers straight into the bubble ("*current and valid*",
 // `p=none`) — display-only strip at RENDER, msg.content itself (and the
@@ -169,22 +236,31 @@ function PersonaTag({ name, persona, theme, tk, onPersonaRef }) {
 // untouched by stripEmphasis. Idempotent on clean text, so this also covers
 // the reading/opener content that flows through the same RichContent path —
 // no special-casing needed.
-function RichContent({ content, theme, tk, onPersonaRef }) {
-  const parts = parseContent(content);
+function RichContent({ content, theme, tk, onPersonaRef, receipt }) {
+  // Citations first: they are resolved against THIS answer's receipt, so a marker only
+  // becomes a link when the retrieval behind this reply actually backs it. Everything
+  // still-a-string then goes through the existing persona-tag pass unchanged.
+  const segments = resolveCitations(content, receipt);
   return (
     <>
-      {parts.map((part, i) => {
-        if (typeof part === 'string') return stripEmphasis(part);
-        return (
-          <PersonaTag
-            key={i}
-            name={part.name}
-            persona={part.persona}
-            theme={theme}
-            tk={tk}
-            onPersonaRef={onPersonaRef}
-          />
-        );
+      {segments.map((seg, s) => {
+        if (typeof seg !== 'string') {
+          return <Citation key={`cite-${s}`} cite={seg} tk={tk} />;
+        }
+        return parseContent(seg).map((part, i) => {
+          const key = `${s}-${i}`;
+          if (typeof part === 'string') return <Fragment key={key}>{stripEmphasis(part)}</Fragment>;
+          return (
+            <PersonaTag
+              key={key}
+              name={part.name}
+              persona={part.persona}
+              theme={theme}
+              tk={tk}
+              onPersonaRef={onPersonaRef}
+            />
+          );
+        });
       })}
     </>
   );
@@ -250,7 +326,7 @@ export function Bubble({ msg, t, isLatest, onPersonaRef, onProgramFocus }) {
 
   const body = (
     <div style={bodyStyle}>
-      {thinkingBody || <RichContent content={msg.content} theme={t.theme} tk={tk} onPersonaRef={onPersonaRef} />}
+      {thinkingBody || <RichContent content={msg.content} theme={t.theme} tk={tk} onPersonaRef={onPersonaRef} receipt={msg.working} />}
     </div>
   );
 
@@ -328,7 +404,7 @@ export function Bubble({ msg, t, isLatest, onPersonaRef, onProgramFocus }) {
           padding: '14px 18px', borderRadius: '2px 14px 14px 14px',
           background: `${color}11`, border: `1px solid ${color}26`, ...bodyStyle,
         }}>
-          <RichContent content={msg.content} theme={t.theme} tk={tk} onPersonaRef={onPersonaRef} />
+          <RichContent content={msg.content} theme={t.theme} tk={tk} onPersonaRef={onPersonaRef} receipt={msg.working} />
         </div>
         {anchorsEl}
         {sourceEl}
