@@ -41,6 +41,40 @@ export const TOKEN = {
     sevMed:     '#c2802f',
     sevOk:      '#3f7a4f',
   },
+  // -------------------------------------------------------------------------
+  // 'parallel' — the mirrored theme (John ruling 2026-09-01: the two estates
+  // run PARALLEL, never merged). Neutrals, ground and hairlines are lifted
+  // VERBATIM from the live Ethiks360 web app so the two products share a
+  // skeleton; the accent is deliberately OURS so the two can never be confused
+  // in a screenshot. Same shape, different skin.
+  //   his ground   #F5F4EE  --color-home-bg
+  //   his tint     #EFECE3  --color-home-light-bg
+  //   his ink      #1C1C1E  --color-home-dark / --color-title
+  //   his muted    #5A5A5E  --color-home-muted
+  //   his border   #EAE7DD  --color-home-border
+  //   his accent   #58D5D3 primary / #E05326 orange   <-- NOT used here
+  // -------------------------------------------------------------------------
+  parallel: {
+    bg:         '#f5f4ee',
+    bgTint:     '#efece3',
+    surface:    '#ffffff',
+    surfaceLo:  '#faf9f5',
+    ink:        '#1c1c1e',
+    inkMid:     '#5a5a5e',
+    inkSoft:    '#8b8b90',
+    inkGhost:   '#b8b6ae',
+    hairline:   '#eae7dd',
+    hairStrong: '#d9d5c7',
+    plum:       '#5b4cc4',
+    umber:      '#92400e',
+    teal:       '#176577',
+    indigo:     '#3d3aa0',
+    aws:        '#ff9900',
+    awsInk:     '#232f3e',
+    sevHigh:    '#b04545',
+    sevMed:     '#c2802f',
+    sevOk:      '#3f7a4f',
+  },
   study: {
     bg:         '#ecedf2',
     bgTint:     '#e4e2ec',
@@ -93,9 +127,34 @@ export function personaColor(persona, theme) {
 // ---------------------------------------------------------------------------
 
 export const FONT = {
+  // Instrument Serif is ALREADY shared with the live Ethiks360 app — it loads
+  // the same Google face. The display voice matches without any work.
   serif: "'Instrument Serif', Georgia, 'Times New Roman', serif",
   sans:  "'IBM Plex Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
   mono:  "'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace",
+  // The live app's UI face. Used by the 'parallel' theme so mirrored screens
+  // set type identically to his; every other theme keeps IBM Plex Sans.
+  ui:    "'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+};
+
+// ---------------------------------------------------------------------------
+// GEOMETRY — measured off the live Ethiks360 app (tailwind.config.js +
+// src/styles/globals.css @theme block), so mirrored surfaces sit on the same
+// grid rather than an eyeballed approximation. Emitted as --p360-* vars.
+// ---------------------------------------------------------------------------
+export const GEOMETRY = {
+  // his --text-22 / -28 / -32 / -80
+  text22:      '1.375rem',
+  text28:      '1.75rem',
+  text32:      '2rem',
+  text80:      '5rem',
+  // his borderRadius.banner-tr / banner-bl (6.25rem) and shadcn --radius
+  radiusBanner: '6.25rem',
+  radius:       '0.625rem',
+  // his boxShadow.inner-custom
+  shadowInner:  'inset 0 0 10px rgba(0, 0, 0, 0.5)',
+  // his --breakpoint-3xl
+  bp3xl:        '1515px',
 };
 
 export const DEFAULT_THEME = 'pearl';
@@ -111,7 +170,12 @@ export function applyTheme(theme = DEFAULT_THEME, root) {
     el.style.setProperty(`--p360-${key}`, value);
   }
   el.style.setProperty('--p360-serif', FONT.serif);
-  el.style.setProperty('--p360-sans', FONT.sans);
+  // The 'parallel' theme sets UI type in the live app's face; others keep ours.
+  el.style.setProperty('--p360-sans', theme === 'parallel' ? FONT.ui : FONT.sans);
   el.style.setProperty('--p360-mono', FONT.mono);
+  el.style.setProperty('--p360-ui', FONT.ui);
+  for (const [key, value] of Object.entries(GEOMETRY)) {
+    el.style.setProperty(`--p360-${key}`, value);
+  }
   el.setAttribute('data-theme', theme);
 }
