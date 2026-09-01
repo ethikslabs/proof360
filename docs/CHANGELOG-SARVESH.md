@@ -4,6 +4,44 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-09-01 · The conversation shows its references, and the theme learned to mirror
+
+Three things went live together. The first is the one that changes what a founder sees.
+
+### Inline citations in the chat
+
+**Problem.** proof360 reads a company's public trail and makes statements about it in conversation. Those statements are backed by real evidence records in CORPUS — each one has a source behind it. In the chat surface they arrived as bare prose. The founder saw an assertion about their own company and had no way, in the moment, to ask *how do you know that?*
+
+That gap is the whole product risk in one sentence. A confident claim with no visible backing is indistinguishable from a guess, and the audience most likely to notice is exactly the audience proof360 is for.
+
+**Fix.** Message bubbles now render inline citations — the reference travels with the sentence it supports, in the conversation, rather than living in a separate panel the founder has to go and find.
+
+**Why it matters.** The evidence layer has existed for months and was doing real work invisibly. Showing it is the difference between a product that claims it holds your evidence and one that hands it to you unprompted. An offer without the evidence behind it is an advertisement.
+
+### A 'parallel' theme
+
+**Problem.** The two estates — your Ethiks360 app and this one — are deliberately separate products that increasingly get shown in the same room. Nothing made them look like relatives.
+
+**Fix.** A new theme whose neutrals, ground colour and hairlines are lifted **verbatim** from the live Ethiks360 web app, measured off its Tailwind config and CSS custom properties rather than eyeballed. The accent is deliberately **ours** and not yours.
+
+**The reasoning behind that split**, since it looks like an inconsistency and isn't: a shared skeleton makes the two read as one family; a shared accent would make them indistinguishable in a screenshot. Same bones, different skin. Someone looking at a screenshot should be able to tell instantly which product they're looking at, while still recognising the pair.
+
+It is a normal theme option — the key set is identical to the existing default, and an unknown theme name still falls back to that default. **Nothing was written into your repository to do this.** The values were read out of your tree and reimplemented in ours; the estates stay parallel.
+
+### Inference moved to Sydney — with a caveat that matters
+
+**Problem.** Bedrock calls defaulted to us-east-1 under a July ruling made to dodge regional capacity limits, paying roughly a second of cross-Pacific round trip on every call. Separately, calls used bare model ids, and a bare model id carries no resource tag — which means Bedrock spend cannot be attributed to a service in Cost Explorer at any tagging effort.
+
+**Fix.** The default is now ap-southeast-2, overflowing to us-east-1 **only** on a throttle, so the capacity limit is still covered. Calls route through tagged application inference profiles, which is what makes the spend attributable. A credential, permission, or model fault does not overflow — retrying it elsewhere fails twice as slowly and reads as a regional problem when it isn't one. Note that a profile ARN is region-scoped, so the overflow swaps the ARN along with the region.
+
+**The caveat.** On the production box, `api/.env` still pins the region to us-east-1, and an environment variable beats the new code default. So **as of this writing proof360 is still running in us-east-1**, using the US profile. Nothing is broken and the spend is still tagged and attributable — but the Sydney move has not actually taken effect for this service yet, and the latency win is not being collected. It is a one-line deletion and a restart, and it is John's call when that happens. CORPUS has no such pin and is genuinely on ap-southeast-2 today.
+
+This is flagged here rather than left quiet because "deployed" and "in effect" came apart, and a changelog that reports the first as though it were the second is how a fix gets believed before it is real.
+
+**Verification.** API suite 457/457 and frontend 397/397, both re-run against the merged result rather than the branch. The public site is serving the new build — the bundle the front door references is byte-identical to the one on disk, and it carries both the citation code and the new theme.
+
+---
+
 ## 2026-08-26 · The AWS and Microsoft panels show real programs now
 
 **Problem.** An inventory of what's built-but-unreachable turned up the worst fabrication left in the product, and its fix sitting one import away.
