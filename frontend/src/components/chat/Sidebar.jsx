@@ -115,6 +115,11 @@ function AccordionSection({ title, accent, count, total, open, onToggle, collaps
       {!collapsed && (
         <button
           onClick={onToggle}
+          // Proper accordion semantics. The panel below collapses by max-height, so its
+          // children stay in the DOM — which means a closed section was still being
+          // read aloud. That matters most for the worked example: the one thing the
+          // demo boundary exists to keep separate was audible when it was hidden.
+          aria-expanded={!!open}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             width: '100%', background: 'none', border: 'none', cursor: 'pointer',
@@ -154,20 +159,36 @@ function AccordionSection({ title, accent, count, total, open, onToggle, collaps
           </span>
         </button>
       )}
-      <div style={{
-        overflow: 'hidden',
-        maxHeight: open ? 600 : 0,
-        transition: 'max-height 0.3s cubic-bezier(0.32,0.72,0,1)',
-      }}>
+      <div
+        aria-hidden={!open}
+        style={{
+          overflow: 'hidden',
+          maxHeight: open ? 600 : 0,
+          transition: 'max-height 0.3s cubic-bezier(0.32,0.72,0,1)',
+        }}
+      >
         {children}
       </div>
     </div>
   );
 }
 
-export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, litTiles, browserTabs = [], onInject, hiveStage: hiveStageFromParent, onHiveStageChange, noLogo, yourCompanyName, cers = [], onSignIn, record, t }) {
+export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, litTiles, browserTabs = [], onInject, hiveStage: hiveStageFromParent, onHiveStageChange, noLogo, yourCompanyName, cers = [], onSignIn, record, simulation = false, t }) {
   const tk = tokens(t.theme);
-  const [demoOpen, setDemoOpen]           = useState(true);
+  // THE RAIL FOLLOWS THE SWITCH (John, 2026-09-02). It used to open the worked example
+  // by default and leave the live company collapsed to a single line — so the rail spent
+  // most of its space on the reference and almost none on the thing being worked on.
+  // Simulation on → the example is the subject. Off → your own record is, and the
+  // example collapses to a peer you can open for comparison. Either way both are
+  // present, which is the whole point of the rail.
+  // Default false, deliberately: a caller that says nothing gets YOUR record as the
+  // subject, never the worked example. The fail-safe direction for a demo boundary is
+  // "this is real unless something explicitly said otherwise" — the opposite default
+  // would let a surface present fiction as the subject by simply forgetting a prop.
+  // Chat.jsx always passes the live switch value, so the app itself is unaffected.
+  const [demoOpenOverride, setDemoOpenOverride] = useState(null);
+  const demoOpen = demoOpenOverride ?? simulation;
+  const setDemoOpen = (fn) => setDemoOpenOverride(typeof fn === 'function' ? fn(demoOpen) : fn);
   const [hiveStageInternal, setHiveStageInternal] = useState(1);
   const [openSections, setOpenSections]   = useState({});
 
@@ -175,7 +196,12 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
 
   const userTabs = browserTabs.filter(tab => !tab.pinned);
 
-  function isSectionOpen(id) { return openSections[id] !== false; }
+  function isSectionOpen(id) {
+    // '__yours' is the live record. Its default is the mirror of the switch; every
+    // other section keeps the old open-unless-closed behaviour.
+    if (id === '__yours' && openSections.__yours === undefined) return !simulation;
+    return openSections[id] !== false;
+  }
   function toggleSection(id) { setOpenSections(prev => ({ ...prev, [id]: !isSectionOpen(id) })); }
 
   function handleStageSelect(idx) {
@@ -296,7 +322,13 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
                 fontFamily: '"IBM Plex Mono", monospace',
                 fontSize: 8.5, color: '#b0956e', letterSpacing: '0.12em',
                 textTransform: 'uppercase', marginBottom: 8,
-              }}>reference founder — funded, attested</div>
+                // INVARIANTS §4 specifies this label verbatim: an amber
+                // "Example company · [Name]". What shipped instead read "reference
+                // founder — funded, attested" — attested is the strongest word this
+                // product owns, and canon records this company as "domain purchased,
+                // product fictional". A worked example is a good thing; dressing it in
+                // the vocabulary of a verified record is not.
+              }}>Example company · Hive &amp; Co</div>
 
               {/* Stage timeline */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>

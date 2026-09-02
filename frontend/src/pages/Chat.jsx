@@ -52,6 +52,7 @@ import { EMPTY_TILES, tilesFromProjections } from '../utils/projectionTiles.js';
 import { OurWorking } from '../components/chat/OurWorking.jsx';
 import { HowWeReadThis } from '../components/chat/HowWeReadThis.jsx';
 import { PriorKnowledge } from '../components/chat/PriorKnowledge.jsx';
+import { SimulationSwitch } from '../components/chat/SimulationSwitch.jsx';
 import { coldReadFailure } from '../rendering/coldReadFailure.js';
 import { TWIN_YOURS } from '../copy.js';
 import { ShortlistContext } from '../components/chat/AddToShortlist.jsx';
@@ -1405,6 +1406,12 @@ export default function Chat() {
   } = useSurfaceAuthority();
 
   const isDemoMode = activeStageId === DEFAULT_STAGE_ID;
+  // EXPLICIT BEATS INFERRED (INVARIANTS §4, John ruling 2026-09-02). Demo-ness used to
+  // be derived from which stage happened to be selected and announced in a caption.
+  // It is now a switch the viewer operates. The override starts null so behaviour is
+  // byte-identical to the inferred state until someone actually flips it.
+  const [simulationOverride, setSimulationOverride] = useState(null);
+  const simulation = simulationOverride ?? isDemoMode;
   const activeStage = DEMO_STAGES.find(s => s.id === activeStageId);
   const founderProfileName = useMemo(() => companyNameFromProfile(founderProfile), [founderProfile]);
 
@@ -1516,7 +1523,7 @@ export default function Chat() {
   // scan window; `coldReadActive` closes that gap. Every consumer that uses
   // the flag to mean "this is the sandbox, not the user's reality" must be
   // gated on `inDemoMode`, not the raw `isDemoMode`.
-  const inDemoMode = isDemoMode && !liveSessionId && !coldReadActive;
+  const inDemoMode = simulation && !liveSessionId && !coldReadActive;
 
   const refreshSpine = useCallback(async (sessionIdArg) => {
     const sid = sessionIdArg ?? liveSessionId ?? spine.storedSessionId();
@@ -2522,6 +2529,7 @@ export default function Chat() {
         <Sidebar
           collapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed(c => !c)}
+          simulation={simulation}
           activeSpace={activeSpace}
           onSwitch={(id, ctx) => {
             setActiveSpace(prev => prev === id ? 'chat' : id);
@@ -2790,6 +2798,15 @@ export default function Chat() {
                 {previewOpen ? '◁ hide' : '▷ preview'}
               </button>
             )}
+            {/* The demo/workspace boundary lives here, beside the live dot, because it
+                governs the whole surface rather than one panel. Locked once real work
+                is in flight: at that point which state you are in is a fact. */}
+            <SimulationSwitch
+              on={simulation}
+              locked={!!liveSessionId || coldReadActive}
+              onToggle={() => setSimulationOverride(!simulation)}
+              tk={tk}
+            />
             <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <span style={{
                 width: 6, height: 6, borderRadius: '50%',

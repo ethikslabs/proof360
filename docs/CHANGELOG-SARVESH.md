@@ -4,6 +4,38 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-09-02 · The demo boundary is a switch now, not a caption
+
+**Vocabulary first.** proof360 shows two companies side by side in the left rail: a **worked example** (Hive & Co — a fictional founder used to teach the journey) and the **live workspace** (the real company being read). `INVARIANTS.md` §4 is explicit that these must be *"visually distinct at all times. The user never confuses which one they are looking at."*
+
+**Problem.** Three things were wrong at once, and John spotted all of them in one screenshot.
+
+**1. The boundary was a caption.** The example carried an amber line reading **"reference founder — funded, attested."** *Attested* is the strongest word this product owns — the whole business is built on the difference between a claim and an attested one — and canon records this company as *"domain purchased, product fictional"*. It read as an accolade, not a disclosure. And captions stop being seen by the third session.
+
+**2. The rail was inverted.** The example opened by default with six sub-items and a stage timeline; the live company sat collapsed underneath as a single line. Most of the rail's space went to the fiction and almost none to the work.
+
+**3. Demo-ness was inferred, not stated.** It was derived from which stage happened to be selected. Nothing on screen let you set it, and nothing told you plainly which state you were in.
+
+**Fix.**
+
+**1. A switch, in the top-right chrome beside the live indicator** — SIMULATION / LIVE. It governs the whole surface, so it sits with the surface-level controls rather than inside one panel. **It locks to LIVE and refuses the flip once a real read is in flight**, because at that point which state you are in is a fact, not a preference.
+
+**2. The rail follows the switch.** Simulation on → the example is the subject and opens; off → your own record opens and the example collapses to a peer you can open for comparison. Both stay present in either state — the comparison is what the rail is *for*.
+
+**3. The label is the one the invariant specifies:** `Example company · Hive & Co`. "Funded, attested" is gone, and a test asserts that vocabulary can never describe a fictional record again however the copy is later reworded.
+
+**Two things found while building it, both worth your attention.**
+
+The accordion collapses by animating `max-height` to zero, so a closed section's children stay in the DOM. That means **a hidden section was still being read aloud by assistive tech** — including the worked example, the one thing the boundary exists to keep separate. Sections now carry `aria-expanded` on the header and `aria-hidden` on the panel, which is correct accordion semantics regardless.
+
+And the component's `simulation` default is **false**, not true. A caller that passes nothing gets *your* record as the subject, never the example. The fail-safe direction for a boundary like this is "assume real unless told otherwise" — the opposite default would let a new surface present fiction as the subject by forgetting a prop.
+
+**Scope note.** Staging uses **Finova Capital** as its reference founder; proof360 uses Hive & Co. John ruled 2026-09-02 that these are not competing: Mel/Hive & Co stays the narrative spine (the deck, the ten-beat arc, hiveandco.au) because a fictional honey founder forces the story to teach — a fintech lets a channel audience nod along and learn nothing. Finova is the better in-product fixture for showing a dense, filled-in record. Different jobs, nothing retired.
+
+**Tests.** 9 new (`simulation-mode.test.jsx`): the switch's semantics and its lock, the rail inverting in both directions, the invariant's wording, and the rule that verified vocabulary never lands on a fictional record. Frontend 469 passing, lint 0 errors.
+
+---
+
 ## 2026-09-02 · Two words the founder never asked to learn
 
 **Problem 1 — the product named its own filing system.** Asked for citable research, an advisor answered: *"The corpus doesn't yet hold independent Australian market research…"* A founder reads that and asks what a corpus is, and why the machine is telling them about its internals instead of answering.
