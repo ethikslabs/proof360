@@ -153,10 +153,16 @@ ${content}
 
 Respond with ONLY valid JSON matching this exact schema (no markdown, no explanation):
 {
-  "product_type": "B2B SaaS" | "B2C App" | "Platform" | "API" | "Software product" | "Unknown",
+  "offering": { "physical": boolean, "software": boolean, "services": boolean },
+  "product_type": "B2B SaaS" | "B2C App" | "Platform" | "API" | "Software product" | "Professional services" | "Managed service" | "Unknown",
+  "revenue_model": "Subscription" | "Usage-based" | "Project fees" | "Retainer" | "Resale margin" | "Mixed" | "Unknown",
+  "delivery_model": "Self-serve" | "Sales-led" | "Partner-led" | "Consultant-delivered" | "Unknown",
+  "positioning_claim": "the single strongest specific position claim the company makes, verbatim, or null",
+  "claim_conferred_by": "Self-asserted" | "Named third party" | "Verifiable accreditation" | "None",
+  "concentration": ["array of platforms, vendors or clients the positioning visibly depends on"],
   "customer_type": "Enterprise (B2B)" | "SMB (B2B)" | "Consumer (B2C)" | "Mixed" | "Unknown",
   "data_sensitivity": "PII" | "Financial data" | "Healthcare data" | "Customer data" | "None" | "Unknown",
-  "stage": "Pre-seed" | "Seed" | "Series A" | "Series B+" | "Unknown",
+  "stage": "Pre-seed" | "Seed" | "Series A" | "Series B+" | "Bootstrapped" | "Profitable / self-funded" | "PE-backed / acquired" | "Unknown",
   "sector": "healthcare" | "fintech" | "financial_services" | "government" | "legal" | "ecommerce" | "education" | "saas" | "infrastructure" | "unknown",
   "geo_market": "AU" | "US" | "UK" | "SG" | "Global" | "Unknown",
   "handles_payments": true | false,
@@ -181,6 +187,13 @@ Respond with ONLY valid JSON matching this exact schema (no markdown, no explana
 }
 
 Signal rules:
+- offering: what they SELL, as three independent booleans. A thing you can touch (physical), a thing that runs (software), a thing people do (services). Any combination is valid and combinations are common — a consultancy that ships a tool is services AND software. This is the primary read; product_type below is the legacy narrower label. Do not force a single choice.
+- product_type: keep consistent with offering. Services-only companies are "Professional services" (project-shaped) or "Managed service" (ongoing/retained). NEVER label a consultancy "Software product" — if they sell people's time, it is services.
+- revenue_model: how they charge. Recurring (Subscription/Retainer) versus one-off (Project fees) is the distinction that matters most; "Mixed" when the page clearly shows both.
+- delivery_model: how a customer actually gets it. "Consultant-delivered" when humans do the work; "Partner-led" when resellers or channel partners deliver.
+- positioning_claim: the strongest SPECIFIC claim they make about where they stand — a ranking, a "first", a named partner status, an accreditation. Quote it verbatim. null when they make no specific claim, and never invent one from general marketing language.
+- claim_conferred_by: who stands behind positioning_claim. "Self-asserted" when only the company says it. "Named third party" when a named organisation is credited. "Verifiable accreditation" when it is a formal scheme with a register. "None" when there is no claim. This is a state the company can change, not a judgement of them.
+- concentration: platforms, vendors or named clients the positioning visibly leans on. A company describing itself as a top partner of one platform is concentrated on that platform. Empty array if none.
 - uses_ai: true when the product or company messaging prominently features AI, ML, LLM, or AI-powered capabilities. false otherwise.
 - handles_personal_data: true when the company processes user PII, health records, financial data, or personal profiles — infer from privacy policy mentions, GDPR/CCPA references, or data-type descriptions. false otherwise.
 - pen_test_completed: true only when they explicitly mention penetration testing, third-party security audits, or security assessments. null when not mentioned.
@@ -226,7 +239,12 @@ export function mapToSignals(extracted) {
   // below, handled separately because they need re-typing (hosting vs relationship),
   // not the flat value-copy every other business field gets.
   const mappings = [
+    ['offering', offeringLabel(extracted.offering)],
     ['product_type', extracted.product_type],
+    ['revenue_model', extracted.revenue_model],
+    ['delivery_model', extracted.delivery_model],
+    ['positioning_claim', extracted.positioning_claim],
+    ['claim_conferred_by', extracted.claim_conferred_by],
     ['customer_type', extracted.customer_type],
     ['data_sensitivity', extracted.data_sensitivity],
     ['stage', extracted.stage],
@@ -268,8 +286,58 @@ export function mapToSignals(extracted) {
     signals.push({ type: 'works_with', value: vendor, confidence, claim_type: 'relationship' });
   }
 
+  const concentration = Array.isArray(extracted.concentration) ? extracted.concentration : [];
+  const seenConcentration = new Set();
+  for (const name of concentration) {
+    if (!name || name === 'Unknown' || name === 'unknown') continue;
+    const key = String(name).toLowerCase();
+    if (seenConcentration.has(key)) continue;
+    seenConcentration.add(key);
+    signals.push({ type: 'concentration', value: name, confidence, claim_type: 'dependency' });
+  }
+
+  // Class every signal so the renderer can lead with position and bury posture,
+  // WITHOUT dropping anything — the gap engine still consumes the posture fields.
+  // Direction: the read sells market position; security is an instrument, not the
+  // output (John, 2026-09-02). Filtering here would break gaps; classing does not.
+  for (const sig of signals) {
+    sig.signal_class = SIGNAL_CLASS[sig.type] ?? 'context';
+  }
+
   return signals;
 }
+
+// physical / software / services — three independent primitives, any combination.
+// John's model (2026-09-02): "you either sell a physical thing, a software thing,
+// or a services thing - or any combination of those 3". Replaces a flat enum that
+// had no value for a consultancy and forced them to be called "Software product".
+export function offeringLabel(offering) {
+  if (!offering || typeof offering !== 'object') return null;
+  const parts = [];
+  if (offering.physical) parts.push('physical');
+  if (offering.software) parts.push('software');
+  if (offering.services) parts.push('services');
+  if (parts.length === 0) return null;
+  if (parts.length === 3) return 'Physical, software and services';
+  const [head, ...rest] = parts;
+  const label = rest.length ? `${head} + ${rest.join(' + ')}` : head;
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+export const SIGNAL_CLASS = {
+  offering: 'position', product_type: 'position', revenue_model: 'position',
+  delivery_model: 'position', positioning_claim: 'position',
+  claim_conferred_by: 'position', concentration: 'position',
+  customer_type: 'position', stage: 'position', sector: 'position',
+  geo_market: 'position', use_case: 'position', works_with: 'position',
+  handles_payments: 'context', uses_ai: 'context',
+  aws_program_enrolled: 'context', microsoft_program_enrolled: 'context',
+  infrastructure: 'infrastructure',
+  data_sensitivity: 'posture', handles_personal_data: 'posture',
+  pen_test_completed: 'posture', has_backup: 'posture',
+  compliance_status: 'posture', identity_model: 'posture',
+  insurance_status: 'posture',
+};
 
 function fallbackSignals(website_url, deck_file) {
   const sources_read = [];
@@ -300,6 +368,12 @@ function fallbackSignals(website_url, deck_file) {
 }
 
 const SIGNAL_READABLE = {
+  offering:           (v) => `Sells: ${v}`,
+  revenue_model:      (v) => `Revenue: ${v}`,
+  delivery_model:     (v) => `Delivered: ${v}`,
+  positioning_claim:  (v) => `Claims: ${v}`,
+  claim_conferred_by: (v) => `Claim is: ${v}`,
+  concentration:      (v) => `Depends on: ${v}`,
   product_type:      (v) => `Product type: ${v}`,
   customer_type:     (v) => `Customer type: ${v}`,
   data_sensitivity:  (v) => `Data: ${v}`,
@@ -416,7 +490,7 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
 
     // 1. Perimeter scan — commodity, demoted. Fired now, awaited later (step 5)
     // so its probe lines can stream in throughout every other act below.
-    log({ type: 'act', act: 'perimeter', phase: 'start', title: 'Perimeter scan', note: 'running in the background' });
+    log({ type: 'act', act: 'perimeter', phase: 'start', title: 'Infrastructure and posture', note: 'running in the background' });
     let perimeterChecks = 0;
     let reconTimedOut = false;
     const reconPromise = new Promise((resolve) => {
