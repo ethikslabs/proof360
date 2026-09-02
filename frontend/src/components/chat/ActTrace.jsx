@@ -4,6 +4,7 @@
 // Honest degradation (INVARIANTS.md): renders exactly the lines the API
 // sends — never an invented line, never a suppressed failure.
 import { useState, useMemo, useRef, useEffect } from 'react';
+import { VendorRow } from './VendorMarks.jsx';
 import { stripEmphasis } from '../../rendering/stripEmphasis.js';
 
 const COLORS = {
@@ -120,7 +121,7 @@ export const DISPLAY_RANK = {
 };
 const DEFAULT_RANK = 60;
 
-export function ActTrace({ lines, done, composing = false, tk }) {
+export function ActTrace({ lines, done, composing = false, tk, showVendorMarks = false }) {
   const [userToggled, setUserToggled] = useState({});
   const scrollRefs = useRef({});
 
@@ -222,6 +223,10 @@ export function ActTrace({ lines, done, composing = false, tk }) {
               <span style={{ color: tk.ink }}>
                 {act.title}
                 {act.note && <span style={{ color: tk.inkSoft }}> · {act.note}</span>}
+                {/* Opt-in for the demo: name the services this step actually used.
+                    Bound to what ran — an attempted engine shows dimmed, never hidden
+                    and never as a success (truthful-engines ruling, logo layer). */}
+                {showVendorMarks && <VendorRow act={act} tk={tk} />}
               </span>
               {hasBody && (
                 <span style={{ color: tk.inkSoft, fontFamily: MONO, fontSize: 10 }}>

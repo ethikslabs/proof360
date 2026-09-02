@@ -102,7 +102,18 @@ Verified live: `congisys.co.uk` → does not exist, suggests `cognisys.co.uk`, a
 
 `address_not_found` is threaded end to end as a **terminal state with something useful to say**, never a failure. The status endpoint carries the suggestions so the client needs no second round trip, and the chat says: we couldn't find that address, did you mean this, we haven't read anything or looked you up yet. Reporting it as "inference timeout" would have repeated the 2026-08-26 defect where an honest signal was flattened into a vague one.
 
-**Verification.** API 536/536, frontend 421/421, nothing skipped — 80 new tests. **No human has walked it**, which is why this is on a branch and not on main. A green suite written by the same author that wrote the code is not sign-off.
+
+**For your demo — the stack, named.** The thinking trace reads as though proof360 does all of this itself. It does not: it orchestrates Firecrawl, Perplexity, Gemini, and Claude on Bedrock. Naming them is more impressive *and* more honest, so each step can now show the service it used.
+
+**It is off by default.** Set `VITE_SHOW_VENDOR_MARKS=true` at build time to turn it on. Your call whether it ships — this is demo dressing, not a product decision.
+
+**Two things about it worth knowing before you touch it.**
+
+**The marks are placeholders, not the official logos.** They are simple geometric stand-ins drawn so the layout, spacing and weight are real. Before this goes anywhere outside a demo, swap `mark` in the `VENDORS` registry for the official SVG from each vendor's brand kit and check their trademark guidance — attribution use is normally fine, but every vendor sets its own rules on colour, spacing and lockup, and an approximated logo looks worse than none. The registry is the single place to change them.
+
+**A mark is bound to what actually ran.** It is derived from the act id and the note the backend already writes — so if we stop using an engine, its mark disappears on its own, with no second place to update. An engine that was *attempted and failed* renders dimmed and labelled "attempted, did not answer" rather than being hidden or shown as a success: the second research read 404s regularly, and both hiding it and dressing it up would misrepresent what the machine did. This is the existing truthful-engines ruling — only claim the engines that really answered — extended to the logo layer, because a brand shown for a service that did not fire is the same defect in a better suit.
+
+**Verification.** API 536/536, frontend 433/433, nothing skipped — 80 new tests. **No human has walked it**, which is why this is on a branch and not on main. A green suite written by the same author that wrote the code is not sign-off.
 
 **Why it matters.** proof360 sells the claim that it can read a company and say something useful about where it stands. A read that calls a consultancy a software product, and leads with their email security, is answering a question nobody asked — and doing it confidently, in the one place the product asks to be trusted.
 

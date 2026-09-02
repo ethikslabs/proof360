@@ -3033,7 +3033,14 @@ export default function Chat() {
                       />
                     )}
                     {m.id === scanOwnerId && (
-                      <ActTrace lines={scanLines} done={scanDone} composing={composingRead} tk={tk} />
+                      <ActTrace
+                        lines={scanLines} done={scanDone} composing={composingRead} tk={tk}
+                        /* Demo dressing, off unless switched on at build time. Names the
+                           services each step actually used — Perplexity, Gemini, Anthropic
+                           on Bedrock, Firecrawl — so the trace shows the machine is an
+                           orchestration, not a black box. Sarvesh's call whether it ships. */
+                        showVendorMarks={import.meta.env.VITE_SHOW_VENDOR_MARKS === 'true'}
+                      />
                     )}
                   </div>
                 );
