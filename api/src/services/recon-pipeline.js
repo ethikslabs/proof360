@@ -20,7 +20,7 @@ import { reconIp }       from './recon-ip.js';
 import { reconGithub }   from './recon-github.js';
 import { reconJobs }     from './recon-jobs.js';
 import { reconHibp }     from './recon-hibp.js';
-import { reconPorts }    from './recon-ports.js';
+// recon-ports is deliberately NOT imported. See the ports entry below.
 import { reconSslLabs }  from './recon-ssllabs.js';
 import { reconAbuseIpdb } from './recon-abuseipdb.js';
 import { assertPublicHost, SsrfBlockedError } from './ssrf-guard.js';
@@ -81,7 +81,17 @@ export async function runReconPipeline(websiteUrl, companyName, options = {}) {
       safe('github',    reconGithub(domain, companyName, session_id)).then(r => { onSourceComplete?.('github',   formatReconLine('github',   r)); return r; }),
       safe('jobs',      jobsPromise).then(r               => { onSourceComplete?.('jobs',      formatReconLine('jobs',      r)); return r; }),
       safe('hibp',      reconHibp(domain, hibpKey, session_id)).then(r       => { onSourceComplete?.('hibp',      formatReconLine('hibp',      r)); return r; }),
-      safe('ports',     reconPorts(domain, session_id)).then(r        => { onSourceComplete?.('ports',     formatReconLine('ports',     r)); return r; }),
+      // PORT SCANNING DISABLED (John ruling, 2026-09-02).
+      // This probed 13 TCP ports on a third party's infrastructure — 22, 23, 3306,
+      // 5432, 6379, 9200, 27017 among them — on nothing but a domain the user typed.
+      // Two reasons it is gone, and the second outranks the first:
+      //   1. Wrong product. The value is market position and investor readiness;
+      //      exposed-port findings are security-tool output nobody asked for.
+      //   2. Wrong to do. Reaching into a live system we do not own crosses the
+      //      lab-not-live boundary, uninvited, against companies we are often mid-
+      //      conversation with. No result was worth that.
+      // Kept as a resolved skip rather than deleted so every consumer's shape holds.
+      Promise.resolve({ source: 'ports', skipped: true, reason: 'disabled_by_policy' }),
       safe('ssllabs',   reconSslLabs(websiteUrl, session_id)).then(r  => { onSourceComplete?.('ssllabs',  formatReconLine('ssllabs',  r)); return r; }),
       safe('abuseipdb', reconAbuseIpdb(domain, abuseIpdbKey, session_id)).then(r => { onSourceComplete?.('abuseipdb', formatReconLine('abuseipdb', r)); return r; }),
     ]);
