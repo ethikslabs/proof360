@@ -4,6 +4,44 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-09-02 · The read stopped describing security and started describing the business
+
+**Not deployed.** On branch `feat/position-read-and-interview`, tests green, waiting on a human walk before it goes near main.
+
+**Vocabulary first.** The cold read produces **signals** — typed facts about a company, each with provenance. Some come from the **website extractor** (an LLM reading their public pages), some from **recon probes** (DNS, TLS, hosting lookups), and some from **corpus holdings** (material we gathered about them independently, before the conversation started). Signals become **claims**, and a claim's status is derived by folding an append-only event log — never by mutating the claim.
+
+**Problem.** A live read on Cognisys — a 120-person security consultancy — came back as a security posture report. It led with a perimeter scan, said their DMARC was not enforcing, noted Oracle hosting, and called them a **"Software product"**.
+
+That last one is the tell, and it was not the model's fault. `product_type` was a fixed enum: `B2B SaaS | B2C App | Platform | API | Software product | Unknown`. There is no value in that list for a services business, so the model had no legal way to say what they are. Services-versus-product sets a company's valuation multiple. Getting it backwards is worse than saying nothing.
+
+Underneath that sat a bigger structural problem. The corpus holdings had **already retrieved** the material that mattered — 120 specialists across 19 countries, 51–200 employees from a second source, founded 2019, CREST-accredited, "Vanta's #1 Global Service Partner". All of it was displayed as citations and **none of it could become a signal**, because the website extractor was the only producer. The retrieval was right; the material had nowhere to go.
+
+**Fix — five changes.**
+
+**1. Port scanning is gone.** The read was making TCP connections to 13 ports on a third party's infrastructure — 22, 23, 3306, 5432, 6379, 9200, 27017 among them — off nothing but a domain someone typed. Two reasons it was removed, and the second outranks the first: it is the wrong product (nobody asked for exposed-port findings), and it is the wrong thing to do (reaching into a live system we do not own, uninvited, often against companies we are mid-conversation with). Kept as a resolved skip rather than deleted so every consumer's shape holds.
+
+**2. Offering is three primitives, not an enum.** Physical, software, services — three independent booleans, any combination. This is John's model and it is better than the enum it replaces: "hybrid" stops being a special value and becomes two flags set, and managed-versus-professional services collapses into `revenue_model`, where recurring-versus-project already lives. Five position fields join it: `revenue_model`, `delivery_model`, `positioning_claim` (verbatim), `claim_conferred_by`, `concentration`. `stage` widens past the venture ladder so a profitable 2019 consultancy is no longer "Unknown".
+
+**3. Security fields are classed, not deleted.** Every signal now carries `signal_class` — position, posture, infrastructure or context. **This is the design decision worth your attention.** The obvious implementation drops the security fields from the output. That breaks the gap engine, which consumes them. Classing lets the renderer lead with position and bury posture while the gap logic keeps everything it had. Security remains available the moment a gap calls for it; it is simply no longer the headline.
+
+**4. Display order is now independent of execution order.** The perimeter scan is fired first deliberately, so its probes stream in the background while everything else runs. Because the UI rendered arrival order, "Perimeter scan" sat at the top of the founder's screen — the first thing they saw, announcing a security tool before a word of the read was visible. The trace now sorts by an explicit rank: holdings lead, posture trails, synthesis closes. The scan keeps its head start.
+
+**5. Position signals, and the rule that shapes them.** A second producer reads the holdings for where a company stands: headcount, footprint, years operating, category position, accreditations, named customers.
+
+Two public sources disagreed about Cognisys's headcount. **That is not modelled as a contradiction, and it never renders as one.** A signal holds multiple **observations**, each stamped with who saw it and when, plus a confirmation state that starts unconfirmed. There is deliberately no `disagreement` type and no contradiction vocabulary anywhere in the file — a test asserts the words conflict, contradict, disagree, unverified, wrong and lying never appear in that render. The reasoning: sources go out of date and disagree, everyone knows this, and adjudicating someone's public record would make this a rating agency. We hold a point-in-time record. One primitive, two audiences — the founder is asked which is right; a partner is told it is observed and not yet confirmed.
+
+**Also: the interview, and a third answer.** The claim strip already put confirm/reject buttons on every tile, but a strip waits to be noticed. There is now a flow that asks — one question at a time, opening on cloud provider because that is the gimme that earns the first yes, then position, then posture, so stopping early still pays.
+
+The new part is **"I don't know"** as a first-class folded event, distinct from *inferred* (never asked) and *rejected* (asked, and wrong). A founder who cannot say whether they are on AWS or behind Cloudflare has told us something true about how the company is run — it is a finding, not a blank. It mints no evidence, leaves the inference intact, and counts as **answered**, so it is never asked again. No counter and no total anywhere in the flow: a progress bar turns a conversation into a form. Skipping goes quiet rather than rendering a dead end, and every tile stays answerable afterwards.
+
+**What this does not do.** `product_type` was kept and widened rather than replaced. It is load-bearing for AWS and Microsoft program matching, the capability-register triggers, firehose intake and claims projection. A services company now falls outside the ISV program lists, which is correct behaviour rather than a regression. Full decomposition into the three primitives is the right end state and is its own change with its own blast radius. The ask order is also duplicated across the API boundary on purpose, commented on both sides; it collapses when the API returns the ordered queue instead of record-ordered claims.
+
+**And one thing genuinely unfinished:** position signals are produced and stored on the session, and **nothing renders them yet**. The data reaches the session and stops there.
+
+**Verification.** API 502/502, frontend 419/419, nothing skipped — 80 new tests. **No human has walked it**, which is why this is on a branch and not on main. A green suite written by the same author that wrote the code is not sign-off.
+
+**Why it matters.** proof360 sells the claim that it can read a company and say something useful about where it stands. A read that calls a consultancy a software product, and leads with their email security, is answering a question nobody asked — and doing it confidently, in the one place the product asks to be trusted.
+
 ## 2026-09-01 · The conversation shows its references, and the theme learned to mirror
 
 Three things went live together. The first is the one that changes what a founder sees.
