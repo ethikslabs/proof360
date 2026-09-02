@@ -65,9 +65,16 @@ export const TOKEN = {
     inkGhost:   '#b8b6ae',
     hairline:   '#eae7dd',
     hairStrong: '#d9d5c7',
-    plum:       '#5b4cc4',
-    umber:      '#92400e',
-    teal:       '#176577',
+    // The accents are WARM and OURS (John ruling 2026-09-02). His ground is a
+    // warm cream; a cool violet accent (#5b4cc4, the pearl value) sat on it as
+    // a clash. These two hues come from the activation-gap deck approved this
+    // week, so the product and the deck now agree:
+    //   plum -> #b0501c  (deck --gap)      teal -> #0e6b62  (deck --through)
+    // We do NOT take his #E05326 orange: a screenshot must still say which
+    // build it is, which is the whole point of the parallel-estates ruling.
+    plum:       '#b0501c',
+    umber:      '#7c3d0c',
+    teal:       '#0e6b62',
     indigo:     '#3d3aa0',
     aws:        '#ff9900',
     awsInk:     '#232f3e',
@@ -157,7 +164,10 @@ export const GEOMETRY = {
   bp3xl:        '1515px',
 };
 
-export const DEFAULT_THEME = 'pearl';
+// The house ground is now the mirrored one (John ruling 2026-09-02): warm
+// cream, not the cool grey of 'pearl'. main.jsx calls applyTheme() with no
+// argument, so this constant is what every surface actually renders on.
+export const DEFAULT_THEME = 'parallel';
 
 // Emit the active theme's palette + fonts as CSS custom properties on :root,
 // so stylesheets/<style> blocks can use var(--p360-ink), var(--p360-serif), etc.
@@ -170,8 +180,13 @@ export function applyTheme(theme = DEFAULT_THEME, root) {
     el.style.setProperty(`--p360-${key}`, value);
   }
   el.style.setProperty('--p360-serif', FONT.serif);
-  // The 'parallel' theme sets UI type in the live app's face; others keep ours.
-  el.style.setProperty('--p360-sans', theme === 'parallel' ? FONT.ui : FONT.sans);
+  // The UI face is deliberately NOT swapped with the theme (2026-09-02).
+  // FONT.ui was recorded as Inter off his tailwind config and the rendered
+  // face reads rounder than that, so it is unverified; and ~124 call sites
+  // hardcode IBM Plex Sans rather than reading var(--p360-sans), so swapping
+  // here would set half the screen in one face and half in the other. Flip
+  // this in ONE move, after the face is confirmed and the families swept.
+  el.style.setProperty('--p360-sans', FONT.sans);
   el.style.setProperty('--p360-mono', FONT.mono);
   el.style.setProperty('--p360-ui', FONT.ui);
   for (const [key, value] of Object.entries(GEOMETRY)) {

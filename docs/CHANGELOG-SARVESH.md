@@ -4,6 +4,30 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-09-02 · proof360 now renders on the same ground as the platform
+
+**Vocabulary first.** A **design token** is a named colour or typeface held in one file, which every component reads instead of writing a hex value inline. Change the token, every screen changes. Write the hex inline and the component can never be re-themed.
+
+**Problem.** Put the ethiks360 staging app and proof360 side by side and they read as two different products. The platform sits on a warm cream (`#f5f4ee`); proof360 sat on a cool blue-grey (`#f5f6f8`). Same shapes, different temperature — enough that a screenshot of one does not look like it belongs with the other.
+
+The cause was one missing word. `frontend/src/tokens.js` already held a theme called `parallel` whose ground, tint, ink, muted and hairline were measured off the live platform, verbatim. But `main.jsx` calls `applyTheme()` with no argument, so the app rendered whatever `DEFAULT_THEME` said — and that still said `pearl`. The matching work was done and never switched on.
+
+**Fix.**
+
+**1. The default is now `parallel`.** Every surface renders on the platform's cream. Instrument Serif was already the shared display face, so headings needed no work.
+
+**2. The accents are warm, and ours.** `pearl`'s accent is a cool violet (`#5b4cc4`), which on a warm cream ground clashes — a cool accent on a warm base is the part your eye reads as *wrong* before it can say why. Replaced with two hues taken from the activation-gap deck approved this week, so product and deck now agree: `#b0501c` and `#0e6b62`. Both clear 4.9:1 contrast on the cream.
+
+We deliberately did **not** take the platform's `#E05326` orange or `#58D5D3` primary. The two estates run parallel and never merge; a screenshot must still say which build it is. Same skeleton, our skin.
+
+**3. The UI typeface was deliberately not swapped, and this is the part worth your attention.** `applyTheme` previously switched the sans face to Inter whenever the theme was `parallel`. Flipping the default would have fired that automatically — and broken the screen, because roughly 124 call sites hardcode `IBM Plex Sans` in JSX rather than reading the CSS variable. Half the page would render in Inter and half in Plex Sans. The swap is now unconditional on Plex Sans until two things are true: the platform's real UI face is confirmed (it was recorded as Inter from the tailwind config, but the rendered page reads rounder than Inter), and the hardcoded families are swept. Then it flips in one move.
+
+**Known gap, named so it is not mistaken for done.** About 30 files still write dark-theme hex values directly into JSX — `#0f172a`, `#1e293b`, `#475569`. Heaviest: `AccountPanel` (12), `PortalDashboard` (11), `ChatInput` (10), `VendorShortlist` (8). Those components cannot be themed at all; they will stay dark on the cream until the values are moved to tokens. That sweep is next and is the larger half of this work.
+
+**Tests.** Four new contract tests in `frontend/tests/unit/theme-ground.test.js`. Worth knowing why they exist: every one of the other 445 tests passes `theme: 'pearl'` explicitly, so nothing covered what an un-argumented `applyTheme()` actually produces — which is what every real user gets. The new tests pin the default, pin the platform's five neutrals verbatim, assert we never adopt their accent hues, and assert the font face does not swap. Suite: 449 passing, lint 0 errors.
+
+---
+
 ## 2026-09-02 · The read stopped describing security and started describing the business
 
 **Not deployed.** On branch `feat/position-read-and-interview`, tests green, waiting on a human walk before it goes near main.
