@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import { VendorShortlist } from './VendorShortlist.jsx';
 import { ClaimStrip } from './ClaimStrip.jsx';
+import { Interview } from './Interview.jsx';
 import { PathwaySuggestions } from './PathwaySuggestions.jsx';
 
 export function CompanionPanel({ items, claims, proposals, isDemoMode, onShortlist, onDefer, onAnswerClaim, onAcceptProposal, onOpenRecord, companyName }) {
@@ -86,6 +87,11 @@ export function CompanionPanel({ items, claims, proposals, isDemoMode, onShortli
             counted claims and the other counted the whole record. Both true,
             together a bug. The header keeps the count; this line is now the door
             out to the page that can actually hold it. */}
+        {/* The flow asks; the strip below waits to be noticed. Both settle the same
+            claims through the same endpoint — this only decides who moves first.
+            Goes quiet the moment the queue empties or the founder skips, and the
+            strip keeps every tile answerable afterwards, so skipping costs nothing. */}
+        <Interview claims={claims} onAnswer={onAnswerClaim} />
         <ClaimStrip claims={claims} onAnswer={onAnswerClaim} />
         {/* The supply side: what the register says is open to them right now,
             each with the claim or gap that earned it. Renders nothing until

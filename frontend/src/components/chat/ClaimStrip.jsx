@@ -25,6 +25,10 @@ const SANS = '"IBM Plex Sans", system-ui, sans-serif';
 function gradeOf(claim) {
   if (claim.status === 'confirmed' || claim.status === 'corrected') return 'confirmed';
   if (claim.status === 'rejected') return 'rejected';
+  // Asked, and the founder could not say. Its own grade on purpose — reading as
+  // 'inferred' would put it back in the queue, which is the exact re-asking that
+  // ask-fatigue exists to stop.
+  if (claim.status === 'unknown') return 'not known yet';
   return 'inferred';
 }
 
@@ -121,6 +125,18 @@ export function ClaimStrip({ claims, onAnswer, light = false }) {
                   }}
                 >
                   Not quite
+                </button>
+                <button
+                  onClick={() => answer(claim.claim_id, 'dont_know')}
+                  disabled={busy === claim.claim_id}
+                  style={{
+                    fontFamily: MONO, fontSize: 10, padding: '3px 9px',
+                    borderRadius: 4, cursor: 'pointer',
+                    background: 'transparent', color: ink.quiet,
+                    border: `1px solid ${ink.quiet}55`,
+                  }}
+                >
+                  I don&apos;t know
                 </button>
               </div>
             )}

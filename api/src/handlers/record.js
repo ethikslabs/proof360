@@ -111,7 +111,10 @@ export async function recordHandler(request, reply) {
 }
 
 // POST /api/v1/session/:id/claims/:claimId/answer  { action: confirm|correct|reject, value? }
-const ACTION_TO_EVENT = { confirm: 'confirmed', correct: 'corrected', reject: 'rejected' };
+// 'dont_know' is the third answer, not a decline (John, 2026-09-02). A founder who
+// cannot say has told us something real about the company — it is recorded, it is
+// never re-asked, and it mints no evidence.
+const ACTION_TO_EVENT = { confirm: 'confirmed', correct: 'corrected', reject: 'rejected', dont_know: 'unknown' };
 
 export async function claimAnswerHandler(request, reply) {
   const session = getSession(request.params.id);

@@ -10,7 +10,7 @@ import { sameProvider } from './inference-builder.js';
 // Pre-attach, the same records buffer on the in-memory session (session.claim_records)
 // and flow into the log verbatim at session-attach, like cold-read facts already do.
 
-export const CLAIM_STATUSES = ['inferred', 'confirmed', 'corrected', 'rejected'];
+export const CLAIM_STATUSES = ['inferred', 'confirmed', 'corrected', 'rejected', 'unknown'];
 
 // Positive lists — default-deny. A provenance method or event type not named here refuses.
 const PROVENANCE_METHODS = [
@@ -21,7 +21,13 @@ const PROVENANCE_METHODS = [
   // no site, no deck, just words. Inferred-until-confirmed like any other claim.
   'founder-utterance',
 ];
-const CLAIM_EVENT_TYPES = ['confirmed', 'corrected', 'rejected'];
+// 'unknown' = we asked and the founder could not say. Deliberately NOT the same as
+// 'inferred' (never asked) and NOT the same as 'rejected' (asked, and it is wrong).
+// John, 2026-09-02: the three answers are yes / correct it / I don't know. A founder
+// who cannot say whether they are on AWS or behind Cloudflare has told us something
+// true about the company — it is a finding, not a blank — and we must never ask again
+// as though we never asked. It mints no evidence: not-knowing is not testimony.
+const CLAIM_EVENT_TYPES = ['confirmed', 'corrected', 'rejected', 'unknown'];
 
 function iso() {
   return new Date().toISOString();
@@ -238,11 +244,20 @@ export function buildInferredClaims({ recon = {}, signals = [] } = {}) {
 // never a claim the user already ruled on. Priority is commercial: the fields
 // that unlock register triggers come first.
 // ---------------------------------------------------------------------------
+// Ask order — optimised for ANSWER RATE, which is not the same problem as display
+// order. Cloud provider opens because it is a gimme: concrete, quick, and it earns the
+// first yes, which is what starts the ratchet. It is also the flow John described from
+// memory (2026-09-02): "we think you are on aws/azure/gcp/behind cloudflare", then "we
+// think b2b blah". Position fields follow; posture trails, because those are
+// instruments rather than the product. A first reorder that led with position broke the
+// acceptance walk and was the wrong read of the direction — position-not-posture
+// governs what the read SAYS, not which question is easiest to answer first.
 const CONFIRM_PRIORITY = [
   'infrastructure.cloud_provider',
-  'compliance.soc2_status',
-  'company.stage',
+  'product.type',
   'market.customer_type',
+  'company.stage',
+  'compliance.soc2_status',
   'data.sensitivity',
   'identity.model',
   'governance.cyber_insurance',
@@ -308,4 +323,36 @@ export function nextConfirmable(claims, askedCounts) {
     if (hit) return hit;
   }
   return open[0];
+}
+
+/**
+ * The whole interview, in ask order — nextConfirmable's ordering applied to every
+ * open claim rather than just the head of the queue.
+ *
+ * Only 'inferred' claims are open. Confirmed, corrected, rejected AND unknown are all
+ * answered: once a founder has said "I don't know", asking again is the exact failure
+ * ask-fatigue exists to prevent.
+ *
+ * Deliberately returns a plain ordered array with no count and no total. The UI must
+ * never render "3 of 12" — a progress bar turns a conversation into a form and
+ * manufactures the feeling of abandoning something (standing beat-count ruling:
+ * entries accumulate, uncapped, never "step N of N").
+ */
+export function interviewQueue(claims, askedCounts) {
+  const asked = (askedCounts && typeof askedCounts === 'object') ? askedCounts : {};
+  const timesAsked = (c) => {
+    const n = asked[c.claim_id];
+    return Number.isFinite(n) ? n : 0;
+  };
+  const open = (claims ?? []).filter(
+    (c) => c.status === 'inferred' && timesAsked(c) < MAX_ASKS_PER_CLAIM,
+  );
+  const rank = (c) => {
+    const i = CONFIRM_PRIORITY.indexOf(c.field);
+    return i === -1 ? CONFIRM_PRIORITY.length : i;
+  };
+  return [...open].sort((a, b) => {
+    const d = rank(a) - rank(b);
+    return d !== 0 ? d : open.indexOf(a) - open.indexOf(b);   // stable within a rank
+  });
 }
