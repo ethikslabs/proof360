@@ -67,7 +67,22 @@ The prompt gained a rule that outranks its shape rules: an unconfirmed holding m
 
 **Why it matters, and why this one was worth stopping for.** Everything else found today was a read that was unhelpful. This was a read that was **wrong, and confident, about someone else's business** — with no way for the reader to tell. If that domain belonged to a real company, proof360 would have told them they are a 120-person GRC consultancy. A wrong company confidently described is the worst output this product can produce, because the entire proposition is that the evidence is traceable.
 
-**Verification.** API 515/515, frontend 421/421, nothing skipped — 80 new tests. **No human has walked it**, which is why this is on a branch and not on main. A green suite written by the same author that wrote the code is not sign-off.
+
+**And the fix above was not enough — what actually worked.**
+
+The first attempt tagged unconfirmed holdings `[CORPUS-UNCONFIRMED]` and told the model, in the prompt, never to write them as "you". Both the tag and the rule landed correctly. The model then appended *"and are the records we found actually about your organisation?"* — **and wrote the full profile anyway**, 19 countries and all.
+
+**A rule the model can decline is not a control.** That is the lesson worth keeping: the instruction was clear, correctly placed, and simply not obeyed, because everything else in the prompt was pulling the other way and the facts were sitting right there.
+
+Two changes made it hold:
+
+**1. Unconfirmed material is removed from the evidence block, not labelled in it.** There is now nothing to write a profile from. The holdings are still retrieved, still counted, and still rendered as citation cards — showing what we found and asking whether it is them is honest; handing it to the writer as though it were them is not.
+
+**2. The live-web summary is gated by the same test, which the first fix missed entirely.** Asked to "research the company at congisys.co.uk", the research engine silently corrected the typo and returned a profile of **cognisys.co.uk**. That answer is not a corpus holding, so the holding gate never saw it — and it was feeding the same false read on its own. It now has to name the company being read, or it is dropped.
+
+The session-level verdict is: identity is established if their own pages were read (you cannot fetch the wrong company's website), or a corpus holding names them, or the research summary names them. If none of those hold, the prompt gains a block that overrides the entire three-beat shape and instructs three sentences only — the site would not open, the records may describe a different organisation with a similar name, please confirm or give us the right address.
+
+**Verification.** API 518/518, frontend 421/421, nothing skipped — 80 new tests. **No human has walked it**, which is why this is on a branch and not on main. A green suite written by the same author that wrote the code is not sign-off.
 
 **Why it matters.** proof360 sells the claim that it can read a company and say something useful about where it stands. A read that calls a consultancy a software product, and leads with their email security, is answering a question nobody asked — and doing it confidently, in the one place the product asks to be trusted.
 

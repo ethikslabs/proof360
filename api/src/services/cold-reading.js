@@ -277,11 +277,18 @@ async function corpusEvidence(session) {
   const identity = hits.map((h) => holdingIdentity(h, { company_name: session?.company_name, domain }));
   const anyConfirmed = identity.some((i) => i === 'confirmed');
 
-  const lines = hits.map((h, i) => factLine(
-    identity[i] === 'confirmed' ? CORPUS : CORPUS_UNCONFIRMED,
-    identity[i] === 'confirmed' ? 'Corpus holding' : 'Corpus holding — IDENTITY NOT CONFIRMED',
-    (h.text || '').replace(/\s+/g, ' ').trim(),
-  ));
+  // Tagging an unconfirmed holding and asking the model not to use it DOES NOT WORK.
+  // Tried 2026-09-02: the tag and the rule both landed in the prompt, the model
+  // appended "are these records actually about your organisation?" — and wrote the
+  // full profile anyway, 19 countries and all. A rule the model can decline is not a
+  // control. Unconfirmed holdings are therefore removed from the evidence block
+  // entirely: there is nothing to write a profile FROM. They are still retrieved,
+  // still counted in the anchor, and still shown as citation cards, because showing
+  // what we found and asking whether it is them is honest — feeding it to the writer
+  // as if it were them is not.
+  const lines = hits
+    .filter((_, i) => identity[i] === 'confirmed')
+    .map((h) => factLine(CORPUS, 'Corpus holding', (h.text || '').replace(/\s+/g, ' ').trim()));
   // The anchor counts DOCUMENTS (distinct slugs), not chunks — it sits directly
   // above the citation cards, which group chunks by document; "4 corpus holdings"
   // over "3 sources" read as a contradiction (round-3 walkthrough finding).
@@ -317,9 +324,27 @@ export async function buildReadingContext(session) {
   }
   if (corpus.anchor) anchors.push(corpus.anchor);
 
+  // SESSION IDENTITY VERDICT. The live-web summary is the other contaminated stream
+  // and the gate missed it first time round: asked to "research the company at
+  // congisys.co.uk", the engine silently corrected the typo and returned a profile of
+  // cognisys.co.uk. That answer is not corpus, so the holding gate never saw it, and
+  // it fed the same false read. Same test, same treatment.
+  const identityContext = { company_name: session?.company_name, domain: domainOf(session) };
+  const summaryConfirmed = !!summaryLine
+    && holdingIdentity({ text: session?.company_summary }, identityContext) === 'confirmed';
+  // Reading their own pages IS the identity link — you cannot fetch the wrong company's site.
+  const identityConfirmed = pagesRead > 0 || corpus.anyConfirmed || summaryConfirmed;
+
   const evidenceLines = [...recon.lines, ...inferenceLines];
-  if (summaryLine) evidenceLines.push(summaryLine);
+  if (summaryLine && summaryConfirmed) evidenceLines.push(summaryLine);
   evidenceLines.push(...corpus.lines);
+  if (!identityConfirmed) {
+    evidenceLines.push(
+      `- [IDENTITY] Nothing here can be tied to ${identityContext.domain || 'this domain'}. `
+      + 'Their site did not open, and the third-party material we found appears to describe an '
+      + 'organisation with a SIMILAR NAME. You have no facts about this company.',
+    );
+  }
 
   const lines = [
     'You are writing "the reading" — a short, warm, deductive opening paragraph a',
@@ -330,6 +355,18 @@ export async function buildReadingContext(session) {
     '',
     `Company: ${session?.company_name || 'unknown'}`,
     `Pages actually read from their site: ${pagesRead}.`,
+    ...(identityConfirmed ? [] : [
+      '',
+      '*** IDENTITY NOT ESTABLISHED — THIS OVERRIDES EVERY OTHER INSTRUCTION BELOW. ***',
+      'We could not tie ANY evidence to this domain. Do NOT write a profile. Do not',
+      'describe what they sell, how big they are, where they operate, how long they have',
+      'existed, or what position they hold — you do not know any of it, and the material',
+      'we found is probably about a different, similarly-named organisation.',
+      'Write three short sentences and nothing more: (1) their site would not open for us,',
+      '(2) the records we found may describe a different organisation with a similar name,',
+      '(3) ask them to confirm whether those records are theirs, or give us the right',
+      'address. Do not follow the three-beat shape. Do not add warmth by guessing.',
+    ]),
     '',
     'EVIDENCE — the ONLY facts you may use. Do not add anything about this company, or',
     'companies like it, from your own knowledge:',

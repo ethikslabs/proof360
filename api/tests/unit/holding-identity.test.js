@@ -77,28 +77,59 @@ describe('the prompt carries the gate', () => {
   const session = (over) => ({
     website_url: 'https://congisys.co.uk',
     company_name: 'Congisys',
-    inferences: [], raw_signals: [], recon_context: {}, company_summary: null,
+    inferences: [], raw_signals: [], recon_context: {},
+    company_summary: null,
     pages_read_count: 0,
     corpus_hits: [YAHOO],
     ...over,
   });
 
-  it('marks a near-miss holding as identity-not-confirmed', async () => {
+  it('keeps the near-miss holding OUT of the evidence entirely', async () => {
+    // Tagging it and asking the model not to use it was tried first and failed: the
+    // model appended the caveat AND wrote the profile. There must be nothing to write
+    // a profile from.
     const { prompt } = await buildReadingContext(session());
-    expect(prompt).toMatch(/CORPUS-UNCONFIRMED/);
-    expect(prompt).toMatch(/IDENTITY NOT CONFIRMED/);
+    expect(prompt).not.toMatch(/120 specialists/);
+    expect(prompt).not.toMatch(/19 countries/);
   });
 
-  it('forbids writing an unconfirmed holding as "you"', async () => {
+  it('overrides the whole shape when identity is not established', async () => {
     const { prompt } = await buildReadingContext(session());
-    expect(prompt).toMatch(/never say 'you' about it/);
-    expect(prompt).toMatch(/do not write a profile at all/);
+    expect(prompt).toMatch(/IDENTITY NOT ESTABLISHED/);
+    expect(prompt).toMatch(/OVERRIDES EVERY OTHER INSTRUCTION/);
+    expect(prompt).toMatch(/Do NOT write a profile/);
+    expect(prompt).toMatch(/\[IDENTITY\]/);
   });
 
-  it('leaves a correctly-identified holding on the ordinary corpus tag', async () => {
+  it('drops a live-web summary that describes a different company', async () => {
+    // The second contaminated stream: asked about congisys.co.uk, the engine silently
+    // researched cognisys.co.uk and answered about it.
+    const { prompt } = await buildReadingContext(session({
+      company_summary: 'Cognisys (cognisys.co.uk) is a UK cybersecurity consultancy operating across 19 countries.',
+    }));
+    expect(prompt).not.toMatch(/cognisys\.co\.uk/i);
+    expect(prompt).toMatch(/IDENTITY NOT ESTABLISHED/);
+  });
+
+  it('keeps a live-web summary that actually names them', async () => {
+    const { prompt } = await buildReadingContext(session({
+      company_summary: 'Congisys is a small UK consultancy.',
+    }));
+    expect(prompt).toMatch(/Congisys is a small UK consultancy/);
+    expect(prompt).not.toMatch(/IDENTITY NOT ESTABLISHED/);
+  });
+
+  it('reading their own pages is itself the identity link', async () => {
+    // You cannot fetch the wrong company's website.
+    const { prompt } = await buildReadingContext(session({ pages_read_count: 3 }));
+    expect(prompt).not.toMatch(/IDENTITY NOT ESTABLISHED/);
+  });
+
+  it('leaves the correctly-identified company completely alone', async () => {
     const { prompt } = await buildReadingContext(
       session({ company_name: 'Cognisys', website_url: 'https://cognisys.co.uk' }),
     );
-    expect(prompt).not.toMatch(/IDENTITY NOT CONFIRMED/);
+    expect(prompt).not.toMatch(/IDENTITY NOT ESTABLISHED/);
+    expect(prompt).toMatch(/120 specialists/);
   });
 });
