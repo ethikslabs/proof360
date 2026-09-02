@@ -47,7 +47,7 @@ function LineBlock({ lines, tk, scrollRef }) {
 // Act ids arrive in order of first appearance: perimeter, site, perplexity,
 // gemini, correlate, corpus, reading. Any untagged line that isn't 'cmd' is a
 // legacy/safety-net line and routes to the perimeter act's body.
-function partitionLines(lines) {
+export function partitionLines(lines) {
   let cmdLine = null;
   const order = [];
   const map = {};
@@ -88,8 +88,37 @@ function partitionLines(lines) {
     act.body.push({ text: line.text, color: line.color ?? line.type });
   }
 
-  return { cmdLine, acts: order.map(id => map[id]) };
+  // Display order is NOT arrival order (John, 2026-09-02). The perimeter scan is
+  // fired first on purpose — its probes stream in the background while everything
+  // else runs — but arriving first put "Perimeter scan" at the top of the founder's
+  // screen, which announced a security tool before a word of the read was visible.
+  //
+  // What the founder sees FIRST is the product's claim about what it is. So:
+  // holdings lead (the only step nobody else can run, and honestly framed — that
+  // material predates the conversation), posture trails, synthesis closes.
+  // Execution order stays untouched; only the rendering is reordered.
+  const ranked = [...order].sort((a, b) => {
+    const ra = DISPLAY_RANK[a] ?? DEFAULT_RANK;
+    const rb = DISPLAY_RANK[b] ?? DEFAULT_RANK;
+    if (ra !== rb) return ra - rb;
+    return order.indexOf(a) - order.indexOf(b);   // stable within a rank
+  });
+
+  return { cmdLine, acts: ranked.map(id => map[id]) };
 }
+
+// Lower renders higher. Unlisted acts fall to DEFAULT_RANK, keeping arrival order
+// among themselves and sitting above the posture/synthesis tail.
+export const DISPLAY_RANK = {
+  corpus:     10,   // what we already held — the differentiated step, leads
+  site:       20,   // reading their public trail
+  perplexity: 30,   // asking the live web
+  gemini:     40,   // the second, independent read
+  correlate:  50,   // correlating what every witness saw
+  perimeter:  80,   // infrastructure and posture — last of the gathering steps
+  reading:    90,   // writing your read — genuinely last, it is the output
+};
+const DEFAULT_RANK = 60;
 
 export function ActTrace({ lines, done, composing = false, tk }) {
   const [userToggled, setUserToggled] = useState({});
