@@ -53,6 +53,10 @@ import { OurWorking } from '../components/chat/OurWorking.jsx';
 import { HowWeReadThis } from '../components/chat/HowWeReadThis.jsx';
 import { PriorKnowledge } from '../components/chat/PriorKnowledge.jsx';
 import { SimulationSwitch } from '../components/chat/SimulationSwitch.jsx';
+import { CommandPalette } from '../components/chat/CommandPalette.jsx';
+import { Inspector } from '../components/chat/Inspector.jsx';
+import { useCommandPalette } from '../hooks/useCommandPalette.js';
+import { useBreakpoint } from '../hooks/useBreakpoint.js';
 import { coldReadFailure } from '../rendering/coldReadFailure.js';
 import { TWIN_YOURS } from '../copy.js';
 import { ShortlistContext } from '../components/chat/AddToShortlist.jsx';
@@ -1376,13 +1380,15 @@ export default function Chat() {
   );
   const [cinStats,        setCinStats]        = useState(STATS_FALLBACK);
   const [selectedModel,   setSelectedModel]   = useState('claude-sonnet-4-6');
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
 
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  // Three width states, from one hook, using matchMedia (see hooks/useBreakpoint.js for
+  // why these values and not a guess). `isMobile` is kept as a name because ~12 call
+  // sites read it, and it maps EXACTLY onto the old 768 binary — so nothing changes
+  // behaviour here. What is new is `hasRail`: the middle state, where the rail folds to
+  // tabs but the reading keeps its full width. That state did not exist before at any
+  // width, which is why the rail sat at 240px from 768px to 4K.
+  const { isCompact, hasRail } = useBreakpoint();
+  const isMobile = isCompact;
 
   const {
     activeSignals,
@@ -1412,8 +1418,55 @@ export default function Chat() {
   // byte-identical to the inferred state until someone actually flips it.
   const [simulationOverride, setSimulationOverride] = useState(null);
   const simulation = simulationOverride ?? isDemoMode;
+  // ⌘K. The reason a dense product is allowed a calm surface: nothing has to be
+  // permanently on screen in order to be reachable, so level 1 gets to hold only the
+  // reading. (Research: this is the mechanism behind Linear's density. It also happens
+  // to be John's native idiom — commands, not click paths.)
+  const palette = useCommandPalette();
+
+  // THE one level-2 surface. Every road — a claim, a trace line, a rail row — opens
+  // this and only this. NN/g: past two disclosure levels, usability falls off because
+  // people lose track of where they are. So there is no drawer inside this drawer.
+  const [inspecting, setInspecting] = useState(null);
+
   const activeStage = DEMO_STAGES.find(s => s.id === activeStageId);
   const founderProfileName = useMemo(() => companyNameFromProfile(founderProfile), [founderProfile]);
+
+  // Commands are PROJECTED FROM STATE, never a stored menu (INVARIANTS §1). A claim
+  // that does not exist yet has no command; a company that has not been read has no
+  // "open the record". The palette can therefore never offer a door to an empty room —
+  // which is the same rule the emotional contract applies to the greyed tiles.
+  const commands = useMemo(() => {
+    const list = [];
+    list.push({
+      id: 'sim', group: 'View', hint: simulation ? 'on' : 'off',
+      label: simulation ? 'Switch to your own record' : 'Switch to the worked example',
+      run: () => setSimulationOverride(!simulation),
+    });
+    if (recordClaims?.length) {
+      list.push({
+        id: 'record', group: 'View', label: 'Open the full record',
+        run: () => setActiveSpace('kept'),
+      });
+      for (const claim of recordClaims.slice(0, 8)) {
+        list.push({
+          id: `claim-${claim.claim_id ?? claim.field}`,
+          group: 'What we have',
+          label: `${claim.label ?? claim.field}: ${claim.value ?? '—'}`,
+          run: () => setInspecting({
+            subject: {
+              label: claim.label ?? claim.field,
+              value: claim.value ?? '—',
+              confirmation: claim.status === 'confirmed' ? 'confirmed' : 'unconfirmed',
+            },
+            observations: claim.observations ?? null,
+            disconfirmer: claim.disconfirmer ?? null,
+          }),
+        });
+      }
+    }
+    return list;
+  }, [simulation, recordClaims]);
 
   // CER (Customer Engagement Record) — the pathway a founder decides to pursue,
   // assembling itself from the conversation and confirmed via consent. Lives inline
@@ -3430,6 +3483,23 @@ export default function Chat() {
       )}
 
     </div>
+    <CommandPalette
+      open={palette.open}
+      onClose={palette.close}
+      commands={commands}
+      tk={tk}
+    />
+    {inspecting && (
+      <Inspector
+        {...inspecting}
+        // Below the rail breakpoint it has to be a dialog (focus trap, Escape, focus
+        // return). At rail widths it is the third region and stays non-modal —
+        // rail + reading + inspector is exactly the three-region working ceiling.
+        modal={!hasRail}
+        onClose={() => setInspecting(null)}
+        tk={tk}
+      />
+    )}
     <CompanionPanel
       items={shortlistPanelItems}
       claims={recordClaims}

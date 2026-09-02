@@ -3,6 +3,7 @@ import { TWIN_YOURS, TWIN_INITIALS } from '../../copy.js';
 import { tokens } from '../../tokens.js';
 import { SPACE_GLYPHS } from '../../glyphs.jsx';
 import { HIVE_STAGES } from '../../data/mock/hive.js';
+import { ComparisonRail } from './ComparisonRail.jsx';
 import { AccountButton } from './AccountPanel.jsx';
 import { CerFacet } from './CerFacet.jsx';
 
@@ -216,6 +217,16 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
   }
 
   const hiveSnap  = HIVE_STAGES[hiveStage].spaces;
+
+  // Presence, folded to the rail's three states. `lit` is the estate's existing notion
+  // of "this projection has something in it", so the comparison reads the same truth
+  // the tiles below it read — one source, two renderings.
+  const hiveEntries = Object.fromEntries(
+    SPACES.map(sp => [sp.id, { filled: !!hiveSnap[sp.id]?.lit, present: !!hiveSnap[sp.id]?.lit }]),
+  );
+  const yourEntries = Object.fromEntries(
+    SPACES.map(sp => [sp.id, { filled: !!litTiles?.[sp.id], present: !!litTiles?.[sp.id] }]),
+  );
   const hiveCount = Object.values(hiveSnap).filter(v => v.lit).length;
   const litCount  = Object.values(litTiles).filter(Boolean).length;
 
@@ -290,6 +301,23 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
       </div>
 
       <div style={{ overflowY: 'auto', flex: 1 }}>
+
+        {/* THE COMPARISON, which John says is what this rail was always for. It sits
+            ABOVE the two accordions on purpose: the glanceable thing first, the detail
+            underneath. Both companies on one set of rows — presence, never score. */}
+        {!collapsed && (
+          <ComparisonRail
+            subject={simulation
+              ? { name: 'Hive & Co', entries: hiveEntries }
+              : { name: yourCompanyName ?? 'You', entries: yourEntries }}
+            peer={simulation
+              ? { name: yourCompanyName ?? 'You', entries: yourEntries }
+              : { name: 'Hive & Co', entries: hiveEntries }}
+            subjectIsExample={simulation}
+            onOpenRow={(key) => onSwitch?.(key, simulation ? { company: 'hive', stage: hiveStage } : undefined)}
+            tk={tk}
+          />
+        )}
 
         {/* ── Hive & Co — amber card, clearly the reference company ── */}
         <div style={{

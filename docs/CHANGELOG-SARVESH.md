@@ -4,6 +4,56 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-09-02 · One subject, everything else earned — the interface pass
+
+Research-led. Two deep research passes ran before any code; the sources are cited inline below because two findings **contradicted the design I had already drafted**, and the draft lost.
+
+### The diagnosis
+
+Not density. **Nothing on screen claimed the subject position.** Six co-equal regions competed at once: left rail, `AuthorityLayer` chrome, a second chrome row, the observation strip, the chat stream, and the companion dock. Underneath that, each assistant message already trailed five sub-elements. The governing document (`docs/design/landing-emotional-contract.md`) says the founder should feel *heard*, not *processed* — six regions is processing.
+
+### The finding that killed the plan
+
+The plan was to make the inline `[n]` citation beautiful: rest on a sentence, its source lights in the margin. It is a nice idea and it is wrong.
+
+> **arXiv 2501.01303** — citations raised trust **even when the citations were random**. Trust *fell* when users actually checked them. Hover/click rates run under ~25%.
+
+So a prettier citation buys trust that has not been earned, from the ~75% who never open it. **For this product that is not cosmetic** — it is the invented-provenance failure, the exact thing the identity gate was built to refuse, relocated from the pipeline to the interface. We would have shipped by design what we spent the morning fixing in code.
+
+The one pattern with published evidence that it improves **calibration** rather than confidence is *Attribution Gradients* (UIST '26, arXiv 2510.00361): one expandable surface holding how much evidence exists, and the supporting **and non-agreeing** excerpts together.
+
+Which is John's ruling of this morning, arrived at from the other direction: *"we never adjudicate a company's record… a signal holds MULTIPLE OBSERVATIONS, each stamped with who saw it and when."* `position-signals.js` already produces exactly that shape. **The data model was already right. Only the surface was missing.**
+
+### What shipped
+
+**1. `Inspector.jsx` — level 2, and there is no level 3.** NN/g is unambiguous: *"designs that go beyond 2 disclosure levels typically have low usability because users often get lost."* My draft had three. Corrected to two: the reading, then one inspector that every road opens — a claim, a trace line, a rail row. Never a drawer inside a drawer.
+
+Three sections: *what each source actually said* (every witness, verbatim passage, date, rendered identically whether or not they agree), *what we ran to get here*, and *what would change this*.
+
+Two honesty rules are enforced in the component, not left to copy: the two absences stay different facts (*"we didn't get to look"* vs *"we looked and found nothing"*), and **the trace is labelled as a receipt, not as proof** — *"this is what ran, not why it's right."* That last one matters: research (arXiv 2601.16720, n≈232) measured felt Understanding & Trust rising significantly while perceived Competence did not move. A trace makes a system feel more trustworthy without making it better. Saying so is the difference between showing your working and performing it.
+
+Citations are **passage-level, never document-level** — ~90% vs ~80% precision, and a founder cannot check a claim against a 40-page PDF.
+
+**2. `CommandPalette.jsx` — ⌘K.** The research's answer to how dense products stay calm is not a layout: a palette flattens the hierarchy for the expert while the visual hierarchy stays shallow for the novice. It is why nothing has to be permanently on screen in order to be reachable. Commands are **projected from state, never a stored menu** (INVARIANTS §1), so the palette can never offer a door to an empty room. Full W3C APG dialog contract: `aria-modal`, focus trap, Escape, and focus returns to the invoker.
+
+**3. `ComparisonRail.jsx` — the rail doing its actual job.** John: *"this side panel was always about how to see a comparison."* It was two stacked accordions — two containers, no comparison, since you could never see both at once. Now one set of rows with both companies on each.
+
+**The register is the whole design: it compares what is PRESENT, never a score.** Two scores side by side is a grade, and *"the founder never feels evaluated"* is the contract's hardest line. Two states of fullness is a lamp — and it is the contract's own bottom-shelf pattern, where greyed tiles say *"this will fill in as we learn about you."* A test asserts the component renders no digits at all.
+
+**4. `useBreakpoint.js` — three width states from published tokens.** Correcting something I told John badly: `Chat.jsx` did have responsive plumbing (a `window.innerWidth < 768` binary), it just had no middle state, so the rail sat at 240px from 768px to 4K. Values are read from real token sources — Carbon lg 1056, Polaris lg 1040, Tailwind lg 1024, Atlassian m 1024 — taking **768** (rail must leave) and **1056** (rail may return; the most conservative of the cluster, because a rail that only just fits crowds the reading). Named as capacity classes, never devices: a 900px window on a desktop is *medium*, and calling that "mobile" is how a layout ends up lying about who is looking at it.
+
+Uses `matchMedia`, so dragging a window edge no longer re-renders per pixel. Two bug classes closed by construction: rail collapsed/expanded is a **user preference**, width class is **computed** (one variable for both is why rails forget your choice after a resize), and the measurement is off the viewport, never off a container the sidebar itself resizes.
+
+### Also enforced
+
+Every level-2 affordance is focusable, not hover-only — WCAG 2.1.1 and 1.4.13. Hover-only row actions fail keyboard, touch and cognitive users. (Note for the record: SC 3.2.7 "Visible Controls" was voted out before WCAG 2.2 shipped. Meet it anyway; do not cite it as a conformance requirement.)
+
+**Tests.** 23 new (`redesign-primitives.test.jsx`), each traceable to a constitutional document or a cited finding rather than to taste. Frontend **492 passing**, lint 0 errors, build clean.
+
+**Spec and full research:** `_working/01_SPECS/2026-09-02-proof360-one-subject-redesign.md` — including the draft thesis written *before* the research, kept deliberately so the corrections are visible.
+
+---
+
 ## 2026-09-02 · The demo boundary is a switch now, not a caption
 
 **Vocabulary first.** proof360 shows two companies side by side in the left rail: a **worked example** (Hive & Co — a fictional founder used to teach the journey) and the **live workspace** (the real company being read). `INVARIANTS.md` §4 is explicit that these must be *"visually distinct at all times. The user never confuses which one they are looking at."*
