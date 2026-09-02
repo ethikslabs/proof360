@@ -6,6 +6,7 @@ import { emitPulse } from '../services/pulse-emitter.js';
 import { extractReconContext } from '../services/recon-pipeline.js';
 import { retrieveCorpusEvidence } from '../services/corpus-retrieve.js';
 import { corpusQueryFor } from '../services/cold-reading.js';
+import { extractPositionSignals } from '../services/position-signals.js';
 import { query } from '../db/pool.js';
 
 const RECON_SOURCES = ['dns', 'http', 'certs', 'ip', 'github', 'jobs', 'hibp', 'ports', 'ssllabs', 'abuseipdb'];
@@ -91,6 +92,20 @@ async function extractAndInfer(sessionId, { website_url, deck_file, session_id }
       log({ type: 'act', act: 'corpus', phase: 'skip', note: corpusQuery ? 'corpus unreachable' : 'no company identified' });
     }
 
+    // Position signals — read the holdings for where this company STANDS (size,
+    // reach, age, market position), which the website extractor cannot see. Kept in
+    // its own session field rather than merged into raw_signals: these carry
+    // observations[] + confirmation instead of a flat confidence, and the gap engine
+    // reads raw_signals. Passes corpus_hits through untouched, so the corpus
+    // three-state absence contract survives — null stays null.
+    const position_signals = await extractPositionSignals(corpus_hits, {
+      company_name: inferenceResult.company_name,
+      correlation_id: sessionId,
+    }).catch(() => null);
+    if (position_signals?.length) {
+      log({ act: 'corpus', type: 'act_body', text: `↳  ${position_signals.length} position signal${position_signals.length === 1 ? '' : 's'} from holdings`, color: 'muted' });
+    }
+
     // Success path: no __done__ here — the stream stays open through analyze.js's
     // "reading" act (John ruling 2026-08-25). The extraction-FAILURE catch below keeps
     // its __done__ unchanged — a failed scan must still close the stream.
@@ -99,6 +114,7 @@ async function extractAndInfer(sessionId, { website_url, deck_file, session_id }
       claim_records: claimRecords,
       claim_events: [],
       raw_signals: signals,
+      position_signals,
       inferences: inferenceResult.inferences,
       correctable_fields: inferenceResult.correctable_fields,
       followup_questions: inferenceResult.followup_questions,
