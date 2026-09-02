@@ -6,7 +6,6 @@
 import { useState } from 'react';
 import { VendorShortlist } from './VendorShortlist.jsx';
 import { ClaimStrip } from './ClaimStrip.jsx';
-import { Interview } from './Interview.jsx';
 import { PathwaySuggestions } from './PathwaySuggestions.jsx';
 
 export function CompanionPanel({ items, claims, proposals, isDemoMode, onShortlist, onDefer, onAnswerClaim, onAcceptProposal, onOpenRecord, companyName }) {
@@ -35,7 +34,7 @@ export function CompanionPanel({ items, claims, proposals, isDemoMode, onShortli
           onClick={() => setOpen(true)}
           style={{
             padding: '8px 14px', borderRadius: 20, cursor: 'pointer',
-            background: '#0f172a', color: '#94a3b8', border: '1px solid #1e293b',
+            background: '#ffffff', color: '#4a4f5c', border: '1px solid #d3d7df',
             fontSize: 12,
           }}
         >
@@ -49,14 +48,14 @@ export function CompanionPanel({ items, claims, proposals, isDemoMode, onShortli
     <div style={{
       ...shell, width: 340, maxWidth: 'calc(100vw - 32px)', maxHeight: '60vh',
       display: 'flex', flexDirection: 'column',
-      background: '#0b1220', border: '1px solid #1e293b', borderRadius: 12,
-      boxShadow: '0 8px 30px rgba(0,0,0,0.45)',
+      background: '#ffffff', border: '1px solid #e6e8ec', borderRadius: 12,
+      boxShadow: '0 8px 30px rgba(26,29,36,0.13)',
     }}>
       <div style={{
         display: 'flex', alignItems: 'center', gap: 8,
-        padding: '10px 14px', borderBottom: '1px solid #1e293b',
+        padding: '10px 14px', borderBottom: '1px solid #e6e8ec',
       }}>
-        <span style={{ fontSize: 12, fontWeight: 700, color: '#f1f5f9' }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: '#1a1d24' }}>
           {recordLabel}
         </span>
         {isDemoMode && (
@@ -70,7 +69,7 @@ export function CompanionPanel({ items, claims, proposals, isDemoMode, onShortli
           onClick={() => setOpen(false)}
           style={{
             marginLeft: 'auto', background: 'transparent', border: 'none',
-            color: '#94a3b8', cursor: 'pointer', fontSize: 14, lineHeight: 1,
+            color: '#7b8190', cursor: 'pointer', fontSize: 14, lineHeight: 1,
           }}
         >—</button>
       </div>
@@ -87,12 +86,14 @@ export function CompanionPanel({ items, claims, proposals, isDemoMode, onShortli
             counted claims and the other counted the whole record. Both true,
             together a bug. The header keeps the count; this line is now the door
             out to the page that can actually hold it. */}
-        {/* The flow asks; the strip below waits to be noticed. Both settle the same
-            claims through the same endpoint — this only decides who moves first.
-            Goes quiet the moment the queue empties or the founder skips, and the
-            strip keeps every tile answerable afterwards, so skipping costs nothing. */}
-        <Interview claims={claims} onAnswer={onAnswerClaim} />
-        <ClaimStrip claims={claims} onAnswer={onAnswerClaim} />
+        {/* THE DOCK SHOWS; THE CHAT ASKS (John, 2026-09-02). The interview briefly
+            lived here and that was the wrong seam: a floating panel that asks
+            questions pulls the founder out of the conversation to answer them, and
+            they now have two places to be looking. The panel's job is the one it
+            was named for — the surface where the record visibly accumulates, filling
+            in parallel while they read. The per-tile buttons stay, so anything can
+            still be settled here at any time; they are simply no longer the ask. */}
+        <ClaimStrip claims={claims} onAnswer={onAnswerClaim} light />
         {/* The supply side: what the register says is open to them right now,
             each with the claim or gap that earned it. Renders nothing until
             evidence opens the lane (D4). */}

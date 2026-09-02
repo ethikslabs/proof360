@@ -42,9 +42,12 @@ export const ASK_ORDER = [
   'governance.cyber_insurance',
 ];
 
-const INK = {
-  dark:  { label: '#e2e8f0', value: '#94a3b8', meta: '#94a3b8', good: '#5eead4', quiet: '#94a3b8', rule: 'rgba(148,163,184,0.15)', field: '#0f172a' },
-  light: { label: '#1f2430', value: '#4b5563', meta: '#6b7280', good: '#0f766e', quiet: '#6b7280', rule: 'rgba(31,36,48,0.12)', field: '#ffffff' },
+// Themed from the estate token set (tokens.js) rather than a private palette, so the
+// card belongs to the conversation it now sits in. Falls back to pearl values when no
+// tk is passed, which keeps the component renderable in isolation and in tests.
+const FALLBACK_TK = {
+  ink: '#1a1d24', inkMid: '#4a4f5c', inkSoft: '#7b8190', inkGhost: '#b4b9c4',
+  hairline: '#e6e8ec', surface: '#ffffff', surfaceLo: '#f7f8fa', teal: '#176577', plum: '#5b4cc4',
 };
 
 /** Open = never answered. Confirmed, corrected, rejected AND unknown are all done. */
@@ -72,8 +75,8 @@ function describeProvenance(p) {
   return null;
 }
 
-export function Interview({ claims, onAnswer, light = false, onSkipAll }) {
-  const ink = light ? INK.light : INK.dark;
+export function Interview({ claims, onAnswer, tk, onSkipAll }) {
+  const t = tk ?? FALLBACK_TK;
   const [skipped, setSkipped] = useState(false);
   const [correcting, setCorrecting] = useState(false);
   const [draft, setDraft] = useState('');
@@ -116,29 +119,30 @@ export function Interview({ claims, onAnswer, light = false, onSkipAll }) {
 
   return (
     <div data-testid="interview" style={{
-      padding: '12px 0', borderTop: `1px solid ${ink.rule}`, borderBottom: `1px solid ${ink.rule}`,
+      maxWidth: 460, margin: '12px 0', padding: '14px 16px',
+      background: t.surfaceLo, border: `1px solid ${t.hairline}`, borderRadius: 12,
     }}>
-      <div style={{ fontFamily: SANS, fontSize: 12.5, color: ink.label, lineHeight: 1.5 }}>
+      <div style={{ fontFamily: SANS, fontSize: 13.5, color: t.ink, lineHeight: 1.55 }}>
         {other
           ? <>We&apos;ve seen two answers for <b>{claim.label}</b> — <b>{claim.value}</b> and <b>{other}</b>. Which is right?</>
           : <>We think your <b>{claim.label}</b> is <b>{claim.value}</b>. Does that land?</>}
       </div>
 
       {source && (
-        <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.06em', color: ink.meta, marginTop: 4 }}>
+        <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.06em', color: t.inkSoft, marginTop: 5 }}>
           {source}
         </div>
       )}
 
       {!correcting ? (
         <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-          <button onClick={() => answer('confirm')} disabled={busy} style={btn(ink.good)}>
+          <button onClick={() => answer('confirm')} disabled={busy} style={btn(t.teal)}>
             Yes, that&apos;s right
           </button>
-          <button onClick={() => { setCorrecting(true); setDraft(''); }} disabled={busy} style={btn(ink.quiet)}>
+          <button onClick={() => { setCorrecting(true); setDraft(''); }} disabled={busy} style={btn(t.inkSoft)}>
             Not quite
           </button>
-          <button onClick={() => answer('dont_know')} disabled={busy} style={btn(ink.quiet)}>
+          <button onClick={() => answer('dont_know')} disabled={busy} style={btn(t.inkSoft)}>
             I don&apos;t know
           </button>
         </div>
@@ -153,13 +157,13 @@ export function Interview({ claims, onAnswer, light = false, onSkipAll }) {
             placeholder="What is it?"
             style={{
               fontFamily: SANS, fontSize: 12, padding: '5px 8px', borderRadius: 4,
-              border: `1px solid ${ink.rule}`, background: ink.field, color: ink.label, minWidth: 180,
+              border: `1px solid ${t.hairline}`, background: t.surface, color: t.ink, minWidth: 180,
             }}
           />
-          <button onClick={() => answer('correct', draft.trim())} disabled={busy || !draft.trim()} style={btn(ink.good)}>
+          <button onClick={() => answer('correct', draft.trim())} disabled={busy || !draft.trim()} style={btn(t.teal)}>
             Save
           </button>
-          <button onClick={() => setCorrecting(false)} disabled={busy} style={btn(ink.quiet)}>
+          <button onClick={() => setCorrecting(false)} disabled={busy} style={btn(t.inkSoft)}>
             Cancel
           </button>
         </div>
@@ -171,7 +175,7 @@ export function Interview({ claims, onAnswer, light = false, onSkipAll }) {
         disabled={busy}
         style={{
           fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.06em', marginTop: 10,
-          background: 'none', border: 'none', padding: 0, color: ink.meta,
+          background: 'none', border: 'none', padding: 0, color: t.inkSoft,
           cursor: busy ? 'default' : 'pointer', textDecoration: 'underline',
         }}
       >

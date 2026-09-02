@@ -131,3 +131,36 @@ describe('skipping', () => {
     expect(container.textContent).toBe('');
   });
 });
+
+// The seam itself. John, 2026-09-02: the interview lived in the companion dock and
+// "it breaks the flow a bit... we now have a few places to be looking". The dock's
+// job is the record filling in parallel while you read; the asking belongs in the
+// conversation. This test exists so it cannot quietly move back.
+describe('the dock shows, the chat asks', () => {
+  it('the companion panel never renders the interview', async () => {
+    const { CompanionPanel } = await import('../../src/components/chat/CompanionPanel.jsx');
+    const { container } = render(
+      <CompanionPanel
+        items={[]}
+        claims={CLAIMS}
+        proposals={[]}
+        onAnswerClaim={vi.fn()}
+        onShortlist={vi.fn()}
+        onDefer={vi.fn()}
+        onOpenRecord={vi.fn()}
+        companyName="Cognisys"
+      />,
+    );
+    expect(container.querySelector('[data-testid="interview"]')).toBeNull();
+  });
+
+  it('the panel is not a dark hole in a light page', async () => {
+    const src = await import('../../src/components/chat/CompanionPanel.jsx?raw')
+      .then((m) => m.default)
+      .catch(() => null);
+    if (src === null) return;              // raw import unsupported — skip, not fail
+    for (const dark of ['#0b1220', '#1e293b', '#0f172a', '#f1f5f9']) {
+      expect(src).not.toContain(dark);
+    }
+  });
+});

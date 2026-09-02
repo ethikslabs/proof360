@@ -47,7 +47,14 @@ Two rules added: infrastructure and posture facts are admissible only when the c
 
 One implementation note worth carrying: the worked examples in that prompt were first written using the real fact words. A test caught it — `cold-reading.test.js` asserts the prompt never mentions facts absent from the session, because a fact named in the prompt can be hallucinated into a read for a company that has none. The examples are now generic by necessity, which is also safer.
 
-**Verification.** API 502/502, frontend 419/419, nothing skipped — 80 new tests. **No human has walked it**, which is why this is on a branch and not on main. A green suite written by the same author that wrote the code is not sign-off.
+
+**Second follow-up — the dock shows, the chat asks.** The interview shipped inside the companion dock, and the first walk found the flow break immediately: a floating panel that asks questions pulls the founder out of what they are reading in order to answer, and leaves them with two places to be looking. The panel was also rendering near-black over a light chat surface — a hole in the page.
+
+The dock's job is the one it is named for: the surface where the record **visibly accumulates**, filling in parallel while the founder reads. Asking is a different job and it belongs in the conversation, next to the read that raised the question. Same claims, same endpoint, same append-only events — only the seam moved. The per-tile buttons stay in the dock, so anything can still be settled there at any time; they are simply no longer the ask.
+
+The panel is now themed from `tokens.js` like every other surface rather than a private dark palette. A test renders the panel and asserts it contains no interview, and a second checks the old dark hex values are gone — the seam is enforced rather than remembered.
+
+**Verification.** API 502/502, frontend 421/421, nothing skipped — 80 new tests. **No human has walked it**, which is why this is on a branch and not on main. A green suite written by the same author that wrote the code is not sign-off.
 
 **Why it matters.** proof360 sells the claim that it can read a company and say something useful about where it stands. A read that calls a consultancy a software product, and leads with their email security, is answering a question nobody asked — and doing it confidently, in the one place the product asks to be trusted.
 

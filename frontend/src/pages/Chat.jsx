@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo, useLayoutEffect } fr
 import { tokens } from '../tokens.js';
 import { FloatQ }        from '../components/chat/FloatQ.jsx';
 import { Bubble }        from '../components/chat/Bubble.jsx';
+import { Interview }     from '../components/chat/Interview.jsx';
 import { ThinkingStream } from '../components/chat/ThinkingStream.jsx';
 import { MorningBrief }  from '../components/chat/MorningBrief.jsx';
 import { MachineDrawer }       from '../components/chat/MachineDrawer.jsx';
@@ -3013,6 +3014,18 @@ export default function Chat() {
                   </div>
                 );
               })}
+              {/* ── The interview: the read's questions, asked IN the conversation ──
+                  It sat in the companion dock first, which broke the flow — a floating
+                  panel that asks pulls the founder out of what they are reading to
+                  answer, and gives them two places to be looking (John, 2026-09-02).
+                  Same claims, same endpoint, same append-only events; only the seam
+                  moved. The dock now fills in parallel while they read, which is the
+                  job it was named for. Renders nothing once the queue empties or the
+                  founder skips, and every tile stays settleable in the dock after. */}
+              {liveSessionId && (
+                <Interview claims={recordClaims} onAnswer={handleAnswerClaim} tk={tk} />
+              )}
+
               {phase === 'journey-setup' && <JourneyConsentCards onSelect={selectJourney} stages={DEMO_STAGES} tk={tk} />}
 
               {/* ── CER dock: the pathway assembles itself IN the conversation ── */}
