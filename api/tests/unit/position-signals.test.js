@@ -138,3 +138,27 @@ describe('absence contract — honours the corpus three states', () => {
     expect(await extractPositionSignals('holdings')).toEqual([]);
   });
 });
+
+// -----------------------------------------------------------------------------
+// The identity gate (John, 2026-09-02, second pass). This producer was the loudest
+// of the ungated consumers: on a typo'd domain it published twelve position signals
+// under "OBSERVED THIS SESSION" — headcount, footprint, accreditations, a category
+// claim — all extracted from holdings the reading had already refused to speak from.
+// -----------------------------------------------------------------------------
+describe('identity gate', () => {
+  it('returns an honest zero, not a guess, when no holding is about this company', async () => {
+    const hits = [
+      { ...YAHOO, identity: 'unconfirmed' },
+      { ...LEADIQ, identity: 'unconfirmed' },
+    ];
+    // [] means "we looked and nothing here qualifies". null would mean "we could not
+    // look" — and would also be what a model call returns without credentials, so
+    // this assertion doubles as proof the extractor short-circuited before spending.
+    await expect(extractPositionSignals(hits, { company_name: 'Congisys' })).resolves.toEqual([]);
+  });
+
+  it('keeps the three-state absence contract intact', async () => {
+    await expect(extractPositionSignals(null, {})).resolves.toBeNull();
+    await expect(extractPositionSignals([], {})).resolves.toEqual([]);
+  });
+});

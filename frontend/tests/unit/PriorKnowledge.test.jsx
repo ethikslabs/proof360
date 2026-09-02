@@ -148,3 +148,53 @@ describe('PriorKnowledge — the beat itself', () => {
     expect(container.textContent).toBe('');
   });
 });
+
+// -----------------------------------------------------------------------------
+// The beat fires; the SENTENCE changes (John, 2026-09-02, second pass).
+//
+// On a typo'd domain the reading correctly refused to write a profile — "we couldn't
+// tie those records to this domain" — and this panel, two inches above it, opened
+// with "The record already held 3 things about Congisys." It asserted the exact claim
+// the reading had just declined to make, because it never saw the identity verdict.
+//
+// Still showing the material is right: showing what we found and asking whether it is
+// them is honest, and it is how the typo gets caught. Asserting it is about them is not.
+// -----------------------------------------------------------------------------
+describe('when the holdings cannot be tied to this company', () => {
+  const props = {
+    hits: [YAHOO, SOC2],
+    sessionStartedAt: SESSION_START,
+    companyName: 'Congisys',
+  };
+
+  it('stops claiming the records are about them', () => {
+    const { container } = render(<PriorKnowledge {...props} identityConfirmed={false} />);
+    expect(container.textContent).toMatch(/under a name close to Congisys/i);
+    expect(container.textContent).not.toMatch(/already held .* about Congisys/i);
+  });
+
+  it('says plainly that it may be someone else, and asks', () => {
+    const { container } = render(<PriorKnowledge {...props} identityConfirmed={false} />);
+    expect(container.textContent).toMatch(/may be a different company/i);
+    expect(container.textContent).toMatch(/tell us/i);
+  });
+
+  it('still shows the material — the beat is not suppressed', () => {
+    const { container } = render(<PriorKnowledge {...props} identityConfirmed={false} />);
+    expect(container.textContent).toMatch(/gathered/i);
+  });
+
+  it('keeps the original sentence when identity holds', () => {
+    const { container } = render(<PriorKnowledge {...props} identityConfirmed />);
+    expect(container.textContent).toMatch(/already held/i);
+    expect(container.textContent).not.toMatch(/different company/i);
+  });
+
+  // Older sessions carry no verdict. Absent is not the same as false: without a
+  // verdict we have not established a mismatch, and inventing the caveat would be
+  // its own dishonesty (ABSENCE RULE).
+  it('reads as confirmed when no verdict was recorded at all', () => {
+    const { container } = render(<PriorKnowledge {...props} />);
+    expect(container.textContent).toMatch(/already held/i);
+  });
+});

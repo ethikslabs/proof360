@@ -33,6 +33,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { chatComplete } from '../lib/inference.js';
 import { extractReconContext } from './recon-pipeline.js';
+import { normaliseName, holdingIdentity, domainOf, resolveSessionIdentity } from './holding-identity.js';
 import { retrieveCorpusEvidence } from './corpus-retrieve.js';
 import { FRAMEWORK_MAP } from '../config/frameworks.js';
 import { resolve as resolveModel } from '../lib/model-resolver.mjs';
@@ -201,50 +202,11 @@ function resolveFrameworks(session) {
   return ids.map((id) => FRAMEWORK_LABELS[id] || id);
 }
 
-/** lowercase, letters+digits only — so "Cognisys Ltd." and "cognisys" compare equal. */
-export function normaliseName(name) {
-  return String(name ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
-}
-
-/**
- * Is this holding actually ABOUT the company being read?
- *
- * Corpus retrieval is semantic and should stay that way — finding near material is
- * the point. The bug was consuming every hit as testimony about them. A holding earns
- * 'confirmed' only on a hard identity link: it is published on their own domain, or it
- * names them in its text or slug. Anything else is 'unconfirmed' — kept, shown, cited,
- * but never spoken in the second person.
- *
- * Fails CLOSED: no company name and no domain to check against means unconfirmed.
- */
-export function holdingIdentity(hit, { company_name, domain } = {}) {
-  const name = normaliseName(company_name);
-  const host = normaliseName(String(domain ?? '').replace(/^www\./, '').split('.')[0]);
-  const candidates = [name, host].filter((c) => c.length >= 4);
-  if (!candidates.length) return 'unconfirmed';
-
-  if (hit?.source_url && domain) {
-    try {
-      const h = new URL(hit.source_url).hostname.replace(/^www\./, '');
-      const d = String(domain).replace(/^www\./, '');
-      if (h === d || h.endsWith(`.${d}`)) return 'confirmed';
-    } catch { /* malformed URL — fall through to the text checks */ }
-  }
-
-  const haystack = normaliseName(`${hit?.text ?? ''} ${hit?.slug ?? ''}`);
-  return candidates.some((c) => haystack.includes(c)) ? 'confirmed' : 'unconfirmed';
-}
-
-function domainOf(session) {
-  const url = session?.website_url;
-  if (!url) return null;
-  try {
-    const u = url.startsWith('http') ? url : `https://${url}`;
-    return new URL(u).hostname;
-  } catch {
-    return url;
-  }
-}
+// Identity resolution now lives in ONE place (holding-identity.js) so the reading is
+// not the only stream that is gated — see that file's header for what leaked while it
+// was local to this one. Re-exported here because callers and tests import these names
+// from cold-reading, and moving a function should not move its address.
+export { normaliseName, holdingIdentity, domainOf };
 
 // Shared with the corpus act (session-start.js step 8) so the scan-time cache
 // lookup and this read-time lookup are provably the SAME retrieval — same
@@ -273,8 +235,13 @@ async function corpusEvidence(session) {
   }
   if (!hits?.length) return { lines: [], anchor: null };
 
+  // Prefer the stamp session-start applied (holding-identity.js): one resolution,
+  // read by every consumer. Recompute only for a session recorded before the stamp
+  // existed, so an old session still reads correctly rather than silently ungated.
   const domain = domainOf(session);
-  const identity = hits.map((h) => holdingIdentity(h, { company_name: session?.company_name, domain }));
+  const identity = hits.map((h) => (
+    h?.identity ?? holdingIdentity(h, { company_name: session?.company_name, domain })
+  ));
   const anyConfirmed = identity.some((i) => i === 'confirmed');
 
   // Tagging an unconfirmed holding and asking the model not to use it DOES NOT WORK.
@@ -330,8 +297,15 @@ export async function buildReadingContext(session) {
   // cognisys.co.uk. That answer is not corpus, so the holding gate never saw it, and
   // it fed the same false read. Same test, same treatment.
   const identityContext = { company_name: session?.company_name, domain: domainOf(session) };
-  const summaryConfirmed = !!summaryLine
-    && holdingIdentity({ text: session?.company_summary }, identityContext) === 'confirmed';
+  // Same rule as above: use the verdict resolved at session-start when it is there.
+  const verdict = session?.identity ?? resolveSessionIdentity({
+    company_name: session?.company_name,
+    website_url: session?.website_url,
+    hits: null,                       // holdings are stamped already; do not re-stamp
+    pages_read_count: pagesRead,
+    company_summary: session?.company_summary,
+  });
+  const summaryConfirmed = !!summaryLine && verdict.summary_confirmed;
   // Reading their own pages IS the identity link — you cannot fetch the wrong company's site.
   const identityConfirmed = pagesRead > 0 || corpus.anyConfirmed || summaryConfirmed;
 

@@ -55,11 +55,11 @@ export function SignalEvidenceDrawer({ signal, onClose, onCorrect, onIgnore, onA
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 4,
-            background: signal.conflicted ? '#fee2e2' : (isGap ? '#dcfce7' : '#fef3c7'),
-            border: `1px solid ${signal.conflicted ? '#fca5a5' : (isGap ? '#86efac' : '#fcd34d')}`,
+            background: signal.conflicted ? '#eef2ff' : (isGap ? '#dcfce7' : '#fef3c7'),
+            border: `1px solid ${signal.conflicted ? '#c7d2fe' : (isGap ? '#86efac' : '#fcd34d')}`,
             borderRadius: 4, padding: '3px 10px',
             fontSize: 11, fontWeight: 700,
-            color: signal.conflicted ? '#b91c1c' : (isGap ? '#15803d' : '#92400e'),
+            color: signal.conflicted ? '#4338ca' : (isGap ? '#15803d' : '#92400e'),
           }}>
             <span style={{ fontSize: 8 }}>◆</span>
             {signal.value}
@@ -67,9 +67,9 @@ export function SignalEvidenceDrawer({ signal, onClose, onCorrect, onIgnore, onA
           {signal.conflicted && (
             <span style={{
               display: 'inline-flex', alignItems: 'center', gap: 4,
-              fontSize: 10, fontWeight: 700, color: '#b91c1c',
+              fontSize: 10, fontWeight: 700, color: '#4338ca',
             }}>
-              ⚡ sources disagree
+              two readings
             </span>
           )}
           {isStale && (
@@ -97,9 +97,9 @@ export function SignalEvidenceDrawer({ signal, onClose, onCorrect, onIgnore, onA
 
         {/* Evidence conflict — a question, never a verdict (lamp register) */}
         {signal.conflicted && signal.conflict && (
-          <div style={{ marginBottom: 16, padding: '10px 13px', background: '#fff7f7', borderRadius: 8, border: '1px solid #fca5a5' }}>
-            <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#b91c1c', marginBottom: 5 }}>
-              ⚡ Sources disagree
+          <div style={{ marginBottom: 16, padding: '10px 13px', background: '#f5f6fb', borderRadius: 8, border: '1px solid #c7d2fe' }}>
+            <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#4338ca', marginBottom: 5 }}>
+              Seen two ways
             </div>
             <div style={{ fontSize: 12, color: '#5a5267', lineHeight: 1.55 }}>
               Our probe sees {signal.conflict.probe_says} today. Your public materials mention {signal.conflict.source_says}. Which is right?
@@ -160,8 +160,8 @@ export function SignalEvidenceDrawer({ signal, onClose, onCorrect, onIgnore, onA
               onClick={() => onCorrect(signal.id)}
               style={{
                 flex: 1, padding: '8px 0', borderRadius: 7,
-                border: '1px solid #fca5a5', background: '#fff7f7',
-                fontSize: 11, fontWeight: 600, color: '#b91c1c', cursor: 'pointer',
+                border: '1px solid #d9d5c7', background: 'transparent',
+                fontSize: 11, fontWeight: 600, color: '#5a5a5e', cursor: 'pointer',
               }}
             >
               Wrong?

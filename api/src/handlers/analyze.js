@@ -37,6 +37,10 @@ export async function analyzeHandler(request, reply) {
       reading: session.reading ?? null,
       reading_anchors: session.reading_anchors ?? [],
       corpus_citations: session.corpus_citations ?? null,
+      // The identity verdict travels with the citations, because the panel that
+      // renders them asserts they are ABOUT this company and that is exactly the
+      // claim the reading may have refused to make.
+      identity_confirmed: session.identity?.confirmed ?? null,
     });
   }
 
@@ -124,5 +128,6 @@ export async function analyzeHandler(request, reply) {
     reading,
     reading_anchors,
     corpus_citations,
+    identity_confirmed: session.identity?.confirmed ?? null,
   });
 }

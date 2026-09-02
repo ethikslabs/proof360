@@ -1,3 +1,10 @@
+// TWO READINGS, NOT A DISAGREEMENT (John ruling 2026-09-02, made concrete). A signal
+// seen twice with different values used to render as a red alarm chip reading
+// "sources disagree" — which adjudicates the founder's record, the one thing this
+// product never does. "Every human knows that the internet is full of falsehoods, out
+// of date information... we just have a point in time record." So it renders as a
+// count of what was seen. The drawer still asks which is right; it just no longer
+// announces a verdict on the way in.
 import { useState } from 'react';
 import { SignalEvidenceDrawer } from './SignalEvidenceDrawer.jsx';
 
@@ -9,13 +16,13 @@ function Chip({ signal, isDemoMode, onActivate }) {
       onClick={() => !isDemoMode && onActivate(signal)}
       style={{
         display: 'inline-flex', alignItems: 'center', gap: 4,
-        background: conflicted ? '#fee2e2' : (isGap ? '#dcfce7' : '#fef3c7'),
-        border: `1px solid ${conflicted ? '#fca5a5' : (isGap ? '#86efac' : '#fcd34d')}`,
+        background: conflicted ? '#eef2ff' : (isGap ? '#dcfce7' : '#fef3c7'),
+        border: `1px solid ${conflicted ? '#c7d2fe' : (isGap ? '#86efac' : '#fcd34d')}`,
         borderRadius: 4,
         padding: '2px 8px',
         fontSize: 10.5,
         fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-        color: conflicted ? '#b91c1c' : (isGap ? '#15803d' : '#92400e'),
+        color: conflicted ? '#4338ca' : (isGap ? '#15803d' : '#92400e'),
         fontWeight: 600,
         cursor: isDemoMode ? 'default' : 'pointer',
         opacity: isDemoMode ? 0.6 : 1,
@@ -24,7 +31,7 @@ function Chip({ signal, isDemoMode, onActivate }) {
     >
       <span style={{ fontSize: 7 }}>◆</span>
       {signal.value}
-      {conflicted && <span style={{ fontWeight: 700 }}>⚡ sources disagree</span>}
+      {conflicted && <span style={{ fontWeight: 600, opacity: 0.85 }}>· two readings</span>}
     </button>
   );
 }

@@ -4,6 +4,36 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-09-02 · The gate held in one place out of four
+
+**Vocabulary first.** **Corpus holdings** are documents we gathered about a company independently, before anyone typed their domain. Retrieval is *semantic* — it finds material that is close in meaning, which is what you want, because you cannot know in advance what a document calls a company. It also means a search for "Congisys" happily returns documents about **Cognisys**.
+
+**Problem.** A read was run on `congisys.co.uk` — a typo. The reading itself behaved perfectly. It said: *"we couldn't tie those records to this domain, so they may describe a different company entirely."* That is the identity gate shipped earlier the same day, working.
+
+Two inches above it, the "Before we read your site" panel opened with **"The record already held 3 things about Congisys"** — asserting the precise claim the reading had just refused to make. Below it, the observation strip published **twelve signals** extracted from those same holdings: headcount, global footprint, CREST accreditation, a category claim. Every advisor answer after that reasoned from them: a six-figure Australian property deal, "Vanta's #1 Global Service Partner." None of it was established to be about the company whose address was typed.
+
+`holdingIdentity` existed in exactly one file. **Three other consumers never called it.** Gating the stream you happen to be looking at is not gating.
+
+**A second defect, found while tracing the first.** Each claim in the dock read `inferred · website extraction · likely`, while the trace beside it read `Reading your site · 0 pages`. The string was hardcoded. A provenance that cannot be wrong is not provenance — it is decoration that looks like an audit trail.
+
+**Fix.**
+
+**1. Identity is resolved once, upstream, and stamped onto the material.** New `api/src/services/holding-identity.js`. `session-start` calls it the moment holdings arrive and marks each one `confirmed` or `unconfirmed`; every consumer reads the stamp. **This is the design point worth your attention:** the obvious fix is to call the gate in the three places that were missing it, which leaves a fourth consumer one commit away from reopening the hole. Closing it where the data is *born* means a new consumer inherits the gate without knowing it exists. A holding is confirmed only on a hard link — published on their own domain, or naming them in its text. It fails closed.
+
+**2. Position signals refuse to speak from unconfirmed material.** Still retrieved, still displayed, still cited — never turned into a signal, because a signal is an assertion about *this* company. Returns an honest zero rather than a guess, and the three-state absence contract is intact: only a failed lookup returns `null`.
+
+**3. The panel changes its sentence, not its existence.** When nothing ties to the domain it reads: *"We already held 3 records under a name close to Congisys… but nothing in them ties back to the address you gave us. It may be a different company. Have a look and tell us."* Showing what we found and asking whether it is them is how the typo gets caught. Suppressing the beat would lose that.
+
+**4. Provenance is derived from what actually ran.** `website extraction` when pages were read; `company research · perplexity` when the site did not open but an engine answered; `no source read` when neither. The last one is the case that was lying.
+
+**5. "Sources disagree" is gone.** A signal seen twice with different values rendered as a red alarm chip reading *⚡ sources disagree*. That adjudicates the founder's record, which this product never does — sources go out of date and contradict each other and that is normal, not a finding. It now reads **two readings**, in a neutral tone, and the drawer still asks which is right. Two tests that pinned the old wording were updated to assert the *rule* instead, so the verdict vocabulary cannot return.
+
+**Also visible in the trace.** When holdings cannot be tied to the domain, the thinking now shows the machine declining to use them: *"none of these can be tied to congisys.co.uk — held as unconfirmed, not spoken as fact."* A founder watching should see a refusal as readily as they see a result.
+
+**Tests.** 19 new on the API (539 passing), 5 new on the frontend (454 passing), lint 0 errors. The identity tests are written against the real Cognisys holdings from the live read, so they fail if the exact production bug returns.
+
+---
+
 ## 2026-09-02 · proof360 now renders on the same ground as the platform
 
 **Vocabulary first.** A **design token** is a named colour or typeface held in one file, which every component reads instead of writing a hex value inline. Change the token, every screen changes. Write the hex inline and the component can never be re-themed.

@@ -67,9 +67,11 @@ describe('SignalEvidenceDrawer — conflicted evidence renders as a question', (
     conflicted: true, conflict: { probe_says: 'Oracle', source_says: 'AWS' },
   };
 
-  it('shows the "sources disagree" marker', () => {
+  it('marks it as seen two ways, without adjudicating', () => {
     render(<SignalEvidenceDrawer signal={conflictedSignal} onClose={() => {}} onCorrect={() => {}} onIgnore={() => {}} onAddContext={() => {}} />);
-    expect(screen.getAllByText(/sources disagree/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/two readings|seen two ways/i).length).toBeGreaterThan(0);
+    // John ruling 2026-09-02: the record is never called wrong, only shown twice.
+    expect(screen.queryByText(/disagree|contradict|unverified/i)).not.toBeInTheDocument();
   });
 
   it('names both witnesses as a question, not a verdict', () => {
@@ -79,7 +81,7 @@ describe('SignalEvidenceDrawer — conflicted evidence renders as a question', (
 
   it('a non-conflicted signal shows no conflict marker or question', () => {
     render(<SignalEvidenceDrawer signal={signal} onClose={() => {}} onCorrect={() => {}} onIgnore={() => {}} onAddContext={() => {}} />);
-    expect(screen.queryByText(/sources disagree/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/two readings|seen two ways/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Which is right\?/)).not.toBeInTheDocument();
   });
 });

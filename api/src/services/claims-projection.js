@@ -180,7 +180,26 @@ function valuesConflict(field, existingValue, newValue) {
   return String(existingValue).trim().toLowerCase() !== String(newValue).trim().toLowerCase();
 }
 
-export function buildInferredClaims({ recon = {}, signals = [] } = {}) {
+/**
+ * `origin` describes what actually ran, and the provenance line is derived from it
+ * rather than asserted (John, 2026-09-02). The label used to be the hardcoded string
+ * "website extraction" for every inferred claim. On a session whose trace read
+ * "Reading your site · 0 pages" the dock still said the claim came from website
+ * extraction — a false provenance on a profile assembled from somewhere else
+ * entirely. A provenance that cannot be wrong is not provenance.
+ */
+function inferenceDetail(origin = {}, confidence) {
+  const pages = Number(origin.pages_read_count) || 0;
+  const engines = Array.isArray(origin.research_engines) ? origin.research_engines : [];
+  const method = pages > 0
+    ? 'website extraction'
+    : engines.length
+      ? `company research · ${engines.join(' + ')}`
+      : 'no source read';
+  return confidence ? `${method} · ${confidence}` : method;
+}
+
+export function buildInferredClaims({ recon = {}, signals = [], origin = {} } = {}) {
   const claims = [];
   const claimedFields = new Map(); // field -> value already claimed (by recon)
 
@@ -226,11 +245,9 @@ export function buildInferredClaims({ recon = {}, signals = [] } = {}) {
       provenance: {
         method: 'claude-inference',
         // signal.confidence is a WORD from the extractor ('confident', 'probable'),
-        // not a number — so the old template rendered "website extraction
+        // not a number — so an older template rendered "website extraction
         // (confident confidence)" on John's screen. Say it once, in plain words.
-        detail: signal.confidence
-          ? `website extraction · ${signal.confidence}`
-          : 'website extraction',
+        detail: inferenceDetail(origin, signal.confidence),
       },
     }));
     claimedFields.set(field, signal.value);

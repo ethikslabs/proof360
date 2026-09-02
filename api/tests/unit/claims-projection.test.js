@@ -282,3 +282,37 @@ describe('nextConfirmable — one confirm prompt per exchange', () => {
     expect(nextConfirmable(claims)).toBeNull();
   });
 });
+
+// -----------------------------------------------------------------------------
+// Provenance is derived from what ran, never asserted (John, 2026-09-02). Every
+// inferred claim used to carry the hardcoded words "website extraction" — including
+// on a session whose own trace read "Reading your site · 0 pages". The dock told the
+// founder where a claim came from, and it was not true.
+// -----------------------------------------------------------------------------
+describe('inferred claim provenance', () => {
+  const signals = [{ type: 'product_type', value: 'Professional services', confidence: 'likely' }];
+  const detail = (origin) =>
+    buildInferredClaims({ signals, origin }).find((c) => c.field === 'product.type').provenance.detail;
+
+  it('says website extraction only when pages were actually read', () => {
+    expect(detail({ pages_read_count: 5, research_engines: [] })).toBe('website extraction · likely');
+  });
+
+  it('names the engines that answered when the site did not open', () => {
+    expect(detail({ pages_read_count: 0, research_engines: ['perplexity'] }))
+      .toBe('company research · perplexity · likely');
+  });
+
+  // The case that was lying: nothing read the site, no engine answered, and the
+  // claim still announced a source.
+  it('admits when nothing was read', () => {
+    expect(detail({ pages_read_count: 0, research_engines: [] })).toBe('no source read · likely');
+  });
+
+  it('drops the confidence word when the extractor gave none', () => {
+    expect(buildInferredClaims({
+      signals: [{ type: 'product_type', value: 'Professional services' }],
+      origin: { pages_read_count: 3 },
+    }).find((c) => c.field === 'product.type').provenance.detail).toBe('website extraction');
+  });
+});

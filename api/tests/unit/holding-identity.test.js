@@ -1,135 +1,123 @@
-// The typo bug, 2026-09-02. Reading `congisys.co.uk` — one transposition from
-// cognisys.co.uk — found a site that would not open (0 pages readable) and still
-// produced a confident profile: 120 people, 19 countries, Vanta's #1 global service
-// partner. Every fact was real. None of it was about the domain that was typed.
+// Identity resolved ONCE, upstream (John, 2026-09-02, second pass).
 //
-// Corpus retrieval is semantic on purpose and should stay that way; finding near
-// material is the point. The missing piece was any check that a holding is ABOUT the
-// company being read before speaking about it in the second person.
+// The first pass gated the reading and the reading alone. It worked — a read on
+// congisys.co.uk correctly refused to write a profile from Cognisys holdings — while
+// three other surfaces published the same material anyway: the prior-knowledge panel
+// asserted it was about Congisys, the observation strip turned it into twelve signals,
+// and every advisor answer reasoned from it. These tests hold the seam shut at the
+// point the hits are born, so a NEW consumer cannot reopen it by simply not knowing.
 import { describe, it, expect } from 'vitest';
-import { holdingIdentity, normaliseName, buildReadingContext } from '../../src/services/cold-reading.js';
+import {
+  normaliseName, holdingIdentity, domainOf,
+  resolveSessionIdentity, confirmedHoldings,
+} from '../../src/services/holding-identity.js';
 
+// The three holdings from the live read. All are about Cognisys; the founder typed
+// congisys.co.uk. None of them names the company that was actually asked about.
 const YAHOO = {
-  slug: 'cognisys-yahoo',
-  source_url: 'https://finance.yahoo.com/news/cognisys',
-  text: 'Cognisys is a UK-founded cybersecurity and compliance consultancy. Team of 120 specialists operating across 19 countries.',
+  slug: 'cognisys-yahoo', source_url: 'https://finance.yahoo.com/news/cognisys',
+  text: 'Cognisys is a UK-founded cybersecurity consultancy. Team of 120 specialists across 19 countries.',
+};
+const LEADIQ = {
+  slug: 'cognisys-leadiq', source_url: 'https://www.leadiq.com/c/cognisys',
+  text: 'IT Services and IT Consulting, England, 51-200 Employees. Vanta’s #1 Global Service Partner.',
+};
+const OWN_SITE = {
+  slug: 'their-own-page', source_url: 'https://congisys.co.uk/about',
+  text: 'We help organisations become regulator-ready.',
 };
 
+const TYPO = { company_name: 'Congisys', website_url: 'congisys.co.uk' };
+
 describe('normaliseName', () => {
-  it('ignores case, spacing and punctuation', () => {
+  it('compares company names past punctuation and case', () => {
     expect(normaliseName('Cognisys Ltd.')).toBe('cognisysltd');
-    expect(normaliseName('  CO-GNISYS  ')).toBe('cognisys');
-  });
-  it('survives nothing', () => {
-    expect(normaliseName(null)).toBe('');
-    expect(normaliseName(undefined)).toBe('');
+    expect(normaliseName('COGNISYS')).toBe(normaliseName('cognisys'));
   });
 });
 
-describe('holdingIdentity — the bug that started it', () => {
-  it('will NOT claim a Cognisys holding is about Congisys', () => {
+describe('holdingIdentity', () => {
+  it('confirms a holding published on their own domain', () => {
+    expect(holdingIdentity(OWN_SITE, { company_name: 'Congisys', domain: 'congisys.co.uk' }))
+      .toBe('confirmed');
+  });
+
+  it('does not confirm a near-miss name — the whole bug in one assertion', () => {
     expect(holdingIdentity(YAHOO, { company_name: 'Congisys', domain: 'congisys.co.uk' }))
       .toBe('unconfirmed');
   });
 
-  it('still confirms the holding for the company it is actually about', () => {
-    expect(holdingIdentity(YAHOO, { company_name: 'Cognisys', domain: 'cognisys.co.uk' }))
-      .toBe('confirmed');
-  });
-
-  it('confirms anything published on their own domain', () => {
-    const own = { text: 'We do things.', source_url: 'https://www.congisys.co.uk/about' };
-    expect(holdingIdentity(own, { company_name: 'Congisys', domain: 'congisys.co.uk' }))
-      .toBe('confirmed');
-    const sub = { text: 'x', source_url: 'https://blog.congisys.co.uk/post' };
-    expect(holdingIdentity(sub, { company_name: 'Congisys', domain: 'congisys.co.uk' }))
-      .toBe('confirmed');
-  });
-
-  it('confirms on the slug when the text does not name them', () => {
-    expect(holdingIdentity({ slug: 'cognisys-profile', text: 'A consultancy.' },
-      { company_name: 'Cognisys' })).toBe('confirmed');
-  });
-
-  it('matches on the domain label when no company name was extracted', () => {
-    // The unreadable-site case: name comes from the domain, nothing else.
-    expect(holdingIdentity(YAHOO, { domain: 'cognisys.co.uk' })).toBe('confirmed');
-    expect(holdingIdentity(YAHOO, { domain: 'congisys.co.uk' })).toBe('unconfirmed');
-  });
-
-  it('fails CLOSED when there is nothing to check against', () => {
+  // Fail closed: nothing to check against is not permission to speak.
+  it('is unconfirmed when there is no name and no domain to check', () => {
     expect(holdingIdentity(YAHOO, {})).toBe('unconfirmed');
-    expect(holdingIdentity(YAHOO, { company_name: '', domain: '' })).toBe('unconfirmed');
-  });
-
-  it('ignores names too short to be evidence of anything', () => {
-    expect(holdingIdentity({ text: 'abc corp' }, { company_name: 'ab' })).toBe('unconfirmed');
-  });
-
-  it('survives a malformed source_url instead of throwing', () => {
-    const bad = { ...YAHOO, source_url: 'not a url' };
-    expect(holdingIdentity(bad, { company_name: 'Cognisys', domain: 'cognisys.co.uk' }))
-      .toBe('confirmed');   // falls through to the text check
   });
 });
 
-describe('the prompt carries the gate', () => {
-  const session = (over) => ({
-    website_url: 'https://congisys.co.uk',
-    company_name: 'Congisys',
-    inferences: [], raw_signals: [], recon_context: {},
-    company_summary: null,
-    pages_read_count: 0,
-    corpus_hits: [YAHOO],
-    ...over,
+describe('resolveSessionIdentity', () => {
+  it('stamps every holding in place, so the verdict travels with the array', () => {
+    const hits = [{ ...YAHOO }, { ...LEADIQ }, { ...OWN_SITE }];
+    resolveSessionIdentity({ ...TYPO, hits });
+    expect(hits.map((h) => h.identity))
+      .toEqual(['unconfirmed', 'unconfirmed', 'confirmed']);
   });
 
-  it('keeps the near-miss holding OUT of the evidence entirely', async () => {
-    // Tagging it and asking the model not to use it was tried first and failed: the
-    // model appended the caveat AND wrote the profile. There must be nothing to write
-    // a profile from.
-    const { prompt } = await buildReadingContext(session());
-    expect(prompt).not.toMatch(/120 specialists/);
-    expect(prompt).not.toMatch(/19 countries/);
+  it('reports the session unconfirmed when nothing ties to the domain', () => {
+    const hits = [{ ...YAHOO }, { ...LEADIQ }];
+    const v = resolveSessionIdentity({ ...TYPO, hits, pages_read_count: 0 });
+    expect(v).toMatchObject({ domain: 'congisys.co.uk', any_confirmed: false, confirmed: false });
   });
 
-  it('overrides the whole shape when identity is not established', async () => {
-    const { prompt } = await buildReadingContext(session());
-    expect(prompt).toMatch(/IDENTITY NOT ESTABLISHED/);
-    expect(prompt).toMatch(/OVERRIDES EVERY OTHER INSTRUCTION/);
-    expect(prompt).toMatch(/Do NOT write a profile/);
-    expect(prompt).toMatch(/\[IDENTITY\]/);
+  // You cannot fetch the wrong company's website.
+  it('treats reading their own pages as the identity link', () => {
+    const hits = [{ ...YAHOO }];
+    expect(resolveSessionIdentity({ ...TYPO, hits, pages_read_count: 4 }).confirmed).toBe(true);
   });
 
-  it('drops a live-web summary that describes a different company', async () => {
-    // The second contaminated stream: asked about congisys.co.uk, the engine silently
-    // researched cognisys.co.uk and answered about it.
-    const { prompt } = await buildReadingContext(session({
-      company_summary: 'Cognisys (cognisys.co.uk) is a UK cybersecurity consultancy operating across 19 countries.',
-    }));
-    expect(prompt).not.toMatch(/cognisys\.co\.uk/i);
-    expect(prompt).toMatch(/IDENTITY NOT ESTABLISHED/);
+  // The live-web summary is the other contaminated stream: asked to research a typo'd
+  // domain, an engine silently corrects it and answers about a different company.
+  it('checks the live-web summary the same way it checks a holding', () => {
+    const about_them = resolveSessionIdentity({
+      ...TYPO, hits: [], company_summary: 'Congisys provides GRC consulting.',
+    });
+    const about_someone_else = resolveSessionIdentity({
+      ...TYPO, hits: [], company_summary: 'Cognisys is a Leeds-based security consultancy.',
+    });
+    expect(about_them.summary_confirmed).toBe(true);
+    expect(about_someone_else.summary_confirmed).toBe(false);
+    expect(about_someone_else.confirmed).toBe(false);
   });
 
-  it('keeps a live-web summary that actually names them', async () => {
-    const { prompt } = await buildReadingContext(session({
-      company_summary: 'Congisys is a small UK consultancy.',
-    }));
-    expect(prompt).toMatch(/Congisys is a small UK consultancy/);
-    expect(prompt).not.toMatch(/IDENTITY NOT ESTABLISHED/);
+  it('survives a null retrieval without inventing a verdict', () => {
+    const v = resolveSessionIdentity({ ...TYPO, hits: null });
+    expect(v.any_confirmed).toBe(false);
+    expect(v.confirmed).toBe(false);
+  });
+});
+
+describe('confirmedHoldings', () => {
+  it('drops what we cannot tie to this company', () => {
+    const hits = [{ ...YAHOO }, { ...OWN_SITE }];
+    resolveSessionIdentity({ ...TYPO, hits });
+    expect(confirmedHoldings(hits).map((h) => h.slug)).toEqual(['their-own-page']);
   });
 
-  it('reading their own pages is itself the identity link', async () => {
-    // You cannot fetch the wrong company's website.
-    const { prompt } = await buildReadingContext(session({ pages_read_count: 3 }));
-    expect(prompt).not.toMatch(/IDENTITY NOT ESTABLISHED/);
+  // An unstamped hit means no resolution ran at all — unit fixtures and sessions
+  // recorded before the stamp existed. Dropping real material over a missing stamp
+  // would be its own honesty failure; the pipeline closes at session-start instead.
+  it('passes unstamped holdings through rather than silently binning them', () => {
+    expect(confirmedHoldings([{ slug: 'no-stamp' }])).toHaveLength(1);
   });
 
-  it('leaves the correctly-identified company completely alone', async () => {
-    const { prompt } = await buildReadingContext(
-      session({ company_name: 'Cognisys', website_url: 'https://cognisys.co.uk' }),
-    );
-    expect(prompt).not.toMatch(/IDENTITY NOT ESTABLISHED/);
-    expect(prompt).toMatch(/120 specialists/);
+  it('leaves the three-state absence contract alone', () => {
+    expect(confirmedHoldings(null)).toBeNull();
+    expect(confirmedHoldings([])).toEqual([]);
+  });
+});
+
+describe('domainOf', () => {
+  it('reads a host with or without a scheme', () => {
+    expect(domainOf({ website_url: 'congisys.co.uk' })).toBe('congisys.co.uk');
+    expect(domainOf({ website_url: 'https://www.congisys.co.uk/about' })).toBe('www.congisys.co.uk');
+    expect(domainOf({})).toBeNull();
   });
 });

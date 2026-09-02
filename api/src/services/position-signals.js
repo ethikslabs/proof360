@@ -17,6 +17,7 @@
 // There is deliberately no `disagreement` type and no contradiction vocabulary.
 
 import { chatComplete } from '../lib/inference.js';
+import { confirmedHoldings } from './holding-identity.js';
 import { resolve as resolveModel } from '../lib/model-resolver.mjs';
 
 export const POSITION_TYPES = [
@@ -110,7 +111,22 @@ export async function extractPositionSignals(hits, opts = {}) {
   if (hits == null) return null;
   if (!Array.isArray(hits) || hits.length === 0) return [];
 
-  const numbered = hits
+  // IDENTITY GATE (John, 2026-09-02, second pass). This was the loudest of the
+  // ungated consumers: on a typo'd domain it published twelve position signals —
+  // headcount, footprint, accreditations, a category claim — extracted from holdings
+  // the reading itself had already refused to speak from, and rendered them under
+  // "OBSERVED THIS SESSION" as though the founder's own site had said them.
+  //
+  // A holding we cannot tie to this company is still shown and still cited, because
+  // showing what we found and asking whether it is them is honest. It is never turned
+  // into a signal, because a signal is an assertion about THIS company.
+  const usable = confirmedHoldings(hits);
+  // Looked, found holdings, none of them are demonstrably about this company: an
+  // honest zero, not a could-not-look. The three-state contract holds — only a
+  // failed lookup returns null.
+  if (usable.length === 0) return [];
+
+  const numbered = usable
     .map((h, i) => `[${i + 1}] (${h.slug ?? 'holding'}) "${(h.text ?? '').slice(0, 1200)}"`)
     .join('\n\n');
 
@@ -151,6 +167,6 @@ Respond with ONLY a JSON array, no markdown:
   if (!Array.isArray(parsed)) return [];
 
   return groupObservations(
-    parsed.map((f) => ({ type: f?.type, value: f?.value, hit: hits[Number(f?.from) - 1] })),
+    parsed.map((f) => ({ type: f?.type, value: f?.value, hit: usable[Number(f?.from) - 1] })),
   );
 }

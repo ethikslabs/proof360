@@ -7,6 +7,7 @@ import { extractReconContext } from '../services/recon-pipeline.js';
 import { retrieveCorpusEvidence } from '../services/corpus-retrieve.js';
 import { corpusQueryFor } from '../services/cold-reading.js';
 import { extractPositionSignals } from '../services/position-signals.js';
+import { resolveSessionIdentity } from '../services/holding-identity.js';
 import { preflight } from '../services/domain-preflight.js';
 import { query } from '../db/pool.js';
 
@@ -99,7 +100,14 @@ async function extractAndInfer(sessionId, { website_url, deck_file, session_id }
 
     // Seed the Record (ETHL-WRK-SPEC-011): every probe/extraction output becomes an
     // inferred claim with named provenance — inferred until the founder confirms.
-    const claimRecords = buildInferredClaims({ recon: reconFlat, signals });
+    // `origin` is what actually ran. Without it every inferred claim carried the
+    // hardcoded provenance "website extraction", including on sessions that read
+    // zero pages — a claim asserting a source it never had.
+    const claimRecords = buildInferredClaims({
+      recon: reconFlat,
+      signals,
+      origin: { pages_read_count: pages_read_count ?? 0, research_engines: research_engines || [] },
+    });
 
     // Act 8 — corpus (John ruling 2026-08-25): scan-time retrieval feeding read-time
     // use, one call, one bill. Same query construction as cold-reading.js's
@@ -136,6 +144,27 @@ async function extractAndInfer(sessionId, { website_url, deck_file, session_id }
       // query with. No absence body line: we never looked, so we cannot honestly say
       // what we found (ABSENCE RULE — could-not-look ≠ looked-and-found-nothing).
       log({ type: 'act', act: 'corpus', phase: 'skip', note: corpusQuery ? 'corpus unreachable' : 'no company identified' });
+    }
+
+    // IDENTITY, RESOLVED ONCE (John, 2026-09-02, second pass). Every consumer below
+    // — position signals, the reading, the prior-knowledge panel, the advisors — used
+    // to make this call for itself or not at all, and the ones that did not published
+    // a profile of a similarly-named company off a typo'd domain. Resolved here,
+    // stamped onto each holding, read everywhere else.
+    const identity = resolveSessionIdentity({
+      company_name: inferenceResult.company_name,
+      website_url,
+      hits: corpus_hits,
+      pages_read_count,
+      company_summary,
+    });
+    if (corpus_hits?.length && !identity.any_confirmed) {
+      // Visible in the trace, because a founder watching the thinking should see the
+      // machine decline to use something as readily as they see it use something.
+      log({
+        act: 'corpus', color: 'query', type: 'act_body',
+        text: `↳  none of these can be tied to ${identity.domain || 'this domain'} — held as unconfirmed, not spoken as fact`,
+      });
     }
 
     // Position signals — read the holdings for where this company STANDS (size,
@@ -176,6 +205,7 @@ async function extractAndInfer(sessionId, { website_url, deck_file, session_id }
       used_web_research: !!used_web_research,
       research_engines: research_engines || [],
       corpus_hits,
+      identity,
     });
 
     // Persist signals and recon to Postgres — non-blocking, failures don't affect in-memory pipeline

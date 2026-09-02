@@ -2197,6 +2197,9 @@ export default function Chat() {
                     hits: analysis.corpus_citations.hits,
                     sessionStartedAt: coldReadStartedAt,
                     companyName: analysis.company_name,
+                    // The panel asserts this material is ABOUT them. When the reading
+                    // could not tie it to the domain, that assertion is the false one.
+                    identityConfirmed: analysis.identity_confirmed ?? null,
                   } }
               : {}),
           } : m));

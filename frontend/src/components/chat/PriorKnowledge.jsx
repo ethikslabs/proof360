@@ -24,7 +24,16 @@ function gatheredOn(ms) {
   return new Date(ms).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
 }
 
-export function PriorKnowledge({ hits, sessionStartedAt, companyName, tk }) {
+// `identityConfirmed === false` means the reading could not tie ANY of this material
+// to the domain that was typed. The beat still fires — showing what we found and
+// asking whether it is them is the honest move, and it is how a typo gets caught. What
+// changes is the sentence: it stops asserting these records are about them.
+//
+// The framing is John's ruling (2026-09-02): "this is what we have seen publicly and
+// tried to infer, founder has not confirmed yet. It does not say anything is lying,
+// and every human knows that the internet is full of falsehoods, out of date
+// information... we just have a point in time record."
+export function PriorKnowledge({ hits, sessionStartedAt, companyName, identityConfirmed, tk }) {
   const held = priorHoldings(hits, sessionStartedAt);
   if (held.length === 0) return null;
 
@@ -50,8 +59,19 @@ export function PriorKnowledge({ hits, sessionStartedAt, companyName, tk }) {
 
       <div style={{ padding: '12px 14px 4px' }}>
         <p style={{ fontFamily: SANS, fontSize: 13, lineHeight: 1.6, color: ink, marginBottom: 12 }}>
-          The record already held {n === 1 ? 'one thing' : `${n} things`} about {name},
-          gathered before this conversation started.
+          {identityConfirmed === false ? (
+            <>
+              We already held {n === 1 ? 'one record' : `${n} records`} under a name close
+              to {name}, gathered before this conversation started — but nothing in
+              {' '}{n === 1 ? 'it' : 'them'} ties back to the address you gave us. It may be
+              a different company. Have a look and tell us.
+            </>
+          ) : (
+            <>
+              The record already held {n === 1 ? 'one thing' : `${n} things`} about {name},
+              gathered before this conversation started.
+            </>
+          )}
         </p>
 
         {held.map((h) => (
