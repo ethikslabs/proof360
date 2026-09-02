@@ -61,6 +61,15 @@ const MAX_TOKENS = 300;
 const STRONG = { tag: 'STRONG', instruction: "say 'we can see' / 'we did see' — plain, not boastful" };
 const HEDGE = { tag: 'HEDGE', instruction: "say 'it looks like' / 'probably' / 'we think' — never state it as certain" };
 const CORPUS = { tag: 'CORPUS', instruction: "say 'our research suggests' — a third-party holding, not our own probe" };
+// A holding that scored well but cannot be tied to THIS company. Corpus retrieval is
+// semantic on purpose, so a near-miss name in the same sector vocabulary scores high:
+// reading 'congisys.co.uk' (a typo) pulled every holding about Cognisys and the read
+// asserted 120 people across 19 countries about the domain that was actually typed.
+// Found 2026-09-02. Semantic recall is right; speaking about it as 'you' was not.
+const CORPUS_UNCONFIRMED = {
+  tag: 'CORPUS-UNCONFIRMED',
+  instruction: "material about a SIMILARLY-NAMED company that we could NOT tie to this one — never state it as a fact about them, and never say 'you' about it",
+};
 
 // Inference confidence collapses three grades to two hedge registers: 'confident' is
 // close enough to a direct-probe fact to read STRONG; 'likely' and 'probable' are both
@@ -192,6 +201,40 @@ function resolveFrameworks(session) {
   return ids.map((id) => FRAMEWORK_LABELS[id] || id);
 }
 
+/** lowercase, letters+digits only — so "Cognisys Ltd." and "cognisys" compare equal. */
+export function normaliseName(name) {
+  return String(name ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+/**
+ * Is this holding actually ABOUT the company being read?
+ *
+ * Corpus retrieval is semantic and should stay that way — finding near material is
+ * the point. The bug was consuming every hit as testimony about them. A holding earns
+ * 'confirmed' only on a hard identity link: it is published on their own domain, or it
+ * names them in its text or slug. Anything else is 'unconfirmed' — kept, shown, cited,
+ * but never spoken in the second person.
+ *
+ * Fails CLOSED: no company name and no domain to check against means unconfirmed.
+ */
+export function holdingIdentity(hit, { company_name, domain } = {}) {
+  const name = normaliseName(company_name);
+  const host = normaliseName(String(domain ?? '').replace(/^www\./, '').split('.')[0]);
+  const candidates = [name, host].filter((c) => c.length >= 4);
+  if (!candidates.length) return 'unconfirmed';
+
+  if (hit?.source_url && domain) {
+    try {
+      const h = new URL(hit.source_url).hostname.replace(/^www\./, '');
+      const d = String(domain).replace(/^www\./, '');
+      if (h === d || h.endsWith(`.${d}`)) return 'confirmed';
+    } catch { /* malformed URL — fall through to the text checks */ }
+  }
+
+  const haystack = normaliseName(`${hit?.text ?? ''} ${hit?.slug ?? ''}`);
+  return candidates.some((c) => haystack.includes(c)) ? 'confirmed' : 'unconfirmed';
+}
+
 function domainOf(session) {
   const url = session?.website_url;
   if (!url) return null;
@@ -230,13 +273,21 @@ async function corpusEvidence(session) {
   }
   if (!hits?.length) return { lines: [], anchor: null };
 
-  const lines = hits.map((h) => factLine(CORPUS, 'Corpus holding', (h.text || '').replace(/\s+/g, ' ').trim()));
+  const domain = domainOf(session);
+  const identity = hits.map((h) => holdingIdentity(h, { company_name: session?.company_name, domain }));
+  const anyConfirmed = identity.some((i) => i === 'confirmed');
+
+  const lines = hits.map((h, i) => factLine(
+    identity[i] === 'confirmed' ? CORPUS : CORPUS_UNCONFIRMED,
+    identity[i] === 'confirmed' ? 'Corpus holding' : 'Corpus holding — IDENTITY NOT CONFIRMED',
+    (h.text || '').replace(/\s+/g, ' ').trim(),
+  ));
   // The anchor counts DOCUMENTS (distinct slugs), not chunks — it sits directly
   // above the citation cards, which group chunks by document; "4 corpus holdings"
   // over "3 sources" read as a contradiction (round-3 walkthrough finding).
   const docCount = new Set(hits.map((h) => h.slug ?? h.evidence_id ?? h.n)).size;
   const anchor = { label: `${docCount} corpus holding${docCount === 1 ? '' : 's'}`, source: 'corpus' };
-  return { lines, anchor };
+  return { lines, anchor, anyConfirmed, allUnconfirmed: !anyConfirmed };
 }
 
 export async function buildReadingContext(session) {
@@ -289,6 +340,16 @@ export async function buildReadingContext(session) {
     `- Facts marked [STRONG]: ${STRONG.instruction}.`,
     `- Facts marked [HEDGE]: ${HEDGE.instruction}.`,
     `- Facts marked [CORPUS]: ${CORPUS.instruction}.`,
+    `- Facts marked [CORPUS-UNCONFIRMED]: ${CORPUS_UNCONFIRMED.instruction}.`,
+    '  IDENTITY GATE — this one outranks the shape rules below. A CORPUS-UNCONFIRMED',
+    '  holding is material about a company with a SIMILAR NAME that we could not tie to',
+    '  the one being read. You may NEVER write it as "you", never fold it into the',
+    '  connection beat, and never let it imply size, age, reach or position. If such',
+    '  holdings are the only material you have, do not write a profile at all: say',
+    '  plainly that we could not confirm these records are about them, name the company',
+    '  the records DO describe, and ask whether it is the same organisation. A wrong',
+    '  company confidently described is the worst output this product can produce — it',
+    '  is worse than saying nothing, because the reader has no way to know.',
     '- Never upgrade a HEDGE or CORPUS fact into confident language, and never hedge a',
     '  STRONG fact.',
     '- Never mention any fact not listed above.',

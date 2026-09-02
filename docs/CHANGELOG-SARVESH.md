@@ -54,7 +54,20 @@ The dock's job is the one it is named for: the surface where the record **visibl
 
 The panel is now themed from `tokens.js` like every other surface rather than a private dark palette. A test renders the panel and asserts it contains no interview, and a second checks the old dark hex values are gone — the seam is enforced rather than remembered.
 
-**Verification.** API 502/502, frontend 421/421, nothing skipped — 80 new tests. **No human has walked it**, which is why this is on a branch and not on main. A green suite written by the same author that wrote the code is not sign-off.
+
+**Third follow-up, and the serious one — a typo produced a confident profile of the wrong company.**
+
+Reading `congisys.co.uk` — one transposition away from `cognisys.co.uk` — hit a site that would not open. **Zero pages readable.** The read still produced a full, confident profile: 120 people, 19 countries, Vanta's #1 global service partner, GRC consulting and CREST-accredited testing. Every one of those facts is real. **None of them is about the domain that was typed.**
+
+**Cause.** Corpus retrieval is semantic, with a similarity floor. That is correct and should stay — finding near material is the point of a retrieval layer. The defect was at **consumption**: every hit that cleared the score floor was handed to the reading prompt as testimony about the company being read, and nothing anywhere checked that a holding was actually *about* them. "Congisys" and "Cognisys" sit one character apart in an identical sector vocabulary, so they score high. With the site unreadable there was no first-party evidence to contradict it either, so third-party records about a different company became the entire read.
+
+**Fix — an identity gate at the point of use, not at retrieval.** `holdingIdentity(hit, {company_name, domain})` returns `confirmed` only on a hard link: the holding is published on their own domain (or a subdomain of it), or it names them in its text or slug. Everything else is `unconfirmed` — still retrieved, still shown, still cited, but tagged `[CORPUS-UNCONFIRMED]` in the prompt and never spoken in the second person. It **fails closed**: no name and no domain to check against means unconfirmed.
+
+The prompt gained a rule that outranks its shape rules: an unconfirmed holding may never be written as "you", never folded into the connection beat, and never used to imply size, age, reach or position. If unconfirmed holdings are the only material available, the model must not write a profile at all — it says plainly that we could not confirm these records are about them, names the company the records *do* describe, and asks whether it is the same organisation.
+
+**Why it matters, and why this one was worth stopping for.** Everything else found today was a read that was unhelpful. This was a read that was **wrong, and confident, about someone else's business** — with no way for the reader to tell. If that domain belonged to a real company, proof360 would have told them they are a 120-person GRC consultancy. A wrong company confidently described is the worst output this product can produce, because the entire proposition is that the evidence is traceable.
+
+**Verification.** API 515/515, frontend 421/421, nothing skipped — 80 new tests. **No human has walked it**, which is why this is on a branch and not on main. A green suite written by the same author that wrote the code is not sign-off.
 
 **Why it matters.** proof360 sells the claim that it can read a company and say something useful about where it stands. A read that calls a consultancy a software product, and leads with their email security, is answering a question nobody asked — and doing it confidently, in the one place the product asks to be trusted.
 
