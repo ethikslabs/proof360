@@ -7,6 +7,7 @@ import { extractReconContext } from '../services/recon-pipeline.js';
 import { retrieveCorpusEvidence } from '../services/corpus-retrieve.js';
 import { corpusQueryFor } from '../services/cold-reading.js';
 import { extractPositionSignals } from '../services/position-signals.js';
+import { preflight } from '../services/domain-preflight.js';
 import { query } from '../db/pool.js';
 
 const RECON_SOURCES = ['dns', 'http', 'certs', 'ip', 'github', 'jobs', 'hibp', 'ports', 'ssllabs', 'abuseipdb'];
@@ -43,8 +44,53 @@ export async function sessionStartHandler(request, reply) {
   return reply.status(201).send({ session_id: session.id });
 }
 
+/** "congisys.co.uk" → "congisys.co.uk"; tolerant of a bare host or a full URL. */
+function hostOf(website_url) {
+  if (!website_url) return null;
+  try {
+    const u = String(website_url).startsWith('http') ? website_url : `https://${website_url}`;
+    return new URL(u).hostname;
+  } catch {
+    return String(website_url).trim() || null;
+  }
+}
+
 async function extractAndInfer(sessionId, { website_url, deck_file, session_id }, log) {
   try {
+    // ── THE DOOR CHECK, BEFORE ANYTHING ELSE ───────────────────────────────────
+    // John, 2026-09-02: "it should be before anything... we read it, check the site,
+    // and go 'that does not exist, did you mean something else, here is what could be
+    // close' — no reads, no searches, nothing."
+    //
+    // A typo'd domain used to run the whole pipeline against a door that was not there:
+    // four corpus retrievals, a BILLED live-web search, a second research engine, an
+    // eleven-signal correlation, an infrastructure probe and an LLM write — and then it
+    // asked the founder to confirm a product type for a company that does not exist.
+    // One DNS lookup answers it, costs nothing, and gives a better reply.
+    //
+    // Only when a domain is being read. A deck upload has no door to knock on.
+    const host = hostOf(website_url);
+    if (host && !deck_file) {
+      const door = await preflight(host);
+      if (!door.exists) {
+        log({ text: `$ proof360 --url ${host}`, type: 'cmd' });
+        log({ type: 'act', act: 'preflight', phase: 'start', title: 'Checking the address', note: 'dns' });
+        log({ act: 'preflight', type: 'act_body', text: `${host} does not resolve — no address record, no mail`, color: 'muted' });
+        for (const s of door.suggestions) {
+          log({ act: 'preflight', type: 'act_body', text: `↳  ${s} does exist`, color: 'query' });
+        }
+        log({ type: 'act', act: 'preflight', phase: 'done', note: door.suggestions.length ? 'suggestion found' : 'no near match' });
+        updateSession(sessionId, {
+          infer_status: 'address_not_found',
+          address_not_found: true,
+          address_suggestions: door.suggestions,
+          pages_read_count: 0,
+        });
+        log({ type: 'done' });
+        return;   // nothing else runs. No corpus, no research, no model, no bill.
+      }
+    }
+
     const { signals, sources_read, enterprise_signals, competitor_mentions, recon_context, company_summary, pages_read_count, used_web_research, research_engines } =
       await extractSignals({ website_url, deck_file, session_id }, log);
 

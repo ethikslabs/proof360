@@ -51,6 +51,15 @@ vi.mock('../../src/services/corpus-retrieve.js', async (importOriginal) => {
 // gap-mapper's runGapAnalysis hits a real CORPUS HTTP call (3s AbortSignal
 // timeout) when unmocked — an external, so it's stubbed here the same way
 // analyze-read-quality.test.js keeps its suite hermetic and fast.
+// The door check runs before anything else and does real DNS. These fixtures use
+// acme.example — a reserved TLD that never resolves — so without this the whole
+// pipeline short-circuits before the acts under test ever fire. Mocked at the same
+// boundary as every other external here. Its own behaviour is covered in
+// domain-preflight.test.js.
+vi.mock('../../src/services/domain-preflight.js', () => ({
+  preflight: vi.fn(async () => ({ exists: true, suggestions: [] })),
+}));
+
 vi.mock('../../src/services/gap-mapper.js', () => ({
   runGapAnalysis: vi.fn(async () => ({ gaps: [], trust_score: 80, readiness: 'ready', vendors: [] })),
 }));

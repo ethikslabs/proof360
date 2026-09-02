@@ -2085,10 +2085,34 @@ export default function Chat() {
 
           // Poll infer-status
           let inferStatus = 'processing';
+          let addressSuggestions = [];
           for (let i = 0; i < 60 && inferStatus === 'processing'; i++) {
             await sleep(2500);
             const r = await fetch(`/api/v1/session/${session_id}/infer-status`);
-            inferStatus = (await r.json()).status;
+            const body = await r.json();
+            inferStatus = body.status;
+            if (Array.isArray(body.address_suggestions)) addressSuggestions = body.address_suggestions;
+          }
+
+          // The address does not exist, so nothing ran — no corpus, no research, no
+          // model, no bill (John, 2026-09-02: check the door before searching the
+          // building). This is a terminal state with a genuinely useful answer, not a
+          // failure: say so, offer the near match if DNS found a real one, and stop.
+          // Reporting it as a timeout would be the same defect as the 'failed' case
+          // above — an honest signal flattened into a vague one.
+          if (inferStatus === 'address_not_found') {
+            const suggestion = addressSuggestions[0];
+            setComposingRead(false);
+            setMessages(prev => prev.map(m => m.id === statusId
+              ? {
+                  ...m,
+                  content: suggestion
+                    ? `We couldn't find **${domain}** — that address doesn't resolve. Did you mean **${suggestion}**? We haven't read anything or looked you up yet, so just send the right address and we'll start there.`
+                    : `We couldn't find **${domain}** — that address doesn't resolve, so we haven't read anything or looked you up. Check the spelling, or send another address and we'll start there.`,
+                }
+              : m
+            ));
+            return;
           }
           // A server that says 'failed' is not a timeout. Reporting it as one is
           // what made a restart-orphaned session look like a slow scan for an

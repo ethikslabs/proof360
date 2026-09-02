@@ -82,7 +82,27 @@ Two changes made it hold:
 
 The session-level verdict is: identity is established if their own pages were read (you cannot fetch the wrong company's website), or a corpus holding names them, or the research summary names them. If none of those hold, the prompt gains a block that overrides the entire three-beat shape and instructs three sentences only — the site would not open, the records may describe a different organisation with a similar name, please confirm or give us the right address.
 
-**Verification.** API 518/518, frontend 421/421, nothing skipped — 80 new tests. **No human has walked it**, which is why this is on a branch and not on main. A green suite written by the same author that wrote the code is not sign-off.
+
+**And the real fix: check the door before searching the building.**
+
+The identity gate above stopped the false profile. It did not stop the waste. Reading a domain that does not exist still ran the entire pipeline: four corpus retrievals, a **billed** live-web search, a second research engine, an eleven-signal correlation, an infrastructure probe and an LLM write — and then asked the founder to confirm a product type for a company that is not there. The honest answer was available in the first fifty milliseconds and nothing had asked for it.
+
+`domain-preflight.js` now runs **before anything else**. One DNS lookup. If the address does not resolve, the session ends immediately with `infer_status: 'address_not_found'` and a suggestion — no corpus, no research engine, no model, no bill.
+
+**Two postures, deliberately opposite, and this is the part worth reading:**
+
+- **The typed address FAILS OPEN.** An inconclusive lookup lets the pipeline run. Wrongly telling someone their live site does not exist is much worse than running a scan unnecessarily.
+- **A suggestion FAILS CLOSED.** "Did you mean X?" is only worth saying when X is real, so a candidate must be positively proven: an address record **and** either mail or its own nameservers — roughly what separates a business from a parked squat.
+
+The first version got this wrong in an instructive way. It shared one 2.5-second deadline across 24 parallel candidate lookups, so most timed out, fell through the fail-open path, and were offered as suggestions — **seven domains, including `ocngisys.co.uk`, none of which exist at all**. The fix was not a longer timeout; it was recognising that the two checks need opposite failure directions.
+
+Candidates are single-edit neighbours: transpositions first (the commonest human typo, and exactly how the two domains differ), then deletions. Not substitutions — 25 per character would mean hundreds of lookups to catch a rarer mistake. Capped at three.
+
+Verified live: `congisys.co.uk` → does not exist, suggests `cognisys.co.uk`, and nothing else runs. `cognisys.co.uk` → passes straight through.
+
+`address_not_found` is threaded end to end as a **terminal state with something useful to say**, never a failure. The status endpoint carries the suggestions so the client needs no second round trip, and the chat says: we couldn't find that address, did you mean this, we haven't read anything or looked you up yet. Reporting it as "inference timeout" would have repeated the 2026-08-26 defect where an honest signal was flattened into a vague one.
+
+**Verification.** API 536/536, frontend 421/421, nothing skipped — 80 new tests. **No human has walked it**, which is why this is on a branch and not on main. A green suite written by the same author that wrote the code is not sign-off.
 
 **Why it matters.** proof360 sells the claim that it can read a company and say something useful about where it stands. A read that calls a consultancy a software product, and leads with their email security, is answering a question nobody asked — and doing it confidently, in the one place the product asks to be trusted.
 
