@@ -38,6 +38,15 @@ The new part is **"I don't know"** as a first-class folded event, distinct from 
 
 **And one thing genuinely unfinished:** position signals are produced and stored on the session, and **nothing renders them yet**. The data reaches the session and stops there.
 
+
+**Follow-up the same day — the prose, not just the data.** The first live read after the above returned the right *facts* (120 people, ~20 countries, founded 2019, top global partner) and still opened with: hosting provider, DMARC in monitoring mode, TLS grade. It then closed by noting the email posture "catches the eye when you're advising clients on their own compliance frameworks" — telling a security consultancy it is a hypocrite, from a stranger, in the first thirty seconds.
+
+Fixing the signal schema did not fix this, because the paragraph is written by a **separate prompt** (`cold-reading.js`) that was never touched. That prompt has a well-built three-beat structure — clues, connection, invite — but nothing told it **which** clues to open on, so it picked the most concrete facts available. Technical probes are always the most concrete. Concreteness is not relevance.
+
+Two rules added: infrastructure and posture facts are admissible only when the connection beat genuinely turns on them, never as an opener; and the read **never evaluates the company** — no shortcoming, no inconsistency, no gap between what they sell and what the record shows, no "catches the eye". State the fact, let them draw the line. This binds hardest when the company works in the same field as the observation.
+
+One implementation note worth carrying: the worked examples in that prompt were first written using the real fact words. A test caught it — `cold-reading.test.js` asserts the prompt never mentions facts absent from the session, because a fact named in the prompt can be hallucinated into a read for a company that has none. The examples are now generic by necessity, which is also safer.
+
 **Verification.** API 502/502, frontend 419/419, nothing skipped — 80 new tests. **No human has walked it**, which is why this is on a branch and not on main. A green suite written by the same author that wrote the code is not sign-off.
 
 **Why it matters.** proof360 sells the claim that it can read a company and say something useful about where it stands. A read that calls a consultancy a software product, and leads with their email security, is answering a question nobody asked — and doing it confidently, in the one place the product asks to be trusted.
