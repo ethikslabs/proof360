@@ -179,7 +179,10 @@ function Citation({ cite, tk }) {
     ? new Date(cite.fetched_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
     : null;
   // No publisher to name → say how we hold it instead of inventing an attribution.
-  const source = cite.publisher ?? 'Corpus holding';
+  // Not "Corpus holding": the reader has never heard of the corpus, and naming an
+  // internal system in the one line meant to tell them where a fact came from is the
+  // opposite of provenance (John, 2026-09-02).
+  const source = cite.publisher ?? 'A record we already held';
   const held = fetched ? `${source} · fetched ${fetched}` : source;
 
   return (
@@ -194,13 +197,20 @@ function Citation({ cite, tk }) {
         rel={cite.source_url ? 'noopener noreferrer' : undefined}
         onClick={(e) => { if (!cite.source_url) { e.preventDefault(); setOpen(o => !o); } }}
         aria-label={`Source ${cite.n}: ${held}`}
+        // The marker WAS a link with a hover card all along — it just did not look
+        // like one. Rendered in body ink with a dotted underline the colour of a
+        // hairline, on a cream ground, it read as plain text, so the strongest thing
+        // the product does (a claim bound to its source) looked like a stray number
+        // pointing at nothing. It now carries the accent and an underline you can
+        // actually see: same behaviour, finally legible as an affordance.
         style={{
-          color: tk.inkMid,
+          color: tk.plum,
           textDecoration: 'none',
           cursor: 'pointer',
           fontSize: '0.85em',
+          fontWeight: 600,
           padding: '0 1px',
-          borderBottom: `1px dotted ${tk.hairline}`,
+          borderBottom: `1px dotted ${tk.plum}`,
         }}
       >[{cite.n}]</a>
 

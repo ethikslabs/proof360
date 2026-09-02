@@ -4,6 +4,26 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-09-02 · Two words the founder never asked to learn
+
+**Problem 1 — the product named its own filing system.** Asked for citable research, an advisor answered: *"The corpus doesn't yet hold independent Australian market research…"* A founder reads that and asks what a corpus is, and why the machine is telling them about its internals instead of answering.
+
+The cause was ours, not the model's. `corpus-retrieve.js` builds the evidence block, and one of its instructions literally read: *"say plainly that the corpus does not yet hold that."* We taught it the word.
+
+**Fix.** That instruction now says *"we do not hold anything on that yet"*, and a standing rule was added beside it: never name an internal system to the reader — not corpus, not knowledge substrate, not retrieval, not any codename. **The tempting fix was to capitalise it and add a link.** That is worse: it promotes an unknown word into an unknown product name and hands the reader homework instead of an answer. The internal noun stays where it belongs — in the working, under the trace, where the word is defined by what sits beneath it and the reader opted in by expanding.
+
+**Problem 2 — the `[2]` marker.** John asked whether inline citation markers are clear enough on screen, and specifically asked to be checked rather than agreed with.
+
+He was right that something is wrong, and my first read of why was wrong. I said the markers were literal text that nothing rendered. **They were not.** `rendering/citations.js` already resolves each marker against *that answer's* receipt and `Bubble.jsx` already renders it as a link with a hover card carrying publisher, fetch date and excerpt — and an unmatched marker correctly stays plain text, because a link to a source that did not ground the sentence is the invented-provenance failure this product exists to refuse.
+
+The real defect was narrower and worse: the affordance existed and **did not look like one.** It rendered in body ink with a dotted underline the colour of a hairline — on the cream ground, invisible. The strongest thing the product does, a claim bound to its source, read as a stray number.
+
+**Fix.** The marker now carries the accent colour and an underline you can see. Same behaviour, finally legible. One more thing surfaced while in there: when no URL could name a publisher, the hover card fell back to the words **"Corpus holding"** — the internal codename, in the one line whose entire job is telling a founder where a fact came from. It now reads *"A record we already held"*.
+
+**Tests.** Six new (`citation-affordance.test.jsx`), asserting the marker is an anchor, points at the real source, is visually distinct from prose, never says "corpus", and leaves an unbacked marker as plain text. Frontend 460 passing, API 539, lint 0 errors.
+
+---
+
 ## 2026-09-02 · The gate held in one place out of four
 
 **Vocabulary first.** **Corpus holdings** are documents we gathered about a company independently, before anyone typed their domain. Retrieval is *semantic* — it finds material that is close in meaning, which is what you want, because you cannot know in advance what a document calls a company. It also means a search for "Congisys" happily returns documents about **Cognisys**.

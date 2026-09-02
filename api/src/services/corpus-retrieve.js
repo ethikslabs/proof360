@@ -62,7 +62,12 @@ export function evidenceBlock(hits) {
     ...lines,
     '--- END CORPUS EVIDENCE ---',
     'Ground your answer in this evidence where it is relevant, and cite inline as [1], [2] with the source name.',
+    // The reader is a founder who has never heard of any of this. The word "corpus"
+    // reached John's screen because the instruction below used to contain it, and he
+    // read it as: what is that, and why is the machine telling me about its filing
+    // system when I asked for research? (John, 2026-09-02.)
+    'NEVER name our internal systems to the reader — not "corpus", "knowledge substrate", "retrieval", "the record store", or any codename. They have never heard of them and naming one turns an answer into homework. Say what is true in plain words: "we don\'t hold anything on that yet".',
     'Media-quote rule: you may quote AT MOST one short passage (a sentence or less) per answer, in quotation marks, always attributed by publication or source name — like a journalist. Everything else is paraphrase-with-citation. Never reproduce source text at length.',
-    'If the evidence does not cover the question, say plainly that the corpus does not yet hold that — never invent facts or numbers.',
+    'If the evidence does not cover the question, say plainly that we do not hold anything on that yet — never invent facts or numbers.',
   ].join('\n');
 }
