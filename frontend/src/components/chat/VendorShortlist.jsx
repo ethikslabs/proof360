@@ -1,3 +1,5 @@
+import { VendorBrand } from './VendorBrand.jsx';
+
 const TIMING_STYLE = {
   now:   { label: 'Now',   color: '#22c55e', bg: '#052e1640' },
   soon:  { label: 'Soon',  color: '#f59e0b', bg: '#451a0340' },
@@ -31,7 +33,13 @@ export function VendorShortlist({ vendors, shortlistedIds, onShortlist, onDefer 
                   borderRadius: 8,
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: '#f1f5f9' }}>{v.name}</span>
+                    {/* The logo IS the recommendation, not a badge beside it — a founder
+                        who sees Vanta, Cisco or CyberPro appear is being shown an
+                        ecosystem exists (NAMED TIMELINE ruling, moved into the product).
+                        The partner marker rides along: canon requires a recommendation to
+                        disclose its stake, and a logo that reads as endorsement without
+                        that is the thing the no-one-is-paid-to-sell rule exists to stop. */}
+                    <VendorBrand vendor={v} size={24} />
                     <span style={{ fontSize: 10, color: '#475569', background: '#1e293b', padding: '2px 6px', borderRadius: 10 }}>
                       {v.category?.replace('_', ' ')}
                     </span>

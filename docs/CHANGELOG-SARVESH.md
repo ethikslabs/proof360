@@ -113,7 +113,20 @@ Verified live: `congisys.co.uk` → does not exist, suggests `cognisys.co.uk`, a
 
 **A mark is bound to what actually ran.** It is derived from the act id and the note the backend already writes — so if we stop using an engine, its mark disappears on its own, with no second place to update. An engine that was *attempted and failed* renders dimmed and labelled "attempted, did not answer" rather than being hidden or shown as a success: the second research read 404s regularly, and both hiding it and dressing it up would misrepresent what the machine did. This is the existing truthful-engines ruling — only claim the engines that really answered — extended to the logo layer, because a brand shown for a service that did not fire is the same defect in a better suit.
 
-**Verification.** API 536/536, frontend 433/433, nothing skipped — 80 new tests. **No human has walked it**, which is why this is on a branch and not on main. A green suite written by the same author that wrote the code is not sign-off.
+
+**Vendor identity in the recommendation, not just the plumbing.** The step above named the *infrastructure* we run on. This names the *ecosystem we walk a founder into* — Vanta, Cisco Duo, Austbrokers CyberPro, Arctic Wolf, Cloudflare and the rest. John's framing: "the whole idea is to show that this is an ecosystem, not just a single place to do things."
+
+This is a ruling from July, moved out of the deck and into the product: **the logos become part of the timeline, not badges beside it.** The principle under it is that readers genuinely do not know this ecosystem — the product teaches it by naming, and must never rely on inference. A list of words teaches nothing; recognisable marks say "these are real companies, and this thing walks you to them".
+
+**How it scales to a 40-vendor catalog without 40 hand-drawn logos.** Every vendor gets an identity immediately — its brand colour and an initials tile, which reads as deliberate rather than as a missing image. Vendors with a real mark render it instead. `VendorBrand.jsx` holds the registry and is the only place to add marks over time; nothing else changes when you do.
+
+**The part I would push back on if someone simplified it later: the disclosure travels with the logo.** Where we hold a commercial relationship, the mark carries a quiet `partner` marker, and the flag is read off the vendor record itself so a calling surface cannot forget to pass it. **Terms stay sealed** — the relationship is disclosed, never the economics, and a test asserts no margin, commission or deal label can reach the screen. A logo that reads as an endorsement while hiding that we have an interest is exactly what "no one here is paid to sell you something you don't need" exists to prevent. The marker is the cheap part; leaving it out would quietly turn a recommendation engine into an ad.
+
+Wired into the vendor shortlist. The other surfaces that show a vendor — pathway suggestions, the CER cards, the partner portal lead view — should use the same component rather than growing their own; it takes a vendor record and needs nothing else.
+
+Marks are placeholders, same as above: swap for brand-kit SVGs and check trademark guidance before any live use.
+
+**Verification.** API 536/536, frontend 445/445, nothing skipped — 80 new tests. **No human has walked it**, which is why this is on a branch and not on main. A green suite written by the same author that wrote the code is not sign-off.
 
 **Why it matters.** proof360 sells the claim that it can read a company and say something useful about where it stands. A read that calls a consultancy a software product, and leads with their email security, is answering a question nobody asked — and doing it confidently, in the one place the product asks to be trusted.
 
