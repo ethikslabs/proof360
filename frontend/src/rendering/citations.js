@@ -44,18 +44,25 @@ function publisherOf(sourceUrl) {
 export function resolveCitations(content, receipt) {
   if (!content) return [];
 
-  const hits = receipt?.hits;
-  if (!hits?.length) return [content];
-
+  const hits = receipt?.hits || [];
   const byNumber = new Map(hits.map((h) => [Number(h.n), h]));
 
   const parts = [];
   let last = 0;
   for (const match of content.matchAll(MARKER)) {
-    const hit = byNumber.get(Number(match[1]));
-    if (!hit) continue;   // unmatched marker — falls through as literal text
-
+    const n = Number(match[1]);
+    const hit = byNumber.get(n);
     if (match.index > last) parts.push(content.slice(last, match.index));
+    // A marker with no hit behind it — the model cited something retrieval never
+    // returned. It used to fall through as literal text, which LOOKS like a citation
+    // and is the invented-provenance failure moved from the pipeline to the page
+    // (arXiv 2501.01303: citations raise trust even when random). It renders as a
+    // failure now, never as decoration. We still never invent a source.
+    if (!hit) {
+      parts.push({ n, unresolved: true });
+      last = match.index + match[0].length;
+      continue;
+    }
     parts.push({
       n: Number(match[1]),
       slug: hit.slug ?? null,

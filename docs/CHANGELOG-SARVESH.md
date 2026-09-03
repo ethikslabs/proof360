@@ -4,6 +4,20 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-09-03 · Two places the reading could quietly lie, closed
+
+Both came out of the lab workshop as prototype findings; both turned out to be real in the code, same shape.
+
+**1. A citation the model made up looked like a citation.** `rendering/citations.js` resolved `[n]` markers against the retrieval receipt and let an unmatched one *"fall through as literal text"* — a deliberate earlier choice ("we never invent a source"), but the literal `[7]` sits in the sentence looking exactly like the `[1]` beside it that has a source. That is the invented-provenance failure moved from the pipeline to the page (the research the branch cites: citations raise trust even when random, and under 25% of readers ever check). **Now:** an unmatched marker becomes `{ n, unresolved: true }` and `Bubble` renders it as `[7 · no source]` — dashed, muted, with a title saying the reply cited something retrieval never returned. Same when there is no receipt at all. Still no source invented; the difference is the reader can *see* it is empty. A test pins both cases.
+
+**2. A failed reply wore a persona.** When the chat request failed (`!res.ok`, or a network error), `Chat.jsx` wrote *"Something went wrong. Try again."* into the assistant message and `Bubble` rendered it under Sophia's label and colour — the error styled as her sentence. **Now:** the message is marked `failed: true` and renders as a failure card (`role="alert"`, *this one didn't come back*, no persona, no colour). Honest degradation: a failure renders as a failure.
+
+Checked and already right in code, no change: the command palette restores focus to its invoker on close (`CommandPalette.jsx:41-47`), and the comparison rail's rows are real `<button>`s.
+
+**Tests.** `citations.test.js` (two cases rewritten with the reasoning), `Bubble.failure.test.jsx` (failed turn has no persona; ordinary turn does; unsourced marker renders as such). 528/528, lint clean.
+
+---
+
 ## 2026-09-03 · "How we read this" opens the Inspector — one level-2 surface, both rulings kept
 
 **Problem.** `HowWeReadThis.jsx` was a four-rung disclosure ladder of its own beneath the reading — closed → what counted → why it counted → the arithmetic — mounted twice in `Chat.jsx`. On the branch whose thesis is *two disclosure levels, never three* (the Inspector being the one level-2 surface), that was a level 3 hiding in plain sight; the design lab never mentioned it because it does not appear in the prototype at all.

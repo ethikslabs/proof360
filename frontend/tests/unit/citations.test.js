@@ -57,10 +57,12 @@ describe('resolveCitations', () => {
     expect(cite.source_url).toBeNull();
   });
 
-  it('leaves an unmatched marker as literal text rather than a dead link', () => {
+  it('renders an unmatched marker as an unsourced mark — never as text that passes for a citation', () => {
+    // Workshop 2026-09-03: literal "[7]" LOOKS like a citation, which is the invented-
+    // provenance failure moved to the page. The mark says the source is missing.
     const parts = resolveCitations('Claimed without support [7].', receipt);
-    expect(parts.every((p) => typeof p === 'string')).toBe(true);
-    expect(parts.join('')).toBe('Claimed without support [7].');
+    expect(parts).toEqual(['Claimed without support ', { n: 7, unresolved: true }, '.']);
+    expect(parts.some((p) => typeof p !== 'string' && p.source_url)).toBe(false); // no source invented
   });
 
   it('resolves every marker in a reply, repeats included', () => {
@@ -69,10 +71,11 @@ describe('resolveCitations', () => {
     expect(cites.map((c) => c.n)).toEqual([1, 2, 1]);
   });
 
-  it('returns the text untouched when there is no receipt at all', () => {
+  it('with no receipt at all, every marker is unsourced — and plain text stays untouched', () => {
     for (const empty of [null, undefined, {}, { hits: [] }]) {
       expect(resolveCitations('No grounding this turn [1].', empty))
-        .toEqual(['No grounding this turn [1].']);
+        .toEqual(['No grounding this turn ', { n: 1, unresolved: true }, '.']);
+      expect(resolveCitations('No markers here.', empty)).toEqual(['No markers here.']);
     }
   });
 

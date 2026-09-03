@@ -172,6 +172,24 @@ function PersonaTag({ name, persona, theme, tk, onPersonaRef }) {
 // corpus holding otherwise, the fetch date when we have it, and the excerpt VERBATIM
 // (tidyExcerpt may choose the window, never the words). Nothing is asserted that the
 // retrieval did not return.
+// The reply pointed at a source that was not in what we retrieved. Shown as exactly
+// that — a mark the reader can see is empty — never as a bracket that passes for a
+// citation. Honest degradation: a failure renders as a failure.
+function UnsourcedMarker({ n, tk }) {
+  return (
+    <span
+      role="note"
+      data-unsourced-citation={n}
+      title="The reply cited a source that was not in what we retrieved. Nothing backs this marker."
+      style={{
+        fontFamily: '"IBM Plex Mono", ui-monospace, monospace', fontSize: 10.5,
+        color: tk.inkSoft, border: `1px dashed ${tk.hairStrong}`, borderRadius: 3,
+        padding: '0 4px', marginLeft: 2, whiteSpace: 'nowrap',
+      }}
+    >[{n} · no source]</span>
+  );
+}
+
 function Citation({ cite, tk }) {
   const [open, setOpen] = useState(false);
 
@@ -255,6 +273,7 @@ function RichContent({ content, theme, tk, onPersonaRef, receipt }) {
     <>
       {segments.map((seg, s) => {
         if (typeof seg !== 'string') {
+          if (seg.unresolved) return <UnsourcedMarker key={`cite-${s}`} n={seg.n} tk={tk} />;
           return <Citation key={`cite-${s}`} cite={seg} tk={tk} />;
         }
         return parseContent(seg).map((part, i) => {
@@ -288,6 +307,24 @@ export function Bubble({ msg, t, isLatest, onPersonaRef, onProgramFocus }) {
           background: tk.ink, color: tk.surface,
           fontFamily: '"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif',
           fontSize: 14, lineHeight: 1.65, letterSpacing: '0.005em',
+        }}>{msg.content}</div>
+      </div>
+    );
+  }
+
+  // A reply that did not come back is a failure, not an answer. It gets no persona
+  // label and no persona colour — styling the error as Sophia's sentence would be the
+  // honest-degradation rule inverted (workshop 2026-09-03).
+  if (msg.failed) {
+    return (
+      <div role="alert" data-failed-turn style={{ margin: '4px 0 22px', maxWidth: 560 }}>
+        <div style={{
+          fontFamily: '"IBM Plex Mono", ui-monospace, monospace', fontSize: 10.5,
+          letterSpacing: '0.12em', textTransform: 'uppercase', color: tk.inkSoft, marginBottom: 6,
+        }}>this one didn’t come back</div>
+        <div style={{
+          fontFamily: '"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif', fontSize: 14,
+          lineHeight: 1.6, color: tk.inkMid, borderLeft: `2px dashed ${tk.hairStrong}`, paddingLeft: 12,
         }}>{msg.content}</div>
       </div>
     );

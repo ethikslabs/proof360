@@ -2352,7 +2352,7 @@ export default function Chat() {
 
         if (!res.ok) {
           setMessages(prev => prev.map(m => m.id === msgId
-            ? { ...m, content: 'Something went wrong. Try again.' }
+            ? { ...m, failed: true, content: 'Something went wrong. Try again.' }
             : m
           ));
           setIsProcessing(false);
@@ -2401,7 +2401,7 @@ export default function Chat() {
         refreshSpine(sessionId);
       } catch {
         setMessages(prev => prev.map(m => m.id === msgId
-          ? { ...m, content: 'Connection error — check your network and try again.' }
+          ? { ...m, failed: true, content: 'Connection error — check your network and try again.' }
           : m
         ));
       }
