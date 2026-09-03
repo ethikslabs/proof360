@@ -61,6 +61,9 @@ export const getCers = () => cerReq('GET', '/api/v1/profile/current/cers');
 export const createCer = (body) => cerReq('POST', '/api/v1/profile/current/cers', body);
 export const withdrawCerConsent = (cerId, body) =>
   cerReq('POST', `/api/v1/profile/current/cers/${cerId}/consent-withdraw`, body);
+// The founder's end of an introduction: action = grant | decline | withdraw.
+export const cerIntroduction = (cerId, action) =>
+  cerReq('POST', `/api/v1/profile/current/cers/${cerId}/introduction`, { action });
 export const setCerStatus = (cerId, status) =>
   cerReq('POST', `/api/v1/profile/current/cers/${cerId}/status`, { status });
 

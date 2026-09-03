@@ -4,6 +4,28 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-09-03 · The introduction: consent at both ends, on the one edge proof360 creates
+
+**Vocabulary.** A **CER** (Customer Engagement Record) is a founder's typed decision to be routed to a partner — Ingram Micro, Vanta, CyberPro — stored as an append-only log (`decision` + `cer_event` records) and folded at read time (`services/cer-projection.js`). The **partner window** is the demo partner's view of the CERs routed to it, through `projectForViewer()`, the no-leak boundary. An **introduction** is the moment a partner gets the founder's contact. Until today it did not exist as a record.
+
+**Problem.** The shipped partner pages revealed the founder's contact on a *partner-side click* ("Reveal contact" on a blurred hint; "Engage on this record" stored only in the partner's `localStorage`). The founder was never asked, never saw it, could not revoke it. That is the pattern the estate's consent ruling exists to refuse: an edge exists only if both ends consent, both see it, and either can revoke. The Claude Design lab proposed "Ask for an introduction" — and its mock had the partner's own second click standing in for the founder, and a Withdraw button with no handler. This change is the founder's side made real.
+
+**Fix — four more event types on the same log, nothing new to store.**
+
+- `introduction-requested` (partner) · `introduction-granted` / `introduction-declined` (founder) · `introduction-withdrawn` (either). `cerProjection()` now folds them into `cer.introduction = { state, partner, asked_at, decided_at, withdrawn_by }`, state ∈ none · asked · granted · declined · withdrawn. Every ask is kept; a new ask after a decline restarts the fold.
+- **Gates are positive conditions** (write gates default-deny): a partner may ask only on a record routed to *them* while the founder's consent stands and no ask is open; the founder may grant or decline only a standing ask; either end may withdraw only its own live edge. Absent fields fail closed.
+- **What the partner sees:** `introductionForPartner()` — state and dates always; the founder's `{ name, email }` **only while the grant stands**, and never `person_id`. Withdrawn at the CER level = the partner no longer sees the record at all (unchanged, re-proven).
+- **Two doors:** `POST /api/v1/profile/current/cers/:cerId/introduction` `{ action: grant | decline | withdraw }` (founder, `journeyGate`) and `POST /api/v1/partner/:partner/cers/:cerId/introduction` `{ action: request | withdraw }` (partner window, demo-gated). Illegal state → 409 with the current state, never a silent no-op; a record not routed to the asking partner → 404, same as nonexistent (no existence leak).
+- **Founder UI:** `IntroductionAsk` under each pathway facet in the Strategy Room rail — "Ingram Micro asked for an introduction. They see nothing until you answer." → *Introduce me* / *Not now*; granted → *Withdraw the introduction*. Drives `useCer().decideIntroduction`.
+- **Partner UI:** `PortalRecordDetail` — *Ask for an introduction* → "The founder decides, in their own room" → contact appears only when granted, with *Withdraw*; the event trail names all four events. The `localStorage` "Engage" is gone; there is no reveal action on that side to call.
+- **`$k OPPORTUNITY` retired** from the partner dashboard header — it was `score_impact × $200`, a score in dollars on a surface that is records, never deals. Pinned in `no-scores.render.test.jsx`.
+
+**One thing found on the way.** `partnerCersListHandler` / `partnerCerDetailHandler` were written and unit-tested in August and **never registered in `server.js`** — the portal's live book fetch has been 404ing and degrading honestly to "no book". Registered now (the handlers are default-deny inside: 404 unless `DEMO_FOUNDER_MODE === 'true'`, demo founder only).
+
+**Tests.** API: `cer-introduction.test.js` (fold, gates, partner projection — 8), `cer-introduction-handlers.test.js` (ask → grant → contact → withdraw end to end; wrong partner 404; no-ask grant 409; double ask 409; decline; demo-off 404 — 5). Frontend: `IntroductionAsk.test.jsx`. API 552/552 · frontend 503/503.
+
+---
+
 ## 2026-09-03 · The rail leaves at the width it was meant to, and /journey stops keeping score
 
 **Where this came from.** John ran the redesign through Claude Design as a lab ("Sarvesh Lab" — eight prototype pages), then had Claude Code read every page against the branch and the rulings. Two things on the branch turned out to be claimed but not wired. Both are fixed here; everything else in that lab is either John's intent by design or later build scope.

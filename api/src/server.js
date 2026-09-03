@@ -42,7 +42,13 @@ import {
   cerCreateHandler,
   cerConsentWithdrawHandler,
   cerStatusHandler,
+  cerIntroductionHandler,
 } from './handlers/cer.js';
+import {
+  partnerCersListHandler,
+  partnerCerDetailHandler,
+  partnerIntroductionHandler,
+} from './handlers/partner-cers.js';
 
 const PORT = parseInt(process.env.PORT || '3002', 10);
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
@@ -121,6 +127,15 @@ app.get('/api/v1/profile/current/cers', { preHandler: journeyGate }, cersListHan
 app.post('/api/v1/profile/current/cers', { preHandler: journeyGate }, cerCreateHandler);
 app.post('/api/v1/profile/current/cers/:cerId/consent-withdraw', { preHandler: journeyGate }, cerConsentWithdrawHandler);
 app.post('/api/v1/profile/current/cers/:cerId/status', { preHandler: journeyGate }, cerStatusHandler);
+app.post('/api/v1/profile/current/cers/:cerId/introduction', { preHandler: journeyGate }, cerIntroductionHandler);
+
+// --- Partner window (DEMO-GRADE, PROOF360-PARTNER-PORTAL-DEMO-001). Default-deny inside the
+// handlers: 404 unless DEMO_FOUNDER_MODE === 'true', and only the demo founder's profile is
+// ever read. Written and tested 2026-08; registered 2026-09-03 (Sarvesh Lab workshop) —
+// until then the portal's live book fetch 404'd and degraded to "no book".
+app.get('/api/v1/partner/:partner/cers', partnerCersListHandler);
+app.get('/api/v1/partner/:partner/cers/:cerId', partnerCerDetailHandler);
+app.post('/api/v1/partner/:partner/cers/:cerId/introduction', partnerIntroductionHandler);
 
 // --- Turnstile siteverify (server is the verifier; widget token alone proves nothing) ---
 app.post('/api/v1/turnstile/verify', createTurnstileVerifyHandler());

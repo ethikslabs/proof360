@@ -6,6 +6,7 @@ import { HIVE_STAGES } from '../../data/mock/hive.js';
 import { ComparisonRail } from './ComparisonRail.jsx';
 import { AccountButton } from './AccountPanel.jsx';
 import { CerFacet } from './CerFacet.jsx';
+import { IntroductionAsk } from './IntroductionAsk.jsx';
 
 const SPACES = [
   { id: 'investor',  label: 'Investor Readiness',   glyphKey: 'investor',  token: 'plum'  },
@@ -174,7 +175,7 @@ function AccordionSection({ title, accent, count, total, open, onToggle, collaps
   );
 }
 
-export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, litTiles, browserTabs = [], onInject, hiveStage: hiveStageFromParent, onHiveStageChange, noLogo, yourCompanyName, cers = [], onSignIn, record, simulation = false, t }) {
+export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, litTiles, browserTabs = [], onInject, hiveStage: hiveStageFromParent, onHiveStageChange, noLogo, yourCompanyName, cers = [], onIntroduction, onSignIn, record, simulation = false, t }) {
   const tk = tokens(t.theme);
   // THE RAIL FOLLOWS THE SWITCH (John, 2026-09-02). It used to open the worked example
   // by default and leave the live company collapsed to a single line — so the rail spent
@@ -507,7 +508,12 @@ export function Sidebar({ collapsed, onToggleCollapse, activeSpace, onSwitch, li
             }}>Your Pathways</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {cers.map(c => (
-                <CerFacet key={c.cer_id} cer={c} meter={7} total={7} tk={tk} />
+                <div key={c.cer_id}>
+                  <CerFacet cer={c} meter={7} total={7} tk={tk} />
+                  {/* A partner's ask lands here, on the founder's own pathway — the founder
+                      decides; the partner sees nothing until they do. */}
+                  <IntroductionAsk introduction={c.introduction} tk={tk} onAction={(action) => onIntroduction?.(c.cer_id, action)} />
+                </div>
               ))}
             </div>
           </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { getCers, createCer, withdrawCerConsent } from '../api/client.js';
+import { getCers, createCer, withdrawCerConsent, cerIntroduction } from '../api/client.js';
 import { cerBuildFields, cerMeter, agencyReady, buildProposal } from '../utils/cerPathways.js';
 
 // CER state for the chat flow. Holds ONE forming CER at a time (the record assembling
@@ -98,6 +98,18 @@ export function useCer({ companyName, contactName, evidenceRefs = [], enabled = 
     }
   }, [refresh]);
 
+  // The founder answers a partner's ask (grant | decline) or pulls a live edge (withdraw).
+  // Append-only on the server; the projection comes back folded, so refresh is the truth.
+  const decideIntroduction = useCallback(async (cerId, action) => {
+    setBusy(true);
+    try {
+      await cerIntroduction(cerId, action);
+      await refresh();
+    } finally {
+      setBusy(false);
+    }
+  }, [refresh]);
+
   return {
     forming,
     fields,
@@ -118,6 +130,7 @@ export function useCer({ companyName, contactName, evidenceRefs = [], enabled = 
     openAgency,
     confirmCer,
     withdrawCer,
+    decideIntroduction,
     refresh,
   };
 }

@@ -557,10 +557,6 @@ export default function PortalDashboard() {
     filter === 'won'    ? allLeads.filter(l => engagements[engKey(l.id)]?.status === 'won') :
     allLeads;
 
-  const totalOpportunity = allLeads
-    .filter(l => !['won','lost'].includes(engagements[engKey(l.id)]?.status))
-    .reduce((sum, l) => sum + l.gaps.reduce((s, g) => s + (g.score_impact || 0) * 200, 0), 0);
-
   const ctx = TENANT_CONTEXT[auth.tenant] || {};
   const insightText = ctx.insight ? ctx.insight(allLeads.length) : `${allLeads.length} qualified leads`;
 
@@ -630,7 +626,8 @@ export default function PortalDashboard() {
               {[
                 { label: 'NEW',         value: counts.new,                                      color: tc },
                 { label: 'PIPELINE',    value: counts.active,                                   color: '#60a5fa' },
-                { label: 'OPPORTUNITY', value: `$${(totalOpportunity/1000).toFixed(0)}k`,       color: '#fbbf24' },
+                // "$k OPPORTUNITY" (score_impact × $200) retired 2026-09-03: a score in dollars,
+                // on a surface that is records, never deals.
               ].map(s => (
                 <div key={s.label} style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: 18, fontWeight: 800, color: s.color, fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.1, letterSpacing: '-0.02em' }}>

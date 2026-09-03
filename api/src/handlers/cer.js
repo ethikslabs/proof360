@@ -12,6 +12,9 @@ import {
   buildCerRecords,
   buildConsentWithdrawnRecord,
   buildStatusUpdatedRecord,
+  buildIntroductionEvent,
+  canDecideIntroduction,
+  canWithdrawIntroduction,
   cerProjection,
 } from '../services/cer-projection.js';
 import { CER_ROUTES } from '../config/cer-routes.js';
@@ -119,6 +122,41 @@ export async function cerStatusHandler(request, reply) {
   await appendTransaction(profile.id, [record], {
     route: 'POST /api/v1/profile/current/cers/:cerId/status',
     source: 'ethiks360_admin',
+  });
+  return reply.send({ cer: findCer(await currentCers(profile.id), cerId) });
+}
+
+// POST /api/v1/profile/current/cers/:cerId/introduction  — the founder's end of the edge.
+// body.action: grant | decline | withdraw. The partner asked (or nobody did); the founder
+// answers. Gates are positive conditions on the projected state — a grant with no standing
+// ask, or a withdraw with nothing live, is 409, never a silent no-op (CONSENT-BOTH-ENDS-001).
+const FOUNDER_INTRODUCTION_ACTIONS = {
+  grant: 'introduction-granted',
+  decline: 'introduction-declined',
+  withdraw: 'introduction-withdrawn',
+};
+
+export async function cerIntroductionHandler(request, reply) {
+  const { profile } = await currentProfileFor(request);
+  const { cerId } = request.params;
+  const action = request.body?.action;
+  const type = FOUNDER_INTRODUCTION_ACTIONS[action];
+  if (!type) return reply.status(400).send({ error: 'unknown_introduction_action' });
+
+  const existing = findCer(await currentCers(profile.id), cerId);
+  if (!existing) return reply.status(404).send({ error: 'cer_not_found' });
+
+  const allowed = action === 'withdraw'
+    ? canWithdrawIntroduction(existing, { actor: 'founder' })
+    : canDecideIntroduction(existing);
+  if (!allowed) {
+    return reply.status(409).send({ error: 'introduction_not_in_state', state: existing.introduction?.state ?? 'none' });
+  }
+
+  const record = buildIntroductionEvent(cerId, { type, actor: 'founder' });
+  await appendTransaction(profile.id, [record], {
+    route: 'POST /api/v1/profile/current/cers/:cerId/introduction',
+    source: 'founder',
   });
   return reply.send({ cer: findCer(await currentCers(profile.id), cerId) });
 }

@@ -124,6 +124,92 @@ export function buildStatusUpdatedRecord(cerId, { from, to, actor = 'ethiks360_a
   };
 }
 
+// --- Introduction: the one person-edge proof360 creates (CONSENT-BOTH-ENDS-001) ---
+// A partner asks; the founder grants or declines; either end can withdraw. Four more
+// cer_event types on the same log, folded at read time like consent and status. The
+// founder's contact is projected to the partner ONLY while a grant stands — see
+// introductionForPartner(). Nothing is revealed by a partner-side click, ever.
+export const INTRODUCTION_EVENTS = [
+  'introduction-requested', // actor: partner  (carries `partner`)
+  'introduction-granted',   // actor: founder
+  'introduction-declined',  // actor: founder
+  'introduction-withdrawn', // actor: founder | partner
+];
+
+export function buildIntroductionEvent(cerId, { type, actor, partner = null, note = null }) {
+  if (!INTRODUCTION_EVENTS.includes(type)) throw new Error(`unknown_introduction_event:${type}`);
+  return {
+    primitive: 'cer_event',
+    id: randomUUID(),
+    source: actor,
+    cer_id: cerId,
+    type,
+    actor,
+    partner,
+    note,
+    ts: iso(),
+  };
+}
+
+const EMPTY_INTRODUCTION = Object.freeze({ state: 'none', partner: null, asked_at: null, decided_at: null, withdrawn_by: null });
+
+// Fold in append order. Each request opens a fresh ask; decline/withdraw close it; the
+// history stays in the log. `state` is always one of none|asked|granted|declined|withdrawn.
+function foldIntroduction(evs) {
+  let intro = { ...EMPTY_INTRODUCTION };
+  for (const e of evs) {
+    switch (e.type) {
+      case 'introduction-requested':
+        intro = { state: 'asked', partner: e.partner || null, asked_at: e.ts, decided_at: null, withdrawn_by: null };
+        break;
+      case 'introduction-granted':
+        if (intro.state === 'asked') intro = { ...intro, state: 'granted', decided_at: e.ts };
+        break;
+      case 'introduction-declined':
+        if (intro.state === 'asked') intro = { ...intro, state: 'declined', decided_at: e.ts };
+        break;
+      case 'introduction-withdrawn':
+        if (intro.state === 'asked' || intro.state === 'granted') intro = { ...intro, state: 'withdrawn', withdrawn_by: e.actor || null };
+        break;
+      default:
+        break;
+    }
+  }
+  return intro;
+}
+
+// Gates are positive conditions (write gates default-deny). Absent fields fail closed.
+export function canRequestIntroduction(cer, partner) {
+  if (!cer || typeof partner !== 'string' || !partner) return false;
+  if (cer.consent_state !== 'granted') return false;
+  if (CER_ROUTES[cer.route]?.partner !== partner) return false;
+  const state = cer.introduction?.state;
+  return state !== 'asked' && state !== 'granted';
+}
+
+export function canDecideIntroduction(cer) {
+  return Boolean(cer) && cer.consent_state === 'granted' && cer.introduction?.state === 'asked';
+}
+
+export function canWithdrawIntroduction(cer, { actor, partner = null } = {}) {
+  if (!cer) return false;
+  const state = cer.introduction?.state;
+  if (state !== 'asked' && state !== 'granted') return false;
+  if (actor === 'founder') return true;
+  if (actor === 'partner') return typeof partner === 'string' && partner === cer.introduction?.partner;
+  return false;
+}
+
+// The partner's view of the edge. Contact only while granted; never person_id.
+export function introductionForPartner(cer, founder) {
+  const intro = cer?.introduction || EMPTY_INTRODUCTION;
+  const granted = intro.state === 'granted';
+  const contact = granted && founder
+    ? { name: founder.name ?? null, email: founder.email ?? null }
+    : null;
+  return { state: intro.state, asked_at: intro.asked_at, decided_at: intro.decided_at, contact };
+}
+
 // The append-only log's ORDER is authoritative — the snapshot's cer_events are already in
 // append order (reconstruct() walks transactions in sequence). We must NOT re-sort by wall-clock
 // ts: a non-monotonic clock (NTP step, skew, same-ms events) would fold the wrong "latest" event
@@ -165,6 +251,7 @@ function projectOne(decision, events) {
     status: withdrawn ? 'Closed' : admin_status,
     consent_state,
     partner_sharing: !withdrawn,
+    introduction: foldIntroduction(evs),
     created_at: decision.created_at,
     updated_at: evs.at(-1)?.ts || decision.updated_at,
     events: evs,

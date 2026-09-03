@@ -13,11 +13,19 @@
 import { readFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import {
+  appendTransaction,
   getOrCreateActiveProfile,
   getOrCreateFounder,
   replayProfile,
 } from '../services/memory-store.js';
-import { cerProjection, projectForViewer } from '../services/cer-projection.js';
+import {
+  buildIntroductionEvent,
+  canRequestIntroduction,
+  canWithdrawIntroduction,
+  cerProjection,
+  introductionForPartner,
+  projectForViewer,
+} from '../services/cer-projection.js';
 import { CER_ROUTES } from '../config/cer-routes.js';
 
 const DEMO_SUB = 'demo-founder';
@@ -49,17 +57,30 @@ function gapFrom(cer) {
 
 // Shared gate + projection for every partner-window route. Returns null when the caller
 // must be 404'd (demo mode off, or a partner id that owns no route).
-async function visibleFor(partner) {
+async function demoContext(partner) {
   if (process.env.DEMO_FOUNDER_MODE !== 'true') return null;
   const knownPartners = new Set(Object.values(CER_ROUTES).map((r) => r.partner));
   if (!knownPartners.has(partner)) return null;
   const founder = await getOrCreateFounder({ sub: DEMO_SUB });
   const profile = await getOrCreateActiveProfile(founder);
   const cers = cerProjection(await replayProfile(profile.id));
-  return projectForViewer(cers, { audience: 'partner', partner });
+  return { founder, profile, visible: projectForViewer(cers, { audience: 'partner', partner }) };
 }
 
-function enrich(c, snapshot) {
+async function visibleFor(partner) {
+  const ctx = await demoContext(partner);
+  return ctx ? ctx.visible : null;
+}
+
+// The founder's contact as the partner may see it: only while the grant stands. The
+// founder record is the demo founder's (the only profile this window serves).
+let _founderCache = null;
+async function demoFounder() {
+  if (!_founderCache) _founderCache = await getOrCreateFounder({ sub: DEMO_SUB });
+  return _founderCache;
+}
+
+function enrich(c, snapshot, founder = null) {
   const byOppId = new Map((snapshot?.opportunities || []).map((o) => [o.id, o]));
   const companies = snapshot?.companies || {};
   const oppId = opportunityIdFrom(c.evidence_refs);
@@ -76,6 +97,7 @@ function enrich(c, snapshot) {
     gap: gapFrom(c),
     evidence_refs: c.evidence_refs,
     event_count: (c.events || []).length,
+    introduction: introductionForPartner(c, founder),
     customer: company
       ? { name: company.name, industry: company.industry, country: company.country, domain: company.domain }
       : (opportunity ? { name: opportunity.company_name, industry: opportunity.industry, country: opportunity.country } : null),
@@ -95,6 +117,7 @@ export async function partnerCerDetailHandler(request, reply) {
   if (!cer) return reply.status(404).send({ error: 'not_found' });
 
   const snapshot = await loadSnapshot();
+  const founder = await demoFounder();
   // Sibling routes: the rest of THIS customer's engagements that this same partner may
   // see — the rail, partner-scoped. Never other partners' routes.
   const siblings = visible
@@ -104,7 +127,7 @@ export async function partnerCerDetailHandler(request, reply) {
   return reply.send({
     partner,
     demo: true,
-    record: { ...enrich(cer, snapshot), events: cer.events || [], visibility_policy: cer.visibility_policy },
+    record: { ...enrich(cer, snapshot, founder), events: cer.events || [], visibility_policy: cer.visibility_policy },
     siblings,
   });
 }
@@ -116,7 +139,8 @@ export async function partnerCersListHandler(request, reply) {
   if (!visible) return reply.status(404).send({ error: 'not_found' });
 
   const snapshot = await loadSnapshot();
-  const engagements = visible.map((c) => enrich(c, snapshot));
+  const founder = await demoFounder();
+  const engagements = visible.map((c) => enrich(c, snapshot, founder));
 
   // The un-bitten line (canon 2026-07-17): opportunities in the book with no consented
   // record render AGGREGATE ONLY — never named. Scoped to partners who carry an AWS route.
@@ -141,4 +165,41 @@ export async function partnerCersListHandler(request, reply) {
       currency: unbitten[0]?.currency || 'USD',
     },
   });
+}
+
+// POST /api/v1/partner/:partner/cers/:cerId/introduction — the partner's end of the edge.
+// body.action: request | withdraw. A partner can only ask on a record routed to it while the
+// founder's consent stands, and can only withdraw its own ask. A record not visible to this
+// partner 404s exactly like a nonexistent one — no existence leak across the boundary.
+const PARTNER_INTRODUCTION_ACTIONS = {
+  request: 'introduction-requested',
+  withdraw: 'introduction-withdrawn',
+};
+
+export async function partnerIntroductionHandler(request, reply) {
+  const { partner, cerId } = request.params;
+  const action = request.body?.action;
+  const type = PARTNER_INTRODUCTION_ACTIONS[action];
+  if (!type) return reply.status(400).send({ error: 'unknown_introduction_action' });
+
+  const ctx = await demoContext(partner);
+  if (!ctx) return reply.status(404).send({ error: 'not_found' });
+  const cer = ctx.visible.find((c) => c.cer_id === cerId);
+  if (!cer) return reply.status(404).send({ error: 'not_found' });
+
+  const allowed = action === 'request'
+    ? canRequestIntroduction(cer, partner)
+    : canWithdrawIntroduction(cer, { actor: 'partner', partner });
+  if (!allowed) {
+    return reply.status(409).send({ error: 'introduction_not_in_state', state: cer.introduction?.state ?? 'none' });
+  }
+
+  const record = buildIntroductionEvent(cerId, { type, actor: 'partner', partner });
+  await appendTransaction(ctx.profile.id, [record], {
+    route: 'POST /api/v1/partner/:partner/cers/:cerId/introduction',
+    source: 'partner',
+  });
+
+  const after = (await visibleFor(partner)).find((c) => c.cer_id === cerId);
+  return reply.send({ partner, demo: true, cer_id: cerId, introduction: introductionForPartner(after, ctx.founder) });
 }

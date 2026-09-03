@@ -2618,7 +2618,7 @@ export default function Chat() {
           onSignIn={() => setLoginOpen(true)}
           yourCompanyName={founderProfileName ?? companyProfile.name ?? (currentUser ? TWIN_YOURS : undefined)}
           cers={cer.createdCers}
-          onWithdrawCer={cer.withdrawCer}
+          onIntroduction={cer.decideIntroduction}
           t={t}
         />}
 

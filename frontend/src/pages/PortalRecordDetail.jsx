@@ -23,6 +23,10 @@ const EVENT_LABEL = {
   'consent-granted': 'Customer granted consent to share this engagement',
   'consent-withdrawn': 'Customer withdrew consent',
   'status-updated': 'Status updated',
+  'introduction-requested': 'You asked for an introduction',
+  'introduction-granted': 'The founder introduced you',
+  'introduction-declined': 'The founder declined the introduction',
+  'introduction-withdrawn': 'Introduction withdrawn',
 };
 
 const mono = "'IBM Plex Mono', monospace";
@@ -45,11 +49,9 @@ export default function PortalRecordDetail() {
     const stored = localStorage.getItem('portal_auth');
     return stored ? JSON.parse(stored) : null;
   });
-  const [engagement, setEngagement] = useState(() => {
-    const engs = JSON.parse(localStorage.getItem('portal_engagements') || '{}');
-    return engs[`cer:${cerId}`] || null;
-  });
   const [data, setData] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [askError, setAskError] = useState(null);
   const [fetchFailed, setFetchFailed] = useState(false);
 
   const partner = auth ? TENANT_CER_PARTNER[auth.tenant] : null;
@@ -70,12 +72,23 @@ export default function PortalRecordDetail() {
     return () => { alive = false; };
   }, [partner, cerId]);
 
-  function engage() {
-    const engs = JSON.parse(localStorage.getItem('portal_engagements') || '{}');
-    const next = { status: 'engaged', engaged_at: new Date().toISOString(), tenant: auth.tenant };
-    engs[`cer:${cerId}`] = next;
-    localStorage.setItem('portal_engagements', JSON.stringify(engs));
-    setEngagement(next);
+  // The partner's end of the edge (CONSENT-BOTH-ENDS-001): ask, or withdraw the ask. The
+  // founder answers in their own Strategy Room; the contact appears here only when they do.
+  // Nothing is revealed by a click on this side — there is no "reveal" action to call.
+  async function introduction(action) {
+    setBusy(true); setAskError(null);
+    try {
+      const res = await fetch(`/api/v1/partner/${partner}/cers/${cerId}/introduction`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action }),
+      });
+      if (!res.ok) { setAskError(res.status === 409 ? 'This record is not in a state that allows that.' : 'The ask did not go through.'); return; }
+      const fresh = await fetch(`/api/v1/partner/${partner}/cers/${cerId}`);
+      if (fresh.ok) setData(await fresh.json());
+    } catch {
+      setAskError('The ask did not go through.');
+    } finally {
+      setBusy(false);
+    }
   }
 
   if (!auth) return null;
@@ -131,33 +144,50 @@ export default function PortalRecordDetail() {
           </div>
         </div>
 
-        {/* Action bar */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
-          background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: '16px 18px', marginBottom: 18,
-        }}>
-          {engagement ? (
-            <>
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>Your team is engaged on this record.</span>
-              <span style={{ fontSize: 11, color: '#6b7280', fontFamily: mono }}>
-                since {new Date(engagement.engaged_at).toLocaleDateString()}
-              </span>
-              <span style={{ fontSize: 12, color: '#6b7280', marginLeft: 'auto' }}>
-                The founder&apos;s session travels with the intro — no re-explaining.
-              </span>
-            </>
-          ) : (
-            <>
-              <button onClick={engage} style={{
-                background: tc, color: '#fff', border: 'none', borderRadius: 7,
-                padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
-              }}>Engage on this record</button>
-              <span style={{ fontSize: 12, color: '#6b7280' }}>
-                Opens a conversation with the founder, carrying everything on this record.
-              </span>
-            </>
-          )}
-        </div>
+        {/* Introduction — the one edge this window can ask for */}
+        {(() => {
+          const intro = r.introduction || { state: 'none' };
+          const box = { display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: '16px 18px', marginBottom: 18 };
+          const primary = { background: tc, color: '#fff', border: 'none', borderRadius: 7, padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: busy ? 'wait' : 'pointer', fontFamily: 'inherit' };
+          const quiet = { background: 'transparent', color: '#6b7280', border: '1px solid #e5e7eb', borderRadius: 7, padding: '8px 14px', fontSize: 12, cursor: busy ? 'wait' : 'pointer', fontFamily: 'inherit' };
+          const when = (ts) => (ts ? new Date(ts).toLocaleDateString() : '');
+          return (
+            <div style={box} data-introduction-state={intro.state}>
+              {intro.state === 'granted' && intro.contact ? (
+                <>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>
+                    Introduced by the founder{intro.decided_at ? ` · ${when(intro.decided_at)}` : ''}.
+                  </span>
+                  <span style={{ fontSize: 13, color: '#111827', fontFamily: mono }}>
+                    {intro.contact.name || 'Founder'}{intro.contact.email ? <> · <a href={`mailto:${intro.contact.email}`} style={{ color: tc }}>{intro.contact.email}</a></> : null}
+                  </span>
+                  <span style={{ fontSize: 12, color: '#6b7280' }}>The record travels with the intro — no re-explaining.</span>
+                  <button disabled={busy} onClick={() => introduction('withdraw')} style={{ ...quiet, marginLeft: 'auto' }}>Withdraw</button>
+                </>
+              ) : intro.state === 'asked' ? (
+                <>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>Introduction requested{intro.asked_at ? ` · ${when(intro.asked_at)}` : ''}.</span>
+                  <span style={{ fontSize: 12, color: '#6b7280' }}>The founder decides, in their own room. You will see it here when they do.</span>
+                  <button disabled={busy} onClick={() => introduction('withdraw')} style={{ ...quiet, marginLeft: 'auto' }}>Withdraw the ask</button>
+                </>
+              ) : (
+                <>
+                  <button disabled={busy} onClick={() => introduction('request')} style={primary}>
+                    {intro.state === 'declined' ? 'Ask again' : 'Ask for an introduction'}
+                  </button>
+                  <span style={{ fontSize: 12, color: '#6b7280' }}>
+                    {intro.state === 'declined'
+                      ? 'The founder declined. They can be asked again; they decide again.'
+                      : intro.state === 'withdrawn'
+                        ? 'The introduction was withdrawn. You can ask again.'
+                        : 'Goes to the founder. Their contact appears here only if they say yes.'}
+                  </span>
+                </>
+              )}
+              {askError && <span style={{ fontSize: 12, color: '#b91c1c', width: '100%' }}>{askError}</span>}
+            </div>
+          );
+        })()}
 
         {/* Vendor-side transaction */}
         <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: '18px', marginBottom: 18 }}>

@@ -121,6 +121,9 @@ describe('the partner portal ranks nobody', () => {
     expectNoGrade(container);
     // The desk-wide average was the loudest grade on the page.
     expect(container.textContent).not.toMatch(/avg trust score/i);
+    // "$k OPPORTUNITY" was score_impact × $200 — a score in dollars (retired 2026-09-03).
+    expect(container.textContent).not.toMatch(/OPPORTUNITY/);
+    expect(container.textContent).not.toMatch(/\$\d+k\b/);
   });
 
   // Regrouping the desk BY WHAT THE LEAD NEEDS (John's choice 2026-08-26) is a
