@@ -4,6 +4,30 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-09-03 · The Capital Rosetta join, from the ratified register, as a pure function
+
+**Vocabulary.** The **Capital Rosetta** is the estate's register of every way capital can enter a company — 25 instrument records (SAFE, convertible note, venture debt, R&D tax credit, cloud credits, SPV per asset, …) in one structured form, each stating what a company must **hold** (fourteen claim classes — IDENT, FNDR, PROB, PROD, TRAC, UNIT, FIN, CASH, GOV, USE, EXIT, REL, IMPACT, OPS — at a **confidence** — absent · asserted · probable · confirmed). John ratified it today as the register the Deal Room and Raise Simulator project from. The **join** is the register's one computation: run a company's claim set against an instrument and get four cells back.
+
+**What was built.**
+
+- `src/utils/capitalJoin.js` — `readiness(entity, instrument)` exactly as the schema writes it (§5): for each required class, held ≥ needed → **SATISFIED**, else **GAP** with the distance; every class the company holds that the instrument neither requires nor finds helpful → **UNPRICED**; neither held nor required → **NOISE**; disqualifiers the company satisfies → **BLOCKED**. Plus `readinessVector()` (one result per instrument, register order, never a scalar) and `unpricedInversion()` (for each class nobody priced, who would — the routing primitive the schema says has no name in finance). `validateInstrument()` applies the register's own rules: nine families, fourteen classes, four confidence levels.
+- **Two places the lab's prototype diverged from the schema, corrected here.** (1) BLOCKED comes from `disqualifiers` only; "not available in this jurisdiction" is a disqualifier *condition* (`{ field: 'jurisdiction', op: 'nin', value: [...] }`), not a special case. (2) UNPRICED and NOISE exist — the lab's join returned only gaps and blocked, which drops the one cell that points outward.
+- **UNEVALUATED, a third honest state.** The register writes its disqualifiers in prose ("no legal entity", "cap table already broken"). A condition that cannot be evaluated is neither passed nor blocked; it is listed as `unevaluated` so a surface can say "we could not check: …". Could-not-look ≠ found-nothing — the same rule the Inspector holds. An absent fact fails a structured condition *closed*: unknown jurisdiction blocks, it does not wave through.
+- **Nothing is ranked.** Rule 10 of the register. A test asserts the output contains no `score`, `rank`, `weight` or `percent` key. The investor returns engine in the lab (multiple, IRR, a floor table ranking rooms) is not here and will not be built on this function.
+- `src/utils/capitalRegister.js` — reads the register markdown (a YAML fence per record plus five prose sections) into instrument records. **The markdown stays the truth**; `scripts/project-register.mjs` writes `src/data/capital-register.json` with the source's SHA-256, and a test fails if the projection is stale against the file on disk. Nothing is authored: a field the file does not carry is `null`, not guessed.
+
+**Three findings in the register itself, surfaced not fixed** (the reader carries them; the author decides):
+
+- **20 of 25 records have no `last_verified`.** The schema's own words: *"an instrument record without a verification date is a rumour."* The projection script prints the list on every run.
+- `spv-per-asset` lists `irrelevant: [parent FIN, parent CASH]` — a class qualified by "parent", which the schema has no notation for. `deferred-salary` lists `irrelevant: [everything external]` — prose. Both carried verbatim as `irrelevant_notes`, never coerced into a class.
+- `litigation-finance` carries a YAML comment on its `requires` line (`# plus a meritorious claim`) — a requirement that is not a class. Comment stripped; the requirement is lost to the join until it has a home.
+
+**Tests.** `capitalJoin.test.js` (11), `capitalRegister.test.js` (5: reader on a fixture, all 25 real records parse and validate, the join runs on every one, projection validates, projection not stale). Frontend 519/519, lint clean.
+
+**Not yet:** the Raise Simulator and Deal Room surfaces that project from this. The function and the data exist; the screens are the next step.
+
+---
+
 ## 2026-09-03 · The introduction: consent at both ends, on the one edge proof360 creates
 
 **Vocabulary.** A **CER** (Customer Engagement Record) is a founder's typed decision to be routed to a partner — Ingram Micro, Vanta, CyberPro — stored as an append-only log (`decision` + `cer_event` records) and folded at read time (`services/cer-projection.js`). The **partner window** is the demo partner's view of the CERs routed to it, through `projectForViewer()`, the no-leak boundary. An **introduction** is the moment a partner gets the founder's contact. Until today it did not exist as a record.

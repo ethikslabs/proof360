@@ -1,0 +1,2907 @@
+{
+  "source": "capital-rosetta-register.md",
+  "source_sha256": "9bae795076d9e00cf12d101b1cf146b51f86a026aa19f0e48009a0ba8d600fcf",
+  "projected_at": "2026-09-03T04:29:36.340Z",
+  "record_count": 25,
+  "unverified": [
+    "venture-debt",
+    "invoice-finance",
+    "revenue-based-finance",
+    "competitive-grant",
+    "procurement-as-capital",
+    "customer-prepay",
+    "paid-poc",
+    "licensing-advance",
+    "cloud-credits",
+    "vendor-mdf",
+    "corporate-vc",
+    "spv-per-asset",
+    "royalty-financing",
+    "tokenised-rwa",
+    "build-for-equity",
+    "deferred-salary",
+    "litigation-finance",
+    "islamic-profit-share",
+    "countertrade",
+    "residency-linked-capital"
+  ],
+  "records": [
+    {
+      "id": "safe-post-money",
+      "name": "SAFE (post-money valuation cap)",
+      "aliases": [
+        "Simple Agreement for Future Equity",
+        "SAFE note"
+      ],
+      "family": "equity",
+      "one_line": "Cash now for shares later, priced by a future round, capped.",
+      "depth": "D4",
+      "status": "established",
+      "mechanics": {
+        "consideration_in": [
+          "cash"
+        ],
+        "consideration_out": [
+          "equity"
+        ],
+        "dilutive": "deferred",
+        "repayable": false,
+        "security_taken": "none",
+        "seniority": "equity",
+        "conversion": "triggered",
+        "conversion_triggers": [
+          "priced equity round",
+          "acquisition",
+          "IPO",
+          "dissolution"
+        ],
+        "cost_of_capital_form": "discount",
+        "ticket_typical": "25k – 2M",
+        "time_to_close": "days – 6 weeks",
+        "dilution_range": "5 – 25% at conversion, compounding across multiple SAFEs"
+      },
+      "requires": {
+        "IDENT": "confirmed",
+        "FNDR": "probable",
+        "PROB": "probable",
+        "PROD": "asserted"
+      },
+      "helpful": {
+        "TRAC": "asserted",
+        "REL": "probable",
+        "USE": "asserted"
+      },
+      "irrelevant": [
+        "FIN",
+        "CASH",
+        "UNIT",
+        "OPS"
+      ],
+      "irrelevant_notes": [],
+      "disqualifiers": [
+        {
+          "id": "no-legal-entity",
+          "description": "no legal entity"
+        },
+        {
+          "id": "cap-table-already-broken",
+          "description": "cap table already broken"
+        },
+        {
+          "id": "prior-instrument-with-anti-dilution-that-makes-conversion-unmodellable",
+          "description": "prior instrument with anti-dilution that makes conversion unmodellable"
+        }
+      ],
+      "provider": {
+        "classes": [
+          "angels",
+          "syndicates",
+          "pre-seed funds",
+          "friends and fans",
+          "accelerators"
+        ],
+        "motivation": "Optionality. Cheap exposure to asymmetric upside with no governance burden and no pricing argument today.",
+        "default": "opportunistic",
+        "volume": "High. Filtered almost entirely on founder and warm-edge provenance."
+      },
+      "graph": {
+        "precedes": [
+          "priced-seed-preferred",
+          "convertible-note"
+        ],
+        "follows": [
+          "friends-and-fans",
+          "accelerator-stipend"
+        ],
+        "converts_to": [
+          "priced-seed-preferred"
+        ],
+        "unlocks": [
+          "runway to reach a priced round"
+        ],
+        "blocks": [],
+        "poisons": [
+          "priced-seed-preferred if stacked repeatedly at rising caps"
+        ],
+        "taints": [],
+        "stacks_with": [
+          "rd-tax-credit",
+          "competitive-grant",
+          "customer-prepay",
+          "cloud-credits"
+        ],
+        "competes_with": [
+          "convertible-note"
+        ],
+        "triggers": [
+          "cap table complexity at next round"
+        ],
+        "resets": []
+      },
+      "reversibility": {
+        "reversibility": "one_way",
+        "forecloses": [
+          "pricing the round on your own terms later — the cap is a ceiling you set before you had leverage"
+        ],
+        "unwind_cost": "impossible"
+      },
+      "jurisdiction": {
+        "sensitivity": "high",
+        "variants": [
+          {
+            "jurisdiction": "US (Delaware)",
+            "delta": "Standard-form, well-understood, post-money is the default since 2018",
+            "depth": "D3"
+          },
+          {
+            "jurisdiction": "Australia",
+            "delta": "Used, but convertible notes are the local default; less standard-form consensus, more bespoke drafting",
+            "depth": "D2"
+          },
+          {
+            "jurisdiction": "UK",
+            "delta": "Advance Subscription Agreement is the local analogue and is shaped by investor tax-relief eligibility rather than by simplicity",
+            "depth": "D2"
+          },
+          {
+            "jurisdiction": "Singapore / SEA",
+            "delta": "Widely used, often with local convertible features grafted on",
+            "depth": "D1"
+          }
+        ]
+      },
+      "evidence": {
+        "sources": [
+          "Summit transcript 2026-08-27",
+          "general practice"
+        ],
+        "confidence": "probable",
+        "last_verified": "2026-08-28",
+        "decay_rate": "slow"
+      },
+      "knowledge": {
+        "failure_modes": "SAFE stacking — four SAFEs at four caps and nobody has modelled the conversion; founders discover their real dilution at the priced round. Uncapped SAFEs signed early with an MFN that later ratchets. Conversion never triggering because no priced round ever happens, leaving instruments in permanent limbo.",
+        "misconceptions": "*\"A SAFE defers the valuation.\"* It does not — **the cap is a valuation claim wearing a disguise.** It is your stated ceiling, set at the point of least leverage, and sophisticated investors read it exactly that way. Also: *\"it's not dilution yet.\"* It is; it is dilution with the invoice not yet delivered.",
+        "ready_signals": "A warm angel population; a story that survives 40 seconds; enough product that \"what have you built\" has an answer.",
+        "not_ready_signals": "No entity. No idea what the cap should be or why. Needing the money to survive rather than to reach a milestone — SAFEs fund progress, not rescue.",
+        "tells": "*\"Send me the SAFE and I'll take a look\"* from someone who has not asked a single diligence question is usually politeness, not intent. *\"What's your cap?\"* asked first, before anything about the business, means they are shopping terms, not backing you."
+      }
+    },
+    {
+      "id": "priced-seed-preferred",
+      "name": "Priced seed round (preference shares)",
+      "aliases": [],
+      "family": "equity",
+      "one_line": "Shares sold now at an agreed valuation, with preferential rights.",
+      "depth": "D4",
+      "status": "established",
+      "mechanics": {
+        "consideration_in": [
+          "cash"
+        ],
+        "consideration_out": [
+          "equity"
+        ],
+        "dilutive": true,
+        "repayable": false,
+        "security_taken": "none",
+        "seniority": "equity (senior to ordinary via liquidation preference)",
+        "conversion": "optional (to ordinary, on exit or IPO)",
+        "conversion_triggers": null,
+        "cost_of_capital_form": "equity",
+        "ticket_typical": "500k – 5M",
+        "time_to_close": "6 weeks – 6 months",
+        "dilution_range": "10 – 30%"
+      },
+      "requires": {
+        "IDENT": "confirmed",
+        "FNDR": "confirmed",
+        "PROB": "confirmed",
+        "PROD": "confirmed",
+        "TRAC": "probable",
+        "USE": "confirmed",
+        "EXIT": "probable",
+        "GOV": "probable"
+      },
+      "helpful": {
+        "UNIT": "probable",
+        "FIN": "probable",
+        "REL": "confirmed",
+        "IMPACT": "asserted"
+      },
+      "irrelevant": [
+        "CASH"
+      ],
+      "irrelevant_notes": [],
+      "disqualifiers": [
+        {
+          "id": "cap-table-with-unmodellable-prior-instruments",
+          "description": "cap table with unmodellable prior instruments"
+        },
+        {
+          "id": "unresolved-ip-ownership",
+          "description": "unresolved IP ownership"
+        },
+        {
+          "id": "founder-equity-already-below-a-level-that-survives-further-dilution",
+          "description": "founder equity already below a level that survives further dilution"
+        },
+        {
+          "id": "no-clean-corporate-records",
+          "description": "no clean corporate records"
+        }
+      ],
+      "provider": {
+        "classes": [
+          "seed funds",
+          "family offices",
+          "HNW individuals",
+          "angel syndicates",
+          "corporate VC",
+          "crossover funds at the edge"
+        ],
+        "motivation": "Fund-return mathematics. They need outcomes that return the whole fund, which is why \"good business\" is not sufficient and \"could be enormous\" is necessary.",
+        "default": "default_no  (family office) / mandate_driven (fund)",
+        "volume": null
+      },
+      "graph": {
+        "precedes": [
+          "series-a",
+          "venture-debt"
+        ],
+        "follows": [
+          "safe-post-money",
+          "convertible-note",
+          "friends-and-fans"
+        ],
+        "converts_to": [],
+        "unlocks": [
+          "venture-debt",
+          "credibility for enterprise procurement",
+          "later rounds"
+        ],
+        "blocks": [],
+        "poisons": [
+          "non-dilutive programs that test for independence or ownership caps"
+        ],
+        "taints": [],
+        "stacks_with": [
+          "rd-tax-credit",
+          "venture-debt",
+          "customer-prepay"
+        ],
+        "competes_with": [
+          "convertible-note",
+          "structured-spv"
+        ],
+        "triggers": [
+          "board formation",
+          "reporting obligations",
+          "information rights",
+          "valuation events for option holders"
+        ],
+        "resets": [
+          "preference stack",
+          "control"
+        ]
+      },
+      "reversibility": {
+        "reversibility": "one_way",
+        "forecloses": [
+          "full founder control",
+          "some non-dilutive eligibility",
+          "the ability to fail quietly"
+        ],
+        "unwind_cost": "impossible"
+      },
+      "jurisdiction": {
+        "sensitivity": "high",
+        "variants": [
+          {
+            "jurisdiction": "Australia",
+            "delta": "ESIC-equivalent early-stage investor concessions materially change investor economics before terms are negotiated; wholesale/sophisticated investor certification governs who may be approached at all",
+            "depth": "D2"
+          },
+          {
+            "jurisdiction": "US",
+            "delta": "NVCA standard docs; accredited investor definition governs the offer",
+            "depth": "D2"
+          },
+          {
+            "jurisdiction": "UK",
+            "delta": "SEIS/EIS eligibility dominates structure — the tax relief is often worth more to the investor than the terms",
+            "depth": "D2"
+          },
+          {
+            "jurisdiction": "Singapore / ADGM / DIFC",
+            "delta": "Fund and family-office density; different professional-investor tests",
+            "depth": "D1"
+          }
+        ]
+      },
+      "evidence": {
+        "sources": [
+          "Summit transcript 2026-08-27 — Kevin Shen on family office process",
+          "panel on cornerstone mechanics"
+        ],
+        "confidence": "probable",
+        "last_verified": "2026-08-28",
+        "decay_rate": "slow"
+      },
+      "knowledge": {
+        "failure_modes": "Opening without a cornerstone and drifting for twelve months — named directly on the panel. Setting a valuation with no basis and defending it badly. Raising into a preference stack that makes the next round unfundable. **Increasing the valuation mid-raise, which kills interest outright** — investors read it as having missed out rather than as good news.",
+        "misconceptions": "*\"The lead will come once we have momentum.\"* Inverted — the cornerstone creates the momentum. Dom would not push the button until a cornerstone was secured, after 30–50 conversations. *\"Family offices are patient capital so they'll take their time.\"* They are patient *after* investing; before, time kills deals.",
+        "ready_signals": "A cornerstone in dialogue. Enough traction that the three investor questions have real answers. Clean corporate records. A use-of-funds that maps to growth or technical de-risking with milestones attached.",
+        "not_ready_signals": "Cannot answer \"why now.\" Cap table needs surgery. Every investor conversation is a first conversation — no rung-3 population.",
+        "tells": "*\"Come back when you have a lead investor\"* is **a soft no** with a door left open. *\"What's your timeline?\"* early usually means they are deciding whether to bother, not whether to invest. Silence after a data-room grant is a decision."
+      }
+    },
+    {
+      "id": "equity-crowdfunding",
+      "name": "Equity crowdfunding / crowd-sourced funding",
+      "aliases": [],
+      "family": "equity",
+      "one_line": "Many small retail investors buy shares through a licensed platform.",
+      "depth": "D3",
+      "status": "established",
+      "mechanics": {
+        "consideration_in": [
+          "cash"
+        ],
+        "consideration_out": [
+          "equity"
+        ],
+        "dilutive": true,
+        "repayable": false,
+        "security_taken": null,
+        "seniority": null,
+        "conversion": null,
+        "conversion_triggers": null,
+        "cost_of_capital_form": "equity + platform fee",
+        "ticket_typical": "100k – 5M aggregate, 500 – 10k per investor",
+        "time_to_close": "3 – 6 months including preparation",
+        "dilution_range": "5 – 20%"
+      },
+      "requires": {
+        "IDENT": "confirmed",
+        "PROB": "confirmed",
+        "PROD": "confirmed",
+        "GOV": "confirmed",
+        "TRAC": "probable",
+        "FIN": "probable"
+      },
+      "helpful": {
+        "IMPACT": "probable",
+        "REL": "confirmed"
+      },
+      "irrelevant": [
+        "CASH"
+      ],
+      "irrelevant_notes": [],
+      "disqualifiers": [
+        {
+          "id": "entity-type-ineligible-under-the-local-regime",
+          "description": "entity type ineligible under the local regime"
+        },
+        {
+          "id": "inability-to-produce-a-compliant-offer-document",
+          "description": "inability to produce a compliant offer document"
+        },
+        {
+          "id": "a-story-that-does-not-survive-public-scrutiny",
+          "description": "a story that does not survive public scrutiny"
+        }
+      ],
+      "provider": {
+        "classes": [
+          "retail crowd",
+          "existing customers",
+          "community",
+          "brand affinity holders"
+        ],
+        "motivation": "Participation and affinity as much as return. Many are buying belonging.",
+        "default": "opportunistic",
+        "volume": null
+      },
+      "graph": {
+        "precedes": [
+          "priced-seed-preferred"
+        ],
+        "follows": [
+          "customer-prepay",
+          "reward-crowdfunding"
+        ],
+        "converts_to": [],
+        "unlocks": [
+          "a shareholder base that is also a customer base and a marketing channel"
+        ],
+        "blocks": [],
+        "poisons": [
+          "institutional rounds — a cap table with 800 retail holders is a governance objection before it is a valuation objection"
+        ],
+        "taints": [
+          "some institutional investors decline on cap-table grounds alone"
+        ],
+        "stacks_with": [
+          "rd-tax-credit",
+          "customer-prepay"
+        ],
+        "competes_with": [
+          "priced-seed-preferred"
+        ],
+        "triggers": [
+          "public disclosure",
+          "ongoing shareholder communication obligations"
+        ],
+        "resets": []
+      },
+      "reversibility": {
+        "reversibility": "one_way",
+        "forecloses": [
+          "a clean cap table",
+          "quiet failure",
+          "some institutional entry"
+        ],
+        "unwind_cost": "impossible"
+      },
+      "jurisdiction": {
+        "sensitivity": "defining",
+        "variants": []
+      },
+      "evidence": {
+        "sources": [
+          "general practice"
+        ],
+        "confidence": "asserted",
+        "last_verified": "2026-08-28",
+        "decay_rate": "annual"
+      },
+      "knowledge": {
+        "failure_modes": "Running it without an existing audience and discovering the platform is distribution, not demand. Underestimating the campaign cost. A public failure that is permanently visible.",
+        "misconceptions": "*\"The platform brings the investors.\"* The platform converts an audience you bring. Campaigns are won in the first 48 hours by pre-committed money.",
+        "tells": "A platform that is enthusiastic before asking about your existing audience is selling you a listing, not a raise."
+      }
+    },
+    {
+      "id": "convertible-note",
+      "name": "Convertible note",
+      "aliases": [],
+      "family": "debt",
+      "one_line": "A loan that becomes equity on a trigger — and stays a loan if it doesn't.",
+      "depth": "D4",
+      "status": "established",
+      "mechanics": {
+        "consideration_in": [
+          "cash"
+        ],
+        "consideration_out": [
+          "equity",
+          "repayment"
+        ],
+        "dilutive": "conditional",
+        "repayable": "conditional",
+        "security_taken": "none | general (varies)",
+        "seniority": "subordinated (usually) — but senior to equity",
+        "conversion": "triggered",
+        "conversion_triggers": [
+          "qualifying financing",
+          "maturity",
+          "change of control",
+          "holder election"
+        ],
+        "cost_of_capital_form": "interest + discount",
+        "ticket_typical": "50k – 5M",
+        "time_to_close": "2 – 8 weeks",
+        "dilution_range": "5 – 25% at conversion"
+      },
+      "requires": {
+        "IDENT": "confirmed",
+        "FNDR": "probable",
+        "PROB": "probable",
+        "PROD": "probable",
+        "USE": "probable",
+        "FIN": "asserted"
+      },
+      "helpful": {
+        "TRAC": "probable",
+        "REL": "probable",
+        "EXIT": "asserted"
+      },
+      "irrelevant": [
+        "UNIT"
+      ],
+      "irrelevant_notes": [],
+      "disqualifiers": [
+        {
+          "id": "no-plausible-path-to-a-qualifying-financing-before-maturity",
+          "description": "no plausible path to a qualifying financing before maturity"
+        },
+        {
+          "id": "existing-senior-debt-with-restrictive-covenants",
+          "description": "existing senior debt with restrictive covenants"
+        }
+      ],
+      "provider": {
+        "classes": [
+          "angels",
+          "family offices",
+          "existing shareholders",
+          "bridge investors",
+          "strategic corporates"
+        ],
+        "motivation": "Downside protection with upside participation. They get paid either way.",
+        "default": "opportunistic",
+        "volume": null
+      },
+      "graph": {
+        "precedes": [
+          "priced-seed-preferred"
+        ],
+        "follows": [
+          "safe-post-money",
+          "friends-and-fans"
+        ],
+        "converts_to": [
+          "priced-seed-preferred"
+        ],
+        "unlocks": [
+          "bridge runway to a priced round"
+        ],
+        "blocks": [
+          "senior secured debt",
+          "if security was granted"
+        ],
+        "poisons": [
+          "the next round if the discount stack is aggressive"
+        ],
+        "taints": [],
+        "stacks_with": [
+          "rd-tax-credit",
+          "customer-prepay",
+          "cloud-credits"
+        ],
+        "competes_with": [
+          "safe-post-money",
+          "venture-debt"
+        ],
+        "triggers": [
+          "a hard maturity date — a cliff with a repayment obligation behind it"
+        ],
+        "resets": []
+      },
+      "reversibility": {
+        "reversibility": "one_way",
+        "forecloses": [
+          "the ability to ignore a deadline — maturity is real"
+        ],
+        "unwind_cost": "expensive"
+      },
+      "jurisdiction": {
+        "sensitivity": "moderate",
+        "variants": [
+          {
+            "jurisdiction": "Australia",
+            "delta": "The local default for early convertibles; more common than SAFEs",
+            "depth": "D2"
+          },
+          {
+            "jurisdiction": "US",
+            "delta": "Largely displaced by SAFEs at pre-seed; still standard for bridges",
+            "depth": "D2"
+          }
+        ]
+      },
+      "evidence": {
+        "sources": [
+          "Summit transcript 2026-08-27",
+          "general practice"
+        ],
+        "confidence": "probable",
+        "last_verified": "2026-08-28",
+        "decay_rate": "slow"
+      },
+      "knowledge": {
+        "failure_modes": "**It is debt until it converts, and founders reliably forget this.** Maturity arrives, no qualifying round has happened, and the holder is now a creditor with leverage over a company with no cash. Interest accruing silently and materially increasing conversion dilution. Multiple notes with different triggers that interact unpredictably.",
+        "misconceptions": "*\"It's basically a SAFE.\"* No — a SAFE cannot make you insolvent. A note can. The maturity date is the entire difference and it is the thing that bites.",
+        "ready_signals": "A credible, dated path to a qualifying financing comfortably inside the maturity window.",
+        "not_ready_signals": "Using it as a bridge to nowhere. Setting maturity by convention (18/24 months) rather than by when the next round will realistically close."
+      }
+    },
+    {
+      "id": "venture-debt",
+      "name": "Venture debt",
+      "aliases": [],
+      "family": "debt",
+      "one_line": "Term debt for VC-backed companies, priced off the equity behind it.",
+      "depth": "D3",
+      "status": "established",
+      "mechanics": {
+        "consideration_in": [
+          "cash"
+        ],
+        "consideration_out": [
+          "repayment",
+          "equity (warrants)"
+        ],
+        "dilutive": "yes (small, via warrants)",
+        "repayable": true,
+        "security_taken": "general",
+        "seniority": "senior",
+        "conversion": null,
+        "conversion_triggers": null,
+        "cost_of_capital_form": "interest + fee + warrants",
+        "ticket_typical": "20 – 50% of the last equity round",
+        "time_to_close": "4 – 12 weeks",
+        "dilution_range": "0.5 – 3%"
+      },
+      "requires": {
+        "IDENT": "confirmed",
+        "FIN": "confirmed",
+        "TRAC": "confirmed",
+        "CASH": "probable",
+        "GOV": "confirmed",
+        "USE": "confirmed"
+      },
+      "helpful": {
+        "UNIT": "confirmed",
+        "REL": "probable"
+      },
+      "irrelevant": [
+        "EXIT",
+        "IMPACT"
+      ],
+      "irrelevant_notes": [],
+      "disqualifiers": [
+        {
+          "id": "no-institutional-equity-behind-you",
+          "description": "no institutional equity behind you"
+        },
+        {
+          "id": "runway-shorter-than-the-amortisation-schedule",
+          "description": "runway shorter than the amortisation schedule"
+        },
+        {
+          "id": "existing-security-over-the-same-assets",
+          "description": "existing security over the same assets"
+        }
+      ],
+      "provider": {
+        "classes": [
+          "venture debt funds",
+          "specialty lenders",
+          "some banks"
+        ],
+        "motivation": "Yield with equity-like optionality, underwritten against the *equity sponsor's* willingness to fund again — not against your business.",
+        "default": "mandate_driven",
+        "volume": null
+      },
+      "graph": {
+        "precedes": [],
+        "follows": [
+          "priced-seed-preferred",
+          "series-a"
+        ],
+        "converts_to": [],
+        "unlocks": [
+          "runway extension without dilution"
+        ],
+        "blocks": [
+          "other secured debt against the same assets"
+        ],
+        "poisons": [
+          "a down round — the debt does not reprice but everything else does"
+        ],
+        "taints": [],
+        "stacks_with": [
+          "rd-tax-credit",
+          "customer-prepay"
+        ],
+        "competes_with": [
+          "invoice-finance",
+          "revenue-based-finance"
+        ],
+        "triggers": [
+          "covenants",
+          "reporting",
+          "sometimes MAC clauses"
+        ],
+        "resets": []
+      },
+      "reversibility": {
+        "reversibility": "partial",
+        "forecloses": [
+          "flexibility in a downturn — amortisation does not care about your quarter"
+        ],
+        "unwind_cost": "expensive"
+      },
+      "jurisdiction": {
+        "sensitivity": "moderate",
+        "variants": []
+      },
+      "evidence": {
+        "sources": [],
+        "confidence": "probable",
+        "last_verified": null,
+        "decay_rate": "volatile"
+      },
+      "knowledge": {
+        "failure_modes": "Taking it as a runway extender when the equity story has already broken — the lender is underwriting your investors' conviction, and if that has gone, so has the facility. Covenant breach in a bad quarter converting a financing into a control event.",
+        "misconceptions": "*\"It's non-dilutive.\"* Warrants are dilution, and the covenants are a governance cost that does not appear on the cap table.",
+        "tells": "Heavy focus on who your existing investors are, and light focus on your product, means they are underwriting the sponsor, not you."
+      }
+    },
+    {
+      "id": "invoice-finance",
+      "name": "Invoice finance / receivables discounting",
+      "aliases": [],
+      "family": "debt",
+      "one_line": "Sell or borrow against money customers already owe you.",
+      "depth": "D3",
+      "status": "established",
+      "mechanics": {
+        "consideration_in": [
+          "cash"
+        ],
+        "consideration_out": [
+          "repayment"
+        ],
+        "dilutive": false,
+        "repayable": true,
+        "security_taken": "specific (the receivable)",
+        "seniority": "senior over the financed asset",
+        "conversion": null,
+        "conversion_triggers": null,
+        "cost_of_capital_form": "fee + interest",
+        "ticket_typical": "70 – 90% of invoice face value",
+        "time_to_close": "days once facility exists; 2 – 6 weeks to establish",
+        "dilution_range": null
+      },
+      "requires": {
+        "IDENT": "confirmed",
+        "CASH": "confirmed",
+        "TRAC": "confirmed",
+        "FIN": "probable",
+        "GOV": "probable"
+      },
+      "helpful": {
+        "OPS": "probable"
+      },
+      "irrelevant": [
+        "FNDR",
+        "PROB",
+        "EXIT",
+        "IMPACT",
+        "REL"
+      ],
+      "irrelevant_notes": [],
+      "disqualifiers": [
+        {
+          "id": "no-invoices",
+          "description": "no invoices"
+        },
+        {
+          "id": "customers-with-poor-credit",
+          "description": "customers with poor credit"
+        },
+        {
+          "id": "contracts-prohibiting-assignment",
+          "description": "contracts prohibiting assignment"
+        },
+        {
+          "id": "heavy-customer-concentration",
+          "description": "heavy customer concentration"
+        }
+      ],
+      "provider": {
+        "classes": [
+          "banks",
+          "non-bank lenders",
+          "fintech lenders",
+          "specialty factors"
+        ],
+        "motivation": "Underwriting your *customers'* credit, not yours. You are almost incidental.",
+        "default": "mandate_driven",
+        "volume": null
+      },
+      "graph": {
+        "precedes": [],
+        "follows": [],
+        "converts_to": [],
+        "unlocks": [
+          "working capital that scales with revenue automatically"
+        ],
+        "blocks": [
+          "other security over the same receivables"
+        ],
+        "poisons": [],
+        "taints": [],
+        "stacks_with": [
+          "rd-tax-credit",
+          "equity of any kind"
+        ],
+        "competes_with": [
+          "revenue-based-finance",
+          "supply-chain-finance"
+        ],
+        "triggers": [],
+        "resets": []
+      },
+      "reversibility": {
+        "reversibility": "reversible",
+        "forecloses": [],
+        "unwind_cost": "cheap"
+      },
+      "jurisdiction": {
+        "sensitivity": "low",
+        "variants": []
+      },
+      "evidence": {
+        "sources": [],
+        "confidence": "probable",
+        "last_verified": null,
+        "decay_rate": "slow"
+      },
+      "knowledge": {
+        "failure_modes": "Customer concentration making the facility fragile. Non-recourse assumed when the facility is recourse. Notification to customers damaging the relationship.",
+        "misconceptions": "*\"We're pre-profit so we can't borrow.\"* Irrelevant — this instrument does not look at your profitability. It looks at whether your customers pay."
+      }
+    },
+    {
+      "id": "revenue-based-finance",
+      "name": "Revenue-based financing",
+      "aliases": [
+        "RBF",
+        "ARR-backed lending",
+        "MRR advance"
+      ],
+      "family": "debt",
+      "one_line": "Capital repaid as a fixed percentage of revenue until a multiple is hit.",
+      "depth": "D3",
+      "status": "established",
+      "mechanics": {
+        "consideration_in": [
+          "cash"
+        ],
+        "consideration_out": [
+          "revenue_share",
+          "repayment"
+        ],
+        "dilutive": false,
+        "repayable": true,
+        "security_taken": "general | specific (revenue streams)",
+        "seniority": null,
+        "conversion": null,
+        "conversion_triggers": null,
+        "cost_of_capital_form": "revenue multiple (typically 1.1 – 1.5×)",
+        "ticket_typical": "3 – 12× monthly recurring revenue",
+        "time_to_close": "days – 4 weeks (often largely automated)",
+        "dilution_range": null
+      },
+      "requires": {
+        "IDENT": "confirmed",
+        "TRAC": "confirmed",
+        "CASH": "confirmed",
+        "FIN": "probable",
+        "UNIT": "probable"
+      },
+      "helpful": {
+        "OPS": "probable"
+      },
+      "irrelevant": [
+        "FNDR",
+        "PROB",
+        "EXIT",
+        "IMPACT"
+      ],
+      "irrelevant_notes": [],
+      "disqualifiers": [
+        {
+          "id": "no-recurring-revenue",
+          "description": "no recurring revenue"
+        },
+        {
+          "id": "high-churn",
+          "description": "high churn"
+        },
+        {
+          "id": "revenue-that-is-lumpy-or-project-based",
+          "description": "revenue that is lumpy or project-based"
+        },
+        {
+          "id": "no-system-integration-for-verification",
+          "description": "no system integration for verification"
+        }
+      ],
+      "provider": {
+        "classes": [
+          "RBF platforms",
+          "fintech lenders",
+          "specialty credit funds"
+        ],
+        "motivation": "Yield underwritten off observable, verifiable revenue data — often via direct integration to your billing system.",
+        "default": "mandate_driven",
+        "volume": null
+      },
+      "graph": {
+        "precedes": [],
+        "follows": [],
+        "converts_to": [],
+        "unlocks": [
+          "growth spend without dilution"
+        ],
+        "blocks": [],
+        "poisons": [],
+        "taints": [],
+        "stacks_with": [
+          "equity of any kind",
+          "rd-tax-credit"
+        ],
+        "competes_with": [
+          "venture-debt",
+          "invoice-finance"
+        ],
+        "triggers": [],
+        "resets": []
+      },
+      "reversibility": {
+        "reversibility": "reversible",
+        "forecloses": [],
+        "unwind_cost": "cheap"
+      },
+      "jurisdiction": {
+        "sensitivity": "low",
+        "variants": []
+      },
+      "evidence": {
+        "sources": [],
+        "confidence": "probable",
+        "last_verified": null,
+        "decay_rate": "volatile"
+      },
+      "knowledge": {
+        "misconceptions": "*\"It's cheap because there's no interest rate.\"* The multiple divided by the repayment period is an interest rate, and on fast repayment it can be very high."
+      }
+    },
+    {
+      "id": "rd-tax-credit",
+      "name": "R&D tax credit / offset",
+      "aliases": [],
+      "family": "non-dilutive",
+      "one_line": "The state refunds a portion of qualifying research and development spend.",
+      "depth": "D4",
+      "status": "established",
+      "mechanics": {
+        "consideration_in": [
+          "cash"
+        ],
+        "consideration_out": [
+          "nothing"
+        ],
+        "dilutive": false,
+        "repayable": false,
+        "security_taken": "none",
+        "seniority": null,
+        "conversion": null,
+        "conversion_triggers": null,
+        "cost_of_capital_form": "none (compliance cost only)",
+        "ticket_typical": "proportional to eligible spend",
+        "time_to_close": "annual cycle; advance-funding facilities exist against the expected claim",
+        "dilution_range": null
+      },
+      "requires": {
+        "IDENT": "confirmed",
+        "PROD": "confirmed",
+        "FIN": "confirmed",
+        "GOV": "confirmed",
+        "OPS": "probable"
+      },
+      "helpful": {},
+      "irrelevant": [
+        "FNDR",
+        "PROB",
+        "EXIT",
+        "REL",
+        "UNIT",
+        "CASH",
+        "IMPACT"
+      ],
+      "irrelevant_notes": [],
+      "disqualifiers": [
+        {
+          "id": "entity-type-ineligible",
+          "description": "entity type ineligible"
+        },
+        {
+          "id": "activity-not-qualifying",
+          "description": "activity not qualifying"
+        },
+        {
+          "id": "no-contemporaneous-records",
+          "description": "no contemporaneous records"
+        },
+        {
+          "id": "registration-deadline-missed",
+          "description": "registration deadline missed"
+        },
+        {
+          "id": "spend-already-funded-by-another-program",
+          "description": "spend already funded by another program"
+        }
+      ],
+      "provider": {
+        "classes": [
+          "the state"
+        ],
+        "motivation": "Industrial policy. They want the activity to happen domestically.",
+        "default": "mandate_driven — rules-based, not discretionary",
+        "volume": "Enormous, assessed against published criteria."
+      },
+      "graph": {
+        "precedes": [],
+        "follows": [],
+        "converts_to": [],
+        "unlocks": [
+          "rd-advance-funding",
+          "credibility of technical activity"
+        ],
+        "blocks": [],
+        "poisons": [
+          "double-dipping — spend claimed here may be ineligible elsewhere"
+        ],
+        "taints": [],
+        "stacks_with": [
+          "almost everything"
+        ],
+        "competes_with": [
+          "other programs claiming the same expenditure"
+        ],
+        "triggers": [
+          "record-keeping obligations",
+          "audit exposure"
+        ],
+        "resets": []
+      },
+      "reversibility": {
+        "reversibility": "reversible",
+        "forecloses": [],
+        "unwind_cost": "cheap"
+      },
+      "jurisdiction": {
+        "sensitivity": "defining",
+        "variants": [
+          {
+            "jurisdiction": "Australia",
+            "delta": "Refundable offset for companies under a turnover threshold; registration with the program required within a window after year end; eligible activities defined by a core/supporting distinction",
+            "depth": "D2"
+          },
+          {
+            "jurisdiction": "UK",
+            "delta": "SME and RDEC schemes with different mechanics and rates",
+            "depth": "D1"
+          },
+          {
+            "jurisdiction": "France",
+            "delta": "Crédit d'Impôt Recherche — among the most generous globally, a genuine domicile consideration in itself",
+            "depth": "D1"
+          },
+          {
+            "jurisdiction": "Canada",
+            "delta": "SR&ED — long-established, refundable for small CCPCs",
+            "depth": "D1"
+          },
+          {
+            "jurisdiction": "Singapore / Ireland / Netherlands / Israel",
+            "delta": "Each operates distinct incentive regimes with different eligibility shapes",
+            "depth": "D0"
+          }
+        ]
+      },
+      "evidence": {
+        "sources": [
+          "general knowledge; rates and thresholds deliberately not stated — they change annually and this record's value is structural"
+        ],
+        "confidence": "asserted",
+        "last_verified": "2026-08-28",
+        "decay_rate": "annual"
+      },
+      "knowledge": {
+        "failure_modes": "Reconstructing records after the fact — the single most common and most fatal. Claiming commercial development as research. Missing the registration window. Being unable to evidence *who* did *what* on *which day*.",
+        "misconceptions": "*\"We'll sort the paperwork at year end.\"* The requirement is **contemporaneous** — records made at the time, not assembled later. This is the one instrument where an entity that has been documenting itself continuously for other reasons holds a structural advantage it never built deliberately.",
+        "ready_signals": "Dated technical records generated as a by-product of how work actually happens: version control history, dated design decisions, experiment logs, session records, an append-only ledger of what was attempted and what was learned.",
+        "not_ready_signals": "Technical history that exists only in people's heads or in a chat tool with no export."
+      }
+    },
+    {
+      "id": "competitive-grant",
+      "name": "Competitive grant",
+      "aliases": [],
+      "family": "non-dilutive",
+      "one_line": "A funding body selects proposals against published criteria and pays out against milestones.",
+      "depth": "D3",
+      "status": "established",
+      "mechanics": {
+        "consideration_in": [
+          "cash"
+        ],
+        "consideration_out": [
+          "obligation"
+        ],
+        "dilutive": false,
+        "repayable": "no (usually; clawback on non-performance is common)",
+        "security_taken": null,
+        "seniority": null,
+        "conversion": null,
+        "conversion_triggers": null,
+        "cost_of_capital_form": "milestone + reporting burden",
+        "ticket_typical": "10k – 10M+ depending on program",
+        "time_to_close": "3 – 18 months from open to first payment",
+        "dilution_range": null
+      },
+      "requires": {
+        "IDENT": "confirmed",
+        "PROD": "confirmed",
+        "USE": "confirmed",
+        "GOV": "confirmed",
+        "IMPACT": "confirmed",
+        "OPS": "confirmed"
+      },
+      "helpful": {
+        "TRAC": "probable",
+        "FNDR": "probable"
+      },
+      "irrelevant": [
+        "EXIT",
+        "CASH",
+        "REL"
+      ],
+      "irrelevant_notes": [],
+      "disqualifiers": [
+        {
+          "id": "outside-the-program-s-stated-scope",
+          "description": "outside the program's stated scope"
+        },
+        {
+          "id": "missing-matched-funding",
+          "description": "missing matched funding"
+        },
+        {
+          "id": "ineligible-entity-or-jurisdiction",
+          "description": "ineligible entity or jurisdiction"
+        },
+        {
+          "id": "deadline-passed",
+          "description": "deadline passed"
+        },
+        {
+          "id": "activity-already-commenced-where-the-program-requires-it-not-have",
+          "description": "activity already commenced where the program requires it not have"
+        }
+      ],
+      "provider": {
+        "classes": [
+          "government agencies",
+          "sovereign funds",
+          "foundations",
+          "multilaterals",
+          "industry bodies",
+          "universities"
+        ],
+        "motivation": "Policy outcomes. **They are buying a result they have been mandated to produce**, and your project is a means to it.",
+        "default": "mandate_driven",
+        "volume": null
+      },
+      "graph": {
+        "precedes": [],
+        "follows": [],
+        "converts_to": [],
+        "unlocks": [
+          "matched funding",
+          "credibility",
+          "follow-on program eligibility",
+          "procurement access"
+        ],
+        "blocks": [],
+        "poisons": [
+          "some programs restrict subsequent commercial arrangements or IP ownership"
+        ],
+        "taints": [],
+        "stacks_with": [
+          "most things; check expenditure double-dipping"
+        ],
+        "competes_with": [
+          "rd-tax-credit on the same spend"
+        ],
+        "triggers": [
+          "acquittal",
+          "reporting",
+          "milestone verification",
+          "audit"
+        ],
+        "resets": []
+      },
+      "reversibility": {
+        "reversibility": "partial",
+        "forecloses": [
+          "flexibility to pivot the funded work — you are contracted to a scope"
+        ],
+        "unwind_cost": "expensive"
+      },
+      "jurisdiction": {
+        "sensitivity": "defining",
+        "variants": []
+      },
+      "evidence": {
+        "sources": [],
+        "confidence": "asserted",
+        "last_verified": null,
+        "decay_rate": "annual"
+      },
+      "knowledge": {
+        "failure_modes": "Writing the application about your company rather than about the program's stated objective. Missing matched-funding requirements. Winning a grant that contracts you to eighteen months of work you no longer want to do. Underestimating acquittal burden.",
+        "misconceptions": "*\"It's free money.\"* It is a contract with milestones, reporting and clawback. And *\"the best project wins.\"* The best *fit to the published criteria* wins — which is a document-comprehension exercise as much as a merit one.",
+        "tells": "A program officer who redirects you to a different program is doing you a significant favour and should be taken literally."
+      }
+    },
+    {
+      "id": "procurement-as-capital",
+      "name": "Government or enterprise procurement as capital",
+      "aliases": [],
+      "family": "non-dilutive",
+      "one_line": "A contract to buy the thing funds building the thing.",
+      "depth": "D3",
+      "status": "established",
+      "mechanics": {
+        "consideration_in": [
+          "cash",
+          "procurement",
+          "access"
+        ],
+        "consideration_out": [
+          "obligation"
+        ],
+        "dilutive": false,
+        "repayable": false,
+        "security_taken": null,
+        "seniority": null,
+        "conversion": null,
+        "conversion_triggers": null,
+        "cost_of_capital_form": "delivery obligation",
+        "ticket_typical": "50k – 10M+",
+        "time_to_close": "3 – 24 months",
+        "dilution_range": null
+      },
+      "requires": {
+        "IDENT": "confirmed",
+        "PROD": "confirmed",
+        "OPS": "confirmed",
+        "GOV": "confirmed"
+      },
+      "helpful": {
+        "TRAC": "confirmed",
+        "REL": "confirmed",
+        "IMPACT": "probable"
+      },
+      "irrelevant": [
+        "EXIT",
+        "UNIT",
+        "FNDR"
+      ],
+      "irrelevant_notes": [],
+      "disqualifiers": [
+        {
+          "id": "cannot-meet-procurement-compliance-bar-insurance",
+          "description": "cannot meet procurement compliance bar — insurance"
+        },
+        {
+          "id": "security-clearance",
+          "description": "security clearance"
+        },
+        {
+          "id": "certification",
+          "description": "certification"
+        },
+        {
+          "id": "panel-membership",
+          "description": "panel membership"
+        },
+        {
+          "id": "financial-capacity-test",
+          "description": "financial capacity test"
+        }
+      ],
+      "provider": {
+        "classes": [
+          "government departments",
+          "agencies",
+          "large enterprises",
+          "primes"
+        ],
+        "motivation": "They have a problem and a budget. **Unlike an investor they are not buying upside — they are buying a solved problem.**",
+        "default": "mandate_driven",
+        "volume": null
+      },
+      "graph": {
+        "precedes": [],
+        "follows": [],
+        "converts_to": [],
+        "unlocks": [
+          "reference customer",
+          "invoice-finance against the contract",
+          "credibility that no investor can confer",
+          "panel access"
+        ],
+        "blocks": [],
+        "poisons": [],
+        "taints": [],
+        "stacks_with": [
+          "everything"
+        ],
+        "competes_with": [],
+        "triggers": [
+          "delivery obligations",
+          "compliance regimes",
+          "security requirements"
+        ],
+        "resets": []
+      },
+      "reversibility": {
+        "reversibility": "reversible",
+        "forecloses": [],
+        "unwind_cost": "cheap"
+      },
+      "jurisdiction": {
+        "sensitivity": "high",
+        "variants": []
+      },
+      "evidence": {
+        "sources": [],
+        "confidence": "probable",
+        "last_verified": null,
+        "decay_rate": "slow"
+      },
+      "knowledge": {
+        "misconceptions": "*\"Government procurement is too slow for a startup.\"* Often true for open tenders; frequently untrue for pilots, innovation programs, unsolicited proposals and panel arrangements."
+      }
+    },
+    {
+      "id": "customer-prepay",
+      "name": "Customer prepayment / annual prepay",
+      "aliases": [],
+      "family": "customer",
+      "one_line": "The customer pays ahead, in exchange for a discount or terms.",
+      "depth": "D3",
+      "status": "established",
+      "mechanics": {
+        "consideration_in": [
+          "cash"
+        ],
+        "consideration_out": [
+          "obligation"
+        ],
+        "dilutive": false,
+        "repayable": "no (delivery obligation instead)",
+        "security_taken": null,
+        "seniority": null,
+        "conversion": null,
+        "conversion_triggers": null,
+        "cost_of_capital_form": "discount",
+        "ticket_typical": "any",
+        "time_to_close": "one sales cycle",
+        "dilution_range": null
+      },
+      "requires": {
+        "PROD": "confirmed",
+        "TRAC": "confirmed",
+        "OPS": "confirmed"
+      },
+      "helpful": {
+        "REL": "confirmed"
+      },
+      "irrelevant": [
+        "EXIT",
+        "FNDR",
+        "IMPACT",
+        "CASH",
+        "GOV"
+      ],
+      "irrelevant_notes": [],
+      "disqualifiers": [
+        {
+          "id": "nothing-to-sell",
+          "description": "nothing to sell"
+        },
+        {
+          "id": "customer-procurement-rules-forbidding-prepayment",
+          "description": "customer procurement rules forbidding prepayment"
+        }
+      ],
+      "provider": {
+        "classes": [
+          "customers"
+        ],
+        "motivation": "Discount, priority, influence over roadmap, supply security.",
+        "default": "opportunistic",
+        "volume": null
+      },
+      "graph": {
+        "precedes": [],
+        "follows": [],
+        "converts_to": [],
+        "unlocks": [
+          "invoice-finance",
+          "revenue-based-finance",
+          "proof of demand"
+        ],
+        "blocks": [],
+        "poisons": [],
+        "taints": [],
+        "stacks_with": [
+          "everything"
+        ],
+        "competes_with": [],
+        "triggers": [],
+        "resets": []
+      },
+      "reversibility": {
+        "reversibility": "reversible",
+        "forecloses": [],
+        "unwind_cost": "cheap"
+      },
+      "jurisdiction": {
+        "sensitivity": "none",
+        "variants": []
+      },
+      "evidence": {
+        "sources": [],
+        "confidence": "confirmed",
+        "last_verified": null,
+        "decay_rate": "static"
+      },
+      "knowledge": {
+        "misconceptions": "*\"That's just sales, not funding.\"* The distinction is accounting, not economics. Twelve months of prepaid revenue and twelve months of runway from a SAFE are the same runway, and one of them costs no equity."
+      }
+    },
+    {
+      "id": "paid-poc",
+      "name": "Paid proof of concept / design partner fee",
+      "aliases": [],
+      "family": "customer",
+      "one_line": "A prospect pays to co-develop the thing they want to buy.",
+      "depth": "D3",
+      "status": "established",
+      "mechanics": {
+        "consideration_in": [
+          "cash",
+          "access",
+          "data"
+        ],
+        "consideration_out": [
+          "obligation",
+          "sometimes IP_licence",
+          "sometimes data_rights"
+        ],
+        "dilutive": false,
+        "repayable": false,
+        "security_taken": null,
+        "seniority": null,
+        "conversion": null,
+        "conversion_triggers": null,
+        "cost_of_capital_form": null,
+        "ticket_typical": "10k – 500k",
+        "time_to_close": "weeks – months",
+        "dilution_range": null
+      },
+      "requires": {
+        "PROB": "confirmed",
+        "PROD": "probable",
+        "OPS": "probable",
+        "REL": "probable"
+      },
+      "helpful": {
+        "FNDR": "probable"
+      },
+      "irrelevant": [
+        "FIN",
+        "EXIT",
+        "CASH",
+        "UNIT"
+      ],
+      "irrelevant_notes": [],
+      "disqualifiers": [
+        {
+          "id": "nothing-demonstrable",
+          "description": "nothing demonstrable"
+        },
+        {
+          "id": "no-access-to-the-buyer",
+          "description": "no access to the buyer"
+        }
+      ],
+      "provider": {
+        "classes": [
+          "enterprises",
+          "government",
+          "primes",
+          "channel partners"
+        ],
+        "motivation": "They want the capability and would rather shape it than wait for it.",
+        "default": "opportunistic",
+        "volume": null
+      },
+      "graph": {
+        "precedes": [],
+        "follows": [],
+        "converts_to": [],
+        "unlocks": [
+          "reference customer",
+          "procurement pathway",
+          "TRAC evidence",
+          "product requirements from a paying source"
+        ],
+        "blocks": [],
+        "poisons": [
+          "exclusivity or IP assignment terms that foreclose the wider market"
+        ],
+        "taints": [],
+        "stacks_with": [
+          "everything"
+        ],
+        "competes_with": [],
+        "triggers": [],
+        "resets": []
+      },
+      "reversibility": {
+        "reversibility": "partial",
+        "forecloses": [
+          "depends entirely on IP and exclusivity terms — this is where the one-way risk hides"
+        ],
+        "unwind_cost": "varies"
+      },
+      "jurisdiction": {
+        "sensitivity": null,
+        "variants": []
+      },
+      "evidence": {
+        "sources": [],
+        "confidence": "confirmed",
+        "last_verified": null,
+        "decay_rate": "static"
+      },
+      "knowledge": {
+        "failure_modes": "Accepting IP assignment or category exclusivity to win the first cheque, and discovering later it foreclosed the market. Building a bespoke thing that serves one customer and generalises to none."
+      }
+    },
+    {
+      "id": "licensing-advance",
+      "name": "Licensing advance / minimum guarantee",
+      "aliases": [],
+      "family": "customer",
+      "one_line": "A licensee pays upfront against future royalties.",
+      "depth": "D2",
+      "status": "established",
+      "mechanics": {
+        "consideration_in": [
+          "cash"
+        ],
+        "consideration_out": [
+          "IP_licence",
+          "revenue_share"
+        ],
+        "dilutive": false,
+        "repayable": "no (recouped against royalties)",
+        "security_taken": null,
+        "seniority": null,
+        "conversion": null,
+        "conversion_triggers": null,
+        "cost_of_capital_form": null,
+        "ticket_typical": null,
+        "time_to_close": null,
+        "dilution_range": null
+      },
+      "requires": {
+        "PROD": "confirmed",
+        "IDENT": "confirmed",
+        "GOV": "probable"
+      },
+      "helpful": {},
+      "irrelevant": [
+        "FIN",
+        "EXIT",
+        "TRAC",
+        "FNDR"
+      ],
+      "irrelevant_notes": [],
+      "disqualifiers": [
+        {
+          "id": "unclear-ip-ownership",
+          "description": "unclear IP ownership"
+        },
+        {
+          "id": "no-licensable-asset",
+          "description": "no licensable asset"
+        }
+      ],
+      "provider": {
+        "classes": null,
+        "motivation": null,
+        "default": null,
+        "volume": null
+      },
+      "graph": {
+        "precedes": [],
+        "follows": [],
+        "converts_to": [],
+        "unlocks": [
+          "proof of third-party valuation of the IP"
+        ],
+        "blocks": [],
+        "poisons": [
+          "territory or field-of-use exclusivity foreclosing other licensees"
+        ],
+        "taints": [],
+        "stacks_with": [],
+        "competes_with": [],
+        "triggers": [],
+        "resets": []
+      },
+      "reversibility": {
+        "reversibility": "partial",
+        "forecloses": [],
+        "unwind_cost": null
+      },
+      "jurisdiction": {
+        "sensitivity": null,
+        "variants": []
+      },
+      "evidence": {
+        "sources": [],
+        "confidence": "asserted",
+        "last_verified": null,
+        "decay_rate": null
+      },
+      "knowledge": {}
+    },
+    {
+      "id": "cloud-credits",
+      "name": "Hyperscaler / vendor credits",
+      "aliases": [],
+      "family": "strategic",
+      "one_line": "Compute, tooling or services granted free, which is runway by another name.",
+      "depth": "D3",
+      "status": "established",
+      "mechanics": {
+        "consideration_in": [
+          "credits",
+          "access",
+          "avoided_cost"
+        ],
+        "consideration_out": [
+          "nothing",
+          "sometimes platform commitment"
+        ],
+        "dilutive": false,
+        "repayable": false,
+        "security_taken": null,
+        "seniority": null,
+        "conversion": null,
+        "conversion_triggers": null,
+        "cost_of_capital_form": "none | lock-in",
+        "ticket_typical": "1k – 500k+ in credit value",
+        "time_to_close": "days – weeks",
+        "dilution_range": null
+      },
+      "requires": {
+        "IDENT": "confirmed",
+        "PROD": "asserted"
+      },
+      "helpful": {
+        "REL": "probable",
+        "TRAC": "asserted"
+      },
+      "irrelevant": [
+        "FIN",
+        "CASH",
+        "EXIT",
+        "UNIT",
+        "IMPACT"
+      ],
+      "irrelevant_notes": [],
+      "disqualifiers": [
+        {
+          "id": "already-consumed-the-program-tier",
+          "description": "already consumed the program tier"
+        },
+        {
+          "id": "entity-ineligible",
+          "description": "entity ineligible"
+        },
+        {
+          "id": "credits-expired-unused",
+          "description": "credits expired unused"
+        }
+      ],
+      "provider": {
+        "classes": [
+          "hyperscalers",
+          "SaaS vendors",
+          "distributors",
+          "accelerator partners"
+        ],
+        "motivation": "Acquisition cost. They are buying a future paying workload and architectural lock-in at a fraction of enterprise sales cost.",
+        "default": "opportunistic",
+        "volume": null
+      },
+      "graph": {
+        "precedes": [],
+        "follows": [],
+        "converts_to": [],
+        "unlocks": [
+          "marketplace-cosell",
+          "partner program tiers",
+          "vendor-mdf"
+        ],
+        "blocks": [],
+        "poisons": [
+          "architectural neutrality — credits are a lock-in instrument wearing a gift's clothing"
+        ],
+        "taints": [],
+        "stacks_with": [
+          "everything"
+        ],
+        "competes_with": [],
+        "triggers": [
+          "expiry dates",
+          "which are the most commonly wasted asset in this family"
+        ],
+        "resets": []
+      },
+      "reversibility": {
+        "reversibility": "partial",
+        "forecloses": [
+          "cheap migration later"
+        ],
+        "unwind_cost": "expensive"
+      },
+      "jurisdiction": {
+        "sensitivity": null,
+        "variants": []
+      },
+      "evidence": {
+        "sources": [],
+        "confidence": "confirmed",
+        "last_verified": null,
+        "decay_rate": "volatile"
+      },
+      "knowledge": {
+        "failure_modes": "Credits expiring unused. Architecting for the credit and inheriting the cost structure when it ends."
+      }
+    },
+    {
+      "id": "vendor-mdf",
+      "name": "Vendor market development funds / co-op marketing",
+      "aliases": [],
+      "family": "strategic",
+      "one_line": "A vendor funds your go-to-market because your success sells their product.",
+      "depth": "D3",
+      "status": "established",
+      "mechanics": {
+        "consideration_in": [
+          "cash",
+          "credits",
+          "access",
+          "brand"
+        ],
+        "consideration_out": [
+          "obligation"
+        ],
+        "dilutive": false,
+        "repayable": false,
+        "security_taken": null,
+        "seniority": null,
+        "conversion": null,
+        "conversion_triggers": null,
+        "cost_of_capital_form": null,
+        "ticket_typical": "5k – 500k per program cycle",
+        "time_to_close": null,
+        "dilution_range": null
+      },
+      "requires": {
+        "IDENT": "confirmed",
+        "TRAC": "probable",
+        "OPS": "probable",
+        "REL": "confirmed"
+      },
+      "helpful": {},
+      "irrelevant": [
+        "EXIT",
+        "FIN",
+        "UNIT",
+        "IMPACT"
+      ],
+      "irrelevant_notes": [],
+      "disqualifiers": [
+        {
+          "id": "not-in-the-partner-program",
+          "description": "not in the partner program"
+        },
+        {
+          "id": "no-attributable-pipeline",
+          "description": "no attributable pipeline"
+        }
+      ],
+      "provider": {
+        "classes": [
+          "vendors",
+          "distributors",
+          "hyperscalers"
+        ],
+        "motivation": "Channel leverage — your pipeline is cheaper than their direct sales.",
+        "default": "mandate_driven",
+        "volume": null
+      },
+      "graph": {
+        "precedes": [],
+        "follows": [],
+        "converts_to": [],
+        "unlocks": [
+          "marketplace-cosell",
+          "tier progression",
+          "further MDF"
+        ],
+        "blocks": [],
+        "poisons": [],
+        "taints": [],
+        "stacks_with": [
+          "everything"
+        ],
+        "competes_with": [],
+        "triggers": [],
+        "resets": []
+      },
+      "reversibility": {
+        "reversibility": "reversible",
+        "forecloses": [],
+        "unwind_cost": null
+      },
+      "jurisdiction": {
+        "sensitivity": null,
+        "variants": []
+      },
+      "evidence": {
+        "sources": [],
+        "confidence": "probable",
+        "last_verified": null,
+        "decay_rate": "volatile"
+      },
+      "knowledge": {}
+    },
+    {
+      "id": "corporate-vc",
+      "name": "Corporate venture capital / strategic investment",
+      "aliases": [],
+      "family": "strategic",
+      "one_line": "A corporate invests, usually with a commercial agreement attached.",
+      "depth": "D3",
+      "status": "established",
+      "mechanics": {
+        "consideration_in": [
+          "cash",
+          "access",
+          "procurement",
+          "brand",
+          "data"
+        ],
+        "consideration_out": [
+          "equity",
+          "sometimes exclusivity"
+        ],
+        "dilutive": true,
+        "repayable": false,
+        "security_taken": null,
+        "seniority": null,
+        "conversion": null,
+        "conversion_triggers": null,
+        "cost_of_capital_form": null,
+        "ticket_typical": null,
+        "time_to_close": null,
+        "dilution_range": null
+      },
+      "requires": {
+        "IDENT": "confirmed",
+        "PROD": "confirmed",
+        "TRAC": "probable",
+        "PROB": "confirmed",
+        "GOV": "probable"
+      },
+      "helpful": {
+        "EXIT": "probable",
+        "REL": "confirmed"
+      },
+      "irrelevant": [
+        "CASH"
+      ],
+      "irrelevant_notes": [],
+      "disqualifiers": [
+        {
+          "id": "direct-competitive-conflict-with-a-portfolio-holding",
+          "description": "direct competitive conflict with a portfolio holding"
+        }
+      ],
+      "provider": {
+        "classes": [
+          "corporate venture arms",
+          "strategic acquirers",
+          "primes"
+        ],
+        "motivation": "**Strategic option, not financial return.** They are buying early sight, a hedge, or a supply relationship. The cheque is the smaller half of the transaction.",
+        "default": "mandate_driven",
+        "volume": null
+      },
+      "graph": {
+        "precedes": [],
+        "follows": [],
+        "converts_to": [],
+        "unlocks": [
+          "distribution",
+          "procurement",
+          "credibility",
+          "category validation"
+        ],
+        "blocks": [],
+        "poisons": [
+          "acquisition by their competitors; sometimes other CVCs"
+        ],
+        "taints": [
+          "rival corporates",
+          "and some financial investors who read a strategic on the register as a signalled exit"
+        ],
+        "stacks_with": [],
+        "competes_with": [],
+        "triggers": [
+          "information rights that may reach a future competitor"
+        ],
+        "resets": []
+      },
+      "reversibility": {
+        "reversibility": "one_way",
+        "forecloses": [
+          "neutrality",
+          "and some exit routes"
+        ],
+        "unwind_cost": "impossible"
+      },
+      "jurisdiction": {
+        "sensitivity": null,
+        "variants": []
+      },
+      "evidence": {
+        "sources": [],
+        "confidence": "probable",
+        "last_verified": null,
+        "decay_rate": "slow"
+      },
+      "knowledge": {
+        "tells": "A strategic that wants information rights but no board seat and no commercial agreement is buying surveillance cheaply."
+      }
+    },
+    {
+      "id": "spv-per-asset",
+      "name": "SPV per asset / per project",
+      "aliases": [],
+      "family": "structured",
+      "one_line": "A separate entity holds one asset and raises against that asset alone.",
+      "depth": "D4",
+      "status": "established",
+      "mechanics": {
+        "consideration_in": [
+          "cash"
+        ],
+        "consideration_out": [
+          "equity",
+          "revenue_share",
+          "repayment"
+        ],
+        "dilutive": "no (at parent level)",
+        "repayable": "varies",
+        "security_taken": null,
+        "seniority": null,
+        "conversion": null,
+        "conversion_triggers": null,
+        "cost_of_capital_form": null,
+        "ticket_typical": "any",
+        "time_to_close": "weeks – months including formation",
+        "dilution_range": null
+      },
+      "requires": {
+        "IDENT": "confirmed",
+        "USE": "confirmed",
+        "GOV": "probable"
+      },
+      "helpful": {
+        "TRAC": "probable",
+        "OPS": "probable",
+        "EXIT": "probable"
+      },
+      "irrelevant": [],
+      "irrelevant_notes": [
+        "parent FIN",
+        "parent CASH"
+      ],
+      "disqualifiers": [
+        {
+          "id": "asset-not-separable",
+          "description": "asset not separable"
+        },
+        {
+          "id": "ip-entangled-with-parent",
+          "description": "IP entangled with parent"
+        },
+        {
+          "id": "no-governance-capacity-to-run-multiple-entities",
+          "description": "no governance capacity to run multiple entities"
+        }
+      ],
+      "provider": {
+        "classes": [
+          "any — the SPV selects its own instrument independently"
+        ],
+        "motivation": "Isolated exposure to one asset without underwriting an entire company.",
+        "default": "varies by instrument chosen",
+        "volume": null
+      },
+      "graph": {
+        "precedes": [],
+        "follows": [],
+        "converts_to": [],
+        "unlocks": [
+          "instrument choice per asset",
+          "jurisdiction choice per asset",
+          "failure isolation",
+          "investors who would never fund the parent"
+        ],
+        "blocks": [],
+        "poisons": [],
+        "taints": [],
+        "stacks_with": [
+          "every instrument — the point of the structure"
+        ],
+        "competes_with": [
+          "priced-seed-preferred at parent level"
+        ],
+        "triggers": [
+          "governance overhead",
+          "intercompany agreements",
+          "transfer pricing"
+        ],
+        "resets": []
+      },
+      "reversibility": {
+        "reversibility": "partial",
+        "forecloses": [
+          "simplicity"
+        ],
+        "unwind_cost": "expensive"
+      },
+      "jurisdiction": {
+        "sensitivity": "defining",
+        "variants": []
+      },
+      "evidence": {
+        "sources": [],
+        "confidence": "probable",
+        "last_verified": null,
+        "decay_rate": "slow"
+      },
+      "knowledge": {
+        "failure_modes": "Governance overhead exceeding the benefit. Intercompany arrangements that collapse the separation the structure existed to create. Assets that were never actually separable."
+      }
+    },
+    {
+      "id": "royalty-financing",
+      "name": "Royalty financing / revenue interest",
+      "aliases": [],
+      "family": "structured",
+      "one_line": "Capital now in exchange for a percentage of future revenue, forever or to a cap.",
+      "depth": "D3",
+      "status": "established",
+      "mechanics": {
+        "consideration_in": [
+          "cash"
+        ],
+        "consideration_out": [
+          "revenue_share",
+          "royalty"
+        ],
+        "dilutive": false,
+        "repayable": "conditional (revenue-contingent)",
+        "security_taken": null,
+        "seniority": null,
+        "conversion": null,
+        "conversion_triggers": null,
+        "cost_of_capital_form": null,
+        "ticket_typical": null,
+        "time_to_close": null,
+        "dilution_range": null
+      },
+      "requires": {
+        "PROD": "confirmed",
+        "TRAC": "confirmed",
+        "CASH": "probable",
+        "IDENT": "confirmed"
+      },
+      "helpful": {
+        "UNIT": "confirmed"
+      },
+      "irrelevant": [
+        "EXIT",
+        "FNDR",
+        "IMPACT"
+      ],
+      "irrelevant_notes": [],
+      "disqualifiers": [
+        {
+          "id": "no-identifiable-revenue-stream",
+          "description": "no identifiable revenue stream"
+        },
+        {
+          "id": "revenue-not-attributable-to-the-financed-asset",
+          "description": "revenue not attributable to the financed asset"
+        }
+      ],
+      "provider": {
+        "classes": [
+          "specialty funds",
+          "family offices",
+          "pharma royalty funds",
+          "IP funds"
+        ],
+        "motivation": "Yield uncorrelated to equity markets, secured on a specific stream.",
+        "default": null,
+        "volume": null
+      },
+      "graph": {
+        "precedes": [],
+        "follows": [],
+        "converts_to": [],
+        "unlocks": [
+          "capital without dilution or control transfer"
+        ],
+        "blocks": [],
+        "poisons": [
+          "gross margin permanently — the royalty rides ahead of profit"
+        ],
+        "taints": [],
+        "stacks_with": [
+          "equity",
+          "non-dilutive"
+        ],
+        "competes_with": [
+          "revenue-based-finance",
+          "venture-debt"
+        ],
+        "triggers": [],
+        "resets": []
+      },
+      "reversibility": {
+        "reversibility": "one_way",
+        "forecloses": [
+          "a clean margin structure for any future acquirer"
+        ],
+        "unwind_cost": "expensive"
+      },
+      "jurisdiction": {
+        "sensitivity": null,
+        "variants": []
+      },
+      "evidence": {
+        "sources": [],
+        "confidence": "probable",
+        "last_verified": null,
+        "decay_rate": "slow"
+      },
+      "knowledge": {}
+    },
+    {
+      "id": "tokenised-rwa",
+      "name": "Tokenised real-world asset / revenue share",
+      "aliases": [],
+      "family": "digital",
+      "one_line": "An on-chain instrument representing a claim on an off-chain asset or revenue stream.",
+      "depth": "D3",
+      "status": "emerging",
+      "mechanics": {
+        "consideration_in": [
+          "cash"
+        ],
+        "consideration_out": [
+          "revenue_share",
+          "equity",
+          "data_rights",
+          "obligation"
+        ],
+        "dilutive": "varies",
+        "repayable": "varies",
+        "security_taken": null,
+        "seniority": null,
+        "conversion": null,
+        "conversion_triggers": null,
+        "cost_of_capital_form": null,
+        "ticket_typical": null,
+        "time_to_close": null,
+        "dilution_range": null
+      },
+      "requires": {
+        "IDENT": "confirmed",
+        "PROD": "confirmed",
+        "GOV": "confirmed",
+        "OPS": "confirmed"
+      },
+      "helpful": {
+        "TRAC": "probable",
+        "IMPACT": "asserted"
+      },
+      "irrelevant": [
+        "EXIT"
+      ],
+      "irrelevant_notes": [],
+      "disqualifiers": [
+        {
+          "id": "jurisdiction-hostile-to-the-instrument",
+          "description": "jurisdiction hostile to the instrument"
+        },
+        {
+          "id": "no-custody-solution",
+          "description": "no custody solution"
+        },
+        {
+          "id": "no-credible-attestation-of-the-underlying-asset",
+          "description": "no credible attestation of the underlying asset"
+        }
+      ],
+      "provider": {
+        "classes": [
+          "crypto-native funds",
+          "DAOs",
+          "retail token holders",
+          "RWA platforms"
+        ],
+        "motivation": "Yield, liquidity in otherwise illiquid assets, portfolio diversification away from correlated crypto assets.",
+        "default": "opportunistic",
+        "volume": null
+      },
+      "graph": {
+        "precedes": [],
+        "follows": [],
+        "converts_to": [],
+        "unlocks": [
+          "a liquidity profile no traditional instrument offers",
+          "a global retail-scale investor base"
+        ],
+        "blocks": [],
+        "poisons": [
+          "institutional equity — many funds cannot hold or sit alongside"
+        ],
+        "taints": [
+          "banks",
+          "conservative family offices",
+          "some sovereigns"
+        ],
+        "stacks_with": [],
+        "competes_with": [],
+        "triggers": [
+          "secondary market price discovery you do not control"
+        ],
+        "resets": []
+      },
+      "reversibility": {
+        "reversibility": "one_way",
+        "forecloses": [
+          "quiet valuation; a token trades and its price is a public claim about you",
+          "continuously"
+        ],
+        "unwind_cost": "impossible"
+      },
+      "jurisdiction": {
+        "sensitivity": "defining",
+        "variants": []
+      },
+      "evidence": {
+        "sources": [],
+        "confidence": "asserted",
+        "last_verified": null,
+        "decay_rate": "volatile"
+      },
+      "knowledge": {}
+    },
+    {
+      "id": "build-for-equity",
+      "name": "Build-for-equity / services-for-equity",
+      "aliases": [],
+      "family": "human",
+      "one_line": "A firm does the work and takes stock instead of cash.",
+      "depth": "D3",
+      "status": "established",
+      "mechanics": {
+        "consideration_in": [
+          "services",
+          "time",
+          "access"
+        ],
+        "consideration_out": [
+          "equity"
+        ],
+        "dilutive": true,
+        "repayable": false,
+        "security_taken": null,
+        "seniority": null,
+        "conversion": null,
+        "conversion_triggers": null,
+        "cost_of_capital_form": "equity, usually at an unfavourable implied valuation",
+        "ticket_typical": "20k – 1M in service value",
+        "time_to_close": null,
+        "dilution_range": null
+      },
+      "requires": {
+        "IDENT": "confirmed",
+        "PROB": "probable",
+        "FNDR": "probable"
+      },
+      "helpful": {
+        "PROD": "asserted",
+        "REL": "confirmed"
+      },
+      "irrelevant": [
+        "FIN",
+        "CASH",
+        "EXIT",
+        "UNIT"
+      ],
+      "irrelevant_notes": [],
+      "disqualifiers": [
+        {
+          "id": "no-equity-available",
+          "description": "no equity available"
+        },
+        {
+          "id": "cap-table-cannot-absorb-it",
+          "description": "cap table cannot absorb it"
+        }
+      ],
+      "provider": {
+        "classes": [
+          "agencies",
+          "dev shops",
+          "professional firms",
+          "venture studios",
+          "media companies"
+        ],
+        "motivation": "Portfolio exposure on excess capacity; sometimes genuine belief.",
+        "default": "opportunistic",
+        "volume": null
+      },
+      "graph": {
+        "precedes": [],
+        "follows": [],
+        "converts_to": [],
+        "unlocks": [
+          "capability you cannot afford to hire"
+        ],
+        "blocks": [],
+        "poisons": [
+          "cap table cleanliness; institutional investors dislike service providers on the register"
+        ],
+        "taints": [],
+        "stacks_with": [],
+        "competes_with": [],
+        "triggers": [],
+        "resets": []
+      },
+      "reversibility": {
+        "reversibility": "one_way",
+        "forecloses": [],
+        "unwind_cost": "expensive"
+      },
+      "jurisdiction": {
+        "sensitivity": null,
+        "variants": []
+      },
+      "evidence": {
+        "sources": [],
+        "confidence": "probable",
+        "last_verified": null,
+        "decay_rate": "static"
+      },
+      "knowledge": {
+        "failure_modes": "Misaligned incentive — they are optimising delivery cost, you are optimising outcome. Equity granted for work of uncertain quality with no performance condition. **The implied valuation is usually terrible and rarely calculated.**"
+      }
+    },
+    {
+      "id": "deferred-salary",
+      "name": "Deferred salary / founder and team forbearance",
+      "aliases": [],
+      "family": "human",
+      "one_line": "People work now and are paid later, or in equity.",
+      "depth": "D2",
+      "status": "established",
+      "mechanics": {
+        "consideration_in": [
+          "time",
+          "avoided_cost"
+        ],
+        "consideration_out": [
+          "obligation",
+          "equity"
+        ],
+        "dilutive": "conditional",
+        "repayable": "conditional",
+        "security_taken": null,
+        "seniority": null,
+        "conversion": null,
+        "conversion_triggers": null,
+        "cost_of_capital_form": null,
+        "ticket_typical": null,
+        "time_to_close": null,
+        "dilution_range": null
+      },
+      "requires": {
+        "FNDR": "confirmed",
+        "GOV": "probable"
+      },
+      "helpful": {},
+      "irrelevant": [],
+      "irrelevant_notes": [
+        "everything external"
+      ],
+      "disqualifiers": [
+        {
+          "id": "employment-law-constraints",
+          "description": "employment law constraints"
+        },
+        {
+          "id": "people-who-cannot-afford-it",
+          "description": "people who cannot afford it"
+        }
+      ],
+      "provider": {
+        "classes": [
+          "founders",
+          "early team"
+        ],
+        "motivation": "Belief, upside, or lack of alternative.",
+        "default": null,
+        "volume": null
+      },
+      "graph": {
+        "precedes": [],
+        "follows": [],
+        "converts_to": [],
+        "unlocks": [
+          "runway"
+        ],
+        "blocks": [],
+        "poisons": [
+          "morale; and an accrued liability that appears in diligence"
+        ],
+        "taints": [],
+        "stacks_with": [],
+        "competes_with": [],
+        "triggers": [
+          "a liability on the balance sheet that a future investor will see"
+        ],
+        "resets": []
+      },
+      "reversibility": {
+        "reversibility": "partial",
+        "forecloses": [],
+        "unwind_cost": null
+      },
+      "jurisdiction": {
+        "sensitivity": null,
+        "variants": []
+      },
+      "evidence": {
+        "sources": [],
+        "confidence": "confirmed",
+        "last_verified": null,
+        "decay_rate": null
+      },
+      "knowledge": {}
+    },
+    {
+      "id": "litigation-finance",
+      "name": "Litigation finance",
+      "aliases": [],
+      "family": "exotic",
+      "one_line": "A funder pays legal costs for a share of the proceeds.",
+      "depth": "D2",
+      "status": "established",
+      "mechanics": {
+        "consideration_in": [
+          "cash",
+          "services"
+        ],
+        "consideration_out": [
+          "revenue_share"
+        ],
+        "dilutive": false,
+        "repayable": "conditional (non-recourse on loss)",
+        "security_taken": null,
+        "seniority": null,
+        "conversion": null,
+        "conversion_triggers": null,
+        "cost_of_capital_form": null,
+        "ticket_typical": null,
+        "time_to_close": null,
+        "dilution_range": null
+      },
+      "requires": {
+        "IDENT": "confirmed",
+        "GOV": "confirmed"
+      },
+      "helpful": {},
+      "irrelevant": [
+        "PROD",
+        "TRAC",
+        "EXIT",
+        "FNDR",
+        "PROB",
+        "IMPACT"
+      ],
+      "irrelevant_notes": [],
+      "disqualifiers": [
+        {
+          "id": "no-claim",
+          "description": "no claim"
+        },
+        {
+          "id": "weak-merits",
+          "description": "weak merits"
+        },
+        {
+          "id": "defendant-cannot-pay",
+          "description": "defendant cannot pay"
+        }
+      ],
+      "provider": {
+        "classes": [
+          "litigation funds",
+          "specialty insurers"
+        ],
+        "motivation": "Uncorrelated returns on legal merit.",
+        "default": null,
+        "volume": null
+      },
+      "graph": {
+        "precedes": [],
+        "follows": [],
+        "converts_to": [],
+        "unlocks": [
+          "pursuing a claim you could not otherwise afford — including IP enforcement that protects the core asset"
+        ],
+        "blocks": [],
+        "poisons": [],
+        "taints": [],
+        "stacks_with": [],
+        "competes_with": [],
+        "triggers": [],
+        "resets": []
+      },
+      "reversibility": {
+        "reversibility": "partial",
+        "forecloses": [],
+        "unwind_cost": null
+      },
+      "jurisdiction": {
+        "sensitivity": null,
+        "variants": []
+      },
+      "evidence": {
+        "sources": [],
+        "confidence": "asserted",
+        "last_verified": null,
+        "decay_rate": null
+      },
+      "knowledge": {}
+    },
+    {
+      "id": "islamic-profit-share",
+      "name": "Islamic finance structures",
+      "aliases": [
+        "mudarabah",
+        "musharaka",
+        "murabaha",
+        "ijara",
+        "sukuk"
+      ],
+      "family": "exotic",
+      "one_line": "Capital structures based on profit-and-loss sharing or asset trade rather than interest.",
+      "depth": "D2",
+      "status": "established",
+      "mechanics": {
+        "consideration_in": [
+          "cash",
+          "access"
+        ],
+        "consideration_out": [
+          "revenue_share",
+          "equity",
+          "obligation"
+        ],
+        "dilutive": "varies",
+        "repayable": "varies",
+        "security_taken": null,
+        "seniority": null,
+        "conversion": null,
+        "conversion_triggers": null,
+        "cost_of_capital_form": null,
+        "ticket_typical": null,
+        "time_to_close": null,
+        "dilution_range": null
+      },
+      "requires": {
+        "IDENT": "confirmed",
+        "GOV": "confirmed",
+        "PROD": "confirmed",
+        "OPS": "probable"
+      },
+      "helpful": {
+        "IMPACT": "confirmed",
+        "TRAC": "probable"
+      },
+      "irrelevant": [
+        "EXIT"
+      ],
+      "irrelevant_notes": [],
+      "disqualifiers": [
+        {
+          "id": "business-activity-non-compliant-under-the-applicable-standards",
+          "description": "business activity non-compliant under the applicable standards"
+        },
+        {
+          "id": "structure-cannot-be-made-asset-backed",
+          "description": "structure cannot be made asset-backed"
+        }
+      ],
+      "provider": {
+        "classes": [
+          "Islamic banks",
+          "GCC and SEA family offices",
+          "sovereign funds",
+          "dedicated funds"
+        ],
+        "motivation": "Return within a compliance framework, plus mandate alignment.",
+        "default": "mandate_driven",
+        "volume": null
+      },
+      "graph": {
+        "precedes": [],
+        "follows": [],
+        "converts_to": [],
+        "unlocks": [
+          "a capital pool measured in trillions that most founders never consider approaching"
+        ],
+        "blocks": [],
+        "poisons": [],
+        "taints": [],
+        "stacks_with": [],
+        "competes_with": [],
+        "triggers": [],
+        "resets": []
+      },
+      "reversibility": {
+        "reversibility": "varies",
+        "forecloses": [],
+        "unwind_cost": null
+      },
+      "jurisdiction": {
+        "sensitivity": "defining",
+        "variants": []
+      },
+      "evidence": {
+        "sources": [],
+        "confidence": "asserted",
+        "last_verified": null,
+        "decay_rate": "slow"
+      },
+      "knowledge": {}
+    },
+    {
+      "id": "countertrade",
+      "name": "Countertrade / offset / barter",
+      "aliases": [],
+      "family": "exotic",
+      "one_line": "Value exchanged without cash, often mandated by a government as a condition of a large contract.",
+      "depth": "D1",
+      "status": "established",
+      "mechanics": {
+        "consideration_in": [
+          "access",
+          "procurement",
+          "avoided_cost",
+          "IP_licence",
+          "guarantee"
+        ],
+        "consideration_out": [
+          "obligation",
+          "IP_licence",
+          "data_rights"
+        ],
+        "dilutive": false,
+        "repayable": null,
+        "security_taken": null,
+        "seniority": null,
+        "conversion": null,
+        "conversion_triggers": null,
+        "cost_of_capital_form": null,
+        "ticket_typical": null,
+        "time_to_close": null,
+        "dilution_range": null
+      },
+      "requires": {
+        "OPS": "confirmed",
+        "REL": "confirmed",
+        "IDENT": "confirmed"
+      },
+      "helpful": {},
+      "irrelevant": [
+        "FIN",
+        "EXIT",
+        "CASH"
+      ],
+      "irrelevant_notes": [],
+      "disqualifiers": [
+        {
+          "id": "nothing-the-counterparty-wants",
+          "description": "nothing the counterparty wants"
+        }
+      ],
+      "provider": {
+        "classes": [
+          "governments",
+          "primes",
+          "state-owned enterprises"
+        ],
+        "motivation": "Defence and infrastructure offset obligations — a prime that has won a large contract may be *required* to place value in-country and is actively looking for recipients.",
+        "default": null,
+        "volume": null
+      },
+      "graph": {
+        "precedes": [],
+        "follows": [],
+        "converts_to": [],
+        "unlocks": [
+          "entry to markets that are otherwise closed"
+        ],
+        "blocks": [],
+        "poisons": [],
+        "taints": [],
+        "stacks_with": [],
+        "competes_with": [],
+        "triggers": [],
+        "resets": []
+      },
+      "reversibility": {
+        "reversibility": null,
+        "forecloses": [],
+        "unwind_cost": null
+      },
+      "jurisdiction": {
+        "sensitivity": "defining",
+        "variants": []
+      },
+      "evidence": {
+        "sources": [],
+        "confidence": "asserted",
+        "last_verified": null,
+        "decay_rate": null
+      },
+      "knowledge": {}
+    },
+    {
+      "id": "residency-linked-capital",
+      "name": "Residency- or citizenship-linked investment",
+      "aliases": [],
+      "family": "exotic",
+      "one_line": "An investor deploys capital partly to obtain residency rights.",
+      "depth": "D1",
+      "status": "established",
+      "mechanics": {
+        "consideration_in": [
+          "cash"
+        ],
+        "consideration_out": [
+          "equity",
+          "obligation"
+        ],
+        "dilutive": true,
+        "repayable": null,
+        "security_taken": null,
+        "seniority": null,
+        "conversion": null,
+        "conversion_triggers": null,
+        "cost_of_capital_form": null,
+        "ticket_typical": null,
+        "time_to_close": null,
+        "dilution_range": null
+      },
+      "requires": {
+        "IDENT": "confirmed",
+        "GOV": "confirmed",
+        "OPS": "probable"
+      },
+      "helpful": {
+        "IMPACT": "confirmed"
+      },
+      "irrelevant": [
+        "EXIT",
+        "UNIT"
+      ],
+      "irrelevant_notes": [],
+      "disqualifiers": [
+        {
+          "id": "entity-or-activity-outside-the-qualifying-definition",
+          "description": "entity or activity outside the qualifying definition"
+        },
+        {
+          "id": "jurisdiction-without-such-a-program",
+          "description": "jurisdiction without such a program"
+        }
+      ],
+      "provider": {
+        "classes": null,
+        "motivation": "**The return is partly non-financial.** They are buying optionality on where they and their family can live.",
+        "default": null,
+        "volume": null
+      },
+      "graph": {
+        "precedes": [],
+        "follows": [],
+        "converts_to": [],
+        "unlocks": [],
+        "blocks": [],
+        "poisons": [],
+        "taints": [],
+        "stacks_with": [],
+        "competes_with": [],
+        "triggers": [],
+        "resets": []
+      },
+      "reversibility": {
+        "reversibility": null,
+        "forecloses": [],
+        "unwind_cost": null
+      },
+      "jurisdiction": {
+        "sensitivity": "defining",
+        "variants": []
+      },
+      "evidence": {
+        "sources": [],
+        "confidence": "asserted",
+        "last_verified": null,
+        "decay_rate": "volatile"
+      },
+      "knowledge": {}
+    }
+  ]
+}
