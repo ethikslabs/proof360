@@ -56,7 +56,7 @@ import { SimulationSwitch } from '../components/chat/SimulationSwitch.jsx';
 import { CommandPalette } from '../components/chat/CommandPalette.jsx';
 import { Inspector } from '../components/chat/Inspector.jsx';
 import { useCommandPalette } from '../hooks/useCommandPalette.js';
-import { useBreakpoint } from '../hooks/useBreakpoint.js';
+import { useRailState } from '../hooks/useBreakpoint.js';
 import { coldReadFailure } from '../rendering/coldReadFailure.js';
 import { TWIN_YOURS } from '../copy.js';
 import { ShortlistContext } from '../components/chat/AddToShortlist.jsx';
@@ -1387,7 +1387,10 @@ export default function Chat() {
   // behaviour here. What is new is `hasRail`: the middle state, where the rail folds to
   // tabs but the reading keeps its full width. That state did not exist before at any
   // width, which is why the rail sat at 240px from 768px to 4K.
-  const { isCompact, hasRail } = useBreakpoint();
+  // The rail preference (`sidebarCollapsed`) and the width class (`hasRail`) are two
+  // variables on purpose — one variable for both is why rails forget your choice after a
+  // resize. useRailState carries the preference untouched below the boundary.
+  const { isCompact, hasRail } = useRailState(!sidebarCollapsed, (open) => setSidebarCollapsed(!open));
   const isMobile = isCompact;
 
   const {
@@ -2578,8 +2581,10 @@ export default function Chat() {
 
       <main style={{ flex: 1, minHeight: 0, display: 'flex', minWidth: 0, overflow: 'hidden' }}>
 
-        {/* Left icon rail — section spaces, like Claude's left nav */}
-        <Sidebar
+        {/* Left icon rail — section spaces, like Claude's left nav. Mounted only when the
+            width class has a rail (≥1056): below that the rail folds to tabs and the reading
+            keeps its width — the middle state the one-subject spec exists for. */}
+        {hasRail && <Sidebar
           collapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed(c => !c)}
           simulation={simulation}
@@ -2615,7 +2620,7 @@ export default function Chat() {
           cers={cer.createdCers}
           onWithdrawCer={cer.withdrawCer}
           t={t}
-        />
+        />}
 
         {/* Chat pane — elastic width driven by surfaceFlex.chat (AC-8/AC-10) */}
         {/* Mobile: hidden when Vendor Intelligence holds authority (AC-14) */}

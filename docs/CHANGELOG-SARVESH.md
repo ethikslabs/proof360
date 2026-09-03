@@ -4,6 +4,34 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-09-03 · The rail leaves at the width it was meant to, and /journey stops keeping score
+
+**Where this came from.** John ran the redesign through Claude Design as a lab ("Sarvesh Lab" — eight prototype pages), then had Claude Code read every page against the branch and the rulings. Two things on the branch turned out to be claimed but not wired. Both are fixed here; everything else in that lab is either John's intent by design or later build scope.
+
+**1. The middle width state existed in a hook and nowhere else.**
+
+*Vocabulary.* `useBreakpoint()` computes a **width class** from the viewport: `compact` (<768), `medium` (768–1055), `wide` (≥1056). `hasRail` is true only in `wide`. The whole point of yesterday's pass was the medium state — the rail folds away, the reading keeps its full width.
+
+*Problem.* `hasRail` was read in `Chat.jsx` and used exactly once, to decide whether the Inspector is a dialog. `<Sidebar>` itself was mounted unconditionally, so the rail still sat at 240px from 768px to 4K — the exact defect the spec set out to fix. `useRailState`, the hook that keeps the *preference* (open/closed) separate from the *computed* width class, was exported and called by nobody.
+
+*Fix.* `Chat.jsx` now mounts `<Sidebar>` only when `hasRail` is true, and takes its breakpoint from `useRailState(preference, setPreference)` so the two variables stay two variables. **Why two variables matters:** if "collapsed" and "too narrow for a rail" share one flag, resizing the window resets your choice. They don't share one now.
+
+*Guard.* `tests/unit/one-subject-wiring.test.js` reads `Chat.jsx` as text and asserts both wirings. Source-level on purpose — `Chat.jsx` is 3,500 lines and is not rendered whole under test; the assertion is about where the hook's output *goes*, and the repo already does this shape in `demoFixtureCopy.test.js`.
+
+**2. /journey was the one score-bearing page the no-scores ruling never reached.**
+
+*Problem.* `Journey.jsx` had `deriveArc()`: start every founder at 52, subtract 9 per gap, add 5 per match, add 13 per verified outcome, clamp to 8–96, draw a curve, and put a "posture ↑ 13" chip on every chapter and a "trust momentum" number in the header. That is a trust score with the "/100" filed off. The 26 Aug conversion (`86d2f82`) fixed the dashboard, the portal and the projections and did not touch this file; `no-scores.render.test.jsx` had no case for it. Unfixed and unguarded.
+
+*Fix.* **Presence by chapter.** The page now shows which of the six rooms the rail already knows — Investor readiness · Vendors · AWS programs · Microsoft programs · Posture · SPV — the founder has walked into, per chapter, as pips: present / partial / not yet. The chapter chip reads "n of 6 rooms open"; the header stat replaces momentum with the same. A count of rooms is allowed (John, by design, 3 Sept); a weighted number is not.
+
+*How presence is derived — and why it is derived, not stored.* `src/utils/journeyPresence.js` is a pure function over the record. A claim lands in a room by its **subject** (`soc2_status` → Posture, `match:aws_activate` → AWS, `outcome:<id>` → Vendors, `spv_*` → SPV…); a claim that **reality or a provider attested** makes the room *present*, anything weaker makes it *partial*; and once a room is open it stays open in later chapters, because the record is append-only. No new field on the API, no backfill, nothing the founder can be graded on. If the record changes, the grid changes; there is nothing to keep in sync.
+
+*One honest note for your rebuild.* `classifyClaim()` in Journey still looks for `gap:` / `match:` subject prefixes. **Nothing in the API writes those today** — live journey claims are posture fields plus `outcome:<id>` — so today every non-outcome claim is a "signal" and lands in Posture. The presence routing is written for the vocabulary that exists; when the memory layer starts emitting typed subjects, extend `roomFor()` with a test row each.
+
+*Guards.* `tests/unit/journey-no-scores.test.jsx` renders the page against a mocked record and asserts no posture delta, no momentum, no curve. `tests/unit/journeyPresence.test.js` covers routing, levels, accumulation and the empty record. 499/499, lint clean.
+
+---
+
 ## 2026-09-02 · One subject, everything else earned — the interface pass
 
 Research-led. Two deep research passes ran before any code; the sources are cited inline below because two findings **contradicted the design I had already drafted**, and the draft lost.

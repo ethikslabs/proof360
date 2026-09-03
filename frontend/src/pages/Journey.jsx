@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { getJourney } from '../api/client';
+import { derivePresence, LEVEL_LABEL, SPACES } from '../utils/journeyPresence.js';
 
-// ---------- derive the trust trajectory from the atom-spine claims ----------
-// Honest, derived signal (not a precise score): risk surfaced pulls posture down,
-// action nudges it up, a verified outcome (authority=reality) lifts it. The point
-// is the SHAPE of the arc — where you were, what moved, where you are now.
-const BASE = 52;
+// ---------- derive presence from the atom-spine claims ----------
+// Presence replaces posture (workshop 2026-09-03): deriveArc() — BASE 52, gap −9, match +5,
+// outcome +13 — was a score by another name and every chapter carried a "posture ↑ n" chip.
+// The record now shows which of the six rooms the founder has walked into, per chapter.
+// See src/utils/journeyPresence.js.
 function classifyClaim(c) {
   const s = (c.subject || '').toLowerCase();
   if (c.authority === 'reality') return 'outcome';
@@ -13,44 +14,14 @@ function classifyClaim(c) {
   if (s.startsWith('match:')) return 'match';
   return 'signal';
 }
-const WEIGHT = { outcome: 13, match: 5, gap: -9, signal: 2 };
-
-function deriveArc(entries) {
-  let cum = BASE;
-  let gapsTotal = 0, resolvedTotal = 0, matchTotal = 0;
-  const nodes = entries.map((e) => {
-    let delta = 0, gaps = 0, matches = 0, outcomes = 0;
-    for (const c of e.claims) {
-      const k = classifyClaim(c);
-      delta += WEIGHT[k];
-      if (k === 'gap') gaps++;
-      if (k === 'match') matches++;
-      if (k === 'outcome') outcomes++;
-    }
-    cum = Math.max(8, Math.min(96, cum + delta));
-    gapsTotal += gaps; resolvedTotal += outcomes; matchTotal += matches;
-    return { posture: cum, gaps, matches, outcomes, delta };
-  });
-  return { nodes, gapsTotal, resolvedTotal, matchTotal, start: BASE, end: cum };
-}
-
-// smooth-ish path through points (simple bezier)
-function buildPath(pts, w, h, pad) {
-  if (!pts.length) return { line: '', area: '', coords: [] };
-  const innerW = w - pad * 2;
-  const n = pts.length;
-  const x = (i) => (n === 1 ? w / 2 : pad + (innerW * i) / (n - 1));
-  const y = (v) => pad + (h - pad * 2) * (1 - v / 100);
-  const coords = pts.map((v, i) => [x(i), y(v)]);
-  let line = `M ${coords[0][0]},${coords[0][1]}`;
-  for (let i = 1; i < coords.length; i++) {
-    const [px, py] = coords[i - 1];
-    const [cx, cy] = coords[i];
-    const mx = (px + cx) / 2;
-    line += ` C ${mx},${py} ${mx},${cy} ${cx},${cy}`;
+function countKinds(entries) {
+  let gaps = 0, outcomes = 0;
+  for (const e of entries) for (const c of e.claims) {
+    const k = classifyClaim(c);
+    if (k === 'gap') gaps++;
+    if (k === 'outcome') outcomes++;
   }
-  const area = `${line} L ${coords[n - 1][0]},${h} L ${coords[0][0]},${h} Z`;
-  return { line, area, coords };
+  return { gaps, outcomes };
 }
 
 const fmtDate = (iso) =>
@@ -82,12 +53,8 @@ export default function Journey() {
   useEffect(() => { getJourney().then(setData).catch((e) => setError(String(e))); }, []);
   useEffect(() => { if (data) requestAnimationFrame(() => setMounted(true)); }, [data]);
 
-  const arc = useMemo(() => (data?.entries?.length ? deriveArc(data.entries) : null), [data]);
-  const W = 880, H = 190, PAD = 26;
-  const plot = useMemo(
-    () => (arc ? buildPath(arc.nodes.map((n) => n.posture), W, H, PAD) : null),
-    [arc]
-  );
+  const presence = useMemo(() => derivePresence(data?.entries || []), [data]);
+  const kinds = useMemo(() => countKinds(data?.entries || []), [data]);
 
   // No token = an anonymous visitor, not a fault. Invite them in — never a raw error.
   if (error && /not authenticated/i.test(error))
@@ -131,9 +98,6 @@ export default function Journey() {
   const company = data.company?.name || 'Your company';
   const first = data.entries[0].occurred_at;
   const last = data.entries[data.entries.length - 1].occurred_at;
-  const trend = Math.round(arc.end - arc.start);
-  const trendUp = trend >= 0;
-
   return (
     <Shell>
       <header className="jx-head">
@@ -148,44 +112,43 @@ export default function Journey() {
         </p>
 
         <div className="jx-stats">
-          <Stat k={`${trendUp ? '↑' : '↓'} ${Math.abs(trend)}`} l="trust momentum" accent={trendUp ? 'pos' : 'neg'} />
-          <Stat k={String(arc.gapsTotal)} l={arc.gapsTotal === 1 ? 'gap surfaced' : 'gaps surfaced'} />
-          <Stat k={String(arc.resolvedTotal)} l={arc.resolvedTotal === 1 ? 'verified outcome' : 'verified outcomes'} accent="pos" />
+          <Stat k={`${presence.open} of ${SPACES.length}`} l="rooms open" accent="pos" />
+          <Stat k={String(kinds.gaps)} l={kinds.gaps === 1 ? 'gap surfaced' : 'gaps surfaced'} />
+          <Stat k={String(kinds.outcomes)} l={kinds.outcomes === 1 ? 'verified outcome' : 'verified outcomes'} accent="pos" />
           <Stat k={String(data.entries.length)} l={data.entries.length === 1 ? 'chapter' : 'chapters'} />
           <Stat k={`${fmtMonthYear(first)} → ${fmtMonthYear(last)}`} l="span" wide />
         </div>
       </header>
 
-      <section className="jx-chart" aria-label="Trust posture over time">
-        <div className="jx-chart-label"><span>posture over time</span><span>now</span></div>
-        <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="jx-svg">
-          <defs>
-            <linearGradient id="jxArea" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.20" />
-              <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          <line x1={PAD} y1={PAD + (H - PAD * 2) * (1 - BASE / 100)} x2={W - PAD}
-                y2={PAD + (H - PAD * 2) * (1 - BASE / 100)} className="jx-baseline" />
-          <path d={plot.area} fill="url(#jxArea)" className={`jx-area ${mounted ? 'in' : ''}`} />
-          <path d={plot.line} className={`jx-line ${mounted ? 'in' : ''}`} />
-          {plot.coords.map(([cx, cy], i) => {
-            const n = arc.nodes[i];
-            const kind = n.outcomes ? 'outcome' : n.gaps ? 'gap' : n.matches ? 'match' : 'signal';
-            return (
-              <g key={i} className={`jx-node ${mounted ? 'in' : ''}`} style={{ '--d': `${600 + i * 180}ms` }}>
-                <circle cx={cx} cy={cy} r="9" className={`jx-node-halo ${KIND_META[kind].cls}`} />
-                <circle cx={cx} cy={cy} r="4.5" className={`jx-node-dot ${KIND_META[kind].cls}`} />
-              </g>
-            );
-          })}
-        </svg>
+      <section className="jx-presence" aria-label="What is present, by chapter">
+        <div className="jx-chart-label"><span>what is present · by chapter</span><span>now</span></div>
+        <div className="jx-presence-grid" style={{ '--chapters': data.entries.length }}>
+          <span />
+          {data.entries.map((e, i) => (
+            <span key={e.session_id} className="jx-presence-head">ch.{String(i + 1).padStart(2, '0')}</span>
+          ))}
+          {presence.rows.map((row) => (
+            <Fragment key={row.id}>
+              <span className="jx-presence-room">{row.label}</span>
+              {row.cells.map((level, i) => (
+                <span key={i} className="jx-presence-cell" title={`${row.label} · ch.${i + 1} · ${LEVEL_LABEL[level]}`}>
+                  <span className={`jx-pip l${level} ${mounted ? 'in' : ''}`} style={{ '--d': `${300 + i * 120}ms` }} />
+                </span>
+              ))}
+            </Fragment>
+          ))}
+        </div>
+        <div className="jx-presence-legend">
+          <span><i className="jx-pip l2" />present</span>
+          <span><i className="jx-pip l1" />partial</span>
+          <span><i className="jx-pip l0" />not yet — a room you haven’t walked into</span>
+        </div>
       </section>
 
       <section className="jx-time">
         <div className="jx-spine" />
         {data.entries.map((e, i) => {
-          const n = arc.nodes[i];
+          const ch = presence.perChapter[i];
           return (
             <article key={e.session_id} className={`jx-moment ${mounted ? 'in' : ''}`} style={{ '--d': `${900 + i * 220}ms` }}>
               <div className="jx-moment-rail">
@@ -196,7 +159,7 @@ export default function Journey() {
               <div className="jx-card">
                 <div className="jx-card-head">
                   <h3 className="jx-card-title">{e.label || e.session_id}</h3>
-                  <PostureChip delta={n.delta} />
+                  <RoomsChip open={ch.open} />
                 </div>
                 <ul className="jx-claims">
                   {e.claims.map((c, j) => {
@@ -241,10 +204,8 @@ function Stat({ k, l, accent, wide }) {
   );
 }
 
-function PostureChip({ delta }) {
-  if (delta > 0) return <span className="jx-pchip up">posture ↑ {delta}</span>;
-  if (delta < 0) return <span className="jx-pchip down">posture {delta}</span>;
-  return <span className="jx-pchip flat">held</span>;
+function RoomsChip({ open }) {
+  return <span className="jx-pchip rooms">{open} of {SPACES.length} rooms open</span>;
 }
 
 function Shell({ children }) {
@@ -285,20 +246,17 @@ const CSS = `
 .jx-stat-l{font-family:var(--mono); font-size:10.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-soft);}
 .jx-stat.a-pos .jx-stat-k{color:var(--pos);} .jx-stat.a-neg .jx-stat-k{color:var(--neg);}
 
-.jx-chart{margin-top:54px; background:linear-gradient(180deg,var(--surface),var(--p360-surfaceLo)); border:1px solid var(--hair); border-radius:4px; padding:14px 16px 6px; box-shadow:0 1px 0 #fff inset, 0 18px 40px -34px rgba(34,28,46,.5);}
-.jx-chart-label{display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-soft); padding:0 10px 6px;}
-.jx-svg{display:block; width:100%; height:auto;}
-.jx-baseline{stroke:var(--hair-strong); stroke-width:1; stroke-dasharray:2 5;}
-.jx-line{fill:none; stroke:var(--accent); stroke-width:2.4; stroke-linecap:round; stroke-dasharray:2200; stroke-dashoffset:2200;}
-.jx-line.in{transition:stroke-dashoffset 1500ms cubic-bezier(.2,.7,.2,1); stroke-dashoffset:0;}
-.jx-area{opacity:0;} .jx-area.in{transition:opacity 900ms ease 700ms; opacity:1;}
-.jx-node{opacity:0; transform:scale(.4); transform-origin:center; transform-box:fill-box;}
-.jx-node.in{transition:opacity .4s ease var(--d), transform .5s cubic-bezier(.34,1.56,.64,1) var(--d); opacity:1; transform:scale(1);}
-.jx-node-halo{opacity:.16;} .jx-node-dot{stroke:var(--surface); stroke-width:2;}
-.k-gap.jx-node-halo{fill:var(--gap);} .k-gap.jx-node-dot{fill:var(--gap);}
-.k-match.jx-node-halo{fill:var(--match);} .k-match.jx-node-dot{fill:var(--match);}
-.k-outcome.jx-node-halo{fill:var(--outcome);} .k-outcome.jx-node-dot{fill:var(--outcome);}
-.k-signal.jx-node-halo{fill:var(--ink-soft);} .k-signal.jx-node-dot{fill:var(--ink-soft);}
+.jx-presence{margin-top:54px; background:var(--surface); border:1px solid var(--hairline); border-radius:4px; padding:14px 16px 16px; box-shadow:0 18px 40px -34px rgba(34,28,46,.5);}
+.jx-chart-label{display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-soft); padding:0 10px 12px;}
+.jx-presence-grid{display:grid; grid-template-columns:150px repeat(var(--chapters,1),1fr); gap:6px 10px; align-items:center; padding:0 10px;}
+.jx-presence-head{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); text-align:center;}
+.jx-presence-room{font-size:12px; color:var(--ink-mid);}
+.jx-presence-cell{display:flex; justify-content:center;}
+.jx-pip{display:inline-block; width:10px; height:10px; border-radius:50%; box-sizing:border-box;}
+.jx-pip.l2{background:var(--accent);} .jx-pip.l1{background:color-mix(in srgb, var(--accent) 40%, transparent);} .jx-pip.l0{border:1px solid var(--hair-strong);}
+.jx-presence-cell .jx-pip{opacity:0; transform:scale(.4);} .jx-presence-cell .jx-pip.in{transition:opacity .4s ease var(--d), transform .5s cubic-bezier(.34,1.56,.64,1) var(--d); opacity:1; transform:scale(1);}
+.jx-presence-legend{margin-top:14px; padding:0 10px; font-family:var(--mono); font-size:9.5px; letter-spacing:.06em; color:var(--ink-soft); display:flex; gap:18px; flex-wrap:wrap;}
+.jx-presence-legend span{display:inline-flex; align-items:center; gap:6px;} .jx-presence-legend .jx-pip{width:8px; height:8px;}
 
 .jx-time{position:relative; margin-top:64px; padding-left:8px;}
 .jx-spine{position:absolute; left:148px; top:8px; bottom:40px; width:1px; background:linear-gradient(var(--hair-strong), var(--hair-strong) 70%, transparent);}
@@ -313,9 +271,6 @@ const CSS = `
 .jx-card-head{display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap;}
 .jx-card-title{margin:0; font-family:var(--serif); font-size:27px; font-weight:400; line-height:1.1; color:var(--ink);}
 .jx-pchip{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; padding:4px 9px; border-radius:20px; white-space:nowrap;}
-.jx-pchip.up{color:var(--pos); background:rgba(63,122,79,.1);}
-.jx-pchip.down{color:var(--gap); background:rgba(176,122,47,.12);}
-.jx-pchip.flat{color:var(--ink-soft); background:rgba(146,138,156,.12);}
 .jx-claims{list-style:none; margin:20px 0 0; padding:0; display:flex; flex-direction:column;}
 .jx-claim{display:grid; grid-template-columns:22px 1fr; gap:0 12px; padding:14px 0; border-top:1px solid var(--hair);}
 .jx-claim:first-child{border-top:none; padding-top:4px;}
@@ -347,6 +302,6 @@ const CSS = `
   .jx-stats{gap:24px 32px;}
 }
 @media (prefers-reduced-motion:reduce){
-  .jx-line,.jx-area,.jx-node,.jx-moment{transition:none !important; opacity:1 !important; transform:none !important; stroke-dashoffset:0 !important;}
+  .jx-pip,.jx-moment{transition:none !important; opacity:1 !important; transform:none !important; stroke-dashoffset:0 !important;}
 }
 `;
