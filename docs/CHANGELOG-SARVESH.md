@@ -4,6 +4,21 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-09-03 · "How we read this" opens the Inspector — one level-2 surface, both rulings kept
+
+**Problem.** `HowWeReadThis.jsx` was a four-rung disclosure ladder of its own beneath the reading — closed → what counted → why it counted → the arithmetic — mounted twice in `Chat.jsx`. On the branch whose thesis is *two disclosure levels, never three* (the Inspector being the one level-2 surface), that was a level 3 hiding in plain sight; the design lab never mentioned it because it does not appear in the prototype at all.
+
+**The thing that could not be resolved silently.** The file carries John's ruling from 26 Aug in its own words: *"the number is not deleted. It is demoted to the bottom rung of a ladder somebody chooses to climb."* Deleting the arithmetic to satisfy the two-level cap would have overridden that. So both hold:
+
+- **One gesture.** `HowWeReadThis` is now a single affordance — *How we read this →* — that opens the Inspector with the reading as its subject (`subject.kind: 'reading'`). No ladder, no `useState`, no third level.
+- **Rungs 1 + 2 become the Inspector's witnesses** — *Who said so*: each gap that carried weight, with its reasoning as the excerpt. One surface, two facts per row, never nested.
+- **Rung 3 becomes the Inspector's receipt** — *The receipt · what we ran to get here*, which the Inspector already prefaces with *"This is what ran, not why it's right."* The lines: starting point 100 (labelled *how the arithmetic works, not a measurement of your company*), each subtraction, what is left (*visible from outside, on the day we looked*). Still chosen, still labelled as method, still there.
+- `readingInspection({ gaps, trustScore })` is the pure function that builds the payload; the Inspector gained reading-specific copy (an empty ledger says *Nothing counted against you in this reading*, not *we looked and found nothing*; the "sources disagree" line is suppressed — a ledger is not competing witnesses).
+
+**Guards.** `HowWeReadThis.test.jsx` rewritten (closed grades nobody; the gesture opens the Inspector; witnesses and receipt derived; renders inside the real Inspector with the right copy). `one-subject-wiring.test.js` now also asserts every `<HowWeReadThis>` mount passes `onOpen={setInspecting}` and the component has no ladder of its own. 525/525, lint clean.
+
+---
+
 ## 2026-09-03 · /raise — the raise designer, a projection of the join over the register
 
 **What it is.** A founder-facing page at `/raise`: every instrument in the ratified Capital Rosetta register (25 today), joined against the founder's own record, in register order. Each card says where the founder stands in the register's own words — *reachable*, *gap* (which class, what confidence it needs, what they hold), *blocked* (which disqualifier) — and how many conditions **could not be checked**. Picking one shows the record's mechanics (every field the register carries; `—` where it carries none), the jurisdiction variant if the register has one, the misconception and the tell from its knowledge block, and the join's four cells written out. Under that: **what you hold that this instrument does not price, and who in the register does** — the UNPRICED inversion, which is the routing primitive.

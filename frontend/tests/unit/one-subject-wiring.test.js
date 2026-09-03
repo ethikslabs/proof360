@@ -18,3 +18,16 @@ describe('the middle width state is wired, not just computed', () => {
     expect(chat).toMatch(/useRailState\s*\(/);
   });
 });
+
+describe('one level-2 surface — the reading ledger opens the Inspector', () => {
+  it('every <HowWeReadThis> mount passes onOpen={setInspecting}', () => {
+    const mounts = chat.match(/<HowWeReadThis[\s\S]*?\/>/g) || [];
+    expect(mounts.length).toBeGreaterThanOrEqual(1);
+    for (const m of mounts) expect(m).toMatch(/onOpen=\{setInspecting\}/);
+  });
+  it('HowWeReadThis has no ladder of its own any more', () => {
+    const src = readFileSync('src/components/chat/HowWeReadThis.jsx', 'utf8');
+    expect(src).not.toMatch(/Show the arithmetic/);
+    expect(src).not.toMatch(/useState/);
+  });
+});

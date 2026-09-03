@@ -2775,6 +2775,7 @@ export default function Chat() {
                               gaps={m.reading_ledger.gaps}
                               trustScore={m.reading_ledger.trustScore}
                               tk={tk}
+                              onOpen={setInspecting}
                             />
                           )}
                         </div>
@@ -3108,6 +3109,7 @@ export default function Chat() {
                         gaps={m.reading_ledger.gaps}
                         trustScore={m.reading_ledger.trustScore}
                         tk={tk}
+                        onOpen={setInspecting}
                       />
                     )}
                     {m.id === scanOwnerId && (

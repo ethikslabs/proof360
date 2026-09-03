@@ -220,13 +220,15 @@ export function Inspector({
               didn’t get to look.
             </p>
           )}
-          {looked && list.length === 0 && (
+          {looked && list.length === 0 && subject.kind !== 'reading' && (
             <p style={{ fontFamily: SANS, fontSize: 13, color: tk.inkSoft, margin: 0 }}>
               We looked and found nothing on this. It may still be true — nobody has
               written it down anywhere we can reach.
             </p>
           )}
-          {list.length > 1 && (
+          {/* A reading's ledger is a list of what counted, not competing witnesses — the
+              disagreement line would be nonsense there. */}
+          {list.length > 1 && subject.kind !== 'reading' && (
             <p style={{ fontFamily: SANS, fontSize: 12, color: tk.inkSoft, margin: '0 0 14px' }}>
               These don’t all say the same thing. That’s normal — sources go out of date.
               We’re showing you each one rather than picking a winner.

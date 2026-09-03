@@ -1,135 +1,79 @@
-// "How we read this" — the answer to John's 2026-08-26 question, "we should have
-// a way to 'how do we rate this' something or other... but that is all
-// progressive decision based reveal."
-//
-// The number is not deleted. It is demoted to the bottom rung of a ladder
-// somebody chooses to climb. Handed to a founder unasked, 15/100 is a school
-// mark and it stings. Reached deliberately, by someone who asked how the machine
-// works, the same arithmetic is just the machine's working — and in a lab that is
-// the interesting part, not the embarrassing one.
-//
-// The rungs, and nothing may skip one:
-//   0  closed        no number, no verdict, no colour — a founder who never
-//                    opens this is never graded
-//   1  what counted  the gaps that carried weight, named
-//   2  why it counted  one gap's reasoning, opened one at a time
-//   3  the arithmetic  100 minus the subtractions — machinery, labelled as such
-//
-// Sibling of OurWorking (the corpus curtain) by design: same affordance, so a
-// founder learns one gesture and both ledgers open to it.
-import { describe, it, expect } from 'vitest';
+// "How we read this" after the 2026-09-03 workshop: one gesture, and it opens the
+// Inspector — the single level-2 surface — rather than a ladder of its own. The two
+// rulings this file holds together: John 2026-08-26 (the number is not deleted, it is
+// demoted to something chosen and labelled as method) and the branch's cap of two
+// disclosure levels (NN/g). Rungs 1–2 are the Inspector's witnesses; rung 3 is its receipt.
+import { describe, it, expect, vi } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
-import { HowWeReadThis } from '../../src/components/chat/HowWeReadThis.jsx';
+import { HowWeReadThis, readingInspection } from '../../src/components/chat/HowWeReadThis.jsx';
+import { Inspector } from '../../src/components/chat/Inspector.jsx';
 
-// The real shape gap-mapper emits.
 const GAPS = [
-  {
-    gap_id: 'soc2',
-    title: 'SOC 2 certification gap',
-    severity: 'critical',
-    score_impact: 20,
-    why: 'Without SOC 2 certification, enterprise buyers cannot verify your security controls.',
-  },
-  {
-    gap_id: 'dmarc',
-    title: 'Email domain protection gap (DMARC)',
-    severity: 'moderate',
-    score_impact: 5,
-    why: 'Your domain has a DMARC record but the policy is set to p=none — monitoring only.',
-  },
+  { gap_id: 'soc2', title: 'SOC 2 certification gap', severity: 'critical', score_impact: 20,
+    why: 'Without SOC 2 certification, enterprise buyers cannot verify your security controls.' },
+  { gap_id: 'dmarc', title: 'Email domain protection gap (DMARC)', severity: 'moderate', score_impact: 5,
+    why: 'Your domain has a DMARC record but the policy is set to p=none — monitoring only.' },
+  { gap_id: 'nothing', title: 'A gap with no weight', score_impact: 0, why: 'should not be listed' },
 ];
-
 const VERDICTS = [/deal ready/i, /needs work/i, /\bpartial\b/i, /\bpoor\b/i, /\bgood\b/i];
+const tk = { ink: '#1f2430', inkMid: '#444', inkSoft: '#94a3b8', inkGhost: '#bbb', hairline: '#eee', hairStrong: '#ccc', plum: '#6b4ea8', surface: '#fff', bgTint: '#f7f5f0' };
 
-describe('HowWeReadThis — rung 0: closed grades nobody', () => {
-  it('shows no number, no total and no verdict before it is opened', () => {
-    const { container } = render(<HowWeReadThis gaps={GAPS} trustScore={15} />);
+describe('closed grades nobody', () => {
+  it('renders one affordance and no number, total or verdict', () => {
+    const { container, getByRole } = render(<HowWeReadThis gaps={GAPS} trustScore={15} tk={tk} onOpen={() => {}} />);
     const text = container.textContent;
-    expect(text).not.toContain('15');
-    expect(text).not.toContain('/100');
-    expect(text).not.toContain('20');
-    for (const v of VERDICTS) expect(text).not.toMatch(v);
-  });
-
-  it('offers the method, not a result', () => {
-    const { getByRole } = render(<HowWeReadThis gaps={GAPS} trustScore={15} />);
     expect(getByRole('button', { name: /how we read this/i })).toBeTruthy();
-  });
-});
-
-describe('HowWeReadThis — rung 1: what counted', () => {
-  it('names the gaps that carried weight, and still shows no total', () => {
-    const { getByRole, container } = render(<HowWeReadThis gaps={GAPS} trustScore={15} />);
-    fireEvent.click(getByRole('button', { name: /how we read this/i }));
-
-    expect(container.textContent).toContain('SOC 2 certification gap');
-    expect(container.textContent).toContain('Email domain protection gap (DMARC)');
-    // The arithmetic is a rung further down. Opening "what counted" must not
-    // pronounce a result.
-    expect(container.textContent).not.toContain('/100');
-    expect(container.textContent).not.toMatch(/\b15\b/);
-  });
-
-  it('says so honestly when nothing counted, rather than rendering an empty ledger', () => {
-    const { getByRole, container } = render(<HowWeReadThis gaps={[]} trustScore={100} />);
-    fireEvent.click(getByRole('button', { name: /how we read this/i }));
-    expect(container.textContent).toMatch(/nothing counted against/i);
-    expect(container.textContent).not.toContain('100');
-  });
-});
-
-describe('HowWeReadThis — rung 2: why it counted', () => {
-  it('opens one gap at a time and gives its reasoning', () => {
-    const { getByRole, getByText, container } = render(<HowWeReadThis gaps={GAPS} trustScore={15} />);
-    fireEvent.click(getByRole('button', { name: /how we read this/i }));
-
-    expect(container.textContent).not.toContain('enterprise buyers cannot verify');
-    fireEvent.click(getByText('SOC 2 certification gap'));
-    expect(container.textContent).toContain('enterprise buyers cannot verify');
-
-    // Opening a second closes the first — one thing at a time, like the corpus curtain.
-    fireEvent.click(getByText('Email domain protection gap (DMARC)'));
-    expect(container.textContent).toContain('monitoring only');
-    expect(container.textContent).not.toContain('enterprise buyers cannot verify');
-  });
-});
-
-describe('HowWeReadThis — rung 3: the arithmetic', () => {
-  function descend(api) {
-    fireEvent.click(api.getByRole('button', { name: /how we read this/i }));
-    fireEvent.click(api.getByRole('button', { name: /show the arithmetic/i }));
-  }
-
-  it('reveals the subtractions and the number only on a deliberate third choice', () => {
-    const api = render(<HowWeReadThis gaps={GAPS} trustScore={15} />);
-    expect(api.container.textContent).not.toContain('15');
-
-    descend(api);
-
-    const text = api.container.textContent;
-    expect(text).toContain('20');   // the SOC 2 subtraction
-    expect(text).toContain('5');    // the DMARC subtraction
-    expect(text).toContain('15');   // what is left
-  });
-
-  it('labels the number as method, never as a mark on the company', () => {
-    const api = render(<HowWeReadThis gaps={GAPS} trustScore={15} />);
-    descend(api);
-
-    const text = api.container.textContent;
-    // It must say out loud what it is: an arithmetic starting point minus
-    // subtractions, not a measurement of the company.
-    expect(text).toMatch(/not a measurement|not a mark|how the arithmetic works/i);
+    expect(text).not.toMatch(/\b(15|20|100)\b/);
+    expect(text).not.toContain('/100');
     for (const v of VERDICTS) expect(text).not.toMatch(v);
+    expect(container.querySelectorAll('button')).toHaveLength(1); // no ladder of its own
   });
 
-  it('never colours the number by how low it is', () => {
-    const low = render(<HowWeReadThis gaps={GAPS} trustScore={15} />);
-    descend(low);
-    const html = low.container.innerHTML;
-    // The traffic lights that made it a report card.
-    expect(html).not.toContain('#dc2626');
-    expect(html).not.toContain('#b91c1c');
-    expect(html).not.toContain('#059669');
+  it('the gesture opens the Inspector with the reading as its subject', () => {
+    const onOpen = vi.fn();
+    const { getByRole } = render(<HowWeReadThis gaps={GAPS} trustScore={15} tk={tk} onOpen={onOpen} />);
+    fireEvent.click(getByRole('button', { name: /how we read this/i }));
+    expect(onOpen).toHaveBeenCalledTimes(1);
+    expect(onOpen.mock.calls[0][0].subject.kind).toBe('reading');
+  });
+});
+
+describe('readingInspection — the ledger as an Inspector payload', () => {
+  it('names only the gaps that carried weight, each with its reasoning (rungs 1 + 2, one surface)', () => {
+    const p = readingInspection({ gaps: GAPS, trustScore: 15 });
+    expect(p.subject.value).toBe('2 gaps carried weight.');
+    expect(p.observations.map((o) => o.value)).toEqual(['SOC 2 certification gap', 'Email domain protection gap (DMARC)']);
+    expect(p.observations[0].excerpt).toMatch(/enterprise buyers cannot verify/);
+    expect(p.observations[1].excerpt).toMatch(/monitoring only/);
+    expect(JSON.stringify(p.observations)).not.toContain('no weight');
+  });
+
+  it('keeps the arithmetic in the receipt, labelled as method — subtractions and what is left', () => {
+    const p = readingInspection({ gaps: GAPS, trustScore: 15 });
+    expect(p.acts.map((a) => a.note)).toEqual(['100', '− 20', '− 5', '15']);
+    expect(p.acts[0].title).toMatch(/not a measurement of your company/);
+    expect(p.acts.at(-1).title).toMatch(/visible from outside/);
+    expect(p.disconfirmer).toMatch(/Close any of these/);
+  });
+
+  it('derives the remainder when no score is handed in, and says so honestly when nothing counted', () => {
+    expect(readingInspection({ gaps: GAPS }).acts.at(-1).note).toBe('75');
+    const empty = readingInspection({ gaps: [], trustScore: 100 });
+    expect(empty.subject.value).toMatch(/Nothing counted against you/);
+    expect(empty.observations).toEqual([]);
+    expect(empty.acts).toEqual([]);
+    expect(empty.disconfirmer).toBeNull();
+  });
+
+  it('renders inside the real Inspector with the reading copy, not the claim copy', () => {
+    const p = readingInspection({ gaps: GAPS, trustScore: 15 });
+    const { container } = render(<Inspector {...p} tk={tk} onClose={() => {}} />);
+    const text = container.textContent;
+    expect(text).toContain('SOC 2 certification gap');
+    expect(text).toContain('This is what ran, not why it’s right.');
+    expect(text).not.toMatch(/don’t all say the same thing/);
+    const empty = render(<Inspector {...readingInspection({ gaps: [], trustScore: 100 })} tk={tk} onClose={() => {}} />);
+    expect(empty.container.textContent).toMatch(/Nothing counted against you/);
+    expect(empty.container.textContent).not.toMatch(/We looked and found nothing/);
   });
 });
