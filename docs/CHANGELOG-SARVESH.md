@@ -4,6 +4,24 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-09-03 · /raise — the raise designer, a projection of the join over the register
+
+**What it is.** A founder-facing page at `/raise`: every instrument in the ratified Capital Rosetta register (25 today), joined against the founder's own record, in register order. Each card says where the founder stands in the register's own words — *reachable*, *gap* (which class, what confidence it needs, what they hold), *blocked* (which disqualifier) — and how many conditions **could not be checked**. Picking one shows the record's mechanics (every field the register carries; `—` where it carries none), the jurisdiction variant if the register has one, the misconception and the tell from its knowledge block, and the join's four cells written out. Under that: **what you hold that this instrument does not price, and who in the register does** — the UNPRICED inversion, which is the routing primitive.
+
+**Where the entity comes from.** `utils/rosettaClaimSet.js` — the same journey claims `/journey` renders, routed to the fourteen Rosetta classes by subject (`soc2_status` → GOV, `runway_months` → FIN, `match:aws_activate` → TRAC …) with confidence taken from the strongest authority seen (reality/provider → confirmed, legal/cto/system → probable, founder/operator → asserted). A class no claim touches is **absent**, which is what lets the join say GAP honestly. Untyped subjects contribute to no class rather than the wrong one. A stated jurisdiction becomes a join fact; the page's jurisdiction control overrides it.
+
+**What is deliberately not on the page.**
+
+- **No ranking, no score.** Register order, never re-sorted; a render test asserts the page never says *score*, *rank* or *IRR*. The lab's investor returns view (multiple, IRR, a floor table comparing rooms) is not built here and is not built on the join.
+- **No invented terms.** The lab's per-instrument "terms that would publish" (8% interest · 24 months, 1.2× cap, 6% fee, 15% carry) were authored numbers with no source. The page shows only what the register carries plus the founder's own division — need ÷ ownership = implied cap — labelled *"that is your division, not the register's."*
+- **No pretending on verification.** A record with no `last_verified` shows *"unverified — a rumour by the register's own rule"* in the detail panel and the header counts *5 of 25 verified*. The footer carries the register's projection date and source hash.
+
+**Tests.** `rosettaClaimSet.test.js` (routing, confidence, facts), `Raise.render.test.jsx` (all 25 cards in register order with a state in words; no score/rank/IRR; unverified and could-not-check are said; jurisdiction is an input). Frontend 525/525, lint clean.
+
+**Not yet:** the Deal Room (the investor-facing room around this) and any investor-side arithmetic — a separate decision, not a projection of the register.
+
+---
+
 ## 2026-09-03 · The Capital Rosetta join, from the ratified register, as a pure function
 
 **Vocabulary.** The **Capital Rosetta** is the estate's register of every way capital can enter a company — 25 instrument records (SAFE, convertible note, venture debt, R&D tax credit, cloud credits, SPV per asset, …) in one structured form, each stating what a company must **hold** (fourteen claim classes — IDENT, FNDR, PROB, PROD, TRAC, UNIT, FIN, CASH, GOV, USE, EXIT, REL, IMPACT, OPS — at a **confidence** — absent · asserted · probable · confirmed). John ratified it today as the register the Deal Room and Raise Simulator project from. The **join** is the register's one computation: run a company's claim set against an instrument and get four cells back.
