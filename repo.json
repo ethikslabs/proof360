@@ -396,7 +396,7 @@
     {
       "id": "PROOF360-THIRD-PARTY-READ-CONSENT-001",
       "status": "done",
-      "boundary": "OPEN QUESTION owed a John ruling (SPEC-007): the Mel-flow (subject consents to their own read) is legally clean, but reading a THIRD PARTY the customer named (a target/vendor, not the customer) has a different consent basis. T1/T2 (registry/passive-public) about any company is fine; T3 about a non-consenting third party needs a ruling. Proposed default until ruled: T1/T2 for third parties; T3 third-party reads gated internal/advisory-only (surfaced to John only), never into a shipped CER. Present evidence + options; John rules. RULED 2026-07-19 (John): resolved by DEFERRAL — proof360 PoC reads the SUBJECT'S OWN footprint only (the consenting-customer clean case). Presentation to a THIRD PARTY is an ethiks360-phase concern, not proof360 PoC; the third-party consent-basis ruling travels to the ethiks360 lane when it arrives. No third-party T3 read ships this phase — whole PoC stays on consent-at-source footing, zero grey.",
+      "boundary": "OPEN QUESTION owed a John ruling (SPEC-007): the Mel-flow (subject consents to their own read) is legally clean, but reading a THIRD PARTY the customer named (a target/vendor, not the customer) has a different consent basis. T1/T2 (registry/passive-public) about any company is fine; T3 about a non-consenting third party needs a ruling. Proposed default until ruled: T1/T2 for third parties; T3 third-party reads gated internal/advisory-only (surfaced to John only), never into a shipped CER. Present evidence + options; John rules. RULED 2026-07-19 (John): resolved by DEFERRAL \u2014 proof360 PoC reads the SUBJECT'S OWN footprint only (the consenting-customer clean case). Presentation to a THIRD PARTY is an ethiks360-phase concern, not proof360 PoC; the third-party consent-basis ruling travels to the ethiks360 lane when it arrives. No third-party T3 read ships this phase \u2014 whole PoC stays on consent-at-source footing, zero grey.",
       "approved_by": "john-coates",
       "source": "ETHL-WRK-SPEC-007 (trust-read legal tiers, John PoC ruling 2026-07-19)",
       "added": "2026-07-19"
@@ -495,7 +495,7 @@
       "approved_by": "john-coates",
       "source": "Close edge (commercial_signal), John approve suggestions 2026-08-24. Parent parked play: BL-78 (PARK-20260824-078). SPV: proof360.",
       "added": "2026-08-24",
-      "boundary": "Dogfood slice of BL-78 only: pull OUR account's Security Hub findings (CIS+FSBP+Inspector, acct 905418067035) into OUR own Vehicle as attested evidence — show-the-work demo for the Clara/Jordan lanes. Read-only, no customer adapter, no cross-account roles yet (that is the full BL-78 play, separately gated). Afternoon-sized."
+      "boundary": "Dogfood slice of BL-78 only: pull OUR account's Security Hub findings (CIS+FSBP+Inspector, acct 905418067035) into OUR own Vehicle as attested evidence \u2014 show-the-work demo for the Clara/Jordan lanes. Read-only, no customer adapter, no cross-account roles yet (that is the full BL-78 play, separately gated). Afternoon-sized."
     },
     {
       "id": "PROOF360-ADOPTION-LADDER-FRAMING-001",
@@ -503,7 +503,7 @@
       "approved_by": "john-coates",
       "source": "commercial edge 2026-08-25 close (John approve suggestions); Anthropic Cowork deployment guide L0-L4 maturity model",
       "added": "2026-08-25",
-      "boundary": "Adopt the Anthropic L0-L4 adoption ladder as proof360's consent-for-complexity framing: meet the customer at Level 0 (cold read = their Level 1 deliverable, no login), sell the climb (encode their trust workflow as skills, schedule, bundle). Source: _working/2026-08-24-cowork-capability-breakdown.md §6. Framing/positioning work, not a build — feeds the demo script and the Clara/Jordan lanes."
+      "boundary": "Adopt the Anthropic L0-L4 adoption ladder as proof360's consent-for-complexity framing: meet the customer at Level 0 (cold read = their Level 1 deliverable, no login), sell the climb (encode their trust workflow as skills, schedule, bundle). Source: _working/2026-08-24-cowork-capability-breakdown.md \u00a76. Framing/positioning work, not a build \u2014 feeds the demo script and the Clara/Jordan lanes."
     },
     {
       "id": "PROOF360-REHEARSE-READING-SMOKE-001",
@@ -524,7 +524,7 @@
     {
       "id": "PROOF360-CORPUS-CITATION-CARDS-001",
       "status": "next",
-      "boundary": "THE GATE (John ruling 2026-08-25 deploy night): 'I don't want to do a walk through unless I can see CORPUS — that is more than half the thing; when you see the references, the links — it changes the entire flow.' Opening slice of the corpus-surfacing wave: render corpus hits as clickable citation cards in the read and chat — every hit already carries source_url + fetched_at end-to-end (verified live: warm /search 3.3s, soc2auditors.org hit score 0.86 with both fields); only the render layer is missing. Excerpt-not-voice holds: attributed excerpts in printed-media register, never persona voice. Then the disclosure ladder (anchor chip -> curtain -> excerpt -> original source, Octalysis: they need to look). Build and rehearse against LIVE proof360.au corpus, never the thin local snapshot. No walkthrough, no recording, until this is visible.",
+      "boundary": "THE GATE (John ruling 2026-08-25 deploy night): 'I don't want to do a walk through unless I can see CORPUS \u2014 that is more than half the thing; when you see the references, the links \u2014 it changes the entire flow.' Opening slice of the corpus-surfacing wave: render corpus hits as clickable citation cards in the read and chat \u2014 every hit already carries source_url + fetched_at end-to-end (verified live: warm /search 3.3s, soc2auditors.org hit score 0.86 with both fields); only the render layer is missing. Excerpt-not-voice holds: attributed excerpts in printed-media register, never persona voice. Then the disclosure ladder (anchor chip -> curtain -> excerpt -> original source, Octalysis: they need to look). Build and rehearse against LIVE proof360.au corpus, never the thin local snapshot. No walkthrough, no recording, until this is visible.",
       "approved_by": "john-coates",
       "source": "makethebed-edge:2026-08-25-deploy-night (task_enhancement, John approve + gate ruling)",
       "added": "2026-08-25"
@@ -532,10 +532,26 @@
     {
       "id": "PROOF360-ONE-DEPLOY-DOOR-001",
       "status": "ready",
-      "boundary": "Two deploy writers both write api/.env on the box, last-writer-wins: deploy.yml (fires on every push to main — Actions unfrozen since the Aug free-tier reset) and scripts/deploy.sh (SSM, on-box). They had diverged (deploy.yml lacked the perplexity/gemini engine keys) and a push after an SSM deploy silently went dark on both engines — caught live 2026-08-25, aligned at ddd7da8. The fix-the-class: John rules WHICH is THE door; demote the other to break-glass with a tripwire comment at the top pointing at the chosen door; align the two .env heredocs or extract one shared env-writer so drift is structural-impossible. Related board-known audit FAILs on deploy.yml credential fallbacks (lines 52/187) get fixed in the same pass.",
+      "boundary": "Two deploy writers both write api/.env on the box, last-writer-wins: deploy.yml (fires on every push to main \u2014 Actions unfrozen since the Aug free-tier reset) and scripts/deploy.sh (SSM, on-box). They had diverged (deploy.yml lacked the perplexity/gemini engine keys) and a push after an SSM deploy silently went dark on both engines \u2014 caught live 2026-08-25, aligned at ddd7da8. The fix-the-class: John rules WHICH is THE door; demote the other to break-glass with a tripwire comment at the top pointing at the chosen door; align the two .env heredocs or extract one shared env-writer so drift is structural-impossible. Related board-known audit FAILs on deploy.yml credential fallbacks (lines 52/187) get fixed in the same pass.",
       "approved_by": "john-coates",
       "source": "makethebed-edge:2026-08-25-deploy-night (standardisation, John approve)",
       "added": "2026-08-25"
+    },
+    {
+      "id": "PROOF360-RETRIEVED-TEXT-SEAM-001",
+      "status": "ready",
+      "boundary": "Put an untrusted-data boundary on every retrieved text that reaches a prompt. MEASURED 2026-09-03: signal-extractor.js:72 puts up to 3000 chars of Firecrawl markdown per page (x5 pages) straight into the extraction prompt, and corpus-retrieve.js evidenceBlock() puts holding text into the chat prompt behind plain '--- CORPUS EVIDENCE ---' markers. Neither carries any sanitisation, escaping, or untrusted-data framing \u2014 grep for injection/sanitis/untrusted/delimiter across signal-extractor, corpus-retrieve and cold-reading returns nothing. SCOPE CORRECTION on the edge that raised this: the gap is PROMPT INJECTION, not identity. Identity at the Firecrawl seam is established by construction \u2014 you cannot fetch the wrong company's site, which is exactly why holding-identity.js treats pages_read_count > 0 as an identity link. The corpus seam is the one that carries both risks, and only the identity half is currently closed. Live relevance: docs.aws.amazon.com/marketplace/ is serving prompt-injection content instructing agents to run 'aws agent-toolkit' \u2014 a poisoned document ingested into CORPUS reaches proof360's writer through evidenceBlock today. Fix at the seam (subtractive filter + explicit untrusted framing), not by a prompt rule the model can decline.",
+      "approved_by": "john-coates",
+      "source": "edge:standardisation",
+      "added": "2026-09-03"
+    },
+    {
+      "id": "PROOF360-REFERENCE-COMPARISON-UPSELL-001",
+      "status": "ready",
+      "boundary": "Build the surface the comparison rail now makes possible. ComparisonRail.jsx (shipped 2026-09-02) puts the reference founder and the live company on one set of rows for the first time, comparing PRESENCE not score \u2014 so a founder can see concretely what a filled record looks like beside their own. That is the natural upsell moment and nothing acts on it yet: an unopened row is a room the founder has not walked into, and today clicking one only switches the space. REGISTER CONSTRAINT, non-negotiable: the emotional contract's hardest line is 'the founder never feels evaluated'. No scores, no deltas, no gap counts, no word for 'behind'. Lamp, not grade \u2014 the row offers the next step it can see, it never reports a deficiency. Depends on nothing; the rail and the Inspector are both built.",
+      "approved_by": "john-coates",
+      "source": "edge:commercial_signal",
+      "added": "2026-09-03"
     }
   ]
 }

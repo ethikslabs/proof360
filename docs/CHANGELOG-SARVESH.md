@@ -4,6 +4,16 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-09-04 · /chat was down: a hook read state declared 120 lines below it
+
+**Problem.** After yesterday's merge, `/chat` rendered the RENDER ERROR fallback — *"Cannot access 'qt' before initialization"*. `/journey` and `/raise` were fine, the API was healthy, pm2 showed 0 restarts, so nothing server-side said "down". The cause was in `Chat.jsx`: the command-palette `useMemo` (added 2 Sep with the palette) reads `recordClaims`, a `useState` const declared 120 lines further down the component. `useMemo` runs during render, so on the first render the const was in its *temporal dead zone* — JavaScript's rule that a `const` cannot be touched before the line that declares it, even inside the same function. The suite was green because `Chat.jsx` is never rendered whole in tests.
+
+**Fix.** The memo moved below the Record-spine state it reads, with a comment saying why. `tests/unit/chat-hook-order.test.js` is a source-level guard (same precedent as `demoFixtureCopy.test.js`): every `useMemo`/`useCallback` in Chat is checked against every `useState` declared after it; a read-before-declare fails the suite. It fails on yesterday's code and passes now. Verified by rendering the built bundle headless: `/chat` shows the intro; zero ReferenceErrors.
+
+**Why it matters.** The whole outage was invisible to every check that isn't a browser — health endpoints, logs, curl all said fine. Two lessons. A 3,500-line component that tests never mount is a blind spot the size of the product; the guard narrows it, it doesn't remove it. And the smoke test that would have caught this in a minute is "render each route headless after deploy and fail on a console error" — not built yet, worth building.
+
+---
+
 ## 2026-09-03 · Two places the reading could quietly lie, closed
 
 Both came out of the lab workshop as prototype findings; both turned out to be real in the code, same shape.

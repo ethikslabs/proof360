@@ -1435,41 +1435,6 @@ export default function Chat() {
   const activeStage = DEMO_STAGES.find(s => s.id === activeStageId);
   const founderProfileName = useMemo(() => companyNameFromProfile(founderProfile), [founderProfile]);
 
-  // Commands are PROJECTED FROM STATE, never a stored menu (INVARIANTS §1). A claim
-  // that does not exist yet has no command; a company that has not been read has no
-  // "open the record". The palette can therefore never offer a door to an empty room —
-  // which is the same rule the emotional contract applies to the greyed tiles.
-  const commands = useMemo(() => {
-    const list = [];
-    list.push({
-      id: 'sim', group: 'View', hint: simulation ? 'on' : 'off',
-      label: simulation ? 'Switch to your own record' : 'Switch to the worked example',
-      run: () => setSimulationOverride(!simulation),
-    });
-    if (recordClaims?.length) {
-      list.push({
-        id: 'record', group: 'View', label: 'Open the full record',
-        run: () => setActiveSpace('kept'),
-      });
-      for (const claim of recordClaims.slice(0, 8)) {
-        list.push({
-          id: `claim-${claim.claim_id ?? claim.field}`,
-          group: 'What we have',
-          label: `${claim.label ?? claim.field}: ${claim.value ?? '—'}`,
-          run: () => setInspecting({
-            subject: {
-              label: claim.label ?? claim.field,
-              value: claim.value ?? '—',
-              confirmation: claim.status === 'confirmed' ? 'confirmed' : 'unconfirmed',
-            },
-            observations: claim.observations ?? null,
-            disconfirmer: claim.disconfirmer ?? null,
-          }),
-        });
-      }
-    }
-    return list;
-  }, [simulation, recordClaims]);
 
   // CER (Customer Engagement Record) — the pathway a founder decides to pursue,
   // assembling itself from the conversation and confirmed via consent. Lives inline
@@ -1568,6 +1533,46 @@ export default function Chat() {
   // same trigger evaluation recompute runs. Replaces two hardcoded panels that
   // asserted entitlements about the founder's own AWS/Azure accounts.
   const [livePrograms, setLivePrograms]       = useState(null);
+
+  // NOTE: this memo lives BELOW the Record-spine state on purpose. useMemo runs during
+  // render; `recordClaims` is a const from useState declared above — placing the memo
+  // earlier put it in the temporal dead zone and took /chat down (RENDER ERROR,
+  // "Cannot access before initialization", live 2026-09-03/04). tests/chat-hook-order.test.js holds this.
+  // Commands are PROJECTED FROM STATE, never a stored menu (INVARIANTS §1). A claim
+  // that does not exist yet has no command; a company that has not been read has no
+  // "open the record". The palette can therefore never offer a door to an empty room —
+  // which is the same rule the emotional contract applies to the greyed tiles.
+  const commands = useMemo(() => {
+    const list = [];
+    list.push({
+      id: 'sim', group: 'View', hint: simulation ? 'on' : 'off',
+      label: simulation ? 'Switch to your own record' : 'Switch to the worked example',
+      run: () => setSimulationOverride(!simulation),
+    });
+    if (recordClaims?.length) {
+      list.push({
+        id: 'record', group: 'View', label: 'Open the full record',
+        run: () => setActiveSpace('kept'),
+      });
+      for (const claim of recordClaims.slice(0, 8)) {
+        list.push({
+          id: `claim-${claim.claim_id ?? claim.field}`,
+          group: 'What we have',
+          label: `${claim.label ?? claim.field}: ${claim.value ?? '—'}`,
+          run: () => setInspecting({
+            subject: {
+              label: claim.label ?? claim.field,
+              value: claim.value ?? '—',
+              confirmation: claim.status === 'confirmed' ? 'confirmed' : 'unconfirmed',
+            },
+            observations: claim.observations ?? null,
+            disconfirmer: claim.disconfirmer ?? null,
+          }),
+        });
+      }
+    }
+    return list;
+  }, [simulation, recordClaims]);
   const liveSessionId = companyData?.session_id ?? null;
 
   // The demo/workspace discriminator (INVARIANTS.md §4): true only while the
