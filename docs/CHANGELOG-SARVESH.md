@@ -4,6 +4,18 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-09-12 · A second, verified way in: the Cloudflare Access identity
+
+**Problem.** The corpus-console (corpus.ethikslabs.com, the re-pointed clone of your Corpus front end) has a CERs page that reads `GET /api/v1/profile/current/cers`. That door is behind `requireAuth`, which only knew Auth0 Bearer tokens. The console has no Auth0 login: it sits behind a Cloudflare Access application (the sign-in wall you hit at the URL), so from that origin the door answered `401 auth_required` and the page could only say "proof360 not reachable".
+
+**Fix.** `requireAuth` now also accepts the identity Cloudflare Access puts on every request that passes its wall: the `Cf-Access-Jwt-Assertion` header, a JWT signed by Cloudflare for the signed-in user. It is verified the same way the Auth0 token is (`jose` against the team's published signing keys at `https://ethikslabs.cloudflareaccess.com/cdn-cgi/access/certs`), with issuer and audience pinned to the one Access application. The founder is keyed `cf-access|<email>`, so the profile the console shows is the one for the email you signed in with. Two new env keys switch it on: `CF_ACCESS_TEAM_DOMAIN`, `CF_ACCESS_AUD`.
+
+Fail-closed on every edge: with either env key unset the header is ignored entirely (401 as before); a token for a different Access application is refused; a token with no email (Cloudflare *service tokens*, machine credentials) is refused, so nothing but a person becomes a founder; a Bearer token, when present, still wins. `tests/unit/auth-cf-access.test.js` mints tokens with a local key pair and pins each of those five behaviours. 557/557.
+
+**Why it matters.** This is the same rule as the read doors on CORPUS: the identity that reaches the service must be *verified at the mechanism*, never read off a header someone could type. nginx forwards the header, but nothing trusts it until the signature checks out. It also means the console's CERs page is now the real founder-side projection (`cer-projection.js`), not a copy of it: one door, two ways to prove who is knocking.
+
+---
+
 ## 2026-09-04 · /chat was down: a hook read state declared 120 lines below it
 
 **Problem.** After yesterday's merge, `/chat` rendered the RENDER ERROR fallback — *"Cannot access 'qt' before initialization"*. `/journey` and `/raise` were fine, the API was healthy, pm2 showed 0 restarts, so nothing server-side said "down". The cause was in `Chat.jsx`: the command-palette `useMemo` (added 2 Sep with the palette) reads `recordClaims`, a `useState` const declared 120 lines further down the component. `useMemo` runs during render, so on the first render the const was in its *temporal dead zone* — JavaScript's rule that a `const` cannot be touched before the line that declares it, even inside the same function. The suite was green because `Chat.jsx` is never rendered whole in tests.
