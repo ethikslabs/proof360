@@ -4,6 +4,16 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-09-12 · The browser tab says whose it is
+
+**Problem.** In a sidebar of tabs, proof360.au read just "proof360" next to corpus.ethiks360.com and corpus.ethikslabs.com. John could not tell at a glance which tabs were his estate.
+
+**Fix.** `frontend/index.html` title is now `EthiksLabs · proof360`. The corpus-console got the same prefix on every route the same morning (`EthiksLabs · Entities`, `EthiksLabs · CERs`, …). One line; no behaviour change.
+
+**Why it matters.** Small, but it is the same rule as the console's theme switch: the estate should be recognisable without reading anything. A prefix in the tab is the cheapest place that holds.
+
+---
+
 ## 2026-09-12 · A second, verified way in: the Cloudflare Access identity
 
 **Problem.** The corpus-console (corpus.ethikslabs.com, the re-pointed clone of your Corpus front end) has a CERs page that reads `GET /api/v1/profile/current/cers`. That door is behind `requireAuth`, which only knew Auth0 Bearer tokens. The console has no Auth0 login: it sits behind a Cloudflare Access application (the sign-in wall you hit at the URL), so from that origin the door answered `401 auth_required` and the page could only say "proof360 not reachable".
