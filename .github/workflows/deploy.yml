@@ -158,6 +158,8 @@ jobs:
           AUTH0_AUDIENCE=$AUTH0_AUDIENCE
           TURNSTILE_SECRET=$(get_ssm "/proof360/TURNSTILE_SECRET")
           DEMO_FOUNDER_MODE=$(get_ssm "/proof360/DEMO_FOUNDER_MODE")
+          CF_ACCESS_TEAM_DOMAIN=$(get_ssm "/proof360/CF_ACCESS_TEAM_DOMAIN")
+          CF_ACCESS_AUD=$(get_ssm "/proof360/CF_ACCESS_AUD")
           PG_MEMORY_DATABASE=proof360_memory
           MEMORY_STORE_DIR=$MEMORY_STORE_DIR
           LOG_LEVEL=info
