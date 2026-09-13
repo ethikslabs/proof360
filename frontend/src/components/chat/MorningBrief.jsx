@@ -67,7 +67,7 @@ function PullSignalCard({ onConfirm, t }) {
 const SINCE_LAST = [
   { who: 'sofia',    what: 'drafted your investor narrative opening',        when: 'late yesterday' },
   { who: 'edison',   what: 'flagged that your SSL config drifted overnight', when: '04:32' },
-  { who: 'leonardo', what: 'matched 2 new vendors to your gaps',             when: '06:18' },
+  { who: 'leonardo', what: 'matched 2 new vendors to what we saw',             when: '06:18' },
 ];
 
 export function MorningBrief({ onPullSignal, t }) {

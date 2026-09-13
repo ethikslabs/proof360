@@ -54,7 +54,7 @@ export async function analyzeHandler(request, reply) {
   try {
     context = normalizeContext(session);
     ({ gaps, trust_score, readiness, vendors } = await runGapAnalysis(context, { session_id: id }));
-    appendLog(id, { act: 'reading', type: 'act_body', text: `weighed ${gaps.length} gaps against your trail` });
+    appendLog(id, { act: 'reading', type: 'act_body', text: (() => { const n = gaps.filter((g) => g.state === 'observed').length; const a = gaps.length - n; return n > 0 ? `weighed ${n} ${n === 1 ? 'gap' : 'gaps'} against your trail${a ? `, ${a} more looked for and not spotted` : ''}` : `nothing counted against your trail${a ? `, ${a} things looked for and not spotted` : ''}`; })() });
 
     // "The reading": a synthesized, hedged cold-read paragraph, with a deterministic
     // evidence-anchor trail alongside it. Honest degradation is built into

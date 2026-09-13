@@ -53,19 +53,25 @@ function evaluateGaps(context, gaps_config) {
     }
   });
 
-  return triggered.map((gap) => ({
+  return triggered.map((gap) => {
+    // Same default-deny as gap-mapper (finding 8, 14 Sept): observed only when a probe
+    // or the founder spoke to it; an absence carries no weight, no verdict, no copy.
+    const state = gap.observedBy?.(context) === true ? 'observed' : 'not_observed';
+    return {
     id: gap.id,
     gap_def_id: gap.id,
+    state,
     description: gap.label,
     severity: gap.severity,
     confidence: 'medium',
     evidence_summary: buildEvidenceSummary(gap, context),
     framework_impact: generateFrameworkImpact(gap.id, context),
     remediation: gap.remediation || [],
-    why: gap.why || '',
-    risk: gap.risk || '',
+    why: state === 'observed' ? (gap.why || '') : null,
+    risk: state === 'observed' ? (gap.risk || '') : null,
     time_estimate: gap.time_estimate || '',
-  }));
+    };
+  });
 }
 
 /**
@@ -84,7 +90,7 @@ function buildEvidenceSummary(gap, context) {
  * Compute trust score: 100 − Σ(severity weights of triggered gaps).
  */
 function computeTrustScore(gaps) {
-  const totalPenalty = gaps.reduce(
+  const totalPenalty = gaps.filter((g) => g.state !== 'not_observed').reduce(
     (sum, gap) => sum + (SEVERITY_WEIGHTS[gap.severity] || 0),
     0
   );
@@ -107,8 +113,9 @@ function computeDensity(gaps) {
 /**
  * Generate directional hints from gap analysis.
  */
-function generateDirectionalHints(gaps, context) {
+function generateDirectionalHints(allGaps, context) {
   const hints = [];
+  const gaps = (allGaps || []).filter((g) => g.state !== 'not_observed'); // a verdict is never built on an absence
 
   const hasCritical = gaps.some((g) => g.severity === 'critical');
   const hasGovernance = gaps.some((g) => {
@@ -144,7 +151,7 @@ function generateDirectionalHints(gaps, context) {
     hints.push('Founder trust signals need strengthening before enterprise or investor conversations');
   }
   if (gaps.length === 0) {
-    hints.push('No significant trust gaps detected — strong posture');
+    hints.push('Nothing counted against you from what we could see');
   }
 
   return {
@@ -256,9 +263,9 @@ function buildVendorRecommendations(gaps, context, vendors_config) {
   const gapsForSelector = matrixGaps.map((g) => ({
     gap_id: g.id,
     severity: g.severity === 'critical' ? 'critical' : g.severity === 'high' ? 'moderate' : 'low',
-    // Matrix gaps are ATTESTED claims — observed by construction. selectVendors
-    // only matches observed gaps (HX loop fix 1: an absence buys no vendor).
-    state: 'observed',
+    // The state evaluateGaps derived (observedBy). Never hard-set: an absence buys
+    // no vendor on this path either (review 14 Sept, round 2, finding 1).
+    state: g.state,
   }));
 
   const selected = selectVendors(gapsForSelector);
@@ -369,7 +376,7 @@ export function recompute({ signals, recon_outputs, session, gaps_config, vendor
   const gaps = applyVeritasRenderMapping(rawGaps, gaps_db);
 
   // 4. Density (computed over all triggered gaps, not just vendor-matrix-included)
-  const density = computeDensity(gaps);
+  const density = computeDensity(gaps.filter((g) => g.state !== 'not_observed')); // counts what was weighed
 
   // 5. Directional hints
   const directional_hints = generateDirectionalHints(gaps, context);
@@ -386,7 +393,9 @@ export function recompute({ signals, recon_outputs, session, gaps_config, vendor
     current_actor: s.current_actor || null,
   }));
 
-  const tier1Gaps = gaps.map((g) => ({
+  // Tier 1 keeps its frozen four-field shape (tier-boundary test), so an absence is
+  // simply not listed there: nothing seen from outside is shown as a gap to anyone.
+  const tier1Gaps = gaps.filter((g) => g.state !== 'not_observed').map((g) => ({
     id: g.id,
     description: g.description,
     confidence: g.confidence,
@@ -395,6 +404,7 @@ export function recompute({ signals, recon_outputs, session, gaps_config, vendor
 
   const tier2Gaps = gaps.map((g) => ({
     id: g.id,
+    state: g.state, // observed | not_observed, same register as gap-mapper
     title: g.description,
     description: g.description,
     severity: g.severity,

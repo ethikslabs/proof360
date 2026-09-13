@@ -231,7 +231,7 @@ const YOURS_VENDORS = {
 
 function VendorsProjection({ panel, company, t }) {
   const tk = tokens(t.theme);
-  const tile = { kind: 'Vendors', token: 'umber', glyphKey: 'vendors', title: 'Vendors matched to your gaps' };
+  const tile = { kind: 'Vendors', token: 'umber', glyphKey: 'vendors', title: 'Vendors matched to what we saw' };
   const d = panel ?? YOURS_VENDORS;
   const priorityColor = (p) => p === 'start_here' ? tk.plum : p === 'recommended' ? tk.umber : tk.inkSoft;
   const priorityLabel = (p) => p === 'start_here' ? 'Start here' : p === 'recommended' ? 'Recommended' : 'Considered';

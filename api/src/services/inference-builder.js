@@ -30,7 +30,7 @@ export function buildInferences(signals, sources_read, website_url, recon = {}) 
   if (!inferredTypes.has('compliance_status')) {
     inferences.push({
       inference_id: 'inf_compliance',
-      label: 'SOC 2: not seen on the pages read',
+      label: "SOC 2: we couldn't spot one on the pages we read",
       confidence: 'not_observed',
       state: 'not_observed',
       category: 'governance',

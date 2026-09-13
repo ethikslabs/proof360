@@ -34,9 +34,10 @@ export function normalizeContext(session, corrections = {}, followup_answers = {
     const preSOC2 = (session.inferences || []).find(
       (i) => i.inference_id === 'inf_compliance'
     );
-    // An absence derives 'unknown' — 'none' is a thing we observed, never a thing
-    // we failed to see (HX loop fix 1, 2026-09-13).
-    if (preSOC2) context.compliance_status = preSOC2.state === 'not_observed' ? 'unknown' : 'none';
+    // The placeholder exists only when no compliance signal was read, so it is an
+    // absence by construction: 'unknown', never 'none'. 'none' is founder testimony
+    // (HX loop fix 1, 2026-09-13; legacy rows without `state` closed 14 Sept).
+    if (preSOC2) context.compliance_status = 'unknown';
   }
 
   // Pass through sector signals from raw extraction — these inform industry-specific gaps

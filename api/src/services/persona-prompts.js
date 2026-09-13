@@ -5,15 +5,32 @@
 // under its own heading with the instruction that goes with it — never under
 // "Gaps identified", never with the consequence text a real finding carries.
 function absenceBlock(gaps) {
-  const absent = (gaps || []).filter(g => g.state === 'not_observed');
+  // founder_trust is the product's own unfilled form, not a thing we looked for on the web;
+  // it never reads as "we couldn't spot their leadership trust".
+  const absent = (gaps || []).filter(g => g.state === 'not_observed' && g.gap_id !== 'founder_trust' && g.id !== 'founder_trust');
   if (!absent.length) return null;
   // R6: the sentence when we have it (cohort observed), the bare name when not.
-  const names = absent.map(g => `- ${g.peer_line || g.title || g.label || g.gap_id || g.id}`);
+  // Fallback when no peer sentence fires: name the thing we looked for, never "<x> gap"
+  // ("Things we couldn't spot: Backup and disaster recovery gap" inverts itself).
+  const thing = (g) => String(g.title || g.label || g.gap_id || g.id).replace(/\s*(?:compliance |certification |baseline )?gap$/i, '');
+  // The partner path (", and use Vanta (an EthiksLabs partner …) to get there") is said once per
+  // block, not once per absence: nobody is paid to sell what a founder may not need (round 2, finding 4).
+  let vendorSaid = false;
+  const names = absent.map(g => {
+    let line = g.peer_line || thing(g);
+    if (/, and use .* to get there/.test(line)) {
+      if (vendorSaid) line = line.replace(/, and use .* to get there/, '');
+      vendorSaid = true;
+    }
+    return `- ${line}`;
+  });
   return [
-    'Not seen on the pages read (absences, NOT findings):',
+    "Things we couldn't spot (absences, NOT findings):",
     ...names,
-    'We did not see these on the pages we read. That is all the record holds. Say "we did not see"',
-    'or "not seen on the pages read"; never say "your gap", "you lack", or "you have no". Ask, do not assert.',
+    'These are things we looked for and could not spot, scanning their site and having a look around the web.',
+    'That is all the record holds. Say it as we + the method ("looking at your site and around the web,',
+    'we couldn\'t spot a …"), warm and plain, the way a good teacher would. Never tell the founder what they',
+    'do not have, never call it their gap. Ask whether they have it; never assert that they do not.',
   ].join('\n');
 }
 
@@ -102,7 +119,7 @@ You have read this entire report. When the founder references something in it, y
 
 Your voice is direct, commercial, and precise. You translate trust gaps into business consequences — investor objections, deal friction, competitive disadvantage. You do not explain what the gaps are (they know). You explain what those gaps cost them in the market.
 
-One consequence or one strategic recommendation per response. 2–4 sentences. Reference at least one specific gap by name. Never grade them and never give them a number — you are lighting the ground, not marking their work. No pep talk.
+One consequence or one strategic recommendation per response. 2–4 sentences. Reference at least one specific gap by name when one was observed; if none was observed, ask about one of the absences instead, and never price it. Never grade them and never give them a number — you are lighting the ground, not marking their work. No pep talk.
 `.trim(),
 
   edison: (context) => `
@@ -116,7 +133,7 @@ You have read this entire report. When the founder references something in it �
 
 Your voice is calm, precise, and sequenced. You speak in specifics: tools, steps, timelines, tradeoffs. You optimise for the shortest honest path to closing the gap in front of them. Never grade them and never give them a number — you are lighting the ground, not marking their work. You do not frame things emotionally. You do not give general security advice.
 
-One recommendation at a time. 2–4 sentences. Always reference the specific gap you're addressing. Ask a clarifying question only if you genuinely need it to give useful direction.
+One recommendation at a time. 2–4 sentences. Reference the specific gap you're addressing when one was observed; if none was observed, ask about one of the absences instead, and never price it. Ask a clarifying question only if you genuinely need it to give useful direction.
 `.trim(),
 };
 

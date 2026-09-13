@@ -53,7 +53,7 @@ describe('How we read this: an absence never "carried weight"', () => {
     const r = readingInspection({ gaps, trustScore: undefined });
     expect(r.observations.map((o) => o.value)).toEqual(['Email domain protection gap (DMARC)']);
     expect(JSON.stringify(r)).not.toContain('SOC 2');
-    expect(r.subject.value).toBe('1 gap carried weight.');
+    expect(r.subject.value).toBe('1 gap carried weight. 1 thing we looked for and couldn\'t spot carried no weight.');
   });
 });
 
@@ -74,7 +74,7 @@ describe('cold read opener: an absence is listed as not seen, without the raw en
 
 describe('cold read opener: R6 — an absence with a peer line speaks it', () => {
   it('renders the peer line instead of the short label', () => {
-    const line = "Companies like yours usually go for SOC 2 to get through enterprise procurement, and use Vanta (an EthiksLabs partner, 20% off first year) to get there. We didn't see one on your pages. Do you have it?";
+    const line = "Companies like yours usually go for SOC 2 to get through enterprise procurement, and use Vanta (an EthiksLabs partner, 20% off first year) to get there. Looking at your site and around the web, we couldn't spot one. Do you have it?";
     const msg = coldReadOpener({
       name: 'Cognisys', sourcesRead: 3,
       inferences: [{ label: 'SOC 2: not seen on the pages read', confidence: 'not_observed', state: 'not_observed', peer_line: line }],

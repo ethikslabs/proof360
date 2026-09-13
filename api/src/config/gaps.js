@@ -8,16 +8,19 @@ export const SEVERITY_WEIGHTS = {
 export const GAP_DEFINITIONS = [
   {
     id: 'soc2',
+    // Founder testimony only ('none' / 'planning'). The read cannot observe a SOC 2 absence, and
+    // today nothing in the pipeline lets the founder say it either (review 14 Sept, finding 2) —
+    // the path is the R9 ladder. Until it exists this gap is always an absence, honestly.
+    observedBy: (ctx) => ['none', 'planning'].includes(ctx.compliance_status),
     severity: 'critical',
     label: 'SOC 2 certification gap',
     category: 'governance',
-    why: "Without SOC 2 Type II, enterprise buyers can't verify your security controls. It's the first question in vendor assessment — and a deal blocker above $50k ACV.",
+    why: "SOC 2 Type II is how enterprise buyers verify security controls without taking anyone's word for it. It's the first question in vendor assessment, and a deal blocker above $50k ACV.",
     risk: 'Enterprise deals stall at procurement. Fundraising due diligence flags this immediately. Cyber insurers may decline or charge significantly higher premiums.',
     time_estimate: '6–9 months with a compliance platform',
     triggerCondition: (ctx) => ['none', 'unknown'].includes(ctx.compliance_status),
     // 'unknown' fires the gap from an ABSENCE: the read did not see it. The gap
     // then carries state 'not_observed' and is never voiced as a finding.
-    absenceCondition: (ctx) => ctx.compliance_status === 'unknown',
     // R6 (CANON-hx-loop 2026-09-13): what companies like theirs usually go for,
     // and why — spoken only when the cohort was observed (peer-reference.js).
     peer: { framework: 'soc2', outcome: 'to get through enterprise procurement' },
@@ -37,6 +40,7 @@ export const GAP_DEFINITIONS = [
   },
   {
     id: 'mfa',
+    observedBy: (ctx) => ctx.identity_model === 'password_only', // the founder's answer
     severity: 'critical',
     label: 'Multi-factor authentication gap',
     category: 'identity',
@@ -62,11 +66,12 @@ export const GAP_DEFINITIONS = [
   },
   {
     id: 'cyber_insurance',
+    observedBy: (ctx) => ctx.insurance_status === 'none', // the founder said no; 'unknown' is an absence
     severity: 'critical',
     label: 'Cyber insurance gap',
     category: 'governance',
-    why: "Enterprise MSAs routinely require vendors to carry cyber insurance. Without it, you can't sign contracts — your deal dies at legal review, not product review.",
-    risk: "You can't close enterprise deals. Incidents have no financial backstop. Your personal and company liability is uncapped.",
+    why: "Enterprise MSAs routinely require vendors to carry cyber insurance. Without it, the contract stalls at legal review, not product review.",
+    risk: "Enterprise deals stall at legal review. An incident has no financial backstop, and personal and company liability sits uncapped.",
     time_estimate: '2 weeks for a basic $1M policy',
     triggerCondition: (ctx) => ['none', 'unknown'].includes(ctx.insurance_status),
     claimTemplate: (ctx) => ({
@@ -85,6 +90,7 @@ export const GAP_DEFINITIONS = [
   },
   {
     id: 'incident_response',
+    peer: { pursue: 'a written incident response plan', outcome: 'to answer the what-happens-if question buyers ask', cohorts: ['enterprise', 'smb'] },
     severity: 'high',
     label: 'Incident response plan gap',
     category: 'governance',
@@ -109,10 +115,11 @@ export const GAP_DEFINITIONS = [
   },
   {
     id: 'vendor_questionnaire',
+    observedBy: (ctx) => ctx.questionnaire_experience === 'stalled_deal', // the founder's answer
     severity: 'high',
     label: 'Vendor questionnaire readiness gap',
     category: 'governance',
-    why: "Enterprise procurement teams send security questionnaires to every vendor. If you can't complete one confidently, deals stall in procurement for months.",
+    why: "Enterprise procurement teams send security questionnaires to every vendor. A questionnaire that is hard to complete confidently is where deals stall in procurement for months.",
     risk: 'Deals die in vendor review queues. Security teams flag you as high-risk. You lose to competitors who have their paperwork ready.',
     time_estimate: '1–2 weeks to build a baseline response library',
     triggerCondition: (ctx) => ctx.questionnaire_experience === 'stalled_deal',
@@ -132,6 +139,7 @@ export const GAP_DEFINITIONS = [
   },
   {
     id: 'edr',
+    observedBy: (ctx) => ['password_only', 'mfa_only'].includes(ctx.identity_model), // the founder's answer
     severity: 'high',
     label: 'Endpoint detection & response gap',
     category: 'infrastructure',
@@ -156,10 +164,11 @@ export const GAP_DEFINITIONS = [
   },
   {
     id: 'sso',
+    observedBy: (ctx) => ['password_only', 'mfa_only'].includes(ctx.identity_model), // the founder's answer
     severity: 'medium',
     label: 'Single sign-on gap',
     category: 'identity',
-    why: "SSO means you control access to every tool from one place. Without it, you have dozens of separate passwords — and you can't offboard someone instantly.",
+    why: "SSO means you control access to every tool from one place. Without it, access is spread across dozens of separate passwords, and offboarding someone takes hours instead of seconds.",
     risk: 'A departed employee retains access to SaaS tools for days. Enterprise IT teams require SSO before onboarding vendors.',
     time_estimate: '1–2 days if using Google Workspace or Microsoft 365',
     triggerCondition: (ctx) => ['mfa_only', 'password_only'].includes(ctx.identity_model),
@@ -186,7 +195,7 @@ export const GAP_DEFINITIONS = [
     // Always surfaces — every founder has an unassessed human factor.
     // Severity is 'high' because investors and enterprise buyers consistently
     // rate founder risk as a top concern. Not scrapeable — requires self-assessment.
-    why: "Investors and enterprise buyers don't just buy the product — they're betting on you. Without documented governance around the founding team, you're asking for blind trust.",
+    why: "Investors and enterprise buyers don't just buy the product; they're betting on the people. Documented governance around the founding team is what turns that bet into an informed one.",
     risk: 'Fundraising due diligence stalls at "tell me about the founders". Series A investors ask directly about accountability structures and co-founder agreements.',
     time_estimate: '1–2 weeks for a structured leadership profile',
     triggerCondition: (ctx) => ctx.founder_profile_completed !== true,
@@ -206,6 +215,7 @@ export const GAP_DEFINITIONS = [
   },
   {
     id: 'dmarc',
+    observedBy: () => true, // DNS probe
     severity: 'high',
     label: 'Email domain protection gap (DMARC)',
     category: 'infrastructure',
@@ -234,6 +244,7 @@ export const GAP_DEFINITIONS = [
   },
   {
     id: 'spf',
+    observedBy: () => true, // DNS probe
     severity: 'medium',
     label: 'Email spoofing protection gap (SPF)',
     category: 'infrastructure',
@@ -281,6 +292,7 @@ export const GAP_DEFINITIONS = [
   },
   {
     id: 'pci_dss',
+    peer: { pursue: 'PCI DSS', outcome: 'to keep taking card payments without friction', cohorts: ['enterprise', 'smb'], thing: 'it' },
     severity: 'critical',
     label: 'PCI DSS compliance gap',
     category: 'governance',
@@ -302,6 +314,7 @@ export const GAP_DEFINITIONS = [
   },
   {
     id: 'apra_prudential',
+    peer: { pursue: 'APRA CPS 234 alignment', outcome: 'to work with Australian banks and insurers', cohorts: ['banks'] }, // the map puts CPS 234 under banks only
     severity: 'critical',
     label: 'APRA CPS 234 compliance gap',
     category: 'governance',
@@ -323,6 +336,7 @@ export const GAP_DEFINITIONS = [
   },
   {
     id: 'essential_eight',
+    peer: { pursue: 'the Essential Eight at Maturity Level 1', outcome: 'to sell to Australian government buyers', cohorts: ['government'] }, // the map puts E8 under government only
     severity: 'high',
     label: 'Essential Eight baseline gap',
     category: 'governance',
@@ -344,6 +358,7 @@ export const GAP_DEFINITIONS = [
   // ── Recon-derived gaps (HTTP/TLS/CT/HIBP) ───────────────────────────────
   {
     id: 'security_headers',
+    observedBy: () => true, // HTTP probe
     severity: 'medium',
     label: 'Web security headers gap',
     category: 'infrastructure',
@@ -363,6 +378,7 @@ export const GAP_DEFINITIONS = [
   },
   {
     id: 'staging_exposure',
+    observedBy: () => true, // DNS/HTTP probe
     severity: 'high',
     label: 'Staging/dev environment exposure gap',
     category: 'infrastructure',
@@ -382,6 +398,7 @@ export const GAP_DEFINITIONS = [
   },
   {
     id: 'domain_breach',
+    observedBy: () => true, // HIBP probe
     severity: 'critical',
     label: 'Domain credentials in breach data',
     category: 'infrastructure',
@@ -401,6 +418,7 @@ export const GAP_DEFINITIONS = [
   },
   {
     id: 'tls_configuration',
+    observedBy: () => true, // SSL Labs / cert probe
     severity: 'medium',
     label: 'TLS/certificate configuration gap',
     category: 'infrastructure',
@@ -429,10 +447,11 @@ export const GAP_DEFINITIONS = [
   },
   {
     id: 'ai_governance',
+    peer: { pursue: 'a short responsible-AI policy', outcome: 'to answer the AI questions enterprise buyers now ask', cohorts: ['enterprise', 'smb'] },
     severity: 'high',
     label: 'AI governance gap',
     category: 'governance',
-    why: "Enterprise buyers and regulators are asking how you govern your AI systems. Without an AI governance framework, you're exposed to EU AI Act liability, reputational risk, and procurement blocks from risk-conscious buyers.",
+    why: "Enterprise buyers and regulators are asking how you govern your AI systems. An AI governance framework is what answers the EU AI Act question, the reputational one, and the procurement block from risk-conscious buyers.",
     risk: 'EU AI Act non-compliance carries fines up to €30M or 6% global revenue. Enterprise buyers increasingly require documented AI risk controls before signing. OAIC can investigate AI-related privacy breaches.',
     time_estimate: '4–8 weeks to establish a baseline AI governance framework',
     triggerCondition: (ctx) => ctx.uses_ai === true,
@@ -460,6 +479,7 @@ export const GAP_DEFINITIONS = [
     risk: 'OAIC can investigate and impose significant fines. GDPR fines up to €20M or 4% global revenue. Enterprise buyers require a Data Processing Agreement (DPA) before they will share customer data with you.',
     time_estimate: '2–4 weeks to establish a baseline privacy framework',
     triggerCondition: (ctx) => ctx.handles_personal_data === true,
+    peer: { pursue: 'a published privacy policy with a data map behind it', outcome: 'to get personal data through a buyer\'s first questions', cohorts: ['enterprise', 'smb'] },
     claimTemplate: (ctx) => ({
       question: 'Does this company have a compliant data privacy framework and published privacy policy?',
       evidence: `Handles personal data: ${ctx.handles_personal_data}. Geo market: ${ctx.geo_market ?? 'unknown'}. Customer type: ${ctx.customer_type}.`,
@@ -477,20 +497,18 @@ export const GAP_DEFINITIONS = [
   },
   {
     id: 'penetration_testing',
+    // The founder's "no" is testimony; a read compliance status speaks to it; "not sure" and silence do not.
+    observedBy: (ctx) => ctx.pen_test_completed === false,
     severity: 'high',
     label: 'Penetration testing gap',
     category: 'governance',
-    why: "Enterprise security teams ask for pen test results in every vendor assessment. Without evidence of regular testing, you're asking buyers to trust a system you've never had independently attacked.",
+    why: "Enterprise security teams ask for pen test results in every vendor assessment. Without evidence of regular testing, buyers are being asked to trust a system nobody has independently tried to break.",
     risk: 'Deals blocked at procurement. SOC 2 Type II requires evidence of vulnerability management and testing. Cyber insurers increasingly require annual pen tests for coverage above $1M.',
     time_estimate: '2–4 weeks for an initial external pen test',
     triggerCondition: (ctx) =>
       ctx.pen_test_completed !== true &&
       ['none', 'planning', 'unknown'].includes(ctx.compliance_status),
-    // Fired purely from an absence when compliance was not seen on the read AND
-    // the founder has not answered the pen-test question. A founder's "no" is
-    // testimony and keeps the gap observed.
-    absenceCondition: (ctx) => ctx.compliance_status === 'unknown' && ctx.pen_test_completed === undefined,
-    peer: { pursue: 'an independent penetration test each year', outcome: 'to get through vendor security reviews' },
+    peer: { pursue: 'an independent penetration test each year', outcome: 'to get through vendor security reviews', cohorts: ['enterprise', 'smb'] },
     claimTemplate: (ctx) => ({
       question: 'Has this company conducted an independent penetration test in the last 12 months?',
       evidence: `Pen test completed: ${ctx.pen_test_completed ?? false}. Compliance status: ${ctx.compliance_status}.`,
@@ -508,10 +526,12 @@ export const GAP_DEFINITIONS = [
   },
   {
     id: 'backup_dr',
+    peer: { pursue: 'a tested backup and recovery procedure', outcome: 'to answer the RTO and RPO question with numbers', cohorts: ['enterprise', 'smb'] },
+    observedBy: (ctx) => ctx.has_backup === false, // the founder said no or partial; 'not sure' and silence are absences
     severity: 'high',
     label: 'Backup and disaster recovery gap',
     category: 'infrastructure',
-    why: "Without tested backup and recovery, a ransomware attack or infrastructure failure can destroy your business. Enterprise buyers ask for your RTO and RPO before signing — if you don't know what those are, you fail the review.",
+    why: "Without tested backup and recovery, a ransomware attack or infrastructure failure can destroy your business. Enterprise buyers ask for your RTO and RPO before signing, so having both to hand is what gets the review through.",
     risk: 'A single ransomware event without backup means data loss and extended downtime. SOC 2 availability criteria require documented and tested recovery procedures. Cyber insurance claims are denied when no backup existed.',
     time_estimate: '1 day to enable automated backup, 1–2 weeks to document and test DR procedures',
     triggerCondition: (ctx) => ctx.has_backup !== true,
@@ -532,6 +552,7 @@ export const GAP_DEFINITIONS = [
   },
   {
     id: 'aws_program_eligibility',
+    observedBy: () => true, // eligibility is a positive derived fact, not a deficit
     severity: 'medium',
     label: 'AWS program opportunity gap',
     category: 'commercial',
@@ -557,6 +578,7 @@ export const GAP_DEFINITIONS = [
   },
   {
     id: 'microsoft_program_eligibility',
+    observedBy: () => true, // eligibility is a positive derived fact, not a deficit
     severity: 'medium',
     label: 'Microsoft program opportunity gap',
     category: 'commercial',
@@ -582,6 +604,7 @@ export const GAP_DEFINITIONS = [
   },
   {
     id: 'ip_reputation',
+    observedBy: () => true, // AbuseIPDB probe
     severity: 'high',
     label: 'Server IP flagged for abuse',
     category: 'infrastructure',

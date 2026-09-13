@@ -106,9 +106,11 @@ export async function runGapAnalysis(context, { session_id } = {}) {
     .map((gap) => {
       const gapObj = {
         gap_id: gap.id,
-        // observed = a fact the read holds; not_observed = fired from an absence
-        // (the definition's absenceCondition). Consumers keep the two registers apart.
-        state: gap.absenceCondition?.(context) === true ? 'not_observed' : 'observed',
+        // observed = a probe saw it or the founder said it (the definition's
+        // observedBy); not_observed = fired from a category fact alone. Default-deny:
+        // no observedBy, or observedBy false, is an absence (finding 8, R8, 14 Sept).
+        // Consumers keep the two registers apart.
+        state: gap.observedBy?.(context) === true ? 'observed' : 'not_observed',
         category: gap.category,
         severity: gap.severity === 'critical' ? 'critical' : gap.severity === 'high' ? 'moderate' : 'low',
         title: gap.label,
@@ -128,7 +130,13 @@ export async function runGapAnalysis(context, { session_id } = {}) {
       };
       if (gapObj.state === 'observed') gapObj.score_impact = SEVERITY_WEIGHTS[gap.severity];
       // R6: an absence speaks in John's register when the cohort was observed.
-      if (gapObj.state === 'not_observed') gapObj.peer_line = peerReference(gap.id, context);
+      if (gapObj.state === 'not_observed') {
+        gapObj.peer_line = peerReference(gap.id, context);
+        // An absence carries no consequence copy: the only thing said about it is the
+        // peer sentence (R6/R8). No consumer can render a deficit off a thing not seen.
+        gapObj.why = gapObj.peer_line || null;
+        gapObj.risk = null;
+      }
       gapObj.vendor_intelligence = buildVendorIntelligence(gapObj, context);
       return gapObj;
     });
@@ -195,18 +203,18 @@ function mosToConfidence(mos) {
 function generateWhy(gap, context) {
   const whys = {
     soc2: `Without SOC 2 certification, enterprise buyers cannot verify your security controls. This is typically the first thing procurement asks for.`,
-    mfa: `Password-only authentication is a critical security gap. Enterprise buyers will flag this immediately during vendor assessment.`,
-    cyber_insurance: `No cyber insurance means your company carries the full financial risk of a breach. Investors and enterprise buyers increasingly require this.`,
-    incident_response: `Without a documented incident response plan, you cannot demonstrate how you'd handle a security event. This is a standard enterprise requirement.`,
+    mfa: `Passwords on their own are the first thing an enterprise buyer's security team looks at during vendor assessment.`,
+    cyber_insurance: `Without cover, the full financial weight of a breach sits with the company. Investors and enterprise buyers increasingly ask to see a policy.`,
+    incident_response: `A written incident response plan is how a buyer sees what happens on a bad day. It is a standard enterprise ask.`,
     vendor_questionnaire: `A stalled deal due to a security questionnaire signals that your trust posture is blocking revenue right now.`,
-    edr: `Without endpoint detection and response, you have limited visibility into threats on your team's devices.`,
+    edr: `Endpoint detection and response is what gives a team sight of threats on its own devices.`,
     sso: `Without SSO, user access management is fragmented. Enterprise IT teams expect centralised identity management.`,
     dmarc: context.dmarc_policy === 'none'
       ? `Your domain has a DMARC record but the policy is set to \`p=none\` — monitoring only. No emails are blocked or quarantined regardless of sender. Anyone can send email that appears to come from your domain. Enterprise email security tools flag \`p=none\` as an unresolved issue; it needs to be \`p=quarantine\` or \`p=reject\` to count.`
       : `Your domain has no enforced DMARC policy, meaning anyone can send email that appears to come from your domain. This enables phishing attacks impersonating your brand — a critical trust failure with enterprise buyers.`,
     spf: `Your domain's SPF record is missing or permits any sender, leaving it open to email spoofing. Enterprise security teams check this before engaging with a new vendor.`,
-    hipaa_security: `You are handling health data without demonstrated HIPAA Security Rule compliance. This is a federal legal requirement, not a best practice — failure exposes the company to OCR investigation, breach notification obligations, and civil liability.`,
-    pci_dss: `You handle payment card data without demonstrated PCI DSS compliance. Non-compliance can result in card scheme fines, acquirer termination, and full breach liability without the protection of a compliance safe harbour.`,
+    hipaa_security: `Health data brings the HIPAA Security Rule with it. It is a federal legal requirement rather than a best practice, and US providers and insurers ask for it before they sign.`,
+    pci_dss: `Card payments bring PCI DSS with them. Card schemes and acquirers ask for it, and it is the safe harbour if a card data incident ever happens.`,
     apra_prudential: `As an Australian financial services entity, APRA CPS 234 is not optional — it is a prudential standard with regulatory consequences. APRA expects board-owned information security capability, annual testing, and documented third-party risk.`,
     essential_eight: `The ACSC Essential Eight is the Australian government's mandated security baseline. For any company selling to government or operating in regulated AU markets, ML1 compliance is the minimum expected posture.`,
     security_headers: context.cdn_provider === 'Cloudflare'
@@ -216,7 +224,7 @@ function generateWhy(gap, context) {
     domain_breach: `Your company domain has appeared in known data breach databases. Enterprise procurement teams and cyber insurers run HIBP checks as standard due diligence — a domain in breach data raises immediate questions about credential hygiene.`,
     tls_configuration: `Your TLS configuration is outdated or your certificate is near expiry. Buyers performing technical due diligence will flag TLS 1.0/1.1 and short-expiry certificates as signs of low operational maturity.`,
   };
-  return whys[gap.id] || `This gap was identified based on your current trust posture.`;
+  return whys[gap.id] || `We noted this from what we could see of the public trail.`;
 }
 
 function generateRisk(gap, context) {
@@ -235,11 +243,11 @@ function generateRisk(gap, context) {
     apra_prudential: `APRA can issue formal directions, require remediation, and in extreme cases restrict business activities. Financial services investors and banking partners will not engage without evidence of CPS 234 compliance.`,
     essential_eight: `Australian government procurement panels require demonstrated Essential Eight compliance. Failure to achieve ML1 eliminates you from consideration for government contracts — a significant revenue channel in AU enterprise markets.`,
     security_headers: `Missing HSTS enables SSL-stripping attacks. Missing CSP enables XSS injection. Automated vendor risk tools score this immediately — an absent header configuration is a visible signal of web security immaturity.`,
-    staging_exposure: `Attackers routinely enumerate CT logs looking for staging subdomains. A public staging environment is an attack surface your customers didn't sign up for — and a liability you're carrying silently.`,
+    staging_exposure: `Attackers routinely enumerate CT logs looking for staging subdomains. A public staging environment is extra attack surface, and usually one nobody meant to leave open.`,
     domain_breach: `Breached credentials in the wild can be used for credential stuffing, account takeover, and social engineering. A recent domain breach without evidence of remediation will stall enterprise deals and inflate cyber insurance premiums.`,
     tls_configuration: `An expired or near-expiry certificate causes browser warnings that erode customer trust and can trigger zero-tolerance rejections from enterprise security scanners. Outdated TLS versions are flagged by PCI DSS and SOC 2 auditors.`,
   };
-  return risks[gap.id] || `This gap increases risk to your enterprise deal readiness.`;
+  return risks[gap.id] || `This is one buyers tend to ask about.`;
 }
 
 function generateRemediation(gap, context) {

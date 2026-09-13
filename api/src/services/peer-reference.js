@@ -2,7 +2,10 @@
 // "This is how I speak in human"):
 //
 //   Companies like yours usually go for X to achieve Z, and use Y to get there.
-//   We didn't see one on your pages. Do you have it?
+//   Looking at your site and around the web, we couldn't spot one. Do you have it?
+//
+// R8 (14 Sept): the closing rung is we + the method, never a mark; "we didn't see"
+// is out with "you don't".
 //
 // Every slot is derived, nothing invented:
 //   like yours  — the OBSERVED customer type, mapped to a frameworks cohort; if it
@@ -42,6 +45,9 @@ export function peerReference(gapId, ctx = {}) {
     if (!usual.includes(gap.peer.framework)) return null; // this cohort does not usually go for it
     pursuit = FRAMEWORK_LABELS[gap.peer.framework] || gap.peer.framework;
   } else if (gap.peer.pursue) {
+    // A pursuit with no framework map behind it must say which cohorts usually go for
+    // it; otherwise "companies like yours" would be asserted for a cohort nobody checked.
+    if (!Array.isArray(gap.peer.cohorts) || !gap.peer.cohorts.includes(cohort)) return null;
     pursuit = gap.peer.pursue;
   } else {
     return null;
@@ -50,6 +56,6 @@ export function peerReference(gapId, ctx = {}) {
   const vendor = vendorFor(gapId);
   const path = vendor ? `, and use ${vendor} to get there` : '';
   const outcome = gap.peer.outcome ? ` ${gap.peer.outcome}` : '';
-  const thing = gap.peer.framework ? 'it' : 'one';
-  return `Companies like yours usually go for ${pursuit}${outcome}${path}. We didn't see one on your pages. Do you have ${thing}?`;
+  const thing = gap.peer.framework || gap.peer.thing === 'it' ? 'it' : 'one';
+  return `Companies like yours usually go for ${pursuit}${outcome}${path}. Looking at your site and around the web, we couldn't spot ${thing}. Do you have ${thing}?`;
 }

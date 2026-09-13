@@ -24,7 +24,7 @@ describe('hop 1 — inference-builder: no compliance signal is an absence, not "
     expect(inf.state).toBe('not_observed');
     expect(inf.confidence).toBe('not_observed');
     expect(inf.label).not.toBe('Pre-SOC 2');
-    expect(inf.label.toLowerCase()).toContain('not seen');
+    expect(inf.label.toLowerCase()).toContain("couldn't spot");
   });
 
   it('a compliance signal that WAS read carries no not_observed state', () => {
@@ -79,10 +79,10 @@ describe('hop 4 — persona prompt: an absence is never handed to the advisor as
   const CONTEXT = { company_name: 'Cognisys', website: 'cognisys.co.uk', gaps: [OBSERVED_GAP, ABSENT_GAP] };
 
   for (const persona of ['sophia', 'leonardo', 'edison']) {
-    it(`${persona}: the not_observed gap is outside "Gaps identified" and inside "Not seen on the pages read"`, () => {
+    it(`${persona}: the not_observed gap is outside "Gaps identified" and inside "Things we couldn't spot"`, () => {
       const prompt = buildSystemPrompt(persona, CONTEXT);
       const gapsAt = prompt.indexOf('Gaps identified:');
-      const absentAt = prompt.indexOf('Not seen on the pages read');
+      const absentAt = prompt.indexOf("Things we couldn't spot (absences, NOT findings)");
       expect(gapsAt).toBeGreaterThan(-1);
       expect(absentAt).toBeGreaterThan(-1);
       const gapsBlock = prompt.slice(gapsAt, absentAt);
@@ -95,16 +95,17 @@ describe('hop 4 — persona prompt: an absence is never handed to the advisor as
     });
   }
 
-  it('the absence block tells the advisor the register: "did not see", never "your gap"', () => {
+  it('the absence block tells the advisor the register (R8): we + the method, never a mark', () => {
     const prompt = buildSystemPrompt('sophia', CONTEXT);
-    const absentBlock = prompt.slice(prompt.indexOf('Not seen on the pages read'));
-    expect(absentBlock).toMatch(/did not see/i);
-    expect(absentBlock).toMatch(/never .*(your gap|you lack)/i);
+    const absentBlock = prompt.slice(prompt.indexOf("Things we couldn't spot (absences, NOT findings)"));
+    expect(absentBlock).toMatch(/couldn't spot/i);
+    expect(absentBlock).toMatch(/never tell the founder/i);
+    expect(absentBlock).not.toMatch(/\byou (?:don'?t|haven'?t|lack|have no)\b|\byour gap\b/i);
   });
 
   it('with only observed gaps there is no absence block at all', () => {
     const prompt = buildSystemPrompt('sophia', { ...CONTEXT, gaps: [OBSERVED_GAP] });
-    expect(prompt).not.toContain('Not seen on the pages read');
+    expect(prompt).not.toContain("Things we couldn't spot (absences, NOT findings)");
   });
 });
 

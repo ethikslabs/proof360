@@ -1,5 +1,5 @@
 // R6 (CANON-hx-loop, 2026-09-13): the absence register is John's spoken line —
-// "companies like yours usually go for X, and use Y to get there. We didn't see
+// "companies like yours usually go for X, and use Y to get there. Looking at your site and around the web, we couldn't spot
 // one on your pages. Do you have it?" Every slot derived, nothing invented:
 // cohort from the observed customer type, X from the frameworks map, Y from the
 // vendor catalog with the partner stake disclosed, Z the outcome in lamp register.
@@ -17,7 +17,7 @@ describe('peerReference — the sentence', () => {
     expect(line).toContain('EthiksLabs partner');
     expect(line).toContain('20% off first year');
     expect(line).toContain('to get there');
-    expect(line).toMatch(/We didn't see one on your pages\. Do you have it\?$/);
+    expect(line).toMatch(/Looking at your site and around the web, we couldn't spot it\. Do you have it\?$/);
   });
 
   it('never grades: no "need", "your gap", "you lack", "critical", or a number', () => {
@@ -66,7 +66,7 @@ describe('peer line rides the absence through the pipeline', () => {
     const gap = { gap_id: 'soc2', severity: 'critical', title: 'SOC 2 certification gap', state: 'not_observed',
       peer_line: peerReference('soc2', { customer_type: 'Enterprise (B2B)' }) };
     const prompt = buildSystemPrompt('sophia', { company_name: 'Cognisys', gaps: [gap] });
-    const block = prompt.slice(prompt.indexOf('Not seen on the pages read'));
+    const block = prompt.slice(prompt.indexOf("Things we couldn't spot (absences, NOT findings)"));
     expect(block).toContain('Companies like yours usually go for SOC 2');
     expect(block).not.toContain('- SOC 2 certification gap');
   });
@@ -77,7 +77,7 @@ describe('peer line rides the absence through the pipeline', () => {
     const inf = inferences.find((i) => i.inference_id === 'inf_compliance');
     expect(inf.state).toBe('not_observed');
     expect(inf.peer_line).toMatch(/^Companies like yours usually go for SOC 2/);
-    expect(inf.label).toBe('SOC 2: not seen on the pages read'); // the chip stays short
+    expect(inf.label).toBe("SOC 2: we couldn't spot one on the pages we read");
   });
 
   it('inference-builder leaves peer_line null when customer type was not read', () => {

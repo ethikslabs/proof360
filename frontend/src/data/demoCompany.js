@@ -9,9 +9,9 @@ export const DEMO_STAGES = [
     },
     trustScore: 38,
     gaps: [
-      { id: 'no_online',   severity: 'high',   title: "You don't exist online",                   description: "If Sainsbury's heard about you today and searched, they'd find nothing. That's the first thing any commercial buyer checks." },
-      { id: 'no_insure',   severity: 'high',   title: 'No business insurance',                    description: "If someone gets sick from your honey, you have no cover. One incident at this stage ends the business." },
-      { id: 'no_food',     severity: 'medium', title: 'No food safety certification',              description: "HACCP is the baseline for any food business that wants to supply retail. Without it, you can't get in the door." },
+      { id: 'no_online',   severity: 'high',   title: "We couldn't find you online",                   description: "If Sainsbury's heard about you today and searched, they'd find nothing. That's the first thing any commercial buyer checks." },
+      { id: 'no_insure',   severity: 'high',   title: 'No business insurance',                    description: "If someone gets sick from your honey, there is no cover in place. One incident at this stage ends the business." },
+      { id: 'no_food',     severity: 'medium', title: 'No food safety certification',              description: "HACCP is the baseline for any food business that wants to supply retail. Without it, the door to retail stays shut." },
       { id: 'sole_trader', severity: 'medium', title: 'Trading as a sole trader',                 description: "No separation between personal and business liability. When something goes wrong, everything is at risk." },
       { id: 'no_data',     severity: 'low',    title: 'No record of your customers',              description: "You sell to people at markets and don't know their names. Fine now. A problem the moment you want to build a brand." },
     ],
@@ -21,7 +21,7 @@ export const DEMO_STAGES = [
       { id: 'demo-s1-1', persona: 'leonardo', model: 'nvidia/nemotron-ultra-253b', tok: 162, ms: 1120,
         content: "The Saturday market is working. Profitable, people love the product, loyal following. But you're capped — you can only be in one place at a time, and growth means hiring people who aren't you. That changes everything about how trust works in this business." },
       { id: 'demo-s1-2', persona: 'edison',   model: 'claude-sonnet-4-6',         tok: 94,  ms: 580,
-        content: "You don't exist online. No website, no email domain, nothing that would survive a Google search by a buyer. That's not a minor gap — it's the first thing any commercial buyer checks before they pick up the phone." },
+        content: "We couldn't find you online. No website, no email domain, nothing that would survive a Google search by a buyer. That matters because it's the first thing any commercial buyer checks before they pick up the phone." },
     ],
   },
 
@@ -61,7 +61,7 @@ export const DEMO_STAGES = [
     },
     trustScore: 67,
     gaps: [
-      { id: 'privacy',     severity: 'high',   title: 'Collecting scan data with no privacy policy', description: "Every QR scan records location, time, device. You have no privacy policy and no consent mechanism. Legal exposure and a B2B deal-breaker." },
+      { id: 'privacy',     severity: 'high',   title: 'Collecting scan data with no privacy policy', description: "Every QR scan records location, time, device. We couldn't find a privacy policy or a consent step. Legal exposure and a B2B deal-breaker." },
       { id: 'api_auth',    severity: 'high',   title: "Your data API has no security",               description: "Any client's product data can be queried by anyone who knows the endpoint structure. Fix this before you sign a second B2B client." },
       { id: 'data_store',  severity: 'high',   title: 'No documented data storage policy',           description: "Where does the scan data live? For how long? Under what jurisdiction? Enterprise clients will ask this before signing." },
       { id: 'incident',    severity: 'medium', title: 'No incident response plan',                   description: "What happens if your system goes down during a product recall? You need a documented plan before any food safety client goes live." },
@@ -73,7 +73,7 @@ export const DEMO_STAGES = [
       { id: 'demo-s3-1', persona: 'leonardo', model: 'nvidia/nemotron-ultra-253b', tok: 174, ms: 1180,
         content: "You've crossed a threshold most founders don't notice until they're already over it. You're not a honey company anymore — you're a data company that started with honey. The Series A story is right there. But the governance hasn't caught up to what the product now does." },
       { id: 'demo-s3-2', persona: 'edison',   model: 'claude-sonnet-4-6',         tok: 128, ms: 710,
-        content: "The QR system is collecting data at every scan — location, time, device. Valuable. But you don't have a privacy policy, the API has no access control, and there's no incident response plan. For B2B clients in food safety, those aren't nice-to-haves." },
+        content: "The QR system is collecting data at every scan — location, time, device. Valuable. But we couldn't find a privacy policy, the API has no access control, and there's no incident response plan. For B2B clients in food safety, those aren't nice-to-haves." },
     ],
   },
 
@@ -87,7 +87,7 @@ export const DEMO_STAGES = [
     },
     trustScore: 74,
     gaps: [
-      { id: 'soc2',        severity: 'critical', title: 'Enterprise clients will ask for your security audit', description: "The standard document for any enterprise procurement process. At 40 clients you should already have it. The wait time is now 12–14 months — if you haven't started, start today." },
+      { id: 'soc2',        severity: 'critical', title: 'Enterprise clients will ask for your security audit', description: "The standard document for any enterprise procurement process. At 40 clients you should already have it. The wait time is now 12–14 months — if it isn't underway yet, today is the day to start." },
       { id: 'sc_audit',    severity: 'critical', title: 'The blockchain layer needs a third-party code review', description: "Any investor doing diligence on a blockchain product will ask for this. One firm finding a vulnerability post-investment destroys your valuation and your client relationships." },
       { id: 'pentest',     severity: 'high',     title: 'No penetration test on record',                      description: "Your investors will ask if you've had one. If they find this gap during diligence, it shakes confidence in everything else. Budget 4–6 weeks for a credible firm." },
       { id: 'data_sov',    severity: 'high',     title: "Your clients span three countries — where does their data live?", description: "Australia, UK, and Japan have different data rules. The UK exposure is the most immediate. Get legal advice before the next enterprise contract." },

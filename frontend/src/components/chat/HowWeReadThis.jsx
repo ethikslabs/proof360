@@ -34,6 +34,7 @@ export function readingInspection({ gaps, trustScore }) {
   // are findings the read made, and still count.
   const isAbsence = (g) => g?.state === 'not_observed';
   const counted = (gaps || []).filter((g) => !isAbsence(g) && weightOf(g) > 0);
+  const absences = (gaps || []).filter(isAbsence).length;
   const subtracted = counted.reduce((sum, g) => sum + weightOf(g), 0);
   const remainder = Number.isFinite(trustScore) ? trustScore : Math.max(0, STARTING_POINT - subtracted);
   const name = (g) => g.title || g.label || g.gap_id || g.id;
@@ -42,9 +43,10 @@ export function readingInspection({ gaps, trustScore }) {
     subject: {
       kind: 'reading',
       label: 'How we read this',
-      value: counted.length === 0
+      value: (counted.length === 0
         ? 'Nothing counted against you in this reading.'
-        : `${counted.length} ${counted.length === 1 ? 'gap' : 'gaps'} carried weight.`,
+        : `${counted.length} ${counted.length === 1 ? 'gap' : 'gaps'} carried weight.`)
+        + (absences > 0 ? ` ${absences} ${absences === 1 ? 'thing' : 'things'} we looked for and couldn't spot carried no weight.` : ''),
       confirmation: 'method',
     },
     // Rungs 1 + 2, one surface, two facts per row: what counted, and why.

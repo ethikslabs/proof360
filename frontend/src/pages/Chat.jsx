@@ -3432,7 +3432,7 @@ export default function Chat() {
         <ProvenanceAccordion trails={[]} />
         <DrawerStats data={companyData} />
         <EscalationCTA
-          message={companyData?.gaps?.length > 2
+          message={(companyData?.gaps || []).filter((g) => g.state !== 'not_observed').length > 2
             ? "There are gaps here that typically benefit from a guided conversation. We can introduce relevant partners."
             : null}
           onTelegram={() => setTelegramOpen(true)}
