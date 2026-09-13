@@ -576,6 +576,22 @@
       "source": "edge:commercial_signal, 2026-09-13 close (John \"approve suggestions\"; Grok adversarial review of _working/2026-09-07-johns-brain-proof360-what-the-code-thinks.md, verified at 979fdbc)",
       "added": "2026-09-13",
       "boundary": "Trigger kind is the honesty boundary of the shortlist-as-cart estimate. John's 8 Sept idea: the shortlist becomes a cart of outbound engagements with a non-quote estimate ('here is a stab, we could be 100% wrong, give us a buzz') that re-derives as claims change and routes to a booking with John day one. Measured 13 Sept: 40 of 70 register entries are gap-kind triggers that fire on openGaps with claims_cited: [] once any single testimony opens the lane (shortlist.js:77-94); two fire on 'infrastructure present' alone. Rule carried by this item: FORUM's live Ingram AUD prices (proven 2026-07-03) attach ONLY to entries whose trigger fired on a confirmed claim (expr kind); gap-fired entries sit in the cart with no number and the reason on their face ('surfaced because the record shows no SOC 2 evidence — not confirmed by you'). Insurance figure is CyberPro's, never ours. Depends on: the spec for the cart estimate (not yet requested — deferred on the board) and Law 9 becoming a gate, not a latch. Register constraints carry: lamp not grade, no invented numbers, observed-not-confirmed."
+    },
+    {
+      "id": "PROOF360-KITCHEN-CABINET-SPEC-001",
+      "status": "next",
+      "source": "edge:task_enhancement, 2026-09-13 close (John \"approve suggestions\")",
+      "added": "2026-09-13",
+      "approved_by": "john-coates",
+      "boundary": "ONE change-control document, written before any of the five files is touched by cc or Sarvesh: (1) Interview.jsx ASK_ORDER opens on the business (raise / enterprise buyers), cloud provider moves to recommendations depth (Law 1 RULED 13 Sept); (2) session-chat.js default voice becomes the butler / private secretary (name unminted), keyword routing to personas becomes the founder's summons; (3) persona-prompts.js drops the gaps.js 'Why it matters' consequence line from the trusted voice, cost lives in recommendations depth (Law 4 RULED); (4) capability-register.json gap-fired triggers become a gate, not a latch — no vendor surfaces without founder testimony (Law 9, kitchen cabinet: advisors never act); (5) two marks in the chrome: [n] cites and enters the receipt, a glyph (placeholder ◇ unopened / ◆ seen) offers a capability, silent until touched, never in the receipt; opener 'Summon your Kitchen Cabinet at any time.[1]'. Rulings ledger: _working/2026-09-07-johns-brain-proof360-what-the-code-thinks.md Law 1/4 rows; memory project-kitchen-cabinet-frame.md. Open inputs the spec must carry as OPEN, not resolve: butler name, cost-line portfolio, chips-vs-bubbles family."
+    },
+    {
+      "id": "PROOF360-SIGNIN-KEEP-RECORD-SIGNAL-001",
+      "status": "ready",
+      "source": "edge:commercial_signal, 2026-09-13 close (John \"approve suggestions\")",
+      "added": "2026-09-13",
+      "approved_by": "john-coates",
+      "boundary": "R2 of the HX loop (CANON-hx-loop.md, 13 Sept) makes persistence a sign-in event: anonymous demo sessions are ephemeral, coming back requires sign-in, the surface says demo only, a reset button exists. Treat sign-in-to-keep-your-record as the demo's first conversion signal: count it (usage-event.v1 on the existing meter, no new store), measured never asserted, per company read; no number is quoted anywhere until the counter has run. Depends on HX fixes 3 and 4 landing in R1 order."
     }
   ]
 }
