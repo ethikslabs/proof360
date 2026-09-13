@@ -592,6 +592,14 @@
       "added": "2026-09-13",
       "approved_by": "john-coates",
       "boundary": "R2 of the HX loop (CANON-hx-loop.md, 13 Sept) makes persistence a sign-in event: anonymous demo sessions are ephemeral, coming back requires sign-in, the surface says demo only, a reset button exists. Treat sign-in-to-keep-your-record as the demo's first conversion signal: count it (usage-event.v1 on the existing meter, no new store), measured never asserted, per company read; no number is quoted anywhere until the counter has run. Depends on HX fixes 3 and 4 landing in R1 order."
+    },
+    {
+      "id": "PROOF360-ETHIKS361-PLAY-DIFF-CARD-001",
+      "status": "ready",
+      "source": "edge:commercial_signal, 2026-09-13 close (John \"approve suggestions\")",
+      "added": "2026-09-13",
+      "approved_by": "john-coates",
+      "boundary": "When a play diff in ~/Projects/ethiks361-apis (base tag sarvesh-f116572) shows how his src/corpus module would call John's CORPUS doors instead of projecting from company-search rows, that diff is the next Trello Dropped card on the John ↔ Sarvesh board, beside the corpus-console DIFF.md card: title, one-line why, link to the patch in the room, blue label. The card is created only on John's word (outward-facing); the diff, never the fork, is the hand-back. Depends on ethiks361-apis having its own SSM paths before it runs."
     }
   ]
 }
