@@ -34,7 +34,9 @@ export function normalizeContext(session, corrections = {}, followup_answers = {
     const preSOC2 = (session.inferences || []).find(
       (i) => i.inference_id === 'inf_compliance'
     );
-    if (preSOC2) context.compliance_status = 'none';
+    // An absence derives 'unknown' — 'none' is a thing we observed, never a thing
+    // we failed to see (HX loop fix 1, 2026-09-13).
+    if (preSOC2) context.compliance_status = preSOC2.state === 'not_observed' ? 'unknown' : 'none';
   }
 
   // Pass through sector signals from raw extraction — these inform industry-specific gaps

@@ -113,11 +113,16 @@ export function OurWorking({ receipt, tk }) {
   const [openSlug, setOpenSlug] = useState(null);
   if (!receipt) return null;
 
+  // hits === null means the evidence store could not be reached for this turn
+  // (record.js keeps it distinct from [] = looked, found nothing). Say so.
+  const couldNotLook = receipt.hits === null;
   const hits = receipt.hits || [];
   const groups = groupBySlug(hits);
   const summary = groups.length > 0
     ? `Our working · ${groups.length} source${groups.length === 1 ? '' : 's'}`
-    : 'Our working · no sources retrieved';
+    : couldNotLook
+      ? 'Our working · could not look (evidence store unreachable this turn)'
+      : 'Our working · no sources retrieved';
 
   return (
     <div style={{ margin: '2px 0 10px 44px', maxWidth: 560 }}>

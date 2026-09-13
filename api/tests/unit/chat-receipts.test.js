@@ -76,7 +76,7 @@ describe('chat receipts — the exchange leaves an auditable trail on the sessio
     expect(reply.payload.receipts[0].hits[0].source_url).toBe('https://publisher.example/article');
   });
 
-  it('an ungrounded exchange (corpus down) leaves an honest empty-hits receipt', async () => {
+  it('an ungrounded exchange (corpus down) leaves a could-not-look receipt (hits null, never [])', async () => {
     global.fetch = vi.fn(async () => { throw new Error('corpus unreachable'); });
     const session = createSession({ website_url: 'https://quiet.example' });
     updateSession(session.id, { infer_status: 'complete', company_name: 'Quiet' });
@@ -92,7 +92,8 @@ describe('chat receipts — the exchange leaves an auditable trail on the sessio
 
     const stored = getSession(session.id).chat_receipts;
     expect(stored).toHaveLength(1);
-    expect(stored[0].hits).toEqual([]);
+    // could-not-look is null, never [] (HX loop fix 1, second seam, 2026-09-13)
+    expect(stored[0].hits).toBeNull();
   });
 
   it('receipts endpoint 404s an unknown session; no session_id in context = no receipt, no error', async () => {

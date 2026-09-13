@@ -58,7 +58,11 @@ function projectRecord(session) {
 // Receipt hit shape — the cross-tree citation contract (chat receipts AND the
 // analyze response's corpus_citations use exactly this): text arrives as the
 // corpus-retrieve hit's `text`, leaves as `excerpt`.
+// null in = null out: could-not-look stays distinct from found-nothing all the way
+// to the receipt (corpus-retrieve.js keeps three states; this seam used to
+// collapse two of them — HX loop fix 1, second seam, 2026-09-13).
 export function toReceiptHits(hits) {
+  if (hits === null) return null;
   return (hits ?? []).map((h) => ({
     n: h.n,
     slug: h.slug,

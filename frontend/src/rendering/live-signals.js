@@ -15,7 +15,10 @@ import { makeObservedSignal } from './protocol.js';
 // (protocol.js gradeWord) reads the derived `source` field ('live_probe'
 // below), not this number, so the exact value matters less than it being
 // distinct from 'probable'/'confirmed'.
-const CONFIDENCE_MAP = { confirmed: 0.9, probable: 0.6, observed: 0.85 };
+// 'not_observed' is an ABSENCE (inference-builder.js, HX loop fix 1, 2026-09-13):
+// the read did not see it. Numeric 0 so it never ranks as a guess; the grade
+// word reads the `state` field, never this number.
+const CONFIDENCE_MAP = { confirmed: 0.9, probable: 0.6, observed: 0.85, not_observed: 0 };
 
 // inference-builder.js's signalCategory() emits: product, market, data,
 // company, identity, infrastructure, governance, relationship — plus its own
@@ -74,6 +77,9 @@ export function inferencesToSignals(inferences) {
       // this to read "observed" instead of a confidence-threshold guess.
       source: inf.confidence === 'observed' ? 'live_probe' : 'url_scrape',
       confidence: CONFIDENCE_MAP[inf.confidence] ?? 0.6,
+      // Absence travels as its own state so gradeWord can say "not seen" instead
+      // of grading it like a claim we made.
+      state: inf.state === 'not_observed' ? 'not_observed' : undefined,
       conflicted: !!inf.conflicted,
       conflict: inf.conflict ?? null,
     }))

@@ -250,7 +250,7 @@ export async function sessionChatHandler(request, reply) {
   const corpusHits = await retrieveCorpusEvidence(cleanMessage, {
     company_name: context.company_name,
   });
-  appendChatReceipt(session, { query: cleanMessage, hits: corpusHits ?? [] });
+  appendChatReceipt(session, { query: cleanMessage, hits: corpusHits }); // null = could not look, kept
 
   const systemPrompt = buildSystemPrompt(persona, context) + ceremonyNote + proposalNote + askBlock
     + evidenceBlock(corpusHits);

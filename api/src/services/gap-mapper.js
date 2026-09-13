@@ -105,6 +105,9 @@ export async function runGapAnalysis(context, { session_id } = {}) {
     .map((gap) => {
       const gapObj = {
         gap_id: gap.id,
+        // observed = a fact the read holds; not_observed = fired from an absence
+        // (the definition's absenceCondition). Consumers keep the two registers apart.
+        state: gap.absenceCondition?.(context) === true ? 'not_observed' : 'observed',
         category: gap.category,
         severity: gap.severity === 'critical' ? 'critical' : gap.severity === 'high' ? 'moderate' : 'low',
         title: gap.label,

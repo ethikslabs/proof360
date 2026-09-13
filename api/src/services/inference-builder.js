@@ -19,13 +19,18 @@ export function buildInferences(signals, sources_read, website_url, recon = {}) 
     });
   }
 
-  // Always include compliance at "probable" when no direct evidence
+  // No compliance signal on the pages read is an ABSENCE, not a finding (HX loop
+  // fix 1, 2026-09-13, Law 5 observed-not-confirmed). It used to travel as
+  // "Pre-SOC 2 · probable" and was laundered into "your SOC 2 gap" three hops
+  // later. It now carries state 'not_observed' and every consumer keeps it in
+  // that register. The inference_id is unchanged — early-signal.js keys on it.
   const inferredTypes = new Set(signals.map((s) => s.type));
   if (!inferredTypes.has('compliance_status')) {
     inferences.push({
       inference_id: 'inf_compliance',
-      label: 'Pre-SOC 2',
-      confidence: 'probable',
+      label: 'SOC 2: not seen on the pages read',
+      confidence: 'not_observed',
+      state: 'not_observed',
       category: 'governance',
     });
   }

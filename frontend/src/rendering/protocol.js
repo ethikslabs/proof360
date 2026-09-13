@@ -82,6 +82,8 @@ export function signalFreshness(signal) {
 // just a more-confident one. Everything else falls back to the numeric
 // threshold: >=0.85 reads 'confirmed', below that reads 'probable'.
 export function gradeWord(signal) {
+  // An absence is not a claim and gets no confidence grade — we did not see it.
+  if (signal?.state === 'not_observed') return 'not seen';
   if (signal?.source === 'live_probe') return 'observed';
   return (signal?.confidence ?? 0) >= 0.85 ? 'confirmed' : 'probable';
 }

@@ -68,13 +68,16 @@ describe('session-chat corpus grounding + receipts', () => {
     expect(receipts[0].hits[0].slug).toBe('isitagentready-com');
   });
 
-  it('appends an honest empty-hits receipt when corpus is unavailable', async () => {
+  // HX loop fix 1, second seam (2026-09-13): could-not-look (null) is kept apart
+  // from found-nothing ([]) all the way to the receipt, so the working panel can
+  // say "could not look" instead of "no sources retrieved".
+  it('appends a could-not-look receipt (hits null) when corpus is unavailable', async () => {
     corpusResult.value = null;
     const session = seededSession();
     await say(session.id, 'anything on SOC 2?');
 
     const receipts = getSession(session.id).chat_receipts;
     expect(receipts).toHaveLength(1);
-    expect(receipts[0].hits).toEqual([]);
+    expect(receipts[0].hits).toBeNull();
   });
 });

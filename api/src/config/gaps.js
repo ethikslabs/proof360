@@ -15,6 +15,9 @@ export const GAP_DEFINITIONS = [
     risk: 'Enterprise deals stall at procurement. Fundraising due diligence flags this immediately. Cyber insurers may decline or charge significantly higher premiums.',
     time_estimate: '6–9 months with a compliance platform',
     triggerCondition: (ctx) => ['none', 'unknown'].includes(ctx.compliance_status),
+    // 'unknown' fires the gap from an ABSENCE: the read did not see it. The gap
+    // then carries state 'not_observed' and is never voiced as a finding.
+    absenceCondition: (ctx) => ctx.compliance_status === 'unknown',
     claimTemplate: (ctx) => ({
       question: 'Does this company have SOC 2 Type II certification?',
       evidence: `Compliance status: ${ctx.compliance_status}. Customer type: ${ctx.customer_type}. Infrastructure: ${ctx.infrastructure}.`,

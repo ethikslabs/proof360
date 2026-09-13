@@ -46,7 +46,7 @@ export async function chatHandler(request, reply) {
   // to citation cards. Only when the caller rides a real session; never blocks the chat.
   if (sessionId) {
     const session = getSession(sessionId);
-    if (session) appendChatReceipt(session, { query: lastUserContent, hits: corpusHits ?? [] });
+    if (session) appendChatReceipt(session, { query: lastUserContent, hits: corpusHits }); // null = could not look, kept
   }
 
   // @john detection — skip inference, notify John via Telegram, return inline response

@@ -1,6 +1,23 @@
 // api/src/services/persona-prompts.js
 
+// Absence is a different register from finding (HX loop fix 1, 2026-09-13, Law 5).
+// A gap fired because the read did NOT see something is handed to the advisor
+// under its own heading with the instruction that goes with it — never under
+// "Gaps identified", never with the consequence text a real finding carries.
+function absenceBlock(gaps) {
+  const absent = (gaps || []).filter(g => g.state === 'not_observed');
+  if (!absent.length) return null;
+  const names = absent.map(g => `- ${g.title || g.label || g.gap_id || g.id}`);
+  return [
+    'Not seen on the pages read (absences, NOT findings):',
+    ...names,
+    'We did not see these on the pages we read. That is all the record holds. Say "we did not see"',
+    'or "not seen on the pages read"; never say "your gap", "you lack", or "you have no". Ask, do not assert.',
+  ].join('\n');
+}
+
 function gapsBlock(gaps) {
+  gaps = (gaps || []).filter(g => g.state !== 'not_observed');
   if (!gaps?.length) return 'none identified';
   return gaps.map(g => {
     const name = g.title || g.label || g.gap_id || g.id;
@@ -48,6 +65,8 @@ function reportBlock(context) {
   if (rc) lines.push(`Passive scan results: ${rc}`);
   if (strengths?.length) lines.push(`What's working: ${strengths.join(', ')}`);
   lines.push(`\nGaps identified:\n${gapsBlock(gaps)}`);
+  const absent = absenceBlock(gaps);
+  if (absent) lines.push(`\n${absent}`);
   const ag = activeGapBlock(active_gap);
   if (ag) lines.push(`\n⬤ FOUNDER IS CURRENTLY LOOKING AT THIS GAP:\n${ag}\nReference this gap directly if relevant — they have it open in front of them.`);
   return lines.join('\n');
