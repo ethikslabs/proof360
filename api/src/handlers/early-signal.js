@@ -21,9 +21,9 @@ export async function earlySignalHandler(request, reply) {
   const inferences = session.inferences || [];
   let penalty = 0;
 
-  if (inferences.some((i) => i.inference_id === 'inf_compliance')) {
-    penalty += SEVERITY_WEIGHTS.critical; // likely no SOC 2
-  }
+  // inf_compliance is the "not seen on the pages read" placeholder
+  // (inference-builder.js). An absence is not a penalty (HX loop fix 1, round 2);
+  // the estimate only subtracts what the read observed.
   if (!inferences.some((i) => i.inference_id === 'inf_identity')) {
     penalty += SEVERITY_WEIGHTS.critical; // identity model unknown — assume worst
   }

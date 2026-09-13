@@ -483,6 +483,10 @@ export const GAP_DEFINITIONS = [
     triggerCondition: (ctx) =>
       ctx.pen_test_completed !== true &&
       ['none', 'planning', 'unknown'].includes(ctx.compliance_status),
+    // Fired purely from an absence when compliance was not seen on the read AND
+    // the founder has not answered the pen-test question. A founder's "no" is
+    // testimony and keeps the gap observed.
+    absenceCondition: (ctx) => ctx.compliance_status === 'unknown' && ctx.pen_test_completed === undefined,
     claimTemplate: (ctx) => ({
       question: 'Has this company conducted an independent penetration test in the last 12 months?',
       evidence: `Pen test completed: ${ctx.pen_test_completed ?? false}. Compliance status: ${ctx.compliance_status}.`,

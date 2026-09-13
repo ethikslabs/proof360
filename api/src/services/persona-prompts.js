@@ -45,6 +45,9 @@ function reconBlock(recon) {
 
 function activeGapBlock(gap) {
   if (!gap) return null;
+  // The one block that tells the advisor "this is in front of them" must never
+  // carry an absence (HX loop fix 1, round 2).
+  if (gap.state === 'not_observed') return null;
   const lines = [`${gap.title || gap.label || gap.gap_id || gap.id} (${gap.severity})`];
   if (gap.why) lines.push(`Why it matters: ${gap.why}`);
   if (gap.remediation?.length) {

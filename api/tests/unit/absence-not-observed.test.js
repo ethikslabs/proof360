@@ -123,3 +123,85 @@ describe('second seam — the receipt keeps could-not-look (null) apart from fou
     expect(stored.chat_receipts.at(-1).hits).toEqual([]);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Round 2 — independent review of the first cut (2026-09-13) found the absence
+// still reaching the founder by four other doors. Same class, same rule: an
+// absence carries no weight, buys no vendor, and is never a finding anywhere.
+// ---------------------------------------------------------------------------
+import { selectVendors } from '../../src/services/vendor-selector.js';
+import { earlySignalHandler } from '../../src/handlers/early-signal.js';
+
+describe('round 2 — every gap definition that fires from the compliance absence is tagged', () => {
+  it('penetration_testing from compliance unknown + pen test unanswered → not_observed', async () => {
+    const result = await runGapAnalysis({ compliance_status: 'unknown' });
+    const pt = result.gaps.find((g) => g.gap_id === 'penetration_testing');
+    expect(pt).toBeDefined();
+    expect(pt.state).toBe('not_observed');
+  });
+
+  it('penetration_testing when the founder SAID no pen test → observed (their word is testimony)', async () => {
+    const result = await runGapAnalysis({ compliance_status: 'unknown', pen_test_completed: false });
+    const pt = result.gaps.find((g) => g.gap_id === 'penetration_testing');
+    expect(pt).toBeDefined();
+    expect(pt.state).toBe('observed');
+  });
+});
+
+describe('round 2 — an absence carries no weight', () => {
+  it('not_observed gaps have score_impact 0 and the trust score does not subtract them', async () => {
+    const result = await runGapAnalysis({ compliance_status: 'unknown' });
+    const absent = result.gaps.filter((g) => g.state === 'not_observed');
+    expect(absent.length).toBeGreaterThan(0);
+    for (const g of absent) expect(g.score_impact).toBe(0);
+    const observedPenalty = result.gaps
+      .filter((g) => g.state === 'observed')
+      .reduce((s, g) => s + g.score_impact, 0);
+    expect(result.trust_score).toBe(Math.max(0, 100 - observedPenalty));
+  });
+
+  it('the early-signal estimate is not lowered by the compliance absence placeholder', async () => {
+    const reply = () => ({ payload: null, status() { return this; }, send(p) { this.payload = p; return p; } });
+    const a = createSession({ website_url: 'https://a.example' });
+    const b = createSession({ website_url: 'https://b.example' });
+    const { updateSession } = await import('../../src/services/session-store.js');
+    updateSession(a.id, { infer_status: 'complete', inferences: [] });
+    updateSession(b.id, { infer_status: 'complete', inferences: [{ inference_id: 'inf_compliance', state: 'not_observed', confidence: 'not_observed', label: 'SOC 2: not seen on the pages read' }] });
+    const ra = reply(); const rb = reply();
+    await earlySignalHandler({ params: { id: a.id } }, ra);
+    await earlySignalHandler({ params: { id: b.id } }, rb);
+    expect(rb.payload.estimated_trust_score).toBe(ra.payload.estimated_trust_score);
+  });
+});
+
+describe('round 2 — an absence buys no vendor', () => {
+  it('selectVendors ignores not_observed gaps', () => {
+    const gaps = [
+      { gap_id: 'soc2', severity: 'critical', state: 'not_observed' },
+    ];
+    const vendors = selectVendors(gaps);
+    expect(vendors).toEqual([]);
+  });
+
+  it('an observed gap still matches a vendor', () => {
+    const gaps = [{ gap_id: 'soc2', severity: 'critical', state: 'observed' }];
+    const vendors = selectVendors(gaps);
+    expect(vendors.length).toBeGreaterThan(0);
+    expect(vendors[0].closes_gaps).toContain('soc2');
+  });
+});
+
+describe('round 2 — the "founder is looking at this gap" block never carries an absence', () => {
+  it('active_gap with state not_observed produces no LOOKING AT block', () => {
+    const gap = { gap_id: 'soc2', severity: 'critical', title: 'SOC 2 certification gap', why: 'Without SOC 2…', state: 'not_observed' };
+    const prompt = buildSystemPrompt('sophia', { company_name: 'Cognisys', gaps: [gap], active_gap: gap });
+    expect(prompt).not.toContain('FOUNDER IS CURRENTLY LOOKING AT THIS GAP');
+    expect(prompt).not.toContain('Without SOC 2');
+  });
+
+  it('an observed active_gap still produces the block', () => {
+    const gap = { gap_id: 'dmarc', severity: 'moderate', title: 'Email domain protection gap (DMARC)', why: 'p=none', state: 'observed' };
+    const prompt = buildSystemPrompt('sophia', { company_name: 'Cognisys', gaps: [gap], active_gap: gap });
+    expect(prompt).toContain('FOUNDER IS CURRENTLY LOOKING AT THIS GAP');
+  });
+});

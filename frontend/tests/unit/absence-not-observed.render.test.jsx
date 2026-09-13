@@ -38,3 +38,36 @@ describe('OurWorking: could-not-look is not found-nothing', () => {
     expect(container.textContent).toMatch(/no sources retrieved/i);
   });
 });
+
+// Round 2 (independent review, 2026-09-13): two more render paths carried the
+// absence as a reasoned, weighted finding.
+import { readingInspection } from '../../src/components/chat/HowWeReadThis.jsx';
+import { coldReadOpener } from '../../src/rendering/coldReadOpener.js';
+
+describe('How we read this: an absence never "carried weight"', () => {
+  it('a not_observed gap is not counted even if a stale score_impact rides on it', () => {
+    const gaps = [
+      { gap_id: 'soc2', title: 'SOC 2 certification gap', why: 'Without SOC 2 Type II…', severity: 'critical', state: 'not_observed', score_impact: 20 },
+      { gap_id: 'dmarc', title: 'Email domain protection gap (DMARC)', why: 'p=none', severity: 'moderate', state: 'observed', score_impact: 10 },
+    ];
+    const r = readingInspection({ gaps, trustScore: undefined });
+    expect(r.observations.map((o) => o.value)).toEqual(['Email domain protection gap (DMARC)']);
+    expect(JSON.stringify(r)).not.toContain('SOC 2');
+    expect(r.subject.value).toBe('1 gap carried weight.');
+  });
+});
+
+describe('cold read opener: an absence is listed as not seen, without the raw enum', () => {
+  it('renders the label alone, never "(not_observed)"', () => {
+    const msg = coldReadOpener({
+      name: 'Cognisys', sourcesRead: 3,
+      inferences: [
+        { label: 'B2B SaaS', confidence: 'probable' },
+        { label: 'SOC 2: not seen on the pages read', confidence: 'not_observed', state: 'not_observed' },
+      ],
+    });
+    expect(msg).toContain('SOC 2: not seen on the pages read');
+    expect(msg).not.toContain('not_observed');
+    expect(msg).toContain('B2B SaaS (probable)');
+  });
+});

@@ -29,7 +29,11 @@ function weightOf(gap) {
 
 // The reading as an Inspector subject. Pure: derived from the ledger, never stored.
 export function readingInspection({ gaps, trustScore }) {
-  const counted = (gaps || []).filter((g) => weightOf(g) > 0);
+  // An absence (state 'not_observed') never carries weight, whatever number
+  // rides on it (HX loop fix 1). Gaps stored before the state field existed
+  // are findings the read made, and still count.
+  const isAbsence = (g) => g?.state === 'not_observed';
+  const counted = (gaps || []).filter((g) => !isAbsence(g) && weightOf(g) > 0);
   const subtracted = counted.reduce((sum, g) => sum + weightOf(g), 0);
   const remainder = Number.isFinite(trustScore) ? trustScore : Math.max(0, STARTING_POINT - subtracted);
   const name = (g) => g.title || g.label || g.gap_id || g.id;

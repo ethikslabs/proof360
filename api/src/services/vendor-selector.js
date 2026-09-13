@@ -8,6 +8,9 @@ function baseVendorName(vendorId) {
 // Select vendors that close confirmed gaps, assign priority.
 // vendorSlugsByGap: gap_id → Set of vendor base names confirmed by CORPUS semantic search.
 export function selectVendors(gaps, vendorSlugsByGap = {}) {
+  // An absence buys no vendor: only a gap the read actually observed can match
+  // one (HX loop fix 1, round 2). Positive check — an untagged gap is not observed.
+  gaps = (gaps || []).filter((g) => g.state === 'observed');
   const gapIds = new Set(gaps.map((g) => g.gap_id));
   const gapSeverities = {};
   for (const gap of gaps) {

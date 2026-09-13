@@ -256,6 +256,9 @@ function buildVendorRecommendations(gaps, context, vendors_config) {
   const gapsForSelector = matrixGaps.map((g) => ({
     gap_id: g.id,
     severity: g.severity === 'critical' ? 'critical' : g.severity === 'high' ? 'moderate' : 'low',
+    // Matrix gaps are ATTESTED claims — observed by construction. selectVendors
+    // only matches observed gaps (HX loop fix 1: an absence buys no vendor).
+    state: 'observed',
   }));
 
   const selected = selectVendors(gapsForSelector);

@@ -116,13 +116,16 @@ export async function runGapAnalysis(context, { session_id } = {}) {
         control: gap.label,
         closure_strategies: [],
         vendor_implementations: [],
-        score_impact: SEVERITY_WEIGHTS[gap.severity],
+        // An absence carries no weight: nothing is subtracted for what we did
+        // not see (HX loop fix 1, round 2). Derived from state, never hand-set.
+        score_impact: 0,
         confidence: mosToConfidence(claimResults[gap.id]?.mos),
         evidence: [{ source: gapEvidenceSource(gap), citation: gapEvidenceCitation(gap) }],
         time_estimate: gap.time_estimate || '',
         framework_impact: generateFrameworkImpact(gap.id, context),
         remediation: generateRemediation(gap, context),
       };
+      if (gapObj.state === 'observed') gapObj.score_impact = SEVERITY_WEIGHTS[gap.severity];
       gapObj.vendor_intelligence = buildVendorIntelligence(gapObj, context);
       return gapObj;
     });
