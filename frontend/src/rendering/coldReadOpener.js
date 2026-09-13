@@ -28,7 +28,7 @@ function inferenceLine(inf) {
   const label = inf?.label;
   if (!label) return null;
   // An absence is listed by its label alone — it has no confidence grade.
-  if (inf.state === 'not_observed') return `- ${label}`;
+  if (inf.state === 'not_observed') return `- ${inf.peer_line || label}`;
   return inf.confidence ? `- ${label} (${inf.confidence})` : `- ${label}`;
 }
 

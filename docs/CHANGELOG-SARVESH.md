@@ -4,6 +4,20 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-09-13 · The absence now speaks in John's register: "companies like yours usually go for X, and use Y to get there"
+
+**Problem.** After the fix below landed, the absence read "SOC 2: not seen on the pages read". Honest, and inert: it points at nothing and asks nothing. John, on being told the old early-signal route still said "companies like yours typically score around X": why not the same shape without the score, *"companies like yours usually go for X, and use Y to achieve Z"*. Then: "This is how I speak in human." That is the sentence he says to a founder across a table, and the product had no way to say it.
+
+**Fix.** A new service, `peer-reference.js`, builds that sentence with every slot derived and none invented. *Like yours* is the customer type the read observed, mapped to a cohort (enterprise, SMB); if it was not observed, or has no defensible cohort (consumer, mixed, unknown), there is no sentence at all. *X* is what the frameworks map says that cohort usually pursues, so an SMB is never told peers go for SOC 2. *Y* is the first partner in the vendor catalog that closes the gap, stake disclosed in the sentence ("an EthiksLabs partner, 20% off first year"); a non-partner if no partner closes it. *Z* is the outcome, authored on the gap in lamp register ("to get through enterprise procurement"). It ends with the question, "We didn't see one on your pages. Do you have it?", so the founder's answer lands on the record as their own word. The line rides the absence through the pipeline: the gap mapper attaches it to a not-observed gap, the persona prompt's "Not seen on the pages read" block speaks it instead of the bare gap name, the cold-read placeholder carries it, and the opener message prints it. The short chip label stays short. Live output for an enterprise cohort:
+
+> Companies like yours usually go for SOC 2 to get through enterprise procurement, and use Vanta (an EthiksLabs partner, 20% off first year) to get there. We didn't see one on your pages. Do you have it?
+
+The dead early-signal route (a score sentence with no caller in the frontend) is deleted. Eleven new tests pin the sentence, its refusals, and each hop; API 587/587, frontend 537/537.
+
+**Why it matters.** "Usually go for" is the ceiling; "you need" never appears. The founder is told what peers do and offered a real path with the stake on the table, then asked. Nothing is marked, nothing is invented, and the one thing the record could not know is the one thing the sentence asks for.
+
+---
+
 ## 2026-09-13 · "We didn't see it" was reaching the advisor as "your SOC 2 gap"
 
 **Problem.** A stranger's walk of proof360.au on 12 Sept (a first-time seat, cognisys.co.uk, logged out) turned at beat 4: the read said *"we simply didn't see it"*, then Sophia answered a question about Australia with *"your own SOC 2 gap"*. The evidence store holds five confirmed claims on Cognisys and none that it lacks SOC 2. The absence was laundered into a fact in three hops, and none of them was the model's: `inference-builder.js` turned "no compliance signal seen" into an inference labelled *Pre-SOC 2* at confidence *probable*; `context-normalizer.js` saw that inference and set `compliance_status: 'none'`; the SOC 2 gap definition fires on `'none'`, so the persona prompt listed *SOC 2 certification gap (critical)* under "Gaps identified" with "Without SOC 2 Type II, enterprise buyers can't verify…" as the reason. The model did exactly what it was told.

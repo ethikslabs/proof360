@@ -1,6 +1,8 @@
 // Inference builder — transforms raw signals into the cold read object
 // Pure function. No HTTP awareness, no side effects.
 
+import { peerReference } from './peer-reference.js';
+
 export function buildInferences(signals, sources_read, website_url, recon = {}) {
   const inferences = [];
   const correctable_fields = [];
@@ -23,7 +25,7 @@ export function buildInferences(signals, sources_read, website_url, recon = {}) 
   // fix 1, 2026-09-13, Law 5 observed-not-confirmed). It used to travel as
   // "Pre-SOC 2 · probable" and was laundered into "your SOC 2 gap" three hops
   // later. It now carries state 'not_observed' and every consumer keeps it in
-  // that register. The inference_id is unchanged — early-signal.js keys on it.
+  // that register. The inference_id is unchanged (context-normalizer keys on it).
   const inferredTypes = new Set(signals.map((s) => s.type));
   if (!inferredTypes.has('compliance_status')) {
     inferences.push({
@@ -32,6 +34,9 @@ export function buildInferences(signals, sources_read, website_url, recon = {}) 
       confidence: 'not_observed',
       state: 'not_observed',
       category: 'governance',
+      // R6: spoken in John's register when the customer type was read; the chip
+      // label above stays short, the opener and the persona speak this line.
+      peer_line: peerReference('soc2', { customer_type: signals.find((s) => s.type === 'customer_type')?.value }),
     });
   }
 

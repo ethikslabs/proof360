@@ -130,7 +130,6 @@ describe('second seam — the receipt keeps could-not-look (null) apart from fou
 // absence carries no weight, buys no vendor, and is never a finding anywhere.
 // ---------------------------------------------------------------------------
 import { selectVendors } from '../../src/services/vendor-selector.js';
-import { earlySignalHandler } from '../../src/handlers/early-signal.js';
 
 describe('round 2 — every gap definition that fires from the compliance absence is tagged', () => {
   it('penetration_testing from compliance unknown + pen test unanswered → not_observed', async () => {
@@ -160,18 +159,6 @@ describe('round 2 — an absence carries no weight', () => {
     expect(result.trust_score).toBe(Math.max(0, 100 - observedPenalty));
   });
 
-  it('the early-signal estimate is not lowered by the compliance absence placeholder', async () => {
-    const reply = () => ({ payload: null, status() { return this; }, send(p) { this.payload = p; return p; } });
-    const a = createSession({ website_url: 'https://a.example' });
-    const b = createSession({ website_url: 'https://b.example' });
-    const { updateSession } = await import('../../src/services/session-store.js');
-    updateSession(a.id, { infer_status: 'complete', inferences: [] });
-    updateSession(b.id, { infer_status: 'complete', inferences: [{ inference_id: 'inf_compliance', state: 'not_observed', confidence: 'not_observed', label: 'SOC 2: not seen on the pages read' }] });
-    const ra = reply(); const rb = reply();
-    await earlySignalHandler({ params: { id: a.id } }, ra);
-    await earlySignalHandler({ params: { id: b.id } }, rb);
-    expect(rb.payload.estimated_trust_score).toBe(ra.payload.estimated_trust_score);
-  });
 });
 
 describe('round 2 — an absence buys no vendor', () => {

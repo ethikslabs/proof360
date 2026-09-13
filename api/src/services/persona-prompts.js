@@ -7,7 +7,8 @@
 function absenceBlock(gaps) {
   const absent = (gaps || []).filter(g => g.state === 'not_observed');
   if (!absent.length) return null;
-  const names = absent.map(g => `- ${g.title || g.label || g.gap_id || g.id}`);
+  // R6: the sentence when we have it (cohort observed), the bare name when not.
+  const names = absent.map(g => `- ${g.peer_line || g.title || g.label || g.gap_id || g.id}`);
   return [
     'Not seen on the pages read (absences, NOT findings):',
     ...names,

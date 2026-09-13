@@ -71,3 +71,15 @@ describe('cold read opener: an absence is listed as not seen, without the raw en
     expect(msg).toContain('B2B SaaS (probable)');
   });
 });
+
+describe('cold read opener: R6 — an absence with a peer line speaks it', () => {
+  it('renders the peer line instead of the short label', () => {
+    const line = "Companies like yours usually go for SOC 2 to get through enterprise procurement, and use Vanta (an EthiksLabs partner, 20% off first year) to get there. We didn't see one on your pages. Do you have it?";
+    const msg = coldReadOpener({
+      name: 'Cognisys', sourcesRead: 3,
+      inferences: [{ label: 'SOC 2: not seen on the pages read', confidence: 'not_observed', state: 'not_observed', peer_line: line }],
+    });
+    expect(msg).toContain(line);
+    expect(msg).not.toContain('SOC 2: not seen on the pages read');
+  });
+});

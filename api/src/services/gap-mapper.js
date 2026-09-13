@@ -1,5 +1,6 @@
 import { GAP_DEFINITIONS, SEVERITY_WEIGHTS } from '../config/gaps.js';
 import { selectVendors } from './vendor-selector.js';
+import { peerReference } from './peer-reference.js';
 import { buildVendorIntelligence } from './vendor-intelligence-builder.js';
 import { generateFrameworkImpact } from '../config/framework-impact.js';
 
@@ -126,6 +127,8 @@ export async function runGapAnalysis(context, { session_id } = {}) {
         remediation: generateRemediation(gap, context),
       };
       if (gapObj.state === 'observed') gapObj.score_impact = SEVERITY_WEIGHTS[gap.severity];
+      // R6: an absence speaks in John's register when the cohort was observed.
+      if (gapObj.state === 'not_observed') gapObj.peer_line = peerReference(gap.id, context);
       gapObj.vendor_intelligence = buildVendorIntelligence(gapObj, context);
       return gapObj;
     });

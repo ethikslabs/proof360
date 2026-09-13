@@ -86,12 +86,12 @@ function inferenceHedge(confidence) {
 // cleanly onto a FRAMEWORK_MAP key are wired; 'Consumer (B2C)' / 'Mixed' / 'Unknown'
 // have no defensible mapping and are left unresolved on purpose — frameworks are
 // omitted rather than guessed.
-const CUSTOMER_TYPE_TO_FRAMEWORK_KEY = {
+export const CUSTOMER_TYPE_TO_FRAMEWORK_KEY = {
   'Enterprise (B2B)': 'enterprise',
   'SMB (B2B)': 'smb',
 };
 
-const FRAMEWORK_LABELS = {
+export const FRAMEWORK_LABELS = {
   soc2: 'SOC 2',
   iso27001: 'ISO 27001',
   apra_cps234: 'APRA CPS 234',

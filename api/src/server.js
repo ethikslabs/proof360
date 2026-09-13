@@ -7,7 +7,6 @@ import { inferStatusHandler } from './handlers/infer-status.js';
 import { inferencesHandler } from './handlers/inferences.js';
 import { followupQuestionsHandler } from './handlers/followup-questions.js';
 import { captureEmailHandler } from './handlers/capture-email.js';
-import { earlySignalHandler } from './handlers/early-signal.js';
 import { chatHandler } from './handlers/chat.js';
 import { sessionChatHandler, sessionChatHistoryHandler } from './handlers/session-chat.js';
 import { analyzeHandler } from './handlers/analyze.js';
@@ -86,7 +85,6 @@ app.get('/api/v1/session/:id/followups', sessionFollowupsHandler);
 app.get('/api/v1/session/:id/followup-questions', followupQuestionsHandler);
 
 // --- Phase 3: Override and recompute ---
-app.get('/api/v1/session/:id/early-signal', earlySignalHandler);
 app.post('/api/v1/session/:id/capture-email', captureEmailHandler);
 
 // --- Phase 3: Override contract ---

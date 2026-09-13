@@ -18,6 +18,9 @@ export const GAP_DEFINITIONS = [
     // 'unknown' fires the gap from an ABSENCE: the read did not see it. The gap
     // then carries state 'not_observed' and is never voiced as a finding.
     absenceCondition: (ctx) => ctx.compliance_status === 'unknown',
+    // R6 (CANON-hx-loop 2026-09-13): what companies like theirs usually go for,
+    // and why — spoken only when the cohort was observed (peer-reference.js).
+    peer: { framework: 'soc2', outcome: 'to get through enterprise procurement' },
     claimTemplate: (ctx) => ({
       question: 'Does this company have SOC 2 Type II certification?',
       evidence: `Compliance status: ${ctx.compliance_status}. Customer type: ${ctx.customer_type}. Infrastructure: ${ctx.infrastructure}.`,
@@ -487,6 +490,7 @@ export const GAP_DEFINITIONS = [
     // the founder has not answered the pen-test question. A founder's "no" is
     // testimony and keeps the gap observed.
     absenceCondition: (ctx) => ctx.compliance_status === 'unknown' && ctx.pen_test_completed === undefined,
+    peer: { pursue: 'an independent penetration test each year', outcome: 'to get through vendor security reviews' },
     claimTemplate: (ctx) => ({
       question: 'Has this company conducted an independent penetration test in the last 12 months?',
       evidence: `Pen test completed: ${ctx.pen_test_completed ?? false}. Compliance status: ${ctx.compliance_status}.`,
