@@ -13,6 +13,7 @@
 
 import { BedrockRuntimeClient, ConverseCommand, ConverseStreamCommand } from '@aws-sdk/client-bedrock-runtime';
 import * as meter from './meter.mjs';
+import { tallyUsage } from '../services/session-usage.js';
 
 // PRIMARY ap-southeast-2, OVERFLOW us-east-1 (John ruling 2026-09-01). This replaces
 // the 2026-07-14 us-east-1 pin, which existed to dodge regional volume limits: with a
@@ -102,7 +103,7 @@ function inferenceConfig(max_tokens, temperature) {
 }
 
 // Non-streaming completion. Returns OpenAI-shaped { choices, model, usage }.
-export async function chatComplete({ messages, model, max_tokens = 512, temperature, correlation_id }) {
+export async function chatComplete({ messages, model, max_tokens = 512, temperature, correlation_id, act = null }) {
   const { system, conv } = toConverse(messages);
   const { out, modelId } = await withOverflow(model, (c, id) => c.send(new ConverseCommand({
     modelId: id,
@@ -116,12 +117,15 @@ export async function chatComplete({ messages, model, max_tokens = 512, temperat
     completion_tokens: out.usage?.outputTokens ?? 0,
     total_tokens: out.usage?.totalTokens ?? 0,
   };
-  emitMeter(modelId, usage, correlation_id);
+  emitMeter(modelId, usage, correlation_id, act);
   return { choices: [{ message: { content: text } }], model: modelId, usage };
 }
 
 // Streaming completion. Yields text deltas; emits a meter event when usage arrives.
-export async function* chatStream({ messages, model, max_tokens = 512, temperature, correlation_id }) {
+// `onUsage` (optional) receives { in, out, model } once the stream's metadata arrives, so a
+// streaming caller can stamp the tokens on its own record (the chat receipt) — the generator
+// itself has no return channel a `for await` consumer can read.
+export async function* chatStream({ messages, model, max_tokens = 512, temperature, correlation_id, act = null, onUsage = null }) {
   const { system, conv } = toConverse(messages);
   const { out: resp, modelId } = await withOverflow(model, (c, id) => c.send(new ConverseStreamCommand({
     modelId: id,
@@ -136,18 +140,25 @@ export async function* chatStream({ messages, model, max_tokens = 512, temperatu
     if (ev.metadata?.usage) usage = ev.metadata.usage;
   }
   if (usage) {
-    emitMeter(modelId, { prompt_tokens: usage.inputTokens ?? 0, completion_tokens: usage.outputTokens ?? 0 }, correlation_id);
+    emitMeter(modelId, { prompt_tokens: usage.inputTokens ?? 0, completion_tokens: usage.outputTokens ?? 0 }, correlation_id, act);
+    if (typeof onUsage === 'function') {
+      try { onUsage({ in: usage.inputTokens ?? 0, out: usage.outputTokens ?? 0, model: modelId }); } catch { /* caller's problem, never the stream's */ }
+    }
   }
 }
 
-function emitMeter(model, usage, correlation_id) {
+function emitMeter(model, usage, correlation_id, act = null) {
   try {
+    const u = meter.extractUsage({ usage });
     meter.emit({
       provider: 'bedrock',
       model,
       correlation_id: correlation_id || 'proof360',
-      ...meter.extractUsage({ usage }),
+      ...u,
     });
+    // Tokens in the read (R7): the same call, tallied on the session it ran for, per act. The
+    // estate ledger above stays the SSOT; this is the per-session view the founder can see.
+    tallyUsage(correlation_id, { provider: 'bedrock', model, act, in: u.in ?? u.tokens?.in ?? 0, out: u.out ?? u.tokens?.out ?? 0 });
   } catch {
     // metering is best-effort; never block inference on it
   }

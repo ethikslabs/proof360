@@ -472,11 +472,15 @@ export async function generateReading(session) {
       max_tokens: MAX_TOKENS,
       messages: [{ role: 'user', content: prompt }],
       correlation_id: session?.id,
+      act: 'reading',
     });
     const text = response?.choices?.[0]?.message?.content;
     const trimmed = typeof text === 'string' ? text.trim() : '';
+    const usage = response?.usage ? { in: response.usage.prompt_tokens ?? 0, out: response.usage.completion_tokens ?? 0 } : null;
+    // Honest degradation keeps its exact shape (pinned by cold-reading.test.js): an empty reading
+    // carries no anchors and no tokens line — the spend is already tallied on the session.
     if (!trimmed) return { reading: null, anchors: [] };
-    return { reading: trimmed, anchors };
+    return { reading: trimmed, anchors, usage };
   } catch {
     return { reading: null, anchors: [] };
   }

@@ -9,7 +9,7 @@ import {
   confirmPromptBlock, interpretConfirmReply, ceremonyResultNote, proposalPromptBlock,
   questionWasVoiced, proposalWasVoiced,
 } from '../services/confirm-ceremony.js';
-import { sessionRecordSnapshot, appendChatReceipt } from './record.js';
+import { sessionRecordSnapshot, appendChatReceipt, stampLastReceiptTokens } from './record.js';
 import { liveProposals, acceptProposal } from './shortlist.js';
 import { retrieveCorpusEvidence, evidenceBlock } from '../services/corpus-retrieve.js';
 
@@ -283,6 +283,8 @@ export async function sessionChatHandler(request, reply) {
       max_tokens: 300,
       messages: [{ role: 'system', content: systemPrompt }, ...apiMessages],
       correlation_id: id,
+      act: 'chat',
+      onUsage: (u) => stampLastReceiptTokens(id, u),
     });
 
     for await (const delta of stream) {

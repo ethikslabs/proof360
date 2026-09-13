@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import PersonaChat from '../components/PersonaChat';
+import { getProfile } from '../api/client.js';
 const VENDOR_LOGOS = {
   vanta:       { src: '/logos/vanta-partner.svg', style: { height: 22, width: 22, borderRadius: '50%' } },
   aws:         { src: '/logos/aws-partner.png',   style: { height: 22, width: 'auto' } },
@@ -136,6 +137,14 @@ export default function FounderDashboard() {
   const [threads, setThreads]         = useState({});
   const [drafts, setDrafts]           = useState({});
   const [openDetail, setOpenDetail]   = useState(new Set());
+  // Tokens in the account (John ruling 2026-09-13, R7, step 4): the sum over the reads attached to
+  // this profile that the box still holds. Tokens only. Unreachable → nothing rendered, nothing invented.
+  const [accountUsage, setAccountUsage] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    getProfile().then((p) => { if (!cancelled && p?.usage) setAccountUsage(p.usage); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     const stored = localStorage.getItem('founder_auth');
@@ -260,6 +269,12 @@ export default function FounderDashboard() {
               <div>
                 <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.08em', fontFamily: "'IBM Plex Mono', monospace", marginBottom: 1 }}>FOUNDER ACCOUNT</p>
                 <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)', fontFamily: "'IBM Plex Mono', monospace" }}>{auth.user?.email}</p>
+                {accountUsage?.tokens?.total > 0 && (
+                  <p data-testid="account-tokens" style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', fontFamily: "'IBM Plex Mono', monospace", marginTop: 2 }}>
+                    {accountUsage.tokens.total.toLocaleString('en-AU')} tok across {accountUsage.sessions_held} read{accountUsage.sessions_held === 1 ? '' : 's'}
+                    {accountUsage.sessions_attached > accountUsage.sessions_held ? ` · ${accountUsage.sessions_attached - accountUsage.sessions_held} older read${accountUsage.sessions_attached - accountUsage.sessions_held === 1 ? '' : 's'} no longer held` : ''}
+                  </p>
+                )}
               </div>
             </div>
             <button onClick={logout} style={{

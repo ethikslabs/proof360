@@ -210,6 +210,7 @@ Signal rules:
       max_tokens: 1024,
       messages: [{ role: 'user', content: prompt }],
       correlation_id: correlationId,
+      act: 'correlate',
     });
   } catch (err) {
     log({ text: `  ✗  Bedrock inference error: ${err.message}`, type: 'err' });
@@ -222,7 +223,11 @@ Signal rules:
   // Strip markdown code fences if present
   const json = text.startsWith('```') ? text.replace(/^```\w*\n?/, '').replace(/```$/, '').trim() : text;
   try {
-    return JSON.parse(json);
+    const parsed = JSON.parse(json);
+    // The correlate act's tokens ride back to the caller for its done line (non-enumerable, so
+    // nothing downstream that spreads or serialises the extraction ever sees it).
+    Object.defineProperty(parsed, '_usage', { value: { in: response.usage?.prompt_tokens ?? 0, out: response.usage?.completion_tokens ?? 0 }, enumerable: false });
+    return parsed;
   } catch (err) {
     log({ text: `  ✗  Claude returned invalid JSON`, type: 'err' });
     log({ text: `  ↳  Got: ${json.slice(0, 120)}${json.length > 120 ? '…' : ''}`, type: 'err' });
@@ -450,7 +455,8 @@ async function runResearchAct(act, query, fetchFn, log) {
       log({ act, type: 'act_body', text: sentence, color: 'muted' });
       await sleep(250);
     }
-    log({ type: 'act', act, phase: 'done', note: 'answered' });
+    // Tokens on the done line (R7): what this act spent, shown while the read runs, collapsed after.
+    log({ type: 'act', act, phase: 'done', note: 'answered', ...(result.usage ? { tokens: { in: result.usage.in, out: result.usage.out } } : {}) });
   } else {
     log({ type: 'act', act, phase: 'skip', note: RESEARCH_SKIP_NOTES[result.skip] || result.skip || 'no answer' });
   }
@@ -537,10 +543,10 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
     const query = researchQuery(domain);
 
     log({ type: 'act', act: 'perplexity', phase: 'start', title: 'Asking the live web about you', note: 'perplexity · sonar' });
-    const perplexityResult = await runResearchAct('perplexity', query, () => fetchPerplexityResearch(domain), log);
+    const perplexityResult = await runResearchAct('perplexity', query, () => fetchPerplexityResearch(domain, { session_id, act: 'perplexity' }), log);
 
     log({ type: 'act', act: 'gemini', phase: 'start', title: 'A second, independent read', note: 'gemini · 2.5 flash' });
-    const geminiResult = await runResearchAct('gemini', query, () => fetchGeminiResearch(domain), log);
+    const geminiResult = await runResearchAct('gemini', query, () => fetchGeminiResearch(domain, { session_id, act: 'gemini' }), log);
 
     // 5. Perimeter closes out — correlation (step 6) needs it.
     const recon_context = await reconPromise;
@@ -606,7 +612,7 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
       return { ...fallbackSignals(website_url, deck_file), recon_context, pages_read_count: real_pages_count, used_web_research, research_engines };
     }
 
-    log({ type: 'act', act: 'correlate', phase: 'done', note: `${signals.length} signal${signals.length === 1 ? '' : 's'}` });
+    log({ type: 'act', act: 'correlate', phase: 'done', note: `${signals.length} signal${signals.length === 1 ? '' : 's'}`, ...(extracted._usage ? { tokens: extracted._usage } : {}) });
 
     const company_summary = extracted.company_summary || null;
     return { signals, sources_read, enterprise_signals, competitor_mentions, recon_context, company_summary, pages_read_count: real_pages_count, used_web_research, research_engines };

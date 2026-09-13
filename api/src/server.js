@@ -33,7 +33,7 @@ import {
   profileProjectionsHandler,
 } from './handlers/profile.js';
 import { sessionAttachHandler } from './handlers/session-attach.js';
-import { recordHandler, claimAnswerHandler, chatReceiptsHandler, programsHandler } from './handlers/record.js';
+import { recordHandler, claimAnswerHandler, chatReceiptsHandler, programsHandler, usageHandler } from './handlers/record.js';
 import { proposalsHandler, shortlistHandler, proposalAcceptHandler, proposalDeclineHandler, shortlistAddHandler } from './handlers/shortlist.js';
 import { sessionFollowupsHandler } from './handlers/session-followups.js';
 import {
@@ -69,6 +69,7 @@ app.get('/api/v1/session/:id/record', recordHandler);
 app.get('/api/v1/session/:id/programs', programsHandler);
 app.post('/api/v1/session/:id/claims/:claimId/answer', claimAnswerHandler);
 app.get('/api/v1/session/:id/chat/receipts', chatReceiptsHandler);
+app.get('/api/v1/session/:id/usage', usageHandler);
 
 // --- The shortlist (ETHL-WRK-SPEC-011 P2): register proposals → Moves with reasons ---
 app.get('/api/v1/session/:id/proposals', proposalsHandler);

@@ -8,6 +8,7 @@
 //
 // Token usage is metered at each direct call site (Perplexity, Gemini) → estate usage ledger.
 import * as meter from '../lib/meter.mjs';
+import { tallyUsage } from './session-usage.js';
 
 const PERPLEXITY_URL = 'https://api.perplexity.ai/chat/completions';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=`;
@@ -41,8 +42,9 @@ async function fetchPerplexity(query, apiKey) {
     if (!res.ok) return { ok: false, status: res.status };
     const data = await res.json();
     // Meter the spend even if the content is later judged thin — the tokens were consumed.
-    meter.emit({ provider: 'perplexity', model: 'sonar', ...meter.extractUsage(data) });
-    return { ok: true, content: data.choices?.[0]?.message?.content?.trim() || null };
+    const usage = meter.extractUsage(data);
+    meter.emit({ provider: 'perplexity', model: 'sonar', ...usage });
+    return { ok: true, content: data.choices?.[0]?.message?.content?.trim() || null, usage: { in: usage.in ?? usage.tokens?.in ?? 0, out: usage.out ?? usage.tokens?.out ?? 0, model: 'sonar', provider: 'perplexity' } };
   } catch {
     clearTimeout(timeout);
     return { ok: false, status: null };
@@ -65,7 +67,7 @@ async function fetchGemini(query, apiKey) {
     // Gemini reports usageMetadata (not OpenAI-shaped usage), so pass tokens explicitly.
     const um = data.usageMetadata || {};
     meter.emit({ provider: 'gemini', model: 'gemini-2.5-flash', in: um.promptTokenCount ?? 0, out: um.candidatesTokenCount ?? 0 });
-    return { ok: true, content: data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null };
+    return { ok: true, content: data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null, usage: { in: um.promptTokenCount ?? 0, out: um.candidatesTokenCount ?? 0, model: 'gemini-2.5-flash', provider: 'gemini' } };
   } catch {
     clearTimeout(timeout);
     return { ok: false, status: null };
@@ -87,24 +89,28 @@ function classifyFailure(status) {
   return 'no answer'; // no status at all — timeout or network throw, never observed a response
 }
 
-export async function fetchPerplexityResearch(domain) {
+// `session_id` (optional): tally the tokens on that session under `act` (R7) — the spend is
+// tallied even when the answer is later judged thin, because the tokens were consumed.
+export async function fetchPerplexityResearch(domain, { session_id = null, act = 'perplexity' } = {}) {
   const apiKey = process.env.PERPLEXITY_API_KEY;
   if (!apiKey) return { skip: 'no key' };
   const result = await fetchPerplexity(researchQuery(domain), apiKey).catch(() => ({ ok: false, status: null }));
+  if (result.usage) tallyUsage(session_id, { ...result.usage, act });
   if (!result.ok) return { skip: classifyFailure(result.status) };
-  if (!result.content) return { skip: 'no answer' };
-  if (result.content.length < MIN_CHARS) return { skip: 'too thin' };
-  return { content: result.content.slice(0, 2000), source: 'perplexity/sonar' };
+  if (!result.content) return { skip: 'no answer', usage: result.usage };
+  if (result.content.length < MIN_CHARS) return { skip: 'too thin', usage: result.usage };
+  return { content: result.content.slice(0, 2000), source: 'perplexity/sonar', usage: result.usage };
 }
 
-export async function fetchGeminiResearch(domain) {
+export async function fetchGeminiResearch(domain, { session_id = null, act = 'gemini' } = {}) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return { skip: 'no key' };
   const result = await fetchGemini(researchQuery(domain), apiKey).catch(() => ({ ok: false, status: null }));
+  if (result.usage) tallyUsage(session_id, { ...result.usage, act });
   if (!result.ok) return { skip: classifyFailure(result.status) };
-  if (!result.content) return { skip: 'no answer' };
-  if (result.content.length < MIN_CHARS) return { skip: 'too thin' };
-  return { content: result.content.slice(0, 2000), source: 'gemini/2.5-flash' };
+  if (!result.content) return { skip: 'no answer', usage: result.usage };
+  if (result.content.length < MIN_CHARS) return { skip: 'too thin', usage: result.usage };
+  return { content: result.content.slice(0, 2000), source: 'gemini/2.5-flash', usage: result.usage };
 }
 
 // Thin combiner kept for any caller wanting a single best-answer result

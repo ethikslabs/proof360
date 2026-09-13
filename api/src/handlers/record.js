@@ -12,6 +12,7 @@ import {
 import { liveProposals, shortlistSnapshot } from './shortlist.js';
 import { matchedPrograms } from '../services/programs-matcher.js';
 import { cerProjection } from '../services/cer-projection.js';
+import { usageSummary } from '../services/session-usage.js';
 
 export function sessionRecordSnapshot(session) {
   return {
@@ -80,14 +81,36 @@ export function toReceiptHits(hits) {
 // by construction: corpus down = an empty-hits receipt, never a fabricated line.
 const MAX_RECEIPTS = 20;
 
-export function appendChatReceipt(session, { query, hits }) {
+export function appendChatReceipt(session, { query, hits, tokens = null }) {
   const receipt = {
     ts: new Date().toISOString(),
     query,
     hits: toReceiptHits(hits),
+    ...(tokens ? { tokens } : {}),
   };
   const receipts = [...(session.chat_receipts || []), receipt].slice(-MAX_RECEIPTS);
   updateSession(session.id, { chat_receipts: receipts });
+}
+
+// Tokens arrive after the receipt: the receipt is written before the model answers (what was
+// asked, what was retrieved), the usage only when the stream's metadata lands. Stamp the last
+// receipt — tokens only, never a price (R7).
+export function stampLastReceiptTokens(sessionId, tokens) {
+  const session = getSession(sessionId);
+  if (!session || !tokens) return;
+  const receipts = [...(session.chat_receipts || [])];
+  if (!receipts.length) return;
+  receipts[receipts.length - 1] = { ...receipts[receipts.length - 1], tokens: { in: tokens.in ?? 0, out: tokens.out ?? 0, model: tokens.model ?? null } };
+  updateSession(sessionId, { chat_receipts: receipts });
+}
+
+// GET /api/v1/session/:id/usage — what this read spent, tokens only, per provider and per act.
+// John ruling 2026-09-13 (R7): we pay for now, and the founder can see the count. No cost here;
+// pricing is PULSUS's plane and proof360 holds no price table.
+export async function usageHandler(request, reply) {
+  const session = getSession(request.params.id);
+  if (!session) return reply.status(404).send({ error: 'session_not_found' });
+  return reply.send({ usage: usageSummary(session) });
 }
 
 // GET /api/v1/session/:id/chat/receipts

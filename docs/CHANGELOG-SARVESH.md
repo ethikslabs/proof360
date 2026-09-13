@@ -4,6 +4,16 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-09-14 · The tokens a read spends are on the trace, on each answer, and on the account
+
+**Problem.** Every provider call proof360 makes is metered into the estate usage ledger (tokens in and out, provider, model, session), but nothing showed a founder what a read cost them. The trace said "13 signals"; the receipt said "no sources retrieved"; the account said nothing. John ruled (13 Sept): *"We pay for now — but we log the cost per call, and show the tokens in the read, and then collapse. Then we can have a token count in the account — so people can see that."* Tokens, not money: proof360 holds no price table; pricing is the cost plane's job.
+
+**Fix.** A small service, `session-usage.js`, tallies each provider call on the session it ran for, per act: the correlate step (Bedrock), the two research engines (Perplexity, Gemini — tallied even when the answer is judged too thin, because the tokens were spent), the reading (Bedrock), and each chat turn. The act's "done" line in the trace now carries `tokens: {in, out}`, so the thinking panel shows "· 1,204 tok" beside "13 signals" while the read runs, and the total for the read ("· 4,120 tok this read") sits on the panel header once it is done — the per-act numbers collapse with their acts, the total stays. The chat receipt ("Our working") is stamped with the turn's tokens when the stream's metadata lands, so the header reads "no sources retrieved · 1,340 tok". A new door, `GET /api/v1/session/:id/usage`, answers the session's tally — calls, tokens, by provider, by act — and the founder profile now carries `usage`: the sum over the reads attached to the account that the box still holds (thirty days), with the count of older reads it no longer holds said plainly rather than counted as zero. The founder dashboard shows that line under the account email. Eleven new tests across the API (the tally, the research seam, the receipt stamp, the door) and the frontend (the trace line, the total, the receipt header); API 596/596, frontend 541/541.
+
+**Why it matters.** A founder can see what looking cost, in the unit that is true (tokens) and at the moment it is spent, without being handed a bill or a guess at one. It is a number about what we did, never about them.
+
+---
+
 ## 2026-09-13 · The absence now speaks in John's register: "companies like yours usually go for X, and use Y to get there"
 
 **Problem.** After the fix below landed, the absence read "SOC 2: not seen on the pages read". Honest, and inert: it points at nothing and asks nothing. John, on being told the old early-signal route still said "companies like yours typically score around X": why not the same shape without the score, *"companies like yours usually go for X, and use Y to achieve Z"*. Then: "This is how I speak in human." That is the sentence he says to a founder across a table, and the product had no way to say it.

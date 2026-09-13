@@ -118,11 +118,14 @@ export function OurWorking({ receipt, tk }) {
   const couldNotLook = receipt.hits === null;
   const hits = receipt.hits || [];
   const groups = groupBySlug(hits);
-  const summary = groups.length > 0
+  const base = groups.length > 0
     ? `Our working · ${groups.length} source${groups.length === 1 ? '' : 's'}`
     : couldNotLook
       ? 'Our working · could not look (evidence store unreachable this turn)'
       : 'Our working · no sources retrieved';
+  // Tokens in the read (R7): what this answer spent, tokens only, beside the sources it drew on.
+  const tok = receipt.tokens && typeof receipt.tokens === 'object' ? (Number(receipt.tokens.in) || 0) + (Number(receipt.tokens.out) || 0) : 0;
+  const summary = tok > 0 ? `${base} · ${tok.toLocaleString('en-AU')} tok` : base;
 
   return (
     <div style={{ margin: '2px 0 10px 44px', maxWidth: 560 }}>

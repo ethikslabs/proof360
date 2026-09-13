@@ -48,6 +48,9 @@ function LineBlock({ lines, tk, scrollRef }) {
 // Act ids arrive in order of first appearance: perimeter, site, perplexity,
 // gemini, correlate, corpus, reading. Any untagged line that isn't 'cmd' is a
 // legacy/safety-net line and routes to the perimeter act's body.
+// 1204 → "1,204" — a count, formatted for reading, never rounded to look bigger or smaller.
+export function fmtTok(n) { return Number(n || 0).toLocaleString('en-AU'); }
+
 export function partitionLines(lines) {
   let cmdLine = null;
   const order = [];
@@ -55,7 +58,7 @@ export function partitionLines(lines) {
 
   function getOrCreate(id, fallbackTitle) {
     if (!map[id]) {
-      map[id] = { id, title: fallbackTitle ?? id, note: undefined, phase: undefined, body: [] };
+      map[id] = { id, title: fallbackTitle ?? id, note: undefined, phase: undefined, body: [], tokens: null };
       order.push(id);
     }
     return map[id];
@@ -74,6 +77,9 @@ export function partitionLines(lines) {
         act.phase = line.phase;
         // note on done/skip/fail REPLACES the start note only when the event carries one.
         if (line.note !== undefined) act.note = line.note;
+        // Tokens in the read (John ruling 2026-09-13, R7): what this act spent, on its own line.
+        // A count of what we did — never a number about the company.
+        if (line.tokens && typeof line.tokens === 'object') act.tokens = { in: Number(line.tokens.in) || 0, out: Number(line.tokens.out) || 0 };
       }
       continue;
     }
@@ -161,6 +167,7 @@ export function ActTrace({ lines, done, composing = false, tk, showVendorMarks =
   };
 
   const hasActiveAct = acts.some(a => a.phase === 'start');
+  const totalTokens = acts.reduce((n, a) => n + (a.tokens ? a.tokens.in + a.tokens.out : 0), 0);
   const showComposingTail = composing && !hasActiveAct;
 
   function toggle(act) {
@@ -179,6 +186,8 @@ export function ActTrace({ lines, done, composing = false, tk, showVendorMarks =
         textTransform: 'uppercase', color: tk.inkSoft, marginBottom: 6,
       }}>
         {done ? 'THE THINKING' : 'THE THINKING · live'}
+        {/* The read's total, once it is done — the per-act lines collapse with their acts; this stays. */}
+        {done && totalTokens > 0 && <span style={{ color: tk.inkSoft, fontFamily: MONO, fontSize: 10, marginLeft: 8, letterSpacing: 0 }}>· {fmtTok(totalTokens)} tok this read</span>}
       </div>
       {acts.map(act => {
         const open = isOpen(act);
@@ -223,6 +232,7 @@ export function ActTrace({ lines, done, composing = false, tk, showVendorMarks =
               <span style={{ color: tk.ink }}>
                 {act.title}
                 {act.note && <span style={{ color: tk.inkSoft }}> · {act.note}</span>}
+                {act.tokens && <span style={{ color: tk.inkSoft, fontFamily: MONO, fontSize: 10 }}> · {fmtTok(act.tokens.in + act.tokens.out)} tok</span>}
                 {/* Opt-in for the demo: name the services this step actually used.
                     Bound to what ran — an attempted engine shows dimmed, never hidden
                     and never as a success (truthful-engines ruling, logo layer). */}
