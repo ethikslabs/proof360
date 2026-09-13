@@ -672,3 +672,10 @@ flowchart LR
 **Scope note.** The cards are built and tested but **not yet wired into the live chat flow** (that's the next step — the conversation ticks the fields and surfaces the agency card). Recommendation *engine*, real partner integrations (Ingram/Vanta/Austbrokers/Cisco), HubSpot, partner dashboards, and billing are all intentionally out of scope for v1 — mocked or seeded.
 
 **Verification.** api unit suite 51/51 green; frontend 47/47 green. No confidence/freshness score minted on the CER — trust semantics stay with VERITAS, per the frozen invariant.
+
+## 2026-09-14 — BRAIN.md: three rulings folded in (R8, R9, R10), nothing built yet
+
+- **R8** No negative language, ever. "You don't / you haven't / you lack" never leaves the machine in any channel. An absence is said in the first person with the method named: "scanning your site and having a look around the web, we couldn't spot a …". Register: brotherly, the primary-school teacher's. Rewrites the closing rung of the R6 sentence.
+- **R9** The interview is an investor's first three questions (type of company, industry, stage, size), then on with it. Nothing technical is ever asked. Rules law 1; `ASK_ORDER` reorder is now a build.
+- **R10** Technical claims (WAF, CDN, DMARC, email provider, headers) are collected, never asked; surfaced only inside a conversation. The confirm ceremony must exclude probe-kind claims.
+- Source walk: 13 Sept, John's own seat, lxplatform.io on the ethiks361 front. Findings 8 to 14 in `_working/2026-09-12-hx-findings-proof360.md` (John's estate). Why it matters: the SOC 2 door moved and the privacy door did not; the fix was per gap, the rule is the class.
