@@ -24,7 +24,8 @@ const CLASS_LABEL = {
   IMPACT: 'Impact & mandate fit', OPS: 'Operating capability',
 };
 const fmt = (n) => 'AUD ' + Math.round(n).toLocaleString();
-const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : null);
+// en-AU on purpose: the estate reads dates as "14 Sept 2026"; the CI runner's default locale is en-US and rendered "Sep 14, 2026", which the test rightly refused.
+const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }) : null);
 
 function stateOf(r) {
   if (r.blocked.length) return 'blocked';

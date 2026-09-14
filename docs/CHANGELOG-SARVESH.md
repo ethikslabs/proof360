@@ -728,3 +728,7 @@ flowchart LR
 - A founder forwards an email to check@ethikslabs.com and the three lines come back as a reply in the same thread. No login, no app. `api/src/services/inbound-check/mailbox-m365.js` polls one Microsoft 365 mailbox through Graph (application permissions, one mailbox), runs the check on the raw MIME, replies, marks read, files under "Checked". Starts only when the M365 env is present on the box (`CONTROL/scripts/inbound-check-m365-setup.sh` in John's estate creates the alias, the Entra app and the SSM parameters; the deploy reads them).
 - A plain forward strips the original envelope, signature and platform headers. The parser unwraps the forwarded block (Gmail, Outlook, Apple Mail), takes the inner sender, and the reply says "not seen in a forwarded copy" for what it could not read. The template match and the footprint still work from the address and body alone.
 - Tests: `api/tests/unit/inbound/forwarded-and-mailbox.test.js` (6): the unwrap, the three lines on a forwarded copy, and the poller (only mail to the check address, reply in thread, read + filed, a failed fetch sends nothing, only Graph and the token endpoint are ever called).
+
+## 2026-09-14 — CI: /raise date format pinned to en-AU
+
+- `src/pages/Raise.jsx` formatted `last_verified` with the runtime default locale, which is en-US on the CI runner ("Sep 14, 2026") and en-AU on our machines ("14 Sept 2026"). The Raise render test expects the estate form and was right to fail. Pinned to en-AU. Deploys were unaffected; only CI was red.
