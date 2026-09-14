@@ -747,3 +747,8 @@ flowchart LR
 - The forward was of a reply of the pitch. The parser now descends the chain (forwarded block, then "On … wrote:" quote headers, Outlook `<mailto:>` artefacts and wrapped headers tidied) to the origin sender, and the from row shows the path ("reached us via john@… → johnpcoates@…").
 - RDAP answered 403 to Node but 200 to curl: rdap.org and the registries refuse the default user agent. One header fixed it.
 - Real Outlook forward saved as a fixture (`forwarded-outlook-thread-trigger-1.eml`, addresses replaced) and pinned. 25 inbound tests.
+
+## 2026-09-14 — Inbound check: the three lines in human language
+
+- John: "did you make it human language?" It was not. The three lines now read the way he would say them across a table: "This came from someone signing as Jon Rosen, writing from theadambarvcaps.co. It reached us as a forward (via …), so we could read the address and the words, not the envelope it travelled in." / "Looking around the web, we couldn't find a trace of the company or the name; we couldn't find out when the domain was registered; the domain is set up to send and receive mail properly. One more thing: the address is built to a pattern, and one other sender with the same pattern has been through here before (…)." / "The email makes 4 claims we could look for: 3 are on the person's own pages, 1 doesn't match the record (the email says 373B, their own page says 293B)."
+- The pattern finding moved from row 14 of the table into the second line, where it belongs. Evidence rows renamed in plain words (can receive mail, sender check, spoofing policy, signed by, where a reply goes); the labels stay.

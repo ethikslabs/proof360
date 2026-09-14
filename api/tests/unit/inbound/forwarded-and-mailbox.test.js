@@ -34,10 +34,10 @@ describe('a plain forward: the sender inside the forwarded block is the subject 
   it('the three lines say what a forwarded copy cannot show, and still find the template', async () => {
     const r = await runInboundCheck(fx('forwarded-gmail-trigger-1.eml'), deps());
     expect(r.lines[0]).toMatch(/Jon Rosen/);
-    expect(r.lines[0]).toMatch(/forwarded copy/i);
-    expect(r.lines[0]).not.toMatch(/agree/);
-    expect(r.lines[1]).toMatch(/no footprint/i);
-    for (const check of ['reply-to', 'envelope', 'signature (DKIM)', 'sending platform']) {
+    expect(r.lines[0]).toMatch(/reached us as a forward \(via founder@example\.com\)/i);
+    expect(r.lines[0]).not.toMatch(/say the same thing/);
+    expect(r.lines[1]).toMatch(/couldn't find a trace/i);
+    for (const check of ['where a reply goes', 'envelope posted from', 'signed by', 'sending platform']) {
       expect(r.evidence.find((e) => e.check === check).value).toMatch(/not seen in a forwarded copy/i);
     }
     expect(r.memory.template_signature).toBe('jon@the*vc*.co');
@@ -52,7 +52,8 @@ describe('a plain forward: the sender inside the forwarded block is the subject 
     expect(m.text).toMatch(/^Happy Sunday/);
     expect(m.text).not.toMatch(/interested|mailto:/);
     const r = await runInboundCheck(fx('forwarded-outlook-thread-trigger-1.eml'), deps());
-    expect(r.lines[0]).toMatch(/Jon Rosen at theadambarvcaps\.co/);
+    expect(r.lines[0]).toMatch(/someone signing as Jon Rosen, writing from theadambarvcaps\.co/);
+    expect(r.lines[0]).toMatch(/via founder@example\.com, then founder\.personal@example\.com/);
     expect(r.evidence.find((e) => e.check === 'from').value).toMatch(/via founder@example\.com → founder\.personal@example\.com/);
     expect(r.memory.template_signature).toBe('jon@the*vc*.co');
   });
@@ -96,7 +97,7 @@ describe('mailbox poller — reads unread mail to the check address, replies in 
     expect(out.skipped).toEqual(['m2']);
     const reply = calls.find((c) => /\/messages\/m1\/reply$/.test(c.url));
     expect(reply).toBeDefined();
-    expect(reply.body.comment).toMatch(/Who really sent it: Jon Rosen/);
+    expect(reply.body.comment).toMatch(/This came from someone signing as Jon Rosen/);
     expect(reply.body.comment).toMatch(/\[DERIVED\]/);
     expect(reply.body.comment).not.toMatch(/\byou (?:should|need)\b|\bscam\b/i);
     const patch = calls.find((c) => /\/messages\/m1$/.test(c.url) && c.method === 'PATCH');

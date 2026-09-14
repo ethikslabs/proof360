@@ -78,8 +78,9 @@ describe('runInboundCheck — three lines, evidence below', () => {
   it('throwaway sender: no footprint is a finding, not an error', async () => {
     const r = await runInboundCheck(fx('trigger-1-theadambarvcaps.eml'), deps());
     expect(r.lines).toHaveLength(3);
-    expect(r.lines[1]).toMatch(/no footprint/i);
-    expect(r.lines[1]).toMatch(/couldn't check/i); // .co registration age: no RDAP service answered
+    expect(r.lines[1]).toMatch(/couldn't find a trace of the company or the name/i);
+    expect(r.lines[1]).toMatch(/couldn't find out when the domain was registered/i); // .co: no registry service answered
+    expect(r.lines[1]).toMatch(/built to a pattern \(jon@the\*vc\*\.co\); no other sender/i);
     expect(r.lines[0]).toMatch(/Jon Rosen/);
     expect(r.lines[0]).toMatch(/theadambarvcaps\.co/);
     const esp = r.evidence.find((e) => e.check === 'sending platform');
@@ -95,15 +96,15 @@ describe('runInboundCheck — three lines, evidence below', () => {
     const r = await runInboundCheck(fx('trigger-2-thejonathanjmvc.eml'), d);
     expect(r.memory.prior_matches).toBe(1);
     expect(r.memory.prior).toEqual([{ address: 'jon@theadambarvcaps.co', checked_at: '2026-09-14T01:00:00.000Z' }]);
-    const row = r.evidence.find((e) => e.check === 'prior senders, same template');
+    const row = r.evidence.find((e) => e.check === 'earlier senders with this pattern');
     expect(row.label).toBe('[DERIVED]');
-    expect(row.value).toMatch(/1 prior sender/);
-    expect(row.value).toMatch(/2026-09-14/);
+    expect(row.value).toMatch(/^1: jon@theadambarvcaps\.co \(2026-09-14\)/);
+    expect(r.lines[1]).toMatch(/one other sender with the same pattern has been through here before \(jon@theadambarvcaps\.co, 2026-09-14\)/);
   });
 
   it('conflicting numeric claim: the two values are shown side by side, no verdict', async () => {
     const r = await runInboundCheck(fx('trigger-2-thejonathanjmvc.eml'), deps());
-    expect(r.lines[2]).toMatch(/conflicting/i);
+    expect(r.lines[2]).toMatch(/doesn't match the record \(the email says 373B, Mr\. Herzog's own page says 293B\)/);
     const row = r.evidence.find((e) => e.check === 'claim: 373B+ exit to community');
     expect(row.label).toBe('[VENDOR]');
     expect(row.value).toMatch(/373B/);
@@ -114,17 +115,19 @@ describe('runInboundCheck — three lines, evidence below', () => {
 
   it('legit sender: registration age, mail records and footprint all found; no mismatch flagged', async () => {
     const r = await runInboundCheck(fx('legit-vanta.eml'), deps());
-    expect(r.lines[0]).not.toMatch(/mismatch/i);
-    expect(r.lines[1]).toMatch(/2002/);
-    expect(r.lines[1]).toMatch(/footprint found/i);
-    expect(r.evidence.find((e) => e.check === 'registration').label).toBe('[PUBLIC]');
+    expect(r.lines[0]).toMatch(/say the same thing/);
+    expect(r.lines[0]).not.toMatch(/don't line up/);
+    expect(r.lines[1]).toMatch(/registered since 2002-09-09 \(through MarkMonitor Inc\.\)/);
+    expect(r.lines[1]).toMatch(/show up where you'd expect/i);
+    expect(r.lines[1]).toMatch(/set up to send and receive mail properly/);
+    expect(r.evidence.find((e) => e.check === 'domain registered').label).toBe('[PUBLIC]');
     expect(r.lines[2]).toMatch(/no named claims/i);
   });
 
   it('display name / domain mismatch: named org, free-mail domain, different reply-to, a third domain in the body', async () => {
     const r = await runInboundCheck(fx('mismatch-sequoia.eml'), deps());
-    expect(r.lines[0]).toMatch(/mismatch/i);
-    expect(r.lines[0]).toMatch(/gmail\.com/);
+    expect(r.lines[0]).toMatch(/don't line up/);
+    expect(r.lines[0]).toMatch(/a free gmail\.com mailbox/);
     expect(r.lines[0]).toMatch(/sequoia-capital-partners\.co/);
     expect(r.lines[0]).toMatch(/sequoiacap\.com/);
   });
@@ -132,9 +135,11 @@ describe('runInboundCheck — three lines, evidence below', () => {
   it('a lookup that fails says "couldn\'t check", never guesses', async () => {
     const broken = { ...deps(), resolver: { resolve4: async () => { throw new Error('SERVFAIL'); }, resolveMx: async () => { throw new Error('SERVFAIL'); }, resolveTxt: async () => { throw new Error('SERVFAIL'); } }, search: async () => ({ ok: false }), rdap: async () => { throw new Error('timeout'); } };
     const r = await runInboundCheck(fx('legit-vanta.eml'), broken);
-    expect(r.lines[1]).toMatch(/couldn't check/i);
-    expect(r.lines[1]).not.toMatch(/no footprint/i);
-    for (const e of r.evidence.filter((x) => ['MX', 'SPF', 'DMARC', 'registration', 'web footprint'].includes(x.check))) expect(e.value).toMatch(/couldn't check/i);
+    expect(r.lines[1]).toMatch(/couldn't look around the web this time/i);
+    expect(r.lines[1]).toMatch(/couldn't find out when the domain was registered/i);
+    expect(r.lines[1]).toMatch(/couldn't read its mail set-up/i);
+    expect(r.lines[1]).not.toMatch(/couldn't find a trace/i);
+    for (const e of r.evidence.filter((x) => ['can receive mail', 'sender check (SPF)', 'spoofing policy (DMARC)', 'domain registered', 'web footprint'].includes(x.check))) expect(e.value).toMatch(/couldn't check/i);
   });
 });
 
