@@ -6,6 +6,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { VendorRow } from './VendorMarks.jsx';
 import { stripEmphasis } from '../../rendering/stripEmphasis.js';
+import { ACT_PLAIN_TITLES } from '../../rendering/actTitles.js';
 
 const COLORS = {
   ok: '#2f9b69',
@@ -58,7 +59,8 @@ export function partitionLines(lines) {
 
   function getOrCreate(id, fallbackTitle) {
     if (!map[id]) {
-      map[id] = { id, title: fallbackTitle ?? id, note: undefined, engine: undefined, phase: undefined, body: [], tokens: null };
+      // An act id is machinery (Law 11); an act that arrives without a title gets its plain name.
+      map[id] = { id, title: fallbackTitle ?? ACT_PLAIN_TITLES[id] ?? 'Working', note: undefined, engine: undefined, phase: undefined, body: [], tokens: null };
       order.push(id);
     }
     return map[id];

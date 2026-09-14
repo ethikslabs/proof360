@@ -50,17 +50,17 @@ describe('ActTrace', () => {
 
   it('untagged probe lines land in the perimeter act, which stays collapsed while active and opens on click', () => {
     const lines = [
-      { text: '$ proof360 --url acme.com', type: 'cmd' },
+      { text: 'Reading acme.com', type: 'cmd' },
       { type: 'act', act: 'perimeter', phase: 'start', title: 'Scanning the perimeter' },
-      { text: '[dns]  DMARC enforced · SPF pass', type: 'recon', color: 'ok' },
+      { text: 'mail: set so nobody else can send as you', type: 'recon', color: 'ok' },
     ];
     render(<ActTrace lines={lines} done={false} tk={tk} />);
-    expect(screen.getByText(/proof360 --url acme.com/)).toBeInTheDocument();
+    expect(screen.getByText(/Reading acme.com/)).toBeInTheDocument();
     expect(screen.getByText(/Scanning the perimeter/)).toBeInTheDocument();
-    expect(screen.queryByText(/DMARC enforced/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/send as you/)).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByText(/Scanning the perimeter/));
-    expect(screen.getByText(/DMARC enforced/)).toBeInTheDocument();
+    expect(screen.getByText(/send as you/)).toBeInTheDocument();
   });
 
   it('keeps every act row listed once done', () => {
@@ -99,7 +99,7 @@ describe('ActTrace', () => {
   // (auto-collapse, still user-openable), note in inkSoft same as the others.
   it('a failed act renders ✗ in the err color, collapses its body, and reopens on click', () => {
     const lines = [
-      { type: 'act', act: 'correlate', phase: 'start', title: 'Correlating what every witness saw' },
+      { type: 'act', act: 'correlate', phase: 'start', title: 'Putting every witness side by side' },
       { type: 'act_body', act: 'correlate', text: 'extraction threw', color: 'err' },
       { type: 'act', act: 'correlate', phase: 'fail', note: 'failed' },
     ];
@@ -110,7 +110,7 @@ describe('ActTrace', () => {
     expect(screen.getByText(/failed/)).toBeInTheDocument();
     expect(screen.queryByText(/extraction threw/)).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByText(/Correlating what every witness saw/));
+    fireEvent.click(screen.getByText(/Putting every witness side by side/));
     expect(screen.getByText(/extraction threw/)).toBeInTheDocument();
   });
 
@@ -122,12 +122,12 @@ describe('ActTrace', () => {
   // we know (ABSENCE RULE).
   it('done=true demotes any still-\'start\' act to a static muted glyph, never an invented failure', () => {
     const lines = [
-      { type: 'act', act: 'correlate', phase: 'start', title: 'Correlating what every witness saw' },
+      { type: 'act', act: 'correlate', phase: 'start', title: 'Putting every witness side by side' },
       { type: 'act_body', act: 'correlate', text: 'still working when the stream died', color: 'muted' },
     ];
     render(<ActTrace lines={lines} done={true} tk={tk} />);
 
-    expect(screen.getByText(/Correlating what every witness saw/)).toBeInTheDocument();
+    expect(screen.getByText(/Putting every witness side by side/)).toBeInTheDocument();
     // Orphaned glyph: muted '·', not the active '●', a checkmark, or a cross.
     const glyph = screen.getByText('·');
     expect(glyph).toHaveStyle({ color: '#94a3b8', animation: 'none' });
@@ -137,7 +137,7 @@ describe('ActTrace', () => {
     // No auto-expanded body — collapsed, but still user-openable.
     expect(screen.queryByText(/still working when the stream died/)).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByText(/Correlating what every witness saw/));
+    fireEvent.click(screen.getByText(/Putting every witness side by side/));
     expect(screen.getByText(/still working when the stream died/)).toBeInTheDocument();
   });
 

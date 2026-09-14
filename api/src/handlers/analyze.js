@@ -71,12 +71,9 @@ export async function analyzeHandler(request, reply) {
         // perplexity" with source "perplexity"), printing "label · source" doubles
         // it up ("perplexity · perplexity" — live rehearsal finding 4). Print the
         // label alone in that case; otherwise keep the "label · source" form.
-        const label = anchor.label || '';
-        const source = anchor.source || '';
-        const text = source && label.toLowerCase().includes(source.toLowerCase())
-          ? `↳  ${label}`
-          : `↳  ${label} · ${source}`;
-        appendLog(id, { act: 'reading', type: 'act_body', text });
+        // Label only (first screen, 14 Sept 2026): the source field is provenance for
+        // engineering and names the machinery; the label is the founder's word for it.
+        appendLog(id, { act: 'reading', type: 'act_body', text: `↳  ${anchor.label || ''}` });
       }
     } else {
       appendLog(id, { act: 'reading', type: 'act_body', text: "the read didn't come together — falling back to plain signals", color: 'muted' });

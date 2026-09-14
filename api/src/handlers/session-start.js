@@ -132,7 +132,8 @@ async function extractAndInfer(sessionId, { website_url, deck_file, session_id }
           try { domain = new URL(hit.source_url).hostname.replace(/^www\./, ''); } catch { /* malformed URL — show without it */ }
         }
         // The reference is the point; the score and the shelf it sits on are ours (Law 11).
-        log({ act: 'corpus', type: 'act_body', text: `↳  ${hit.title || hit.slug}${domain ? ` · ${domain}` : ''}` });
+        // slug, not title: a title is retrieved text and reaches the screen unfiltered (seam rule).
+        log({ act: 'corpus', type: 'act_body', text: `↳  ${hit.slug}${domain ? ` · ${domain}` : ''}` });
       }
       log({ type: 'act', act: 'corpus', phase: 'done', note: `${corpus_hits.length} holding${corpus_hits.length === 1 ? '' : 's'}` });
     } else if (corpus_hits !== null) {
@@ -223,7 +224,8 @@ async function extractAndInfer(sessionId, { website_url, deck_file, session_id }
       tags: ['pipeline', 'error'],
       payload: { action: 'extraction_failed', session_id: sessionId, error: err.message },
     });
-    log({ text: `  ✗  Extraction failed: ${err.message}`, type: 'err' });
+    // The raw error is already in the audit row above (Law 11: plain words on the screen).
+    log({ text: '  ✗  the read stopped early; nothing more could be drawn from the outside', type: 'err' });
     log({ type: '__done__' });
     updateSession(sessionId, { infer_status: 'failed' });
   }

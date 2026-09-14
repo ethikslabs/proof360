@@ -43,7 +43,7 @@ export async function runReconPipeline(websiteUrl, companyName, options = {}) {
   } catch (err) {
     if (err instanceof SsrfBlockedError) {
       console.warn(`[recon] blocked non-public target ${domain}: ${err.message}`);
-      onSourceComplete?.('blocked', `Target is not a public host — recon skipped`);
+      onSourceComplete?.('blocked', { type: 'recon', source: 'blocked', text: 'that is not a public address, so the outside look was skipped', color: 'muted' });
       return {
         dns: { source: 'dns', skipped: true, reason: 'target_not_public' },
         http: { source: 'http', skipped: true, reason: 'target_not_public' },
@@ -334,11 +334,12 @@ export function formatReconLine(source, result) {
       return L(source, `open doors: ${notable ? `port ${notable}` : `${n} ports`} facing the internet that usually should not be`, 'query');
     }
     case 'ssllabs': {
+      // The vendor's letter is its verdict, not ours (R8); we say what the letter stands for.
       const grade = result.ssl_grade || null;
       const modern = (result.protocols || []).includes('TLS1.3');
-      if (result.has_old_tls) return L(source, `connection: an old encryption version is still switched on${grade ? ` (graded ${grade})` : ''}`, 'query');
-      if (['A+', 'A', 'A-'].includes(grade)) return L(source, `connection: graded ${grade}, ${modern ? 'modern' : 'current'} encryption`, 'ok');
-      return L(source, `connection: graded ${grade || 'unknown'}; worth a look`, 'query');
+      if (result.has_old_tls) return L(source, 'connection: an old encryption version is still switched on', 'query');
+      if (['A+', 'A', 'A-'].includes(grade)) return L(source, `connection: set up well, ${modern ? 'modern' : 'current'} encryption`, 'ok');
+      return L(source, 'connection: worth a look at how it is set up', 'query');
     }
     case 'abuseipdb': {
       const score = result.abuse_confidence_score ?? 0;

@@ -28,7 +28,7 @@ describe('coldReadOpener', () => {
   it('a degraded read (no pages fetched) is honest about the failed scrape, not a score', () => {
     const msg = coldReadOpener({ name: 'Acme', sourcesRead: 0, inferences: [] });
     expect(msg).toMatch(/^Acme — their site wouldn't open for us/);
-    expect(msg).toMatch(/perimeter read only/);
+    expect(msg).toMatch(/read from the outside only/);
     expect(msg).not.toMatch(/\d+\s*\/\s*100/);
     expect(msg).not.toMatch(/trust score/i);
   });
@@ -89,7 +89,7 @@ describe('coldReadOpener', () => {
     const reading = "It looks like your site was unreachable, so this is a perimeter read. Anything to correct?";
     const msg = coldReadOpener({ name: 'Acme', sourcesRead: 0, inferences: [], reading });
     expect(msg).toMatch(/^Acme — their site wouldn't open for us/);
-    expect(msg).toContain('perimeter read only');
+    expect(msg).toContain('read from the outside only');
     expect(msg).toContain(reading);
     expect(msg).not.toContain("We couldn't infer much from the outside");
   });

@@ -121,7 +121,7 @@ function reconEvidence(session) {
   const cloud = ctx.cloud_provider || ctx.hosting_provider;
   if (cloud) {
     lines.push(factLine(STRONG, 'Hosting / cloud provider', cloud));
-    anchors.push({ label: `${cloud} hosting`, source: 'ip probe' });
+    anchors.push({ label: 'where the site is hosted', source: 'ip probe', probe: true });
   }
 
   // 'unknown' is recon-dns.js's sentinel for a FAILED _dmarc TXT lookup (SERVFAIL /
@@ -136,28 +136,28 @@ function reconEvidence(session) {
   // Each policy value gets its own honest factline/anchor pair.
   if (ctx.dmarc_policy === 'missing') {
     lines.push(factLine(STRONG, 'no DMARC record published on the domain'));
-    anchors.push({ label: 'DMARC: missing', source: 'dns scan' });
+    anchors.push({ label: 'how mail is set up', source: 'dns scan', probe: true });
   } else if (ctx.dmarc_policy === 'none') {
     lines.push(factLine(STRONG, 'a DMARC record is published but not enforcing (p=none, monitoring only)'));
-    anchors.push({ label: 'DMARC: not enforcing', source: 'dns scan' });
+    anchors.push({ label: 'how mail is set up', source: 'dns scan', probe: true });
   } else if (ctx.dmarc_policy === 'quarantine' || ctx.dmarc_policy === 'reject') {
     lines.push(factLine(STRONG, `DMARC enforced (p=${ctx.dmarc_policy})`));
-    anchors.push({ label: 'DMARC: enforced', source: 'dns scan' });
+    anchors.push({ label: 'how mail is set up', source: 'dns scan', probe: true });
   }
 
   if (ctx.domain_in_breach && ctx.breach_count) {
     lines.push(factLine(STRONG, 'Breach history', `${ctx.breach_count} known breach(es) on record`));
-    anchors.push({ label: `${ctx.breach_count} known breach(es)`, source: 'breach scan' });
+    anchors.push({ label: 'the public breach record', source: 'breach scan', probe: true });
   }
 
   if (ctx.security_hire_signal === true) {
     lines.push(factLine(STRONG, 'Security hiring signal', 'actively hiring for a security role'));
-    anchors.push({ label: 'Security hiring signal', source: 'jobs scan' });
+    anchors.push({ label: 'open roles', source: 'jobs scan', probe: true });
   }
 
   if (ctx.ssl_grade) {
     lines.push(factLine(STRONG, 'SSL Labs grade', ctx.ssl_grade));
-    anchors.push({ label: `SSL grade: ${ctx.ssl_grade}`, source: 'ssl scan' });
+    anchors.push({ label: 'how the connection is set up', source: 'ssl scan', probe: true });
   }
 
   return { lines, anchors };
@@ -260,7 +260,7 @@ async function corpusEvidence(session) {
   // above the citation cards, which group chunks by document; "4 corpus holdings"
   // over "3 sources" read as a contradiction (round-3 walkthrough finding).
   const docCount = new Set(hits.map((h) => h.slug ?? h.evidence_id ?? h.n)).size;
-  const anchor = { label: `${docCount} corpus holding${docCount === 1 ? '' : 's'}`, source: 'corpus' };
+  const anchor = { label: `${docCount} ${docCount === 1 ? 'note' : 'notes'} we already held`, source: 'corpus' };
   return { lines, anchor, anyConfirmed, allUnconfirmed: !anyConfirmed };
 }
 
@@ -274,9 +274,9 @@ export async function buildReadingContext(session) {
 
   const anchors = [...recon.anchors];
   if (pagesRead === 0) {
-    anchors.push({ label: 'No pages readable', source: 'scrape' });
+    anchors.push({ label: 'the site would not open for us', source: 'scrape' });
   } else if (inferenceLines.length) {
-    anchors.push({ label: 'Site narrative signals', source: 'site scrape' });
+    anchors.push({ label: 'what the site says', source: 'site scrape' });
   }
   // I-1 (review ruling), truthful list (John ruling 2026-08-25): only claim the
   // engines that actually ran and answered. signal-extractor.js threads
@@ -286,8 +286,8 @@ export async function buildReadingContext(session) {
   const engines = Array.isArray(session?.research_engines) ? session.research_engines : [];
   if (summaryLine) {
     anchors.push(engines.length
-      ? { label: `Company research · ${engines.join(' + ')}`, source: engines.join('+') }
-      : { label: 'Company summary', source: 'site synthesis' });
+      ? { label: `the live web, ${engines.length === 1 ? 'one source' : 'two sources'}`, source: engines.join('+') }
+      : { label: 'a summary from the site', source: 'site synthesis' });
   }
   if (corpus.anchor) anchors.push(corpus.anchor);
 

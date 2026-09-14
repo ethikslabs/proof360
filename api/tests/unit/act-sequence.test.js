@@ -280,7 +280,9 @@ describe('extractSignals — engine skip honesty (real failure class, not a swal
       (l) => l.type === 'act' && l.act === 'perplexity' && l.phase === 'skip'
     );
     expect(perplexitySkip).toBeTruthy();
-    expect(perplexitySkip.note).toBe('quota exhausted');
+    // The failure class stays distinct in the engine's own result and the meter row; on the
+    // founder's screen a supplier quota is 'no answer this time' (Law 11, first screen 14 Sept 2026).
+    expect(perplexitySkip.note).toBe('no answer this time');
   });
 
   it('perplexity non-429 error status → skip note "engine error (NNN)"', async () => {
@@ -301,7 +303,7 @@ describe('extractSignals — engine skip honesty (real failure class, not a swal
     const perplexitySkip = log.find(
       (l) => l.type === 'act' && l.act === 'perplexity' && l.phase === 'skip'
     );
-    expect(perplexitySkip.note).toBe('engine error (503)');
+    expect(perplexitySkip.note).toBe('no answer this time');   // never a status code on the screen
   });
 });
 
@@ -560,11 +562,13 @@ describe('analyze.js — the "reading" act closes the whole-thinking stream', ()
     expect(reply.statusCode).toBe(200);
     const log = getLogs(session.id);
     const anchorLine = log.find(
-      (l) => l.type === 'act_body' && l.act === 'reading' && l.text.includes('Company research')
+      (l) => l.type === 'act_body' && l.act === 'reading' && l.text.includes('the live web')
     );
     expect(anchorLine).toBeTruthy();
-    expect(anchorLine.text).toBe('↳  Company research · perplexity');
-    // The exact bug: the source must never appear twice in one line.
-    expect(anchorLine.text.match(/perplexity/g)?.length).toBe(1);
+    // Label only on the screen (first screen, 14 Sept 2026): the label no longer names the
+    // engine and the source is never appended — so nothing can double.
+    expect(anchorLine.text).toBe('↳  the live web, one source');
+    // The exact bug was the source doubling; now it never appears at all on this line.
+    expect(anchorLine.text).not.toMatch(/perplexity/);
   });
 });

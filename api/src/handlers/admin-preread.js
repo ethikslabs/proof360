@@ -135,7 +135,7 @@ async function triggerColdRead(url, sessionId) {
     console.error(JSON.stringify({
       event: 'preread_extraction_failed', session_id: sessionId, error: err.message,
     }));
-    appendLog(sessionId, { text: `  ✗  Extraction failed: ${err.message}`, type: 'err' });
+    appendLog(sessionId, { text: '  ✗  the read stopped early; nothing more could be drawn from the outside', type: 'err' });
     appendLog(sessionId, { type: '__done__' });
     updateSession(sessionId, { infer_status: 'failed' });
   }

@@ -37,16 +37,17 @@ describe('deriveWorkUnits — every row traces to a measurement', () => {
     expect(value(deriveWorkUnits(LIVE), 'Sources read')).toBe(3);
   });
 
-  it('counts corpus holdings actually cited', () => {
-    expect(value(deriveWorkUnits(LIVE), 'Corpus holdings cited')).toBe(4);
+  it('counts the notes we already held that were actually cited (nobody hears "corpus", Law 11)', () => {
+    expect(value(deriveWorkUnits(LIVE), 'Notes we already held')).toBe(4);
   });
 
   it('counts the signals the read drew out', () => {
     expect(value(deriveWorkUnits(LIVE), 'Signals found')).toBe(3);
   });
 
-  it('names the engines that did the work, rather than a count of nothing', () => {
-    expect(value(deriveWorkUnits(LIVE), 'Engines')).toBe('perplexity · gemini');
+  it('counts the live-web answers that did the work; the names are machinery (Law 11, first screen 14 Sept 2026)', () => {
+    expect(value(deriveWorkUnits(LIVE), 'Answers from the web')).toBe(2);
+    expect(deriveWorkUnits(LIVE).some((r) => r.label === 'Engines')).toBe(false);
   });
 
   // The whole point.

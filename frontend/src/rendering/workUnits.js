@@ -33,15 +33,14 @@ export function deriveWorkUnits(data) {
   push('Pages read', Number.isFinite(data.pages_read_count) ? data.pages_read_count : null);
   push('Sources read', count(data.sources_read));
   push('Signals found', count(data.inferences));
-  push('Corpus holdings cited', count(data.corpus_citations?.hits));
+  push('Notes we already held', count(data.corpus_citations?.hits));
 
-  // Which engines did the reading — the market, made visible. Named, not counted:
-  // "2 engines" tells a founder nothing, "perplexity · gemini" tells them who read
-  // their site.
+  // How many live-web sources answered — a count of what we did (R7), never the names:
+  // the names are machinery (Law 11) and live in the opt-in vendor-mark layer.
   const engines = Array.isArray(data.research_engines)
     ? data.research_engines.filter((e) => typeof e === 'string' && e.trim())
     : [];
-  if (engines.length) push('Engines', engines.join(' · '));
+  if (engines.length) push('Answers from the web', engines.length);
 
   return rows;
 }

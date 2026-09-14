@@ -24,14 +24,26 @@ vi.mock('../../src/services/recon-pipeline.js', async (importOriginal) => {
 });
 vi.mock('../../src/lib/inference.js', () => ({ chatComplete: vi.fn() }));
 vi.mock('../../src/db/pool.js', () => ({ query: vi.fn() }));
+// The two research engines, answering with the skip reasons that used to pass straight
+// through to the screen ("quota exhausted", "engine error (503)").
+vi.mock('../../src/services/recon-company.js', async (importOriginal) => {
+  const real = await importOriginal();
+  return {
+    ...real,
+    fetchPerplexityResearch: vi.fn(async () => ({ content: null, skip: 'engine error (503)' })),
+    fetchGeminiResearch: vi.fn(async () => ({ content: null, skip: 'quota exhausted' })),
+  };
+});
 
 import { chatComplete } from '../../src/lib/inference.js';
 import { extractSignals, plainScrapeReason } from '../../src/services/signal-extractor.js';
 import { formatReconLine } from '../../src/services/recon-pipeline.js';
 import { buildInferences } from '../../src/services/inference-builder.js';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 
 // Our machinery, by name. None of these may reach a founder's screen as text.
-export const MACHINERY = /\b(perplexity|sonar|gemini|flash|haiku|claude|bedrock|anthropic|firecrawl|hibp|abuseipdb|ssllabs|veritas|corpus|dns|csp|hsts|json|sse|api)\b/i;
+export const MACHINERY = /\b(perplexity|sonar|gemini|flash|haiku|claude|bedrock|anthropic|firecrawl|hibp|abuseipdb|ssllabs|veritas|corpus|dns|dmarc|spf|csp|hsts|tls|ssl|recon|engine|quota|scan|probe|json|sse)\b/i;
 // A verdict or a grade dressed as a finding.
 export const VERDICT = /\b(risk|risky|review needed|score \d+%|spoofing)\b/i;
 // A tool's own error text, quoted.
@@ -162,4 +174,73 @@ describe('a probe fact is collected, not led with (R10)', () => {
     const r = buildInferences([{ type: 'product_type', value: 'B2B SaaS', confidence: 'probable' }], ['homepage'], 'https://acme.example', {});
     for (const i of r.inferences) expect(i.probe).not.toBe(true);
   });
+});
+
+
+// ── Review round 1 (14 Sept, fresh Opus reviewer): the same screen has more emitters ──
+
+describe('a skipped engine is explained without naming engines or quotas', () => {
+  it('skip notes are plain', async () => {
+    const log = [];
+    await extractSignals({ website_url: 'https://acme.example', session_id: null }, (l) => log.push(l));
+    const skips = log.filter((l) => l.type === 'act' && l.phase === 'skip');
+    expect(skips.length).toBeGreaterThanOrEqual(2);
+    for (const s of skips) {
+      expect(s.note, `${s.act}: ${s.note}`).not.toMatch(MACHINERY);
+      expect(s.note).not.toMatch(/\(\d{3}\)/);
+    }
+  });
+});
+
+describe('the outside look reaches the perimeter act as plain lines', () => {
+  it('a blocked (non-public) address is narrated as an object line with plain words', async () => {
+    const real = await vi.importActual('../../src/services/recon-pipeline.js');
+    const seen = [];
+    await real.runReconPipeline('http://127.0.0.1', 'local', { onSourceComplete: (src, line) => seen.push([src, line]) });
+    expect(seen.length).toBe(1);
+    const [, line] = seen[0];
+    expect(typeof line).toBe('object');
+    expect(typeof line.text).toBe('string');
+    expect(line.text).not.toMatch(MACHINERY);
+    expect(line.text).toMatch(/not a public address|skipped/i);
+  });
+  it('the connection line never restates a vendor letter grade', () => {
+    for (const r of [{ ssl_grade: 'B', protocols: ['TLS1.2'] }, { ssl_grade: 'A+', protocols: ['TLS1.3'] }, { ssl_grade: 'C', has_old_tls: true }]) {
+      expect(formatReconLine('ssllabs', r).text).not.toMatch(/grade|graded|\b[A-F][+-]?\b/);
+    }
+  });
+});
+
+// Every string a handler or service can put on the founder's screen, read from the source:
+// act titles and notes, body text, err lines, cmd lines, and the reading's anchor labels.
+// Static parts only (template holes are stripped), plus a rule that no hole is a raw error.
+function walk(dir, out = []) {
+  for (const f of readdirSync(dir)) {
+    const p = join(dir, f);
+    if (statSync(p).isDirectory()) walk(p, out); else if (p.endsWith('.js')) out.push(p);
+  }
+  return out;
+}
+describe('no emitter under api/src puts machinery or a raw error on the screen', () => {
+  const files = [...walk(join(process.cwd(), 'src/handlers')), ...walk(join(process.cwd(), 'src/services'))];
+  const emitLine = /(appendLog|\blog|anchors\.push|anchor =)\s*\(?\s*\{[^\n]*\b(title|note|text|label)\s*:/;
+  const literal = /\b(title|note|text|label)\s*:\s*(['"`])((?:\\.|(?!\2).)*)\2/g;
+  it('scans at least the files this build touched', () => {
+    expect(files.some((f) => f.endsWith('signal-extractor.js'))).toBe(true);
+    expect(files.some((f) => f.endsWith('cold-reading.js'))).toBe(true);
+  });
+  for (const file of files) {
+    const src = readFileSync(file, 'utf8').split('\n');
+    const offenders = [];
+    src.forEach((line, i) => {
+      if (line.trim().startsWith('//') || !emitLine.test(line)) return;
+      if (/\$\{\s*err\??\.(message|status|name)/.test(line)) offenders.push(`${i + 1}: raw error in a screen line`);
+      let m;
+      while ((m = literal.exec(line))) {
+        const words = m[3].replace(/\$\{[^}]*\}/g, ' ');
+        if (MACHINERY.test(words) || VERDICT.test(words)) offenders.push(`${i + 1}: ${m[3]}`);
+      }
+    });
+    it(`${file.split('/src/')[1]}`, () => { expect(offenders).toEqual([]); });
+  }
 });

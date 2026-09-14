@@ -145,7 +145,7 @@ describe('buildReadingContext — prompt', () => {
     expect(prompt).toMatch(/\[CORPUS\].*our research suggests/);
     expect(prompt).toMatch(/Acme raised a Series A in 2025/);
     expect(prompt).toMatch(/never quote them/);
-    expect(anchors).toContainEqual({ label: '1 corpus holding', source: 'corpus' });
+    expect(anchors).toContainEqual({ label: '1 note we already held', source: 'corpus' });
   });
 
   it('corpus anchor counts DOCUMENTS, not chunks — two chunks of one document are one holding (round 3: anchor must agree with the citation cards)', async () => {
@@ -156,7 +156,7 @@ describe('buildReadingContext — prompt', () => {
     ]);
     const { anchors } = await buildReadingContext(baseSession());
 
-    expect(anchors).toContainEqual({ label: '2 corpus holdings', source: 'corpus' });
+    expect(anchors).toContainEqual({ label: '2 notes we already held', source: 'corpus' });
   });
 
   it('corpus unreachable (null) → no corpus material, no corpus anchor', async () => {
@@ -202,7 +202,7 @@ describe('buildReadingContext — prompt', () => {
 
     expect(prompt).toMatch(/\[CORPUS\].*our research suggests/);
     expect(prompt).toMatch(/Acme raised a Series A in 2025/);
-    expect(anchors).toContainEqual({ label: '1 corpus holding', source: 'corpus' });
+    expect(anchors).toContainEqual({ label: '1 note we already held', source: 'corpus' });
     expect(retrieveCorpusEvidence).not.toHaveBeenCalled();
   });
 });
@@ -230,7 +230,7 @@ describe('reconEvidence — ABSENCE RULE: a failed DNS lookup must never anchor 
     const { prompt, anchors } = await buildReadingContext(session);
     expect(prompt).toMatch(/\[STRONG\] no DMARC record published on the domain/);
     expect(prompt).not.toMatch(/DMARC posture/);
-    expect(anchors).toContainEqual({ label: 'DMARC: missing', source: 'dns scan' });
+    expect(anchors).toContainEqual({ label: 'how mail is set up', source: 'dns scan', probe: true });
   });
 
   it('none → "published but not enforcing (p=none)" factline, "DMARC: not enforcing" anchor — never "no record"', async () => {
@@ -238,7 +238,7 @@ describe('reconEvidence — ABSENCE RULE: a failed DNS lookup must never anchor 
     const { prompt, anchors } = await buildReadingContext(session);
     expect(prompt).toMatch(/\[STRONG\] a DMARC record is published but not enforcing \(p=none, monitoring only\)/);
     expect(prompt).not.toMatch(/no DMARC record/);
-    expect(anchors).toContainEqual({ label: 'DMARC: not enforcing', source: 'dns scan' });
+    expect(anchors).toContainEqual({ label: 'how mail is set up', source: 'dns scan', probe: true });
   });
 
   it('quarantine/reject → "DMARC enforced (p=<value>)" factline, "DMARC: enforced" anchor', async () => {
@@ -246,7 +246,7 @@ describe('reconEvidence — ABSENCE RULE: a failed DNS lookup must never anchor 
       const session = baseSession({ recon_context: { dns: { dmarc_policy: policy } } });
       const { prompt, anchors } = await buildReadingContext(session);
       expect(prompt, policy).toMatch(new RegExp(`\\[STRONG\\] DMARC enforced \\(p=${policy}\\)`));
-      expect(anchors, policy).toContainEqual({ label: 'DMARC: enforced', source: 'dns scan' });
+      expect(anchors, policy).toContainEqual({ label: 'how mail is set up', source: 'dns scan', probe: true });
     }
   });
 });
@@ -255,20 +255,20 @@ describe('buildReadingContext — anchors (deterministic, never from model outpu
   it('emits one anchor per fact-group actually included in the prompt', async () => {
     const { anchors } = await buildReadingContext(baseSession());
 
-    expect(anchors).toContainEqual({ label: 'aws hosting', source: 'ip probe' });
-    expect(anchors).toContainEqual({ label: 'DMARC: enforced', source: 'dns scan' });
-    expect(anchors).toContainEqual({ label: '2 known breach(es)', source: 'breach scan' });
-    expect(anchors).toContainEqual({ label: 'Security hiring signal', source: 'jobs scan' });
-    expect(anchors).toContainEqual({ label: 'SSL grade: A', source: 'ssl scan' });
-    expect(anchors).toContainEqual({ label: 'Site narrative signals', source: 'site scrape' });
-    expect(anchors).toContainEqual({ label: 'Company research · perplexity + gemini', source: 'perplexity+gemini' });
+    expect(anchors).toContainEqual({ label: 'where the site is hosted', source: 'ip probe', probe: true });
+    expect(anchors).toContainEqual({ label: 'how mail is set up', source: 'dns scan', probe: true });
+    expect(anchors).toContainEqual({ label: 'the public breach record', source: 'breach scan', probe: true });
+    expect(anchors).toContainEqual({ label: 'open roles', source: 'jobs scan', probe: true });
+    expect(anchors).toContainEqual({ label: 'how the connection is set up', source: 'ssl scan', probe: true });
+    expect(anchors).toContainEqual({ label: 'what the site says', source: 'site scrape' });
+    expect(anchors).toContainEqual({ label: 'the live web, two sources', source: 'perplexity+gemini' });
   });
 
   it('degraded read (0 pages) anchors "No pages readable" instead of site narrative signals', async () => {
     const session = baseSession({ pages_read_count: 0 });
     const { anchors } = await buildReadingContext(session);
 
-    expect(anchors).toContainEqual({ label: 'No pages readable', source: 'scrape' });
+    expect(anchors).toContainEqual({ label: 'the site would not open for us', source: 'scrape' });
     expect(anchors.find((a) => a.label === 'Site narrative signals')).toBeUndefined();
   });
 
@@ -279,7 +279,7 @@ describe('buildReadingContext — anchors (deterministic, never from model outpu
     const { anchors } = await buildReadingContext(session);
 
     // Only "No pages readable" survives — every other anchor requires a present fact.
-    expect(anchors).toEqual([{ label: 'No pages readable', source: 'scrape' }]);
+    expect(anchors).toEqual([{ label: 'the site would not open for us', source: 'scrape' }]);
   });
 
   // I-1 (review ruling), truthful list (John ruling 2026-08-25): the anchor must
@@ -287,20 +287,20 @@ describe('buildReadingContext — anchors (deterministic, never from model outpu
   // research_engines to the real list, never a boolean.
   it('research_engines: [perplexity, gemini] → summary anchors names both engines', async () => {
     const { anchors } = await buildReadingContext(baseSession({ research_engines: ['perplexity', 'gemini'] }));
-    expect(anchors).toContainEqual({ label: 'Company research · perplexity + gemini', source: 'perplexity+gemini' });
+    expect(anchors).toContainEqual({ label: 'the live web, two sources', source: 'perplexity+gemini' });
     expect(anchors.find((a) => a.label === 'Company summary')).toBeUndefined();
   });
 
   it('research_engines: [perplexity] only → summary anchors names just that engine', async () => {
     const { anchors } = await buildReadingContext(baseSession({ research_engines: ['perplexity'] }));
-    expect(anchors).toContainEqual({ label: 'Company research · perplexity', source: 'perplexity' });
+    expect(anchors).toContainEqual({ label: 'the live web, one source', source: 'perplexity' });
   });
 
   it('summary present but research_engines empty/absent → anchors as "Company summary" (site synthesis only, engines never ran)', async () => {
     const session = baseSession({ research_engines: [] });
     const { anchors } = await buildReadingContext(session);
 
-    expect(anchors).toContainEqual({ label: 'Company summary', source: 'site synthesis' });
+    expect(anchors).toContainEqual({ label: 'a summary from the site', source: 'site synthesis' });
     expect(anchors.find((a) => a.label?.startsWith('Company research'))).toBeUndefined();
   });
 });

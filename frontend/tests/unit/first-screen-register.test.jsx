@@ -40,3 +40,43 @@ describe('a probe fact never leads (R10)', () => {
     expect(text).toContain('Hosted on AWS');
   });
 });
+
+// ── Review round 1 (14 Sept, fresh Opus reviewer) ──
+import { readingAnchorLabels } from '../../src/rendering/coldReadOpener.js';
+import { deriveWorkUnits } from '../../src/rendering/workUnits.js';
+
+const MACHINERY = /\b(perplexity|sonar|gemini|flash|haiku|claude|bedrock|anthropic|firecrawl|hibp|abuseipdb|ssllabs|veritas|corpus|dns|dmarc|spf|csp|hsts|tls|ssl|recon|engine|scan|probe)\b/i;
+
+describe('older streams still resolve a vendor mark from the note', () => {
+  it('note-only act resolves Anthropic and AWS', () => {
+    expect(vendorsForAct({ id: 'reading', note: 'claude haiku · bedrock', phase: 'done' }).map((v) => v.name)).toEqual(['Anthropic', 'AWS']);
+  });
+});
+
+describe('the first sentence and the chips under the reading name no machinery', () => {
+  it('the degraded headline speaks plainly', () => {
+    const text = coldReadOpener({ name: 'Acme', sourcesRead: 0, inferences: [], reading: null });
+    expect(text.split('\n')[0]).not.toMatch(MACHINERY);
+  });
+  it('a probe anchor never becomes a chip under the reading (R10)', () => {
+    expect(readingAnchorLabels('a reading', [{ label: 'what the site says' }, { label: 'where the site is hosted', probe: true }])).toEqual(['what the site says']);
+  });
+});
+
+describe('the work panel counts what we did without naming engines', () => {
+  it('no Engines row of names; a count instead', () => {
+    const rows = deriveWorkUnits({ pages_read_count: 3, sources_read: ['a'], inferences: [], research_engines: ['perplexity', 'gemini'], corpus_citations: { hits: [{}] } });
+    for (const r of rows) {
+      expect(`${r.label} ${r.value}`).not.toMatch(MACHINERY);
+    }
+    expect(rows.some((r) => /answers? from the web/i.test(r.label) && r.value === 2)).toBe(true);
+  });
+});
+
+describe('an act without a title never shows its id as the heading', () => {
+  it('an untagged error before any act start does not print "perimeter"', () => {
+    const { acts } = partitionLines([{ type: 'err', text: '  ✗  the read stopped early' }]);
+    expect(acts[0].title).not.toBe('perimeter');
+    expect(acts[0].title).not.toMatch(MACHINERY);
+  });
+});

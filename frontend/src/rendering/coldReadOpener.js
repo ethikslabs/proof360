@@ -42,7 +42,7 @@ export function coldReadOpener({ name, sourcesRead, inferences, reading }) {
 
   const headline = pagesRead > 0
     ? `${displayName} — read complete. Here's what the public record suggests — tell me what's right and what's off.`
-    : `${displayName} — their site wouldn't open for us, so this is a perimeter read only: DNS, certificates, and what the wider record holds. Take everything below as first guesses — correct me freely.`;
+    : `${displayName} — their site wouldn't open for us, so this is a read from the outside only: the address, the certificate, and what the wider record holds. Take everything below as first guesses — correct me freely.`;
 
   const trimmedReading = typeof reading === 'string' ? reading.trim() : '';
   if (trimmedReading) {
@@ -68,5 +68,7 @@ export function coldReadOpener({ name, sourcesRead, inferences, reading }) {
 export function readingAnchorLabels(reading, anchors) {
   const trimmedReading = typeof reading === 'string' ? reading.trim() : '';
   if (!trimmedReading || !Array.isArray(anchors) || !anchors.length) return [];
-  return anchors.map((a) => a?.label).filter(Boolean);
+  // R10: a probe anchor (hosting, mail setup, connection) is collected, never led with —
+  // it stays in the evidence layer under the read, not as a chip beside the first words.
+  return anchors.filter((a) => a?.probe !== true).map((a) => a?.label).filter(Boolean);
 }
