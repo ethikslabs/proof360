@@ -329,7 +329,7 @@ export function formatReconLine(source, result) {
     }
     case 'ports': {
       const n = result.risky_port_count ?? 0;
-      if (n === 0) return L(source, 'open doors: nothing facing the internet that should not be', 'ok');
+      if (n === 0) return L(source, 'open doors: nothing unusual reachable from the internet', 'ok');
       const notable = (result.open_ports || []).filter(p => p.risk === 'critical' || p.risk === 'high').map(p => p.port).slice(0, 2).join(' and ');
       return L(source, `open doors: ${notable ? `port ${notable}` : `${n} ports`} reachable from the internet`, 'query');
     }

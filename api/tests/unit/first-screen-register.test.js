@@ -41,6 +41,7 @@ import { formatReconLine } from '../../src/services/recon-pipeline.js';
 import { buildInferences } from '../../src/services/inference-builder.js';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // Our machinery, by name. None of these may reach a founder's screen as text.
 export const MACHINERY = /\b(perplexity|sonar|gemini|flash|haiku|claude|bedrock|anthropic|firecrawl|hibp|abuseipdb|ssllabs|veritas|corpus|dns|dmarc|spf|csp|hsts|tls|ssl|recon|engine|quota|scan|probe|json|sse)\b/i;
@@ -216,7 +217,7 @@ describe('the outside look reaches the perimeter act as plain lines', () => {
 // anchor = {…} — is captured with its balanced braces (multi-line included), then every
 // title/note/text/label literal inside it is checked. Static parts only (template holes
 // are stripped), plus a rule that no hole is a raw error field.
-const HERE = new URL('.', import.meta.url).pathname;
+const HERE = fileURLToPath(new URL('.', import.meta.url));
 const SRC = join(HERE, '../../src');
 function walk(dir, out = []) {
   for (const f of readdirSync(dir)) {
@@ -234,14 +235,17 @@ export function screenCalls(src) {
   let m;
   while ((m = opener.exec(src))) {
     const isBrace = m[0].endsWith('{');
-    let i = m.index + m[0].length - (isBrace ? 1 : 0);
+    // Start ON the opener character, so its own closer brings depth back to 0 (round 3 fix:
+    // starting one past it never closed, and captures ran to end of file).
+    const i = m.index + m[0].length - 1;
     let depth = 0, j = i;
     for (; j < src.length; j++) {
       const c = src[j];
       if (isBrace ? c === '{' : c === '(') depth++;
       else if (isBrace ? c === '}' : c === ')') { depth--; if (depth === 0) { j++; break; } }
     }
-    const text = src.slice(i, j);
+    if (depth !== 0) continue;   // unbalanced: not a call we can read
+    const text = src.slice(i + 1, j - 1);
     if (!/\b(type|act|label)\s*:/.test(text)) continue;
     calls.push({ line: src.slice(0, m.index).split('\n').length, text });
   }
@@ -255,7 +259,22 @@ describe('no emitter under api/src puts machinery or a raw error on the screen',
     const calls = screenCalls("appendLog(id, {\n  type: 'act', title: 'Asking perplexity sonar',\n});\nlog({ text: `x ${err.message}`, type: 'err' });\nemit(label, { text: 'y', type: 'ok' });\nanchors.push(engines.length\n  ? { label: 'a' }\n  : { label: 'b' });\nlog(`plain console ${err.message}`);");
     expect(calls.map((c) => c.line)).toEqual([1, 4, 5, 6]);
     expect(calls[0].text).toContain('perplexity');
+    expect(calls[0].text, 'a capture stops at its own closing paren').not.toContain('err.message');
+    expect(calls[1].text).not.toContain('emit(');
     expect(calls[3].text).toContain("label: 'b'");
+    expect(calls[3].text).not.toContain('plain console');
+    // An inner call before the key does not truncate the capture.
+    const inner = screenCalls("log({ text: String(x), type: 'err', note: 'hello' });");
+    expect(inner.length).toBe(1);
+    expect(inner[0].text).toContain("note: 'hello'");
+    // Every appendLog in the two handlers is captured, none runs past its own call.
+    for (const f of ['handlers/analyze.js', 'handlers/admin-preread.js']) {
+      const text = readFileSync(join(SRC, f), 'utf8');
+      const n = (text.match(/appendLog\(/g) || []).length;
+      const got = screenCalls(text);
+      expect(got.length, f).toBeGreaterThanOrEqual(n - 2);   // the __done__ lines carry no title/text
+      for (const c of got) expect(c.text.split('\n').length, `${f}:${c.line}`).toBeLessThan(40);
+    }
     const analyze = readFileSync(join(SRC, 'handlers/analyze.js'), 'utf8');
     expect(screenCalls(analyze).some((c) => /Writing your read/.test(c.text))).toBe(true);
   });
@@ -279,5 +298,6 @@ describe('what the screen says about ports and the meter row keeps the status', 
     const t = formatReconLine('ports', { risky_port_count: 2, open_ports: [{ port: 22, risk: 'high' }, { port: 3389, risk: 'critical' }] }).text;
     expect(t).not.toMatch(/should/i);
     expect(t).toMatch(/reachable from the internet/);
+    expect(formatReconLine('ports', { risky_port_count: 0 }).text).not.toMatch(/should/i);
   });
 });

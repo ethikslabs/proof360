@@ -82,6 +82,16 @@ describe('an act without a title never shows its id as the heading', () => {
     expect(acts[0].title).not.toMatch(MACHINERY);
     expect(acts[0].body[0].text).toContain('stopped early');
   });
+  it('an untagged failure while the outside look is open goes to the read, never into the folded act', () => {
+    const { acts } = partitionLines([
+      { type: 'act', act: 'perimeter', phase: 'start', title: 'How your site looks from the outside' },
+      { type: 'err', text: '  ✗  the read stopped early' },
+    ]);
+    const read = acts.find((a) => a.id === 'read');
+    expect(read, 'a read act exists').toBeTruthy();
+    expect(read.body[0].text).toContain('stopped early');
+    expect(acts.find((a) => a.id === 'perimeter').body.length).toBe(0);
+  });
   it('an untagged line arriving while an act is open joins that act', () => {
     const { acts } = partitionLines([
       { type: 'act', act: 'site', phase: 'start', title: 'Reading your site' },

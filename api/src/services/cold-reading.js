@@ -156,7 +156,11 @@ function reconEvidence(session) {
   }
 
   if (ctx.ssl_grade) {
-    lines.push(factLine(STRONG, 'Connection setup', ['A+', 'A', 'A-'].includes(ctx.ssl_grade) ? 'modern, set up well' : 'worth a look'));
+    // A fact about the connection, not the vendor's letter and not our verdict.
+    const connection = ctx.has_old_tls === true ? 'older encryption versions still enabled'
+      : ['A+', 'A', 'A-'].includes(ctx.ssl_grade) ? 'modern encryption, current versions only'
+      : 'encryption below current best practice';
+    lines.push(factLine(STRONG, 'Connection setup', connection));
     anchors.push({ label: 'how the connection is set up', source: 'ssl scan', probe: true });
   }
 
@@ -311,9 +315,13 @@ export async function buildReadingContext(session) {
 
   // Probe facts (the outside look) come LAST, under their own header: the mechanism behind
   // the prose rule below — the model reads the business first, the wiring after (R10).
-  const evidenceLines = [...inferenceLines, ...(recon.lines.length ? ['', 'Background facts from the outside look — never the opener, admissible only when beat 2 turns on them:', ...recon.lines] : [])];
+  const evidenceLines = [...inferenceLines];
   if (summaryLine && summaryConfirmed) evidenceLines.push(summaryLine);
   evidenceLines.push(...corpus.lines);
+  // Probe facts (the outside look) come after every business fact, under their own header:
+  // the mechanism behind the prose rule below — the model reads the business first, the
+  // wiring after (R10). The identity override, when it applies, comes after everything.
+  if (recon.lines.length) evidenceLines.push('', 'Background facts from the outside look — never the opener, admissible only when beat 2 turns on them:', ...recon.lines);
   if (!identityConfirmed) {
     evidenceLines.push(
       `- [IDENTITY] Nothing here can be tied to ${identityContext.domain || 'this domain'}. `

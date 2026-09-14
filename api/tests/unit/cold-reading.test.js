@@ -80,7 +80,7 @@ describe('buildReadingContext — prompt', () => {
     expect(prompt).toMatch(/\[STRONG\].*Mail setup: anti-spoofing policy enforced/);
     expect(prompt).toMatch(/\[STRONG\].*Breach history: 2 known breach\(es\)/);
     expect(prompt).toMatch(/\[STRONG\].*Security hiring signal: actively hiring/);
-    expect(prompt).toMatch(/\[STRONG\].*Connection setup: modern, set up well/);
+    expect(prompt).toMatch(/\[STRONG\].*Connection setup: modern encryption, current versions only/);
 
     // Inference facts, hedge bound to their own confidence
     expect(prompt).toMatch(/\[STRONG\].*confidence: confident.*B2B SaaS product/);
@@ -246,6 +246,7 @@ describe('reconEvidence — ABSENCE RULE: a failed DNS lookup must never anchor 
       const session = baseSession({ recon_context: { dns: { dmarc_policy: policy } } });
       const { prompt, anchors } = await buildReadingContext(session);
       expect(prompt, policy).toMatch(/\[STRONG\] Mail setup: anti-spoofing policy enforced/);
+      expect(prompt, policy).not.toMatch(/not enforcing|no anti-spoofing policy published/);
       expect(anchors, policy).toContainEqual({ label: 'how mail is set up', source: 'dns scan', probe: true });
     }
   });
