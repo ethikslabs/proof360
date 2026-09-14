@@ -74,8 +74,8 @@ async function extractAndInfer(sessionId, { website_url, deck_file, session_id }
     if (host && !deck_file) {
       const door = await preflight(host);
       if (!door.exists) {
-        log({ text: `$ proof360 --url ${host}`, type: 'cmd' });
-        log({ type: 'act', act: 'preflight', phase: 'start', title: 'Checking the address', note: 'dns' });
+        log({ text: `Reading ${host}`, type: 'cmd' });
+        log({ type: 'act', act: 'preflight', phase: 'start', title: 'Checking the address' });
         log({ act: 'preflight', type: 'act_body', text: `${host} does not resolve — no address record, no mail`, color: 'muted' });
         for (const s of door.suggestions) {
           log({ act: 'preflight', type: 'act_body', text: `↳  ${s} does exist`, color: 'query' });
@@ -117,7 +117,7 @@ async function extractAndInfer(sessionId, { website_url, deck_file, session_id }
     // this cache); null = attempted, could NOT look — unreachable/timeout/!ok, or no
     // company to query with (no retry either way); [] = attempted, reached fine, nothing
     // scored (a real, honest zero — distinct from null, ABSENCE RULE); array = hits.
-    log({ type: 'act', act: 'corpus', phase: 'start', title: 'Checking our research holdings', note: 'corpus · veritas' });
+    log({ type: 'act', act: 'corpus', phase: 'start', title: 'What we already hold on you', engine: 'corpus' });
     const corpusQuery = corpusQueryFor({ company_name: inferenceResult.company_name, website_url });
     let corpus_hits = null;
     if (corpusQuery) {
@@ -131,7 +131,8 @@ async function extractAndInfer(sessionId, { website_url, deck_file, session_id }
         if (hit.source_url) {
           try { domain = new URL(hit.source_url).hostname.replace(/^www\./, ''); } catch { /* malformed URL — show without it */ }
         }
-        log({ act: 'corpus', type: 'act_body', text: `↳  ${hit.slug} · ${hit.layer} · score ${Number(hit.score).toFixed(2)}${domain ? ` · ${domain}` : ''}` });
+        // The reference is the point; the score and the shelf it sits on are ours (Law 11).
+        log({ act: 'corpus', type: 'act_body', text: `↳  ${hit.title || hit.slug}${domain ? ` · ${domain}` : ''}` });
       }
       log({ type: 'act', act: 'corpus', phase: 'done', note: `${corpus_hits.length} holding${corpus_hits.length === 1 ? '' : 's'}` });
     } else if (corpus_hits !== null) {
@@ -143,7 +144,7 @@ async function extractAndInfer(sessionId, { website_url, deck_file, session_id }
       // Could not look at all — unreachable/timeout/!ok, or no company identified to
       // query with. No absence body line: we never looked, so we cannot honestly say
       // what we found (ABSENCE RULE — could-not-look ≠ looked-and-found-nothing).
-      log({ type: 'act', act: 'corpus', phase: 'skip', note: corpusQuery ? 'corpus unreachable' : 'no company identified' });
+      log({ type: 'act', act: 'corpus', phase: 'skip', note: corpusQuery ? "couldn't reach our holdings" : 'no company identified' });
     }
 
     // IDENTITY, RESOLVED ONCE (John, 2026-09-02, second pass). Every consumer below

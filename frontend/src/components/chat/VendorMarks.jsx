@@ -88,7 +88,10 @@ export const VENDORS = {
  */
 export function vendorsForAct(act) {
   if (!act?.id) return [];
-  const note = String(act.note ?? '').toLowerCase();
+  // The backend now sends the engine as a structured field (first screen, 14 Sept 2026);
+  // the note is words for the founder and names nothing. Older streams still carry it in
+  // the note, so that stays as the fallback.
+  const note = String(act.engine ?? act.note ?? '').toLowerCase();
   const attempted = act.phase === 'fail' || act.phase === 'skip';
   const of = (keys) => keys.map((k) => ({ ...VENDORS[k], key: k, attempted }));
 

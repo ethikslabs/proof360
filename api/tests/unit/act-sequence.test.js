@@ -84,7 +84,7 @@ import { chatComplete } from '../../src/lib/inference.js';
 import { query } from '../../src/db/pool.js';
 import { retrieveCorpusEvidence } from '../../src/services/corpus-retrieve.js';
 import { runGapAnalysis } from '../../src/services/gap-mapper.js';
-import { extractSignals } from '../../src/services/signal-extractor.js';
+import { extractSignals, RESEARCH_QUESTION_SAID } from '../../src/services/signal-extractor.js';
 import { researchQuery } from '../../src/services/recon-company.js';
 import { sessionStartHandler } from '../../src/handlers/session-start.js';
 import { analyzeHandler } from '../../src/handlers/analyze.js';
@@ -166,7 +166,8 @@ describe('extractSignals — the narrated act sequence (fresh success path)', ()
     for (const line of log) assertContractShape(line);
 
     // Untagged cmd header line, first out.
-    expect(log[0]).toMatchObject({ type: 'cmd', text: '$ proof360 --url acme.example' });
+    // First screen (14 Sept 2026): the header is a sentence about the company, not a shell command.
+    expect(log[0]).toMatchObject({ type: 'cmd', text: 'Reading acme.example' });
 
     const idx = (pred) => log.findIndex(pred);
     const isAct = (act, phase) => (l) => l.type === 'act' && l.act === act && l.phase === phase;
@@ -211,16 +212,17 @@ describe('extractSignals — the narrated act sequence (fresh success path)', ()
     // 4. No __done__ anywhere on extractSignals' success path.
     expect(log.find((l) => l.type === '__done__')).toBeUndefined();
 
-    // 5. Verbatim query transparency: the perplexity act_body carries the
-    // exact research query text, even though the engine itself was skipped
-    // (runResearchAct logs the "we asked" query before calling the engine).
+    // 5. The question is said once in plain words, even though the engine was skipped.
+    // The prompt itself never prints (Law 11, first screen 14 Sept 2026) — it is
+    // engineering, and it names the engine's instructions, not the founder's question.
     const expectedQuery = researchQuery('acme.example');
     const perplexityBody = log
       .filter((l) => l.type === 'act_body' && l.act === 'perplexity')
       .map((l) => l.text)
       .join(' ');
-    expect(perplexityBody.replace(/\s+/g, ' ')).toContain(expectedQuery.slice(0, 60));
-    expect(perplexityBody).toContain('we asked:');
+    expect(perplexityBody).toContain(RESEARCH_QUESTION_SAID);
+    expect(perplexityBody).not.toContain('we asked:');
+    expect(perplexityBody).not.toContain(expectedQuery.slice(0, 60));
   });
 });
 
@@ -337,7 +339,9 @@ describe('session-start.js — the corpus act + the extraction-failure __done__'
     const corpusDone = log.find((l) => l.type === 'act' && l.act === 'corpus' && l.phase === 'done');
     expect(corpusDone).toMatchObject({ note: '1 holding' });
     const hitLine = log.find((l) => l.type === 'act_body' && l.act === 'corpus' && l.text.includes('acme-raise'));
-    expect(hitLine.text).toContain('evidence');
+    // The shelf it sits on and its score are ours (Law 11); the reference is what prints.
+    expect(hitLine.text).not.toContain('evidence');
+    expect(hitLine.text).not.toMatch(/score/);
   });
 
   it('corpus act body line carries the source domain when the hit has a source_url', async () => {
@@ -356,7 +360,7 @@ describe('session-start.js — the corpus act + the extraction-failure __done__'
     for (const line of log) assertContractShape(line);
 
     const hitLine = log.find((l) => l.type === 'act_body' && l.act === 'corpus' && l.text.includes('disc-'));
-    expect(hitLine.text).toMatch(/↳ {2}disc-.+ · score 0\.86 · soc2auditors\.org/);
+    expect(hitLine.text).toMatch(/^↳ {2}disc-soc2auditors-org · soc2auditors\.org$/);
   });
 
   it('corpus act body line omits the domain segment when source_url is null', async () => {
@@ -375,7 +379,7 @@ describe('session-start.js — the corpus act + the extraction-failure __done__'
     for (const line of log) assertContractShape(line);
 
     const hitLine = log.find((l) => l.type === 'act_body' && l.act === 'corpus' && l.text.includes('disc-'));
-    expect(hitLine.text).toBe('↳  disc-soc2auditors-org · evidence · score 0.86');
+    expect(hitLine.text).toBe('↳  disc-soc2auditors-org');
     expect(hitLine.text.endsWith(' · ')).toBe(false);
   });
 
@@ -399,7 +403,7 @@ describe('session-start.js — the corpus act + the extraction-failure __done__'
 
     const corpusEvent = log.find((l) => l.type === 'act' && l.act === 'corpus' && (l.phase === 'done' || l.phase === 'skip'));
     expect(corpusEvent.phase).toBe('skip');
-    expect(corpusEvent.note).toBe('corpus unreachable');
+    expect(corpusEvent.note).toBe("couldn't reach our holdings");
     // ABSENCE RULE: we never looked, so we must never claim "no holdings" —
     // that would be stating a finding we don't have.
     const corpusBodies = log.filter((l) => l.type === 'act_body' && l.act === 'corpus');

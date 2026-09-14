@@ -27,6 +27,10 @@
 function inferenceLine(inf) {
   const label = inf?.label;
   if (!label) return null;
+  // R10 (14 Sept 2026): a probe fact — where the site is hosted — is collected, never led
+  // with. It stays in the evidence layer under the read; the opener answers an investor's
+  // first questions, and nobody's first question is the hosting provider.
+  if (inf.probe === true) return null;
   // An absence is listed by its label alone — it has no confidence grade.
   if (inf.state === 'not_observed') return `- ${inf.peer_line || label}`;
   return inf.confidence ? `- ${label} (${inf.confidence})` : `- ${label}`;

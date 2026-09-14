@@ -58,6 +58,7 @@ export function buildInferences(signals, sources_read, website_url, recon = {}) 
       label: `Hosted on ${reconInfraLabel}`,
       confidence: 'observed',
       category: 'infrastructure',
+      probe: true,   // R10: a probe fact — collected, never led with on the first read
       conflicted: true,
       conflict: { probe_says: reconInfraLabel, source_says: canonicalProviderLabel(hostingSignal.value) },
     });
@@ -67,6 +68,7 @@ export function buildInferences(signals, sources_read, website_url, recon = {}) 
       label: `Hosted on ${reconInfraLabel}`,
       confidence: 'observed',
       category: 'infrastructure',
+      probe: true,   // R10
       conflicted: false,
     });
   } else if (hostingSignal) {

@@ -106,7 +106,7 @@ describe('scrapePages concurrency bound', () => {
     await scrapePages(fc, BASE, (line) => lines.push(line), null, { budgetMs: 60 });
 
     const text = lines.map((l) => l.text).join('\n');
-    expect(text).toMatch(/site budget/i);
+    expect(text).toMatch(/out of time/i);
     // An unattempted page is named, not silently absent.
     expect(text).toMatch(/not read/i);
   });

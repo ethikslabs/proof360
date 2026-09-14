@@ -274,123 +274,86 @@ function logSummary(p) {
 // Used by onSourceComplete callback to format each source result into
 // a right-pane terminal line before emitting over SSE.
 
-function tag(source) {
-  // Right-pad the [source] label to column 12 so text aligns across all sources.
-  // [abuseipdb] is exactly 11 chars — gets 1 space. Shorter sources get more.
-  return `[${source}]`.padEnd(12);
-}
+// The outside look, one line per check, in words a founder can act on. No [source] tag
+// (that is our machinery, Law 11), no verdict word (R8) — what we saw, and what it means
+// for them. `source` stays on the line for the machine; the text never names it.
+const L = (source, text, color) => ({ type: 'recon', source, text, color });
 
 export function formatReconLine(source, result) {
-  // Error / skipped guards — applies to all sources
-  if (!result || result.error) {
-    return { type: 'recon', source, text: `${tag(source)}error · skipped`,   color: 'muted' };
-  }
-  if (result.skipped) {
-    return { type: 'recon', source, text: `${tag(source)}skipped · no key`,  color: 'muted' };
-  }
+  const about = RECON_ABOUT[source] || 'this check';
+  if (!result || result.error) return L(source, `${about}: couldn't be checked`, 'muted');
+  if (result.skipped)          return L(source, `${about}: not checked`, 'muted');
 
   switch (source) {
     case 'dns': {
       const p = result.dmarc_policy;
-      // An undetermined lookup must never read as green "enforced" — that is false
-      // assurance on a resolver failure (the same class this whole fix closes).
       if (p === 'unknown' || result.dns_resolved === false) {
-        return { type: 'recon', source, text: `${tag(source)}DNS lookup failed · email posture undetermined`, color: 'muted' };
+        return L(source, "mail: couldn't tell how it is set up", 'muted');
       }
       if (!p || p === 'missing' || p === 'none') {
-        return { type: 'recon', source, text: `${tag(source)}DMARC not enforced · spoofing risk`, color: 'err' };
+        return L(source, 'mail: others could send as you; the setting that stops that is not switched on yet', 'query');
       }
-      const spf = result.spf_policy && result.spf_policy !== 'unknown' ? result.spf_policy : 'unknown';
-      return { type: 'recon', source, text: `${tag(source)}DMARC enforced · SPF ${spf}`, color: 'ok' };
+      return L(source, 'mail: set so nobody else can send as you', 'ok');
     }
-
     case 'http': {
       const score = result.security_headers_score ?? 0;
-      if (score >= 5) {
-        return { type: 'recon', source, text: `${tag(source)}${score}/6 headers set`, color: 'ok' };
-      }
-      const missing = !result.has_csp ? 'CSP missing' : 'HSTS missing';
-      return { type: 'recon', source, text: `${tag(source)}${score}/6 headers · ${missing}`, color: 'err' };
+      if (score >= 5) return L(source, `site headers: ${score} of the 6 usual protections in place`, 'ok');
+      const which = !result.has_csp ? 'the content policy' : 'the always-encrypt one';
+      return L(source, `site headers: ${score} of the 6 usual protections in place; ${which} is not set`, 'query');
     }
-
     case 'certs': {
       const count   = result.subdomain_count ?? 0;
       const exposed = result.exposed_sensitive_subdomains?.length ?? 0;
-      if (exposed > 0) {
-        return { type: 'recon', source, text: `${tag(source)}${count} subdomains · ${exposed} staging exposed`, color: 'query' };
-      }
-      return { type: 'recon', source, text: `${tag(source)}${count} subdomains · none exposed`, color: 'ok' };
+      if (exposed > 0) return L(source, `${count} addresses under your domain; ${exposed} look like staging or test boxes left reachable`, 'query');
+      return L(source, `${count} addresses under your domain; none look like a staging box`, 'ok');
     }
-
     case 'ip': {
-      const provider = result.cloud_provider || result.hosting_provider || 'unknown';
-      const country  = result.hosting_country ? ` · ${result.hosting_country}` : '';
-      return { type: 'recon', source, text: `${tag(source)}${provider}${country} · clean`, color: 'ok' };
+      const provider = result.cloud_provider || result.hosting_provider || null;
+      const country  = result.hosting_country ? ` in ${result.hosting_country}` : '';
+      return L(source, `${provider ? `hosted with ${provider}${country}` : 'hosting: could not tell who with'}; the address has a clean record`, 'ok');
     }
-
     case 'github': {
-      if (!result.found) {
-        return { type: 'recon', source, text: `${tag(source)}no org found`, color: 'muted' };
-      }
-      if (!result.has_security_policy) {
-        return { type: 'recon', source, text: `${tag(source)}no security policy`, color: 'err' };
-      }
-      return { type: 'recon', source, text: `${tag(source)}org found · security policy set`, color: 'ok' };
+      if (!result.found) return L(source, 'public code: no organisation found under your name', 'muted');
+      if (!result.has_security_policy) return L(source, 'public code: organisation found; no security policy published with it', 'query');
+      return L(source, 'public code: organisation found, security policy published', 'ok');
     }
-
     case 'jobs': {
-      if (!result.found) {
-        return { type: 'recon', source, text: `${tag(source)}no careers page found`, color: 'muted' };
-      }
-      if (result.security_hire_signal || result.compliance_hire_signal) {
-        return { type: 'recon', source, text: `${tag(source)}active security hiring detected`, color: 'query' };
-      }
-      return { type: 'recon', source, text: `${tag(source)}no security hiring signals`, color: 'ok' };
+      if (!result.found) return L(source, 'hiring: no careers page found', 'muted');
+      if (result.security_hire_signal || result.compliance_hire_signal) return L(source, 'hiring: security or compliance roles open right now', 'query');
+      return L(source, 'hiring: no security roles advertised', 'ok');
     }
-
     case 'hibp': {
       const count = result.breach_count ?? 0;
-      if (count === 0 && !result.domain_in_breach) {
-        return { type: 'recon', source, text: `${tag(source)}no breaches on record`, color: 'ok' };
-      }
-      return { type: 'recon', source, text: `${tag(source)}${count} breach${count !== 1 ? 'es' : ''} on record`, color: 'err' };
+      if (count === 0 && !result.domain_in_breach) return L(source, 'breaches: none on the public record', 'ok');
+      return L(source, `breaches: ${count} on the public record`, 'query');
     }
-
     case 'ports': {
-      const risky = result.risky_port_count ?? 0;
-      if (risky === 0) {
-        return { type: 'recon', source, text: `${tag(source)}no risky ports exposed`, color: 'ok' };
-      }
-      const notable = (result.open_ports || [])
-        .filter(p => p.risk === 'critical' || p.risk === 'high')
-        .map(p => p.port)
-        .slice(0, 2)
-        .join(' · ');
-      return { type: 'recon', source, text: `${tag(source)}${notable || `${risky} risky`} exposed`, color: 'err' };
+      const n = result.risky_port_count ?? 0;
+      if (n === 0) return L(source, 'open doors: nothing facing the internet that should not be', 'ok');
+      const notable = (result.open_ports || []).filter(p => p.risk === 'critical' || p.risk === 'high').map(p => p.port).slice(0, 2).join(' and ');
+      return L(source, `open doors: ${notable ? `port ${notable}` : `${n} ports`} facing the internet that usually should not be`, 'query');
     }
-
     case 'ssllabs': {
-      const grade = result.ssl_grade || '?';
-      const proto = (result.protocols || []).includes('TLS1.3') ? 'TLS 1.3' : 'TLS 1.2';
-      if (result.has_old_tls) {
-        return { type: 'recon', source, text: `${tag(source)}grade ${grade} · TLS 1.0 enabled`, color: 'err' };
-      }
-      if (['A+', 'A', 'A-'].includes(grade)) {
-        return { type: 'recon', source, text: `${tag(source)}grade ${grade} · ${proto}`, color: 'ok' };
-      }
-      return { type: 'recon', source, text: `${tag(source)}grade ${grade} · review needed`, color: 'err' };
+      const grade = result.ssl_grade || null;
+      const modern = (result.protocols || []).includes('TLS1.3');
+      if (result.has_old_tls) return L(source, `connection: an old encryption version is still switched on${grade ? ` (graded ${grade})` : ''}`, 'query');
+      if (['A+', 'A', 'A-'].includes(grade)) return L(source, `connection: graded ${grade}, ${modern ? 'modern' : 'current'} encryption`, 'ok');
+      return L(source, `connection: graded ${grade || 'unknown'}; worth a look`, 'query');
     }
-
     case 'abuseipdb': {
-      const score   = result.abuse_confidence_score ?? 0;
+      const score = result.abuse_confidence_score ?? 0;
       const reports = result.total_reports ?? 0;
-      if (score >= 25) {
-        return { type: 'recon', source, text: `${tag(source)}score ${score}% · ${reports} reports`, color: 'err' };
-      }
-      return { type: 'recon', source, text: `${tag(source)}IP clean · ${reports} reports`, color: 'ok' };
+      if (score >= 25) return L(source, `address reputation: reported ${reports} ${reports === 1 ? 'time' : 'times'} by others`, 'query');
+      return L(source, `address reputation: clean, ${reports === 0 ? 'no reports' : `${reports} ${reports === 1 ? 'report' : 'reports'}`}`, 'ok');
     }
-
     default:
-      return { type: 'recon', source, text: `${tag(source)}done`, color: 'ok' };
+      return L(source, `${about}: done`, 'ok');
   }
 }
+
+// What each check is about, for the "couldn't be checked" lines.
+const RECON_ABOUT = {
+  dns: 'mail', http: 'site headers', certs: 'addresses under your domain', ip: 'hosting',
+  github: 'public code', jobs: 'hiring', hibp: 'breaches', ports: 'open doors',
+  ssllabs: 'connection', abuseipdb: 'address reputation',
+};

@@ -89,17 +89,20 @@ describe('reconDns honesty — lookup failure ≠ missing record', () => {
     const line = formatReconLine('dns', { dmarc_policy: 'unknown', spf_policy: 'unknown', dns_resolved: false });
     expect(line.color).toBe('muted');
     expect(line.text).not.toMatch(/enforced/i);
-    expect(line.text).toMatch(/undetermined/i);
+    expect(line.text).toMatch(/couldn't tell/i);
   });
 
   it('still renders a real enforced DMARC as green', () => {
     const line = formatReconLine('dns', { dmarc_policy: 'reject', spf_policy: 'strict', dns_resolved: true });
     expect(line.color).toBe('ok');
-    expect(line.text).toMatch(/enforced/i);
+    expect(line.text).toMatch(/nobody else can send as you/i);
   });
 
-  it('still flags a genuinely-missing DMARC as an error', () => {
+  it('still marks a genuinely-missing DMARC as something to look at (never green, never a verdict)', () => {
     const line = formatReconLine('dns', { dmarc_policy: 'missing', dns_resolved: true });
-    expect(line.color).toBe('err');
+    // First screen (14 Sept 2026): amber "look at this", not red "risk" — R8, no verdict word.
+    expect(line.color).toBe('query');
+    expect(line.text).toMatch(/send as you/i);
+    expect(line.text).not.toMatch(/risk|spoof/i);
   });
 });

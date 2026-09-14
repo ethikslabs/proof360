@@ -48,7 +48,7 @@ export async function analyzeHandler(request, reply) {
   // whole-thinking stream. Fresh path only; the cached early-return above appends
   // nothing. Any throw below still closes the act + the stream before propagating —
   // never strand the frontend's accordion mid-open.
-  appendLog(id, { type: 'act', act: 'reading', phase: 'start', title: 'Writing your read', note: 'claude haiku · bedrock' });
+  appendLog(id, { type: 'act', act: 'reading', phase: 'start', title: 'Writing your read', engine: 'claude-haiku/bedrock' });
 
   let context, gaps, trust_score, readiness, vendors, reading, reading_anchors, reading_usage;
   try {
@@ -62,7 +62,7 @@ export async function analyzeHandler(request, reply) {
     // { reading: null, anchors: [] } here, and the frontend opener falls back to the
     // existing bullet list silently (chips disappear with it — the two are atomic).
     // Cached on the session (below) so re-analyze never regenerates either.
-    appendLog(id, { act: 'reading', type: 'act_body', text: 'asking haiku to write — hedge-bound, three beats' });
+    appendLog(id, { act: 'reading', type: 'act_body', text: 'writing it up: three beats, every line hedged' });
     ({ reading, anchors: reading_anchors, usage: reading_usage } = await generateReading(session));
 
     if (reading) {

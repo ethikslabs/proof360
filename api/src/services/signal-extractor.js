@@ -49,6 +49,21 @@ function normalizeUrl(url) {
   return parsed.origin;
 }
 
+// A tool's own error sentence never reaches the founder (Law 11). Five plain reasons cover
+// everything Firecrawl says; the raw message stays in the meter row for engineering.
+export function plainScrapeReason(err) {
+  const m = String(err?.message || '');
+  if (/timeout|timed out/i.test(m)) return 'took too long to answer';
+  if (/cannot process|file type/i.test(m)) return /image\//i.test(m) ? 'it returned an image, not a page' : 'it returned a file, not a page';
+  if (/Status code:\s*404/i.test(m)) return 'no such page';
+  return "couldn't be read";
+}
+export function plainStatusReason(code) {
+  if (code === 404) return 'no such page';
+  if (code === 403 || code === 401) return "the page wouldn't open for us";
+  return "the page wouldn't open";
+}
+
 export async function scrapePages(firecrawl, baseUrl, log, session_id, { budgetMs = SITE_BUDGET_MS } = {}) {
   // Set the moment the act closes over what it had. A scrape still in flight at
   // that point keeps running — we cannot recall it — but it has missed the read,
@@ -71,17 +86,17 @@ export async function scrapePages(firecrawl, baseUrl, log, session_id, { budgetM
         }
         return { label, content: result.markdown.slice(0, 3000) };
       } else {
-        const reason = result.statusCode >= 400 ? `${result.statusCode}` : 'no content returned';
+        const reason = result.statusCode >= 400 ? plainStatusReason(result.statusCode) : 'came back empty';
         emit(label, { text: `  ↳  ${label} · ${reason}`, type: 'muted' });
         if (session_id) {
           recordConsumption({ session_id, source: 'firecrawl', units: 1, unit_type: 'credits', success: false, error: 'no content returned' });
         }
       }
     } catch (err) {
-      const reason = err?.message?.includes('timeout') ? 'timeout' : (err?.message || 'failed');
+      const reason = plainScrapeReason(err);
       emit(label, { text: `  ✗  ${label} · ${reason}`, type: 'err' });
       if (session_id) {
-        recordConsumption({ session_id, source: 'firecrawl', units: 1, unit_type: 'credits', success: false, error: reason });
+        recordConsumption({ session_id, source: 'firecrawl', units: 1, unit_type: 'credits', success: false, error: err?.message || reason });
       }
     }
     return null;
@@ -133,7 +148,7 @@ export async function scrapePages(firecrawl, baseUrl, log, session_id, { budgetM
   // 500, and the count above would be the only clue that anything was left out.
   for (const { label } of rest) {
     if (!reported.has(label)) {
-      log({ text: `  ↳  ${label} · not read (${Math.round(budgetMs / 1000)}s site budget)`, type: 'muted' });
+      log({ text: `  ↳  ${label} · not read, out of time`, type: 'muted' });
     }
   }
 
@@ -213,8 +228,10 @@ Signal rules:
       act: 'correlate',
     });
   } catch (err) {
-    log({ text: `  ✗  Bedrock inference error: ${err.message}`, type: 'err' });
-    if (err.status) log({ text: `  ↳  ${err.name || 'error'} ${err.status}`, type: 'err' });
+    // Plain words on the screen; the raw error goes to the server log only (Law 11).
+    console.error('[signal-extractor] correlate inference error:', err.message);
+    log({ text: '  ✗  the read stalled while putting the witnesses together', type: 'err' });
+    if (err.status) log({ text: `  ↳  the service answered ${err.status}`, type: 'err' });
     throw err;
   }
 
@@ -229,8 +246,8 @@ Signal rules:
     Object.defineProperty(parsed, '_usage', { value: { in: response.usage?.prompt_tokens ?? 0, out: response.usage?.completion_tokens ?? 0 }, enumerable: false });
     return parsed;
   } catch (err) {
-    log({ text: `  ✗  Claude returned invalid JSON`, type: 'err' });
-    log({ text: `  ↳  Got: ${json.slice(0, 120)}${json.length > 120 ? '…' : ''}`, type: 'err' });
+    console.error('[signal-extractor] correlate returned unparseable output:', json.slice(0, 200));
+    log({ text: '  ✗  the answer came back in a shape we could not read', type: 'err' });
     throw err;
   }
 }
@@ -404,22 +421,6 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Wraps plain text at ~width chars on word boundaries — used only to display the
 // verbatim research query without one giant unreadable line. Never alters content.
-function wrapText(text, width = 110) {
-  const words = text.split(/\s+/).filter(Boolean);
-  const lines = [];
-  let current = '';
-  for (const word of words) {
-    const next = current ? `${current} ${word}` : word;
-    if (next.length > width && current) {
-      lines.push(current);
-      current = word;
-    } else {
-      current = next;
-    }
-  }
-  if (current) lines.push(current);
-  return lines;
-}
 
 // Splits real returned research content into sentences for a paced reveal — this
 // paces REAL returned content, it never invents any; capped by the caller at 12 lines.
@@ -440,11 +441,12 @@ const RESEARCH_SKIP_NOTES = { 'no key': 'no key configured', 'no answer': 'no an
 // construction (one implementation, two call sites in extractSignals below).
 // Emits the verbatim query, then a paced reveal of the real returned content
 // (never invented — this is pacing, not generation), then closes the act honestly.
+export const RESEARCH_QUESTION_SAID = 'asked what they build, who buys it, what stage they are at, who founded it, and any news this year';
+
 async function runResearchAct(act, query, fetchFn, log) {
-  log({ act, type: 'act_body', text: 'we asked:', color: 'query' });
-  for (const line of wrapText(query, 110)) {
-    log({ act, type: 'act_body', text: line, color: 'query' });
-  }
+  // The question, said once in plain words. The prompt itself is engineering (Law 11);
+  // it stays in the meter row, never on the founder's screen.
+  log({ act, type: 'act_body', text: RESEARCH_QUESTION_SAID, color: 'query' });
 
   const result = await fetchFn();
 
@@ -492,18 +494,18 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
       apiUrl: process.env.FIRECRAWL_API_URL || undefined,
     });
 
-    log({ text: `$ proof360 --url ${domain}`, type: 'cmd' });
+    log({ text: `Reading ${domain}`, type: 'cmd' });
 
     // 1. Perimeter scan — commodity, demoted. Fired now, awaited later (step 5)
     // so its probe lines can stream in throughout every other act below.
-    log({ type: 'act', act: 'perimeter', phase: 'start', title: 'Infrastructure and posture', note: 'running in the background' });
+    log({ type: 'act', act: 'perimeter', phase: 'start', title: 'How your site looks from the outside', note: 'in the background' });
     let perimeterChecks = 0;
     let reconTimedOut = false;
     const reconPromise = new Promise((resolve) => {
       let timer = setTimeout(() => {
         timer = null;
         reconTimedOut = true;
-        log({ act: 'perimeter', type: 'act_body', text: 'Recon timed out after 20s — continuing without it', color: 'err' });
+        log({ act: 'perimeter', type: 'act_body', text: 'the outside look took too long; carrying on without it', color: 'err' });
         resolve(null);
       }, 20000);
       runReconPipeline(website_url, companyName, {
@@ -519,7 +521,8 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
         resolve(result);
       }).catch((err) => {
         if (timer) { clearTimeout(timer); timer = null; }
-        log({ act: 'perimeter', type: 'act_body', text: `Recon: ${err.message}`, color: 'err' });
+        console.error('[signal-extractor] recon failed:', err.message);
+        log({ act: 'perimeter', type: 'act_body', text: 'the outside look failed; carrying on without it', color: 'err' });
         resolve(null);
       });
     });
@@ -542,10 +545,11 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
     // 2026-08-25: no longer primary/fallback). Same shape, two independent acts.
     const query = researchQuery(domain);
 
-    log({ type: 'act', act: 'perplexity', phase: 'start', title: 'Asking the live web about you', note: 'perplexity · sonar' });
+    // Engines ride as a structured field (the opt-in vendor-mark layer reads it); never as words.
+    log({ type: 'act', act: 'perplexity', phase: 'start', title: 'Asking the live web about you', engine: 'perplexity/sonar' });
     const perplexityResult = await runResearchAct('perplexity', query, () => fetchPerplexityResearch(domain, { session_id, act: 'perplexity' }), log);
 
-    log({ type: 'act', act: 'gemini', phase: 'start', title: 'A second, independent read', note: 'gemini · 3.6 flash' });
+    log({ type: 'act', act: 'gemini', phase: 'start', title: 'A second opinion, asked independently', engine: 'gemini/3.6-flash' });
     const geminiResult = await runResearchAct('gemini', query, () => fetchGeminiResearch(domain, { session_id, act: 'gemini' }), log);
 
     // 5. Perimeter closes out — correlation (step 6) needs it.
@@ -577,9 +581,11 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
     }
 
     // 6. Correlate — the haiku extraction call, over every witness gathered so far.
-    log({ type: 'act', act: 'correlate', phase: 'start', title: 'Correlating what every witness saw', note: 'claude haiku · bedrock' });
-    const perimeterPart = recon_context ? 'perimeter context' : 'no perimeter context';
-    log({ act: 'correlate', type: 'act_body', text: `${real_pages_count} pages + ${research_engines.length} research answers + ${perimeterPart} → signal extraction` });
+    log({ type: 'act', act: 'correlate', phase: 'start', title: 'Putting every witness side by side', engine: 'claude-haiku/bedrock' });
+    const perimeterPart = recon_context ? 'and the outside look' : 'without the outside look';
+    const pagesPart = `${real_pages_count} ${real_pages_count === 1 ? 'page' : 'pages'}`;
+    const answersPart = `${research_engines.length} ${research_engines.length === 1 ? 'answer' : 'answers'} from the web`;
+    log({ act: 'correlate', type: 'act_body', text: `${pagesPart}, ${answersPart}, ${perimeterPart}, read together` });
 
     const sources_read = pages.map((p) => p.label);
     let extracted;
@@ -603,7 +609,7 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
     const competitor_mentions = extracted.competitor_mentions || [];
 
     if (signals.length === 0) {
-      log({ act: 'correlate', type: 'act_body', text: 'Claude returned no signals from page content', color: 'err' });
+      log({ act: 'correlate', type: 'act_body', text: 'nothing could be drawn from the pages', color: 'err' });
       log({ type: 'act', act: 'correlate', phase: 'done', note: '0 signals' });
       // Pages WERE actually read here — the site opened, extraction just found nothing
       // to say. Overriding fallbackSignals' pages_read_count:0 keeps the honest-read
@@ -620,10 +626,9 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
     console.error('[signal-extractor] pipeline error:', err.message, err.stack);
     // Only emit to terminal if not already emitted by the specific handler above
     if (!err._logged) {
-      log({ text: `  ✗  ${err.message}`, type: 'err' });
+      log({ text: '  ✗  the read hit an error and stopped early', type: 'err' });
     }
-    if (err.cause) log({ text: `  ↳  Cause: ${err.cause}`, type: 'err' });
-    log({ text: '  ↳  Falling back to partial read', type: 'muted' });
+    log({ text: '  ↳  carrying on with what we have', type: 'muted' });
     return fallbackSignals(website_url, deck_file);
   }
 }

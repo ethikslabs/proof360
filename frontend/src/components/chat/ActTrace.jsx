@@ -58,7 +58,7 @@ export function partitionLines(lines) {
 
   function getOrCreate(id, fallbackTitle) {
     if (!map[id]) {
-      map[id] = { id, title: fallbackTitle ?? id, note: undefined, phase: undefined, body: [], tokens: null };
+      map[id] = { id, title: fallbackTitle ?? id, note: undefined, engine: undefined, phase: undefined, body: [], tokens: null };
       order.push(id);
     }
     return map[id];
@@ -72,6 +72,8 @@ export function partitionLines(lines) {
       if (line.phase === 'start') {
         if (line.title !== undefined) act.title = line.title;
         act.note = line.note;
+        // The engine rides beside the words, never in them (Law 11); VendorRow reads it when opted in.
+        if (line.engine !== undefined) act.engine = line.engine;
         act.phase = 'start';
       } else if (line.phase === 'done' || line.phase === 'skip' || line.phase === 'fail') {
         act.phase = line.phase;

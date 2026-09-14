@@ -4,6 +4,14 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-09-14 — The first screen speaks plainly (branch `first-screen`, not on main yet)
+
+**Problem.** The working trace under a read is the founder's receipt, and it was written for an engineer: every step named its engine ("perplexity · sonar", "gemini · 3.6 flash", "claude haiku · bedrock"), the outside-look lines carried tool tags ("[hibp]", "[abuseipdb]", "[dns] DMARC not enforced · spoofing risk"), the research prompt printed in full, and a page that would not open quoted the scraper's own error sentence. The first read also led with "Hosted on Oracle", which is a probe fact, not an investor's first question. John, walking it before the stand-up: "that still has all the tech stuff showing up, that is meant to be under the hood."
+
+**Fix.** Same acts, same honesty, plain words. Titles are sentences ("How your site looks from the outside", "Putting every witness side by side"). The engine now rides as a structured `engine` field on the act's start event; the opt-in vendor-mark layer reads it, and no title, note or body line names it. The research question is said once in plain words; the prompt stays in the meter row. Outside-look lines say what was seen and what it means ("mail: others could send as you; the setting that stops that is not switched on yet"), with no tag and no verdict word. A page that would not open gets one of five plain reasons. The hosting inference carries `probe: true`, and the opener leaves probe facts for the evidence layer under the read. The play copy's trace closes each act under its own words, never its id.
+
+**Why it matters.** Law 11 of the method: show the working, never name the machinery. The receipt is what a founder reads back to themselves; if it reads like a build log, the feel is gone. Tests pin the words (`api/tests/unit/first-screen-register.test.js`, `frontend/tests/unit/first-screen-register.test.jsx`), so it cannot drift back. Not deployed: this is running as a second lane for John to walk side by side with the current one.
+
 ## 2026-09-14 · Gemini answers in 3 seconds, not 12: thinking turned down for the research question
 
 **Problem.** With Gemini back on `gemini-3.6-flash`, the read still narrated the engine as "no answer". Measured from the box with the exact research query: the model spent 12.1 seconds and 1,681 "thinking" tokens to write 257 tokens of answer, and the engine's 10 second budget cut it off. Thinking is on by default in Gemini 3, and it is billed as output.
