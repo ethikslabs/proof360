@@ -64,7 +64,12 @@ async function fetchGemini(query, apiKey) {
     const res = await fetch(`${GEMINI_URL}${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: query }] }] }),
+      // Gemini 3.x "thinks" by default. Measured from the box, 14 Sept 2026, same research query:
+      // default 12.1 s with 1,681 thought tokens for 257 of answer; low 8.5–9.2 s with 700–1,150;
+      // minimal 3.1–3.5 s with 0 thoughts and a fuller answer (~310 tokens). The default blew the
+      // engine's 10 s budget and was narrated as "no answer". A 200-word factual summary does not
+      // need to think; thoughts are billed as output.
+      body: JSON.stringify({ contents: [{ parts: [{ text: query }] }], generationConfig: { thinkingConfig: { thinkingLevel: 'minimal' } } }),
       signal: controller.signal,
     });
     clearTimeout(timeout);
@@ -72,8 +77,12 @@ async function fetchGemini(query, apiKey) {
     const data = await res.json();
     // Gemini reports usageMetadata (not OpenAI-shaped usage), so pass tokens explicitly.
     const um = data.usageMetadata || {};
-    meter.emit({ provider: 'gemini', model: GEMINI_MODEL, in: um.promptTokenCount ?? 0, out: um.candidatesTokenCount ?? 0 });
-    return { ok: true, content: data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null, usage: { in: um.promptTokenCount ?? 0, out: um.candidatesTokenCount ?? 0, model: GEMINI_MODEL, provider: 'gemini' } };
+    // Thought tokens are billed as output; count them, or the tally under-reads what was spent.
+    const outTokens = (um.candidatesTokenCount ?? 0) + (um.thoughtsTokenCount ?? 0);
+    meter.emit({ provider: 'gemini', model: GEMINI_MODEL, in: um.promptTokenCount ?? 0, out: outTokens });
+    // Gemini 3.x may return several parts (a thought signature rides on the first); join every text part.
+    const text = (data.candidates?.[0]?.content?.parts || []).map((p) => p?.text || '').join('').trim() || null;
+    return { ok: true, content: text, usage: { in: um.promptTokenCount ?? 0, out: outTokens, model: GEMINI_MODEL, provider: 'gemini' } };
   } catch {
     clearTimeout(timeout);
     return { ok: false, status: null };

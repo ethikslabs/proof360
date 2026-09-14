@@ -4,6 +4,14 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-09-14 · Gemini answers in 3 seconds, not 12: thinking turned down for the research question
+
+**Problem.** With Gemini back on `gemini-3.6-flash`, the read still narrated the engine as "no answer". Measured from the box with the exact research query: the model spent 12.1 seconds and 1,681 "thinking" tokens to write 257 tokens of answer, and the engine's 10 second budget cut it off. Thinking is on by default in Gemini 3, and it is billed as output.
+
+**Fix.** The research call asks for `thinkingLevel: minimal`. Measured the same way: 3.1 to 3.5 seconds, zero thought tokens, and a fuller answer (about 310 tokens). Thought tokens, when a model does spend them, are now counted into the "out" side of the tally so the number on the trace is what was actually spent. Gemini 3 can return several text parts; all are joined rather than reading only the first.
+
+**Why it matters.** A 200 word factual summary does not need to think, and a founder should not wait 12 seconds or pay for 1,681 tokens of it. The engine is back to being the second witness it is meant to be.
+
 ## 2026-09-14 · The second research engine was silently gone; it is back on a current model and a clean key
 
 **Problem.** Every read is meant to ask two research engines, Perplexity and Gemini, so extraction never rests on one witness. The morning's reads showed Gemini answering `engine error (404)`: Google had retired `gemini-2.5-flash` for this project ("no longer available to new users"), and the current models answered 429, "prepayment credits are depleted", on a key whose project could not be found under any account we hold. Reads had been Perplexity-only for some time without anyone noticing, because a skipped engine is narrated honestly and then scrolls past.
