@@ -8,6 +8,8 @@ import { join } from 'node:path';
 import { parseEml } from '../../../src/services/inbound-check/parse-eml.js';
 import { runInboundCheck, renderCheck } from '../../../src/services/inbound-check/index.js';
 import { graphClient, pollOnce } from '../../../src/services/inbound-check/mailbox-m365.js';
+import { isRegisteredEmail } from '../../../src/services/inbound-check/registry.js';
+import { mkdirSync, writeFileSync } from 'node:fs';
 
 const fx = (name) => readFileSync(join(process.cwd(), 'tests/fixtures/inbound', name), 'utf8');
 const resolver = {
@@ -66,16 +68,17 @@ describe('mailbox poller — reads unread mail to the check address, replies in 
       if (/\/mailFolders\/inbox\/messages\?/.test(u)) return new Response(JSON.stringify({ value: messages }), { status: 200 });
       if (/\/messages\/m1\/reply$/.test(u)) return new Response('', { status: 202 });
       if (/\/messages\/m1$/.test(u) && opts.method === 'PATCH') return new Response(JSON.stringify({}), { status: 200 });
-      if (/\/mailFolders\?/.test(u)) return new Response(JSON.stringify({ value: [{ id: 'f-checked', displayName: 'Checked' }] }), { status: 200 });
+      if (/\/mailFolders\?/.test(u)) { const name = decodeURIComponent(u).match(/displayName eq '([^']+)'/)?.[1]; return new Response(JSON.stringify({ value: [{ id: `f-${name.toLowerCase()}`, displayName: name }] }), { status: 200 }); }
       if (/\/messages\/m1\/move$/.test(u)) return new Response(JSON.stringify({ id: 'm1-moved' }), { status: 201 });
       return new Response('not found: ' + u, { status: 404 });
     };
     return graphClient({ tenantId: 't', clientId: 'c', clientSecret: 's', mailbox: 'alfred@ethikslabs.com', fetchImpl });
   };
+  const registry = { isRegistered: async (e) => e === 'founder@example.com' };
 
   it('handles only the message addressed to check@, replies with the three lines, marks it read and moves it', async () => {
     const g = graph();
-    const out = await pollOnce({ graph: g, address: 'check@ethikslabs.com', deps: deps() });
+    const out = await pollOnce({ graph: g, address: 'check@ethikslabs.com', deps: deps(), registry });
     expect(out.handled).toEqual(['m1']);
     expect(out.skipped).toEqual(['m2']);
     const reply = calls.find((c) => /\/messages\/m1\/reply$/.test(c.url));
@@ -91,15 +94,49 @@ describe('mailbox poller — reads unread mail to the check address, replies in 
 
   it('never fetches anything but Graph and the token endpoint', async () => {
     const g = graph();
-    await pollOnce({ graph: g, address: 'check@ethikslabs.com', deps: deps() });
+    await pollOnce({ graph: g, address: 'check@ethikslabs.com', deps: deps(), registry });
     for (const c of calls) expect(c.url).toMatch(/^https:\/\/(graph\.microsoft\.com|login\.microsoftonline\.com)\//);
+  });
+
+  it('an unregistered forwarder is pointed to proof360, nothing is looked up, nothing is stored', async () => {
+    const g = graph();
+    let looked = 0;
+    const d = { ...deps(), search: async () => { looked += 1; return { ok: true, found: false, urls: [] }; } };
+    const out = await pollOnce({ graph: g, address: 'check@ethikslabs.com', deps: d, registry: { isRegistered: async () => false }, baseUrl: 'https://proof360.au' });
+    expect(out.declined).toEqual(['m1']);
+    expect(out.handled).toEqual([]);
+    expect(looked).toBe(0);
+    expect(calls.some((c) => /\/messages\/m1\/\$value$/.test(c.url))).toBe(false);
+    const reply = calls.find((c) => /\/messages\/m1\/reply$/.test(c.url));
+    expect(reply.body.comment).toMatch(/https:\/\/proof360\.au/);
+    expect(reply.body.comment).toMatch(/forward this email again/i);
+    expect(reply.body.comment).not.toMatch(/\byou (?:should|need|must)\b|free.for.all/i);
+    expect(calls.some((c) => /\/messages\/m1\/move$/.test(c.url) && c.body.destinationId === 'f-unregistered')).toBe(true);
+  });
+
+  it('no registry at all means nobody is registered (default-deny)', async () => {
+    const g = graph();
+    const out = await pollOnce({ graph: g, address: 'check@ethikslabs.com', deps: deps() });
+    expect(out.declined).toEqual(['m1']);
   });
 
   it('a fetch that fails leaves the message unread and reports the error; no reply is sent', async () => {
     const g = graph({ mimeFails: true });
-    const out = await pollOnce({ graph: g, address: 'check@ethikslabs.com', deps: deps() });
+    const out = await pollOnce({ graph: g, address: 'check@ethikslabs.com', deps: deps(), registry });
     expect(out.handled).toEqual([]);
     expect(out.errors.length).toBe(1);
     expect(calls.some((c) => /\/reply$/.test(c.url))).toBe(false);
+  });
+});
+
+describe('the registry: a founder record with that email, nothing else', () => {
+  it('finds a founder by the email Auth0 verified, case-insensitively; misses everyone else', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'founders-'));
+    mkdirSync(join(root, 'founders', 'abc'), { recursive: true });
+    writeFileSync(join(root, 'founders', 'abc', 'founder.json'), JSON.stringify({ id: '1', email: 'Founder@Example.com', auth0_sub: 'x' }));
+    expect(await isRegisteredEmail('founder@example.com', { root })).toBe(true);
+    expect(await isRegisteredEmail('someone@else.com', { root })).toBe(false);
+    expect(await isRegisteredEmail('', { root })).toBe(false);
+    expect(await isRegisteredEmail('founder@example.com', { root: join(root, 'nope') })).toBe(false);
   });
 });

@@ -732,3 +732,7 @@ flowchart LR
 ## 2026-09-14 — CI: /raise date format pinned to en-AU
 
 - `src/pages/Raise.jsx` formatted `last_verified` with the runtime default locale, which is en-US on the CI runner ("Sep 14, 2026") and en-AU on our machines ("14 Sept 2026"). The Raise render test expects the estate form and was right to fail. Pinned to en-AU. Deploys were unaffected; only CI was red.
+
+## 2026-09-14 — Mailbox door: registered founders only
+
+- John, 14 Sept: "it needs to map to a registered email … otherwise it is a free for all". The poller now checks the forwarder against the founder store (the email Auth0 verified on `founders/<hash>/founder.json`) before anything runs. No record: a warm reply points them to proof360 to do a read and register, then forward again; nothing is looked up, nothing is stored, the mail is filed under "Unregistered". No registry at all means nobody is registered (default-deny). `api/src/services/inbound-check/registry.js`; tests in `forwarded-and-mailbox.test.js` (23 in the inbound suite now).

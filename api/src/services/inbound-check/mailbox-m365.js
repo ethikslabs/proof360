@@ -4,6 +4,7 @@
 // message read and files it under "Checked". Only Graph and the token endpoint are ever
 // called from here; the check itself stays read-only.
 import { runInboundCheck, renderCheck } from './index.js';
+import { fileRegistry } from './registry.js';
 
 const GRAPH = 'https://graph.microsoft.com/v1.0';
 
@@ -32,20 +33,21 @@ export function graphClient({ tenantId, clientId, clientSecret, mailbox, fetchIm
     const t = await res.text();
     return t ? JSON.parse(t) : {};
   }
-  let checkedFolderId = null;
+  const folderIds = new Map();
+  async function folderId(name) {
+    if (!folderIds.has(name)) {
+      const j = await call(`/mailFolders?$filter=displayName eq '${name}'&$select=id,displayName`);
+      folderIds.set(name, j.value?.[0]?.id || (await call('/mailFolders', { method: 'POST', body: { displayName: name } })).id);
+    }
+    return folderIds.get(name);
+  }
   return {
     mailbox,
     listUnread: () => call(`/mailFolders/inbox/messages?$filter=isRead eq false&$select=id,subject,from,toRecipients,ccRecipients,conversationId&$top=25`).then((j) => j.value || []),
     mime: (id) => call(`/messages/${id}/$value`, { raw: true }),
     reply: (id, comment) => call(`/messages/${id}/reply`, { method: 'POST', body: { comment } }),
     markRead: (id) => call(`/messages/${id}`, { method: 'PATCH', body: { isRead: true } }),
-    async fileAsChecked(id) {
-      if (!checkedFolderId) {
-        const j = await call(`/mailFolders?$filter=displayName eq 'Checked'&$select=id,displayName`);
-        checkedFolderId = j.value?.[0]?.id || (await call('/mailFolders', { method: 'POST', body: { displayName: 'Checked' } })).id;
-      }
-      return call(`/messages/${id}/move`, { method: 'POST', body: { destinationId: checkedFolderId } });
-    },
+    fileAs: async (id, name) => call(`/messages/${id}/move`, { method: 'POST', body: { destinationId: await folderId(name) } }),
   };
 }
 
@@ -61,17 +63,37 @@ function replyBody(result) {
   return `<pre style="font-family:ui-monospace,Menlo,monospace;white-space:pre-wrap">${esc(renderCheck(result))}\n\nchecked ${result.checked_at.slice(0, 16).replace('T', ' ')} UTC · proof360</pre>`;
 }
 
-export async function pollOnce({ graph, address, deps, log = () => {} }) {
-  const out = { handled: [], skipped: [], errors: [] };
+// The door is for founders with a proof360 record (John, 14 Sept: "it needs to map to a
+// registered email … otherwise it is a free for all"). Anyone else is pointed to proof360
+// to do a read and register, warmly, with no check run and nothing looked up or stored.
+function declineBody(baseUrl) {
+  return `<p>Thanks for sending this over.</p>
+<p>The check runs for founders with a proof360 record, so the reply is yours and only yours. Start one at <a href="${baseUrl}">${baseUrl}</a>: a read of your own company takes a couple of minutes. Then forward this email again and the three lines come straight back.</p>
+<p>proof360</p>`;
+}
+
+export async function pollOnce({ graph, address, deps, registry, baseUrl = process.env.REPORT_BASE_URL || 'https://proof360.au', log = () => {} }) {
+  const out = { handled: [], skipped: [], declined: [], errors: [] };
   const unread = await graph.listUnread();
   for (const msg of unread) {
     if (!addressedTo(msg, address)) { out.skipped.push(msg.id); continue; }
     try {
+      const forwarder = msg.from?.emailAddress?.address || '';
+      // Default-deny: no registry, or no record, is a decline. The check never runs for it.
+      const registered = registry ? await registry.isRegistered(forwarder) === true : false;
+      if (!registered) {
+        await graph.reply(msg.id, declineBody(baseUrl));
+        await graph.markRead(msg.id);
+        await graph.fileAs(msg.id, 'Unregistered').catch((err) => log(`file: ${err.message}`));
+        out.declined.push(msg.id);
+        log(`declined ${forwarder}: no proof360 record`);
+        continue;
+      }
       const mime = await graph.mime(msg.id);
       const result = await runInboundCheck(mime, deps);
       await graph.reply(msg.id, replyBody(result));
       await graph.markRead(msg.id);
-      await graph.fileAsChecked(msg.id).catch((err) => log(`file: ${err.message}`));
+      await graph.fileAs(msg.id, 'Checked').catch((err) => log(`file: ${err.message}`));
       out.handled.push(msg.id);
       log(`checked ${result.sender.address} for ${msg.from?.emailAddress?.address} (${result.memory.prior_matches} prior)`);
     } catch (err) {
@@ -91,7 +113,7 @@ export function startMailboxPoller({ env = process.env, deps, everyMs = 45_000, 
   let busy = false;
   const tick = async () => {
     if (busy) return; busy = true;
-    try { await pollOnce({ graph, address: INBOUND_CHECK_ADDRESS, deps, log: (m) => log(`[inbound-check] ${m}`) }); }
+    try { await pollOnce({ graph, address: INBOUND_CHECK_ADDRESS, deps, registry: fileRegistry, log: (m) => log(`[inbound-check] ${m}`) }); }
     catch (err) { log(`[inbound-check] poll failed: ${err.message}`); }
     finally { busy = false; }
   };
