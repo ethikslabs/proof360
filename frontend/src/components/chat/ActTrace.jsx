@@ -94,8 +94,12 @@ export function partitionLines(lines) {
       continue;
     }
 
-    // Any other untagged line (legacy/safety) — perimeter's body is the catch-all.
-    const act = getOrCreate('perimeter');
+    // Any other untagged line joins the act that is open right now; before any act has
+    // started it belongs to the read itself (a failure there must never sit under the
+    // outside-look heading — review round 2, 14 Sept 2026).
+    const open = order.map((id) => map[id]).reverse().find((a) => a.phase === 'start');
+    const act = open ?? getOrCreate('read', 'The read');
+    if (!open && line.type === 'err') act.phase = 'fail';
     act.body.push({ text: line.text, color: line.color ?? line.type });
   }
 
@@ -121,6 +125,7 @@ export function partitionLines(lines) {
 // Lower renders higher. Unlisted acts fall to DEFAULT_RANK, keeping arrival order
 // among themselves and sitting above the posture/synthesis tail.
 export const DISPLAY_RANK = {
+  read:        0,   // the read's own lines — a failure before any act started; leads, never folded
   corpus:     10,   // what we already held — the differentiated step, leads
   site:       20,   // reading their public trail
   perplexity: 30,   // asking the live web
@@ -142,6 +147,8 @@ export function ActTrace({ lines, done, composing = false, tk, showVendorMarks =
     // The perimeter act is the demoted background lane — collapsed by default
     // even while it is the active act; every other act auto-opens while active.
     if (act.id === 'perimeter') return false;
+    // The read's own loose lines (a failure before any act) stay visible.
+    if (act.id === 'read') return true;
     // Finding 1 (whole-wave review): a dead stream (done=true) never demotes an
     // in-flight act out of 'start' — the stream just stopped updating it. Once
     // done, an orphaned act collapses like any other closed act (still

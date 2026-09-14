@@ -133,7 +133,9 @@ async function extractAndInfer(sessionId, { website_url, deck_file, session_id }
         }
         // The reference is the point; the score and the shelf it sits on are ours (Law 11).
         // slug, not title: a title is retrieved text and reaches the screen unfiltered (seam rule).
-        log({ act: 'corpus', type: 'act_body', text: `↳  ${hit.slug}${domain ? ` · ${domain}` : ''}` });
+        // The hit rides beside the words as data (additive to the SSE contract) so a consumer
+        // never has to parse the founder's line — the play copy's Holdings panel reads `hit`.
+        log({ act: 'corpus', type: 'act_body', text: `↳  ${hit.slug}${domain ? ` · ${domain}` : ''}`, hit: { slug: hit.slug, layer: hit.layer ?? null, score: Number.isFinite(Number(hit.score)) ? Number(hit.score) : null, domain } });
       }
       log({ type: 'act', act: 'corpus', phase: 'done', note: `${corpus_hits.length} holding${corpus_hits.length === 1 ? '' : 's'}` });
     } else if (corpus_hits !== null) {

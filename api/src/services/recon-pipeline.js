@@ -331,7 +331,7 @@ export function formatReconLine(source, result) {
       const n = result.risky_port_count ?? 0;
       if (n === 0) return L(source, 'open doors: nothing facing the internet that should not be', 'ok');
       const notable = (result.open_ports || []).filter(p => p.risk === 'critical' || p.risk === 'high').map(p => p.port).slice(0, 2).join(' and ');
-      return L(source, `open doors: ${notable ? `port ${notable}` : `${n} ports`} facing the internet that usually should not be`, 'query');
+      return L(source, `open doors: ${notable ? `port ${notable}` : `${n} ports`} reachable from the internet`, 'query');
     }
     case 'ssllabs': {
       // The vendor's letter is its verdict, not ours (R8); we say what the letter stands for.

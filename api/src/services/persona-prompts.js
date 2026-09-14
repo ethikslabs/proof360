@@ -54,8 +54,8 @@ function reconBlock(recon) {
   const lines = [];
   if (recon.waf_detected) lines.push(`WAF: ${recon.waf_detected} detected`);
   if (recon.tls_version) lines.push(`TLS: ${recon.tls_version}`);
-  if (recon.dmarc_policy) lines.push(`DMARC: p=${recon.dmarc_policy}`);
-  if (recon.spf_policy) lines.push(`SPF: ${recon.spf_policy}`);
+  if (recon.dmarc_policy) lines.push(`Mail anti-spoofing policy: ${recon.dmarc_policy}`);
+  if (recon.spf_policy) lines.push(`Mail sender policy: ${recon.spf_policy}`);
   if (recon.cloud_provider) lines.push(`Hosting: ${recon.cloud_provider}`);
   if (recon.cdn_provider) lines.push(`CDN/edge: ${recon.cdn_provider}`);
   return lines.length ? lines.join(', ') : null;

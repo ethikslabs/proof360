@@ -211,9 +211,13 @@ describe('the outside look reaches the perimeter act as plain lines', () => {
   });
 });
 
-// Every string a handler or service can put on the founder's screen, read from the source:
-// act titles and notes, body text, err lines, cmd lines, and the reading's anchor labels.
-// Static parts only (template holes are stripped), plus a rule that no hole is a raw error.
+// Every string a handler or service can put on the founder's screen, read from the source.
+// Each emitter call — log({…}), appendLog(id, {…}), emit(label, {…}), anchors.push({…}),
+// anchor = {…} — is captured with its balanced braces (multi-line included), then every
+// title/note/text/label literal inside it is checked. Static parts only (template holes
+// are stripped), plus a rule that no hole is a raw error field.
+const HERE = new URL('.', import.meta.url).pathname;
+const SRC = join(HERE, '../../src');
 function walk(dir, out = []) {
   for (const f of readdirSync(dir)) {
     const p = join(dir, f);
@@ -221,26 +225,59 @@ function walk(dir, out = []) {
   }
   return out;
 }
+export function screenCalls(src) {
+  // Returns each emitter call's full argument text (parens balanced, multi-line) with its
+  // 1-based line. Only calls whose argument carries a screen-line key (type/act/label) count;
+  // a plain string log(...) to the server console is not a screen line.
+  const calls = [];
+  const opener = /\b(appendLog|log|emit|anchors\.push)\s*\(|\banchor\s*=\s*\{/g;
+  let m;
+  while ((m = opener.exec(src))) {
+    const isBrace = m[0].endsWith('{');
+    let i = m.index + m[0].length - (isBrace ? 1 : 0);
+    let depth = 0, j = i;
+    for (; j < src.length; j++) {
+      const c = src[j];
+      if (isBrace ? c === '{' : c === '(') depth++;
+      else if (isBrace ? c === '}' : c === ')') { depth--; if (depth === 0) { j++; break; } }
+    }
+    const text = src.slice(i, j);
+    if (!/\b(type|act|label)\s*:/.test(text)) continue;
+    calls.push({ line: src.slice(0, m.index).split('\n').length, text });
+  }
+  return calls;
+}
 describe('no emitter under api/src puts machinery or a raw error on the screen', () => {
-  const files = [...walk(join(process.cwd(), 'src/handlers')), ...walk(join(process.cwd(), 'src/services'))];
-  const emitLine = /(appendLog|\blog|anchors\.push|anchor =)\s*\(?\s*\{[^\n]*\b(title|note|text|label)\s*:/;
-  const literal = /\b(title|note|text|label)\s*:\s*(['"`])((?:\\.|(?!\2).)*)\2/g;
-  it('scans at least the files this build touched', () => {
-    expect(files.some((f) => f.endsWith('signal-extractor.js'))).toBe(true);
-    expect(files.some((f) => f.endsWith('cold-reading.js'))).toBe(true);
+  // inbound-check is a different surface (its screen is the mail reply, guarded by its own word test).
+  const files = [...walk(join(SRC, 'handlers')), ...walk(join(SRC, 'services'))].filter((f) => !f.includes('/inbound-check/'));
+  const literal = /\b(title|note|text|label)\s*:\s*(['"`])((?:\\.|(?!\2)[\s\S])*)\2/g;
+  it('actually captures appendLog(id, {…}) and multi-line calls (the round-2 hole)', () => {
+    const calls = screenCalls("appendLog(id, {\n  type: 'act', title: 'Asking perplexity sonar',\n});\nlog({ text: `x ${err.message}`, type: 'err' });\nemit(label, { text: 'y', type: 'ok' });\nanchors.push(engines.length\n  ? { label: 'a' }\n  : { label: 'b' });\nlog(`plain console ${err.message}`);");
+    expect(calls.map((c) => c.line)).toEqual([1, 4, 5, 6]);
+    expect(calls[0].text).toContain('perplexity');
+    expect(calls[3].text).toContain("label: 'b'");
+    const analyze = readFileSync(join(SRC, 'handlers/analyze.js'), 'utf8');
+    expect(screenCalls(analyze).some((c) => /Writing your read/.test(c.text))).toBe(true);
   });
   for (const file of files) {
-    const src = readFileSync(file, 'utf8').split('\n');
+    const src = readFileSync(file, 'utf8');
     const offenders = [];
-    src.forEach((line, i) => {
-      if (line.trim().startsWith('//') || !emitLine.test(line)) return;
-      if (/\$\{\s*err\??\.(message|status|name)/.test(line)) offenders.push(`${i + 1}: raw error in a screen line`);
+    for (const call of screenCalls(src)) {
+      if (/\$\{\s*err\??\.(message|status|name)/.test(call.text)) offenders.push(`${call.line}: raw error in a screen line`);
       let m;
-      while ((m = literal.exec(line))) {
+      while ((m = literal.exec(call.text))) {
         const words = m[3].replace(/\$\{[^}]*\}/g, ' ');
-        if (MACHINERY.test(words) || VERDICT.test(words)) offenders.push(`${i + 1}: ${m[3]}`);
+        if (MACHINERY.test(words) || VERDICT.test(words)) offenders.push(`${call.line}: ${m[3].slice(0, 80)}`);
       }
-    });
+    }
     it(`${file.split('/src/')[1]}`, () => { expect(offenders).toEqual([]); });
   }
+});
+
+describe('what the screen says about ports and the meter row keeps the status', () => {
+  it('open ports are stated as reachable, never as what "should" be', () => {
+    const t = formatReconLine('ports', { risky_port_count: 2, open_ports: [{ port: 22, risk: 'high' }, { port: 3389, risk: 'critical' }] }).text;
+    expect(t).not.toMatch(/should/i);
+    expect(t).toMatch(/reachable from the internet/);
+  });
 });

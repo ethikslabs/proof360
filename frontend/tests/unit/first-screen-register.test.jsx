@@ -74,9 +74,21 @@ describe('the work panel counts what we did without naming engines', () => {
 });
 
 describe('an act without a title never shows its id as the heading', () => {
-  it('an untagged error before any act start does not print "perimeter"', () => {
+  it('an untagged error before any act start is shown under the read itself, never under the outside look', () => {
     const { acts } = partitionLines([{ type: 'err', text: '  ✗  the read stopped early' }]);
+    expect(acts.length).toBe(1);
     expect(acts[0].title).not.toBe('perimeter');
+    expect(acts[0].title).not.toMatch(/outside/i);
     expect(acts[0].title).not.toMatch(MACHINERY);
+    expect(acts[0].body[0].text).toContain('stopped early');
+  });
+  it('an untagged line arriving while an act is open joins that act', () => {
+    const { acts } = partitionLines([
+      { type: 'act', act: 'site', phase: 'start', title: 'Reading your site' },
+      { type: 'err', text: '  ✗  the read stopped early' },
+    ]);
+    expect(acts.length).toBe(1);
+    expect(acts[0].id).toBe('site');
+    expect(acts[0].body.map((b) => b.text).join(' ')).toContain('stopped early');
   });
 });

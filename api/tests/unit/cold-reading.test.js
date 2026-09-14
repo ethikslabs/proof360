@@ -76,11 +76,11 @@ describe('buildReadingContext — prompt', () => {
     expect(prompt).toMatch(/INVITE/);
 
     // STRONG recon facts (direct-probe)
-    expect(prompt).toMatch(/\[STRONG\].*Hosting \/ cloud provider: aws/);
-    expect(prompt).toMatch(/\[STRONG\].*DMARC enforced \(p=reject\)/);
+    expect(prompt).toMatch(/\[STRONG\].*Where the site is hosted: aws/);
+    expect(prompt).toMatch(/\[STRONG\].*Mail setup: anti-spoofing policy enforced/);
     expect(prompt).toMatch(/\[STRONG\].*Breach history: 2 known breach\(es\)/);
     expect(prompt).toMatch(/\[STRONG\].*Security hiring signal: actively hiring/);
-    expect(prompt).toMatch(/\[STRONG\].*SSL Labs grade: A/);
+    expect(prompt).toMatch(/\[STRONG\].*Connection setup: modern, set up well/);
 
     // Inference facts, hedge bound to their own confidence
     expect(prompt).toMatch(/\[STRONG\].*confidence: confident.*B2B SaaS product/);
@@ -132,8 +132,8 @@ describe('buildReadingContext — prompt', () => {
     delete session.recon_context.ssllabs;
     const { prompt } = await buildReadingContext(session);
 
-    expect(prompt).not.toMatch(/SSL Labs grade/);
-    expect(prompt).toMatch(/DMARC enforced \(p=reject\)/);
+    expect(prompt).not.toMatch(/Connection setup/);
+    expect(prompt).toMatch(/Mail setup: anti-spoofing policy enforced/);
   });
 
   it('includes corpus hits as CORPUS-graded material with an anti-quoting instruction, and never fabricates hits', async () => {
@@ -228,7 +228,7 @@ describe('reconEvidence — ABSENCE RULE: a failed DNS lookup must never anchor 
   it('missing → "no DMARC record published" factline, "DMARC: missing" anchor', async () => {
     const session = baseSession({ recon_context: { dns: { dmarc_policy: 'missing' } } });
     const { prompt, anchors } = await buildReadingContext(session);
-    expect(prompt).toMatch(/\[STRONG\] no DMARC record published on the domain/);
+    expect(prompt).toMatch(/\[STRONG\] Mail setup: no anti-spoofing policy published for the domain/);
     expect(prompt).not.toMatch(/DMARC posture/);
     expect(anchors).toContainEqual({ label: 'how mail is set up', source: 'dns scan', probe: true });
   });
@@ -236,8 +236,8 @@ describe('reconEvidence — ABSENCE RULE: a failed DNS lookup must never anchor 
   it('none → "published but not enforcing (p=none)" factline, "DMARC: not enforcing" anchor — never "no record"', async () => {
     const session = baseSession({ recon_context: { dns: { dmarc_policy: 'none' } } });
     const { prompt, anchors } = await buildReadingContext(session);
-    expect(prompt).toMatch(/\[STRONG\] a DMARC record is published but not enforcing \(p=none, monitoring only\)/);
-    expect(prompt).not.toMatch(/no DMARC record/);
+    expect(prompt).toMatch(/\[STRONG\] Mail setup: an anti-spoofing policy is published but only monitoring, not enforcing/);
+    expect(prompt).not.toMatch(/no anti-spoofing policy published/);
     expect(anchors).toContainEqual({ label: 'how mail is set up', source: 'dns scan', probe: true });
   });
 
@@ -245,7 +245,7 @@ describe('reconEvidence — ABSENCE RULE: a failed DNS lookup must never anchor 
     for (const policy of ['quarantine', 'reject']) {
       const session = baseSession({ recon_context: { dns: { dmarc_policy: policy } } });
       const { prompt, anchors } = await buildReadingContext(session);
-      expect(prompt, policy).toMatch(new RegExp(`\\[STRONG\\] DMARC enforced \\(p=${policy}\\)`));
+      expect(prompt, policy).toMatch(/\[STRONG\] Mail setup: anti-spoofing policy enforced/);
       expect(anchors, policy).toContainEqual({ label: 'how mail is set up', source: 'dns scan', probe: true });
     }
   });

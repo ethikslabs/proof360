@@ -120,7 +120,7 @@ function reconEvidence(session) {
 
   const cloud = ctx.cloud_provider || ctx.hosting_provider;
   if (cloud) {
-    lines.push(factLine(STRONG, 'Hosting / cloud provider', cloud));
+    lines.push(factLine(STRONG, 'Where the site is hosted', cloud));
     anchors.push({ label: 'where the site is hosted', source: 'ip probe', probe: true });
   }
 
@@ -135,13 +135,13 @@ function reconEvidence(session) {
   // against `dig TXT _dmarc.cognisys.co.uk` → v=DMARC1; p=none; a record exists).
   // Each policy value gets its own honest factline/anchor pair.
   if (ctx.dmarc_policy === 'missing') {
-    lines.push(factLine(STRONG, 'no DMARC record published on the domain'));
+    lines.push(factLine(STRONG, 'Mail setup: no anti-spoofing policy published for the domain'));
     anchors.push({ label: 'how mail is set up', source: 'dns scan', probe: true });
   } else if (ctx.dmarc_policy === 'none') {
-    lines.push(factLine(STRONG, 'a DMARC record is published but not enforcing (p=none, monitoring only)'));
+    lines.push(factLine(STRONG, 'Mail setup: an anti-spoofing policy is published but only monitoring, not enforcing'));
     anchors.push({ label: 'how mail is set up', source: 'dns scan', probe: true });
   } else if (ctx.dmarc_policy === 'quarantine' || ctx.dmarc_policy === 'reject') {
-    lines.push(factLine(STRONG, `DMARC enforced (p=${ctx.dmarc_policy})`));
+    lines.push(factLine(STRONG, 'Mail setup: anti-spoofing policy enforced'));
     anchors.push({ label: 'how mail is set up', source: 'dns scan', probe: true });
   }
 
@@ -156,7 +156,7 @@ function reconEvidence(session) {
   }
 
   if (ctx.ssl_grade) {
-    lines.push(factLine(STRONG, 'SSL Labs grade', ctx.ssl_grade));
+    lines.push(factLine(STRONG, 'Connection setup', ['A+', 'A', 'A-'].includes(ctx.ssl_grade) ? 'modern, set up well' : 'worth a look'));
     anchors.push({ label: 'how the connection is set up', source: 'ssl scan', probe: true });
   }
 
@@ -309,7 +309,9 @@ export async function buildReadingContext(session) {
   // Reading their own pages IS the identity link — you cannot fetch the wrong company's site.
   const identityConfirmed = pagesRead > 0 || corpus.anyConfirmed || summaryConfirmed;
 
-  const evidenceLines = [...recon.lines, ...inferenceLines];
+  // Probe facts (the outside look) come LAST, under their own header: the mechanism behind
+  // the prose rule below — the model reads the business first, the wiring after (R10).
+  const evidenceLines = [...inferenceLines, ...(recon.lines.length ? ['', 'Background facts from the outside look — never the opener, admissible only when beat 2 turns on them:', ...recon.lines] : [])];
   if (summaryLine && summaryConfirmed) evidenceLines.push(summaryLine);
   evidenceLines.push(...corpus.lines);
   if (!identityConfirmed) {

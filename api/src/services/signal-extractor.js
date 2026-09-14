@@ -89,7 +89,7 @@ export async function scrapePages(firecrawl, baseUrl, log, session_id, { budgetM
         const reason = result.statusCode >= 400 ? plainStatusReason(result.statusCode) : 'came back empty';
         emit(label, { text: `  ↳  ${label} · ${reason}`, type: 'muted' });
         if (session_id) {
-          recordConsumption({ session_id, source: 'firecrawl', units: 1, unit_type: 'credits', success: false, error: 'no content returned' });
+          recordConsumption({ session_id, source: 'firecrawl', units: 1, unit_type: 'credits', success: false, error: result.statusCode >= 400 ? `status ${result.statusCode}` : 'no content returned' });
         }
       }
     } catch (err) {
