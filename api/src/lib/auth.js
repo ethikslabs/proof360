@@ -76,6 +76,32 @@ function bearerToken(header) {
   return match?.[1] || null;
 }
 
+// An access token for our API audience carries no email claim (Auth0 puts it in the ID
+// token); the founder record used to take `payload.email || null` and so every Auth0
+// founder was recorded without an email — which the mailbox door (registered founders
+// only, 14 Sept) would then decline. When the token was granted the `email` scope, ask
+// /userinfo once and remember the answer by sub. A failed lookup is null, never a refusal.
+const userinfoCache = new Map(); // sub → { email, until }
+const USERINFO_TTL_MS = 10 * 60 * 1000;
+export async function resolveEmail({ payload, token, domain, fetchImpl = fetch, now = Date.now }) {
+  if (typeof payload?.email === 'string' && payload.email.trim()) return payload.email.trim().toLowerCase();
+  const scopes = String(payload?.scope || '').split(/\s+/);
+  if (!scopes.includes('email') || !payload?.sub) return null;
+  const hit = userinfoCache.get(payload.sub);
+  if (hit && hit.until > now()) return hit.email;
+  try {
+    const res = await fetchImpl(`https://${domain}/userinfo`, { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return null;
+    const info = await res.json();
+    const email = typeof info?.email === 'string' && info.email.trim() ? info.email.trim().toLowerCase() : null;
+    if (email) userinfoCache.set(payload.sub, { email, until: now() + USERINFO_TTL_MS });
+    return email;
+  } catch {
+    return null;
+  }
+}
+export function _resetUserinfoCacheForTests() { userinfoCache.clear(); }
+
 export async function verifyAccessToken(token) {
   if (verifierOverride) return verifierOverride(token);
 
@@ -88,7 +114,7 @@ export async function verifyAccessToken(token) {
 
   return {
     sub: payload.sub,
-    email: payload.email || null,
+    email: await resolveEmail({ payload, token, domain: config.domain }),
     name: payload.name || payload.nickname || null,
     raw: payload,
   };

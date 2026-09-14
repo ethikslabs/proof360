@@ -736,3 +736,7 @@ flowchart LR
 ## 2026-09-14 — Mailbox door: registered founders only
 
 - John, 14 Sept: "it needs to map to a registered email … otherwise it is a free for all". The poller now checks the forwarder against the founder store (the email Auth0 verified on `founders/<hash>/founder.json`) before anything runs. No record: a warm reply points them to proof360 to do a read and register, then forward again; nothing is looked up, nothing is stored, the mail is filed under "Unregistered". No registry at all means nobody is registered (default-deny). `api/src/services/inbound-check/registry.js`; tests in `forwarded-and-mailbox.test.js` (23 in the inbound suite now).
+
+## 2026-09-14 — Sign-in: the founder record now carries the email
+
+- An Auth0 access token for the API audience carries no email claim, so every founder who signed in was recorded with `email: null`. Invisible until the mailbox door needed the email to recognise a founder: the first live forward (John, 12:26) was declined. `verifyAccessToken` now asks Auth0 `/userinfo` once per sign-in when the token was granted the `email` scope, caches by sub for ten minutes, and never refuses a sign-in on a failed lookup (`api/src/lib/auth.js`; `tests/unit/auth-userinfo-email.test.js`). Cloudflare Access sign-ins already carried the email.
