@@ -11,7 +11,13 @@ import * as meter from '../lib/meter.mjs';
 import { tallyUsage } from './session-usage.js';
 
 const PERPLEXITY_URL = 'https://api.perplexity.ai/chat/completions';
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=`;
+// gemini-2.5-flash was retired for new projects on 14 Sept 2026 (the API answered 404: "no longer
+// available to new users, use gemini-3.6-flash"). Pinned to a versioned id, never a `-latest` alias,
+// so the meter and the trace name the model that actually answered. Priced on the day: $0.75 in /
+// $3.75 out per 1M tokens to 31 Dec 2026, then $1.50 / $7.50 (pricing is PULSUS's plane; noted here
+// only so the next person knows why this id and not 3.5).
+const GEMINI_MODEL = 'gemini-3.6-flash';
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=`;
 const TIMEOUT_MS = 10_000;
 const MIN_CHARS = 400;
 
@@ -66,8 +72,8 @@ async function fetchGemini(query, apiKey) {
     const data = await res.json();
     // Gemini reports usageMetadata (not OpenAI-shaped usage), so pass tokens explicitly.
     const um = data.usageMetadata || {};
-    meter.emit({ provider: 'gemini', model: 'gemini-2.5-flash', in: um.promptTokenCount ?? 0, out: um.candidatesTokenCount ?? 0 });
-    return { ok: true, content: data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null, usage: { in: um.promptTokenCount ?? 0, out: um.candidatesTokenCount ?? 0, model: 'gemini-2.5-flash', provider: 'gemini' } };
+    meter.emit({ provider: 'gemini', model: GEMINI_MODEL, in: um.promptTokenCount ?? 0, out: um.candidatesTokenCount ?? 0 });
+    return { ok: true, content: data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null, usage: { in: um.promptTokenCount ?? 0, out: um.candidatesTokenCount ?? 0, model: GEMINI_MODEL, provider: 'gemini' } };
   } catch {
     clearTimeout(timeout);
     return { ok: false, status: null };
@@ -110,7 +116,7 @@ export async function fetchGeminiResearch(domain, { session_id = null, act = 'ge
   if (!result.ok) return { skip: classifyFailure(result.status) };
   if (!result.content) return { skip: 'no answer', usage: result.usage };
   if (result.content.length < MIN_CHARS) return { skip: 'too thin', usage: result.usage };
-  return { content: result.content.slice(0, 2000), source: 'gemini/2.5-flash', usage: result.usage };
+  return { content: result.content.slice(0, 2000), source: `gemini/${GEMINI_MODEL.replace('gemini-', '')}`, usage: result.usage };
 }
 
 // Thin combiner kept for any caller wanting a single best-answer result

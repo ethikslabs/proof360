@@ -4,6 +4,14 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-09-14 · The second research engine was silently gone; it is back on a current model and a clean key
+
+**Problem.** Every read is meant to ask two research engines, Perplexity and Gemini, so extraction never rests on one witness. The morning's reads showed Gemini answering `engine error (404)`: Google had retired `gemini-2.5-flash` for this project ("no longer available to new users"), and the current models answered 429, "prepayment credits are depleted", on a key whose project could not be found under any account we hold. Reads had been Perplexity-only for some time without anyone noticing, because a skipped engine is narrated honestly and then scrolls past.
+
+**Fix.** A new project and key under the company's own Google account, created from the terminal and restricted to the Gemini API alone; the key rotated in the estate's secret store (SSM) and in the one hand-managed env file that also held the old one. The research engine is pinned to `gemini-3.6-flash` — a versioned id, never a `-latest` alias, so the meter and the trace name the model that actually answered. The trace note reads "gemini · 3.6 flash". No test changed: the engine contract (answer / skip reason / tokens) is the same.
+
+**Why it matters.** Two independent reads of the public web are the point; one is a single witness. And a key nobody can find is a key nobody can revoke.
+
 ## 2026-09-14 · The tokens a read spends are on the trace, on each answer, and on the account
 
 **Problem.** Every provider call proof360 makes is metered into the estate usage ledger (tokens in and out, provider, model, session), but nothing showed a founder what a read cost them. The trace said "13 signals"; the receipt said "no sources retrieved"; the account said nothing. John ruled (13 Sept): *"We pay for now — but we log the cost per call, and show the tokens in the read, and then collapse. Then we can have a token count in the account — so people can see that."* Tokens, not money: proof360 holds no price table; pricing is the cost plane's job.

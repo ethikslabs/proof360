@@ -545,7 +545,7 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
     log({ type: 'act', act: 'perplexity', phase: 'start', title: 'Asking the live web about you', note: 'perplexity · sonar' });
     const perplexityResult = await runResearchAct('perplexity', query, () => fetchPerplexityResearch(domain, { session_id, act: 'perplexity' }), log);
 
-    log({ type: 'act', act: 'gemini', phase: 'start', title: 'A second, independent read', note: 'gemini · 2.5 flash' });
+    log({ type: 'act', act: 'gemini', phase: 'start', title: 'A second, independent read', note: 'gemini · 3.6 flash' });
     const geminiResult = await runResearchAct('gemini', query, () => fetchGeminiResearch(domain, { session_id, act: 'gemini' }), log);
 
     // 5. Perimeter closes out — correlation (step 6) needs it.
