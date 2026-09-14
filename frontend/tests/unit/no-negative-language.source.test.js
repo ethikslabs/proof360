@@ -4,6 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import process from 'node:process';
 
 const DEFICIT = new RegExp([
   String.raw`\b(?:you|you've|you have)\s+(?:don'?t|do not|haven'?t|have not|lack|have no|never|aren'?t|are not|fail|cannot|can'?t|have limited)\b`,
