@@ -740,3 +740,10 @@ flowchart LR
 ## 2026-09-14 — Sign-in: the founder record now carries the email
 
 - An Auth0 access token for the API audience carries no email claim, so every founder who signed in was recorded with `email: null`. Invisible until the mailbox door needed the email to recognise a founder: the first live forward (John, 12:26) was declined. `verifyAccessToken` now asks Auth0 `/userinfo` once per sign-in when the token was granted the `email` scope, caches by sub for ten minutes, and never refuses a sign-in on a failed lookup (`api/src/lib/auth.js`; `tests/unit/auth-userinfo-email.test.js`). Cloudflare Access sign-ins already carried the email.
+
+## 2026-09-14 — Mailbox door: the first real forward, and what it taught
+
+- John forwarded the trigger email from Outlook (12:49). The reply checked John, not the pitch: Outlook wraps `multipart/alternative` inside `multipart/related` when there are inline images, and the parser only looked one level down, so it saw no text at all. Now the MIME tree is walked and HTML is rendered to lines when there is no plain part.
+- The forward was of a reply of the pitch. The parser now descends the chain (forwarded block, then "On … wrote:" quote headers, Outlook `<mailto:>` artefacts and wrapped headers tidied) to the origin sender, and the from row shows the path ("reached us via john@… → johnpcoates@…").
+- RDAP answered 403 to Node but 200 to curl: rdap.org and the registries refuse the default user agent. One header fixed it.
+- Real Outlook forward saved as a fixture (`forwarded-outlook-thread-trigger-1.eml`, addresses replaced) and pinned. 25 inbound tests.

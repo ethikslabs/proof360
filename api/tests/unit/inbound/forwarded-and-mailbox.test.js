@@ -44,6 +44,19 @@ describe('a plain forward: the sender inside the forwarded block is the subject 
     expect(r.evidence.find((e) => e.check === 'from').value).toMatch(/jon@theadambarvcaps\.co/);
   });
 
+  it('an Outlook forward of a reply of a pitch (multipart/related, mailto artefacts, wrapped quote header) resolves to the pitch', async () => {
+    const m = parseEml(fx('forwarded-outlook-thread-trigger-1.eml'));
+    expect(m.forwarded).toBe(true);
+    expect(m.from.address).toBe('jon@theadambarvcaps.co');
+    expect(m.via.map((v) => v.address)).toEqual(['founder@example.com', 'founder.personal@example.com']);
+    expect(m.text).toMatch(/^Happy Sunday/);
+    expect(m.text).not.toMatch(/interested|mailto:/);
+    const r = await runInboundCheck(fx('forwarded-outlook-thread-trigger-1.eml'), deps());
+    expect(r.lines[0]).toMatch(/Jon Rosen at theadambarvcaps\.co/);
+    expect(r.evidence.find((e) => e.check === 'from').value).toMatch(/via founder@example\.com → founder\.personal@example\.com/);
+    expect(r.memory.template_signature).toBe('jon@the*vc*.co');
+  });
+
   it('the original, not forwarded, still reads the envelope', () => {
     const m = parseEml(fx('trigger-1-theadambarvcaps.eml'));
     expect(m.forwarded).toBe(false);

@@ -65,7 +65,7 @@ function senderLine(m, evidence) {
   // link is not an identity claim. They sit beside the sender so the reader can compare.
   const alsoNames = m.bodyDomains.length ? ` The body also names ${m.bodyDomains.join(', ')}.` : '';
   const NOT_SEEN = 'not seen in a forwarded copy';
-  evidence.push({ label: '[DERIVED]', check: 'from', value: `${from.name ? `${from.name} ` : ''}<${from.address}>${m.forwarded ? ` (forwarded to us by ${m.forwardedBy.address})` : ''}` });
+  evidence.push({ label: '[DERIVED]', check: 'from', value: `${from.name ? `${from.name} ` : ''}<${from.address}>${m.forwarded ? ` (reached us via ${(m.via || [m.forwardedBy]).map((v) => v.address).join(' → ')})` : ''}` });
   evidence.push({ label: '[DERIVED]', check: 'reply-to', value: m.headersSeen ? m.replyToDomain || 'same as from' : NOT_SEEN });
   evidence.push({ label: '[DERIVED]', check: 'envelope', value: m.headersSeen ? m.returnPathDomain || 'not present' : NOT_SEEN });
   evidence.push({ label: '[DERIVED]', check: 'signature (DKIM)', value: m.headersSeen ? (m.dkimDomains.length ? m.dkimDomains.join(', ') : 'none') : NOT_SEEN });

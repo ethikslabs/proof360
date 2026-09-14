@@ -43,6 +43,7 @@ export function parseHeaders(head) {
 
 export function parseAddress(value) {
   if (!value) return null;
+  value = String(value).replace(/<mailto:[^>]*>/gi, '');
   const angle = value.match(/^\s*(?:"?([^"<]*)"?\s*)?<([^>]+)>\s*$/);
   let name = '', address = '';
   if (angle) { name = (angle[1] || '').trim(); address = angle[2].trim(); }
@@ -63,23 +64,36 @@ function decodeBody(body, headers) {
   return body;
 }
 
-// Pick the text/plain part of a multipart message; fall back to the body as-is.
-function textPart(body, headers) {
+// Walk the MIME tree (Outlook wraps multipart/alternative inside multipart/related when
+// there are inline images) and return the first text/plain leaf, else the first text/html
+// leaf rendered to lines, else the body as-is.
+function htmlToText(html) {
+  return html
+    .replace(/<\s*(br|\/p|\/div|\/tr|\/li|\/h[1-6])\s*\/?>/gi, '\n')
+    .replace(/<style[\s\S]*?<\/style>|<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+    .replace(/[ \t]+\n/g, '\n');
+}
+function leaves(body, headers, out = []) {
   const ct = headers['content-type']?.[0] || '';
   const b = ct.match(/boundary="?([^";]+)"?/i);
-  if (!b) return decodeBody(body, headers);
+  if (!b) { out.push({ ct, body, headers }); return out; }
   const parts = body.split(new RegExp(`--${b[1].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:--)?\\r?\\n`)).slice(1);
   for (const p of parts) {
     const { head, body: pb } = splitHeadersBody(p);
-    const ph = parseHeaders(head);
-    if (/text\/plain/i.test(ph['content-type']?.[0] || '')) return decodeBody(pb, ph);
+    leaves(pb, parseHeaders(head), out);
   }
-  for (const p of parts) {
-    const { head, body: pb } = splitHeadersBody(p);
-    const ph = parseHeaders(head);
-    if (/text\/html/i.test(ph['content-type']?.[0] || '')) return decodeBody(pb, ph).replace(/<[^>]+>/g, ' ');
-  }
-  return '';
+  return out;
+}
+function textPart(body, headers) {
+  const all = leaves(body, headers);
+  const plain = all.find((l) => /^text\/plain/i.test(l.ct));
+  if (plain) return decodeBody(plain.body, plain.headers);
+  const html = all.find((l) => /^text\/html/i.test(l.ct));
+  if (html) return htmlToText(decodeBody(html.body, html.headers));
+  const first = all[0];
+  return first ? decodeBody(first.body, first.headers) : '';
 }
 
 function domainsIn(text) {
@@ -99,7 +113,43 @@ const FWD_MARKERS = [
   /^Begin forwarded message:\s*$/im,
   /^From:\s.+\r?\nSent:\s.+\r?\nTo:\s.+/im, // Outlook, no dashed marker
 ];
-export function unwrapForward(text) {
+// Gmail/Apple quote header: "On Mon, 14 Sept 2026 at 05:10, Jon Rosen <jon@x.co> wrote:"
+const QUOTE_HEADER = /^On .{6,160}?,\s*(.+?<[^<>]+@[^<>]+>|[\w.+-]+@[\w.-]+\.[a-z]{2,})\s*>*\s*wrote:\s*$/im;
+
+function unwrapOnce(raw) {
+  // Outlook leaves "<mailto:…>" beside every address and wraps long quote headers; tidy both
+  // before looking for the next hop.
+  const text = raw.replace(/<mailto:[^>]*>/gi, '').replace(/^(On .{6,200}?)\n(.{0,100}?wrote:)/m, '$1 $2');
+  const fwd = unwrapForwardBlock(text);
+  const q = text.match(QUOTE_HEADER);
+  // Whichever comes first in the text is the next hop down.
+  if (fwd && (!q || text.indexOf(fwd.marker) <= q.index)) return fwd;
+  if (q) {
+    const from = parseAddress(q[1]);
+    if (!from) return null;
+    const rest = text.slice(q.index + q[0].length).split(/\r?\n/).map((l) => l.replace(/^\s*>\s?/, ''));
+    return { from, date: '', subject: '', text: rest.join('\n').trim(), marker: q[0] };
+  }
+  return null;
+}
+
+// Walk down the chain (forward of a reply of a pitch) to the origin: the deepest sender is
+// who really sent it; every hop above is recorded so the reader can see the path.
+export function unwrapForward(text, { maxDepth = 4 } = {}) {
+  const hops = [];
+  let cur = { text };
+  for (let i = 0; i < maxDepth; i += 1) {
+    const next = unwrapOnce(cur.text);
+    if (!next) break;
+    hops.push(next);
+    cur = next;
+  }
+  if (!hops.length) return null;
+  const origin = hops[hops.length - 1];
+  return { ...origin, via: hops.slice(0, -1).map((h) => h.from) };
+}
+
+function unwrapForwardBlock(text) {
   for (const re of FWD_MARKERS) {
     const m = text.match(re);
     if (!m) continue;
@@ -116,7 +166,7 @@ export function unwrapForward(text) {
     }
     const from = parseAddress(inner.from?.replace(/\s*\[mailto:[^\]]+\]/i, ''));
     if (!from) continue;
-    return { from, date: inner.date || inner.sent || '', subject: inner.subject || '', text: lines.slice(i).join('\n').trim() };
+    return { from, date: inner.date || inner.sent || '', subject: inner.subject || '', text: lines.slice(i).join('\n').trim(), marker: m[0] };
   }
   return null;
 }
@@ -132,11 +182,13 @@ export function parseEml(raw) {
   const authResults = headers['authentication-results']?.[0] || '';
   const rawText = textPart(body, headers);
   // Drop quoted replies: the claims are the sender's, not the founder's own earlier words.
-  let text = rawText.split(/\r?\n/).filter((l) => !/^\s*>/.test(l)).join('\n').replace(/\r/g, '').trim();
-  const fwd = unwrapForward(text);
+  const full = rawText.replace(/\r/g, '').trim();
+  let text = full.split('\n').filter((l) => !/^\s*>/.test(l)).join('\n').trim();
+  const fwd = unwrapForward(full);
   const forwarded = !!(fwd && fwd.from.address !== outerFrom?.address);
   const from = forwarded ? fwd.from : outerFrom;
-  if (forwarded) text = fwd.text;
+  const via = forwarded ? [outerFrom, ...(fwd.via || [])].filter(Boolean) : [];
+  if (forwarded) text = fwd.text.split('\n').filter((l) => !/^\s*>/.test(l)).join('\n').trim();
   // Headers belong to the sender only when the mail came straight from them. In a forwarded
   // copy the envelope, signature, received chain and platform marks are the forwarder's.
   const headersSeen = !forwarded;
@@ -145,7 +197,7 @@ export function parseEml(raw) {
   const bodyDomains = domainsIn(text).filter((d) => d !== from?.domain);
   return {
     headers, from, outerFrom,
-    forwarded, forwardedBy: forwarded ? outerFrom : null, headersSeen,
+    forwarded, forwardedBy: forwarded ? outerFrom : null, via, headersSeen,
     replyTo: headersSeen ? replyTo : null, returnPath: headersSeen ? returnPath : null,
     replyToDomain: headersSeen ? replyTo?.domain || null : null,
     returnPathDomain: headersSeen ? returnPath?.domain || null : null,

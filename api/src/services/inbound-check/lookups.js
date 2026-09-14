@@ -16,7 +16,7 @@ const RDAP_BOOTSTRAP = 'https://rdap.org/domain/';
 // rdap.org redirects to the registry's own RDAP server. A 404 means no service answered
 // for that TLD (true for .co at the time of writing); the check says so rather than guessing.
 export async function rdap(domain, { timeoutMs = 8000 } = {}) {
-  const res = await fetch(RDAP_BOOTSTRAP + encodeURIComponent(domain), { redirect: 'follow', signal: AbortSignal.timeout(timeoutMs), headers: { accept: 'application/rdap+json, application/json' } });
+  const res = await fetch(RDAP_BOOTSTRAP + encodeURIComponent(domain), { redirect: 'follow', signal: AbortSignal.timeout(timeoutMs), headers: { accept: 'application/rdap+json, application/json', 'user-agent': 'proof360-inbound-check/1.0 (+https://proof360.au)' } });
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`rdap ${res.status}`);
   return res.json();
