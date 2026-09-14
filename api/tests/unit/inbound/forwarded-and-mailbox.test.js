@@ -114,6 +114,12 @@ describe('mailbox poller — reads unread mail to the check address, replies in 
     expect(calls.some((c) => /\/messages\/m1\/move$/.test(c.url) && c.body.destinationId === 'f-unregistered')).toBe(true);
   });
 
+  it('the mailbox answers to more than one address: a comma list is accepted', async () => {
+    const g = graph();
+    const out = await pollOnce({ graph: g, address: 'check@ethiks360.com, check@ethikslabs.com', deps: deps(), registry });
+    expect(out.handled).toEqual(['m1']);
+  });
+
   it('no registry at all means nobody is registered (default-deny)', async () => {
     const g = graph();
     const out = await pollOnce({ graph: g, address: 'check@ethikslabs.com', deps: deps() });

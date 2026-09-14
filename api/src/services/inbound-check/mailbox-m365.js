@@ -51,9 +51,12 @@ export function graphClient({ tenantId, clientId, clientSecret, mailbox, fetchIm
   };
 }
 
+// `address` may be one address or a comma-separated list (the mailbox answers to
+// check@ethikslabs.com and check@ethiks360.com).
 function addressedTo(msg, address) {
+  const wanted = String(address).split(',').map((a) => a.trim().toLowerCase()).filter(Boolean);
   const all = [...(msg.toRecipients || []), ...(msg.ccRecipients || [])].map((r) => r.emailAddress?.address?.toLowerCase());
-  return all.includes(address.toLowerCase());
+  return wanted.some((w) => all.includes(w));
 }
 
 // The reply is plain text inside <pre> so the three lines and the table keep their shape in
