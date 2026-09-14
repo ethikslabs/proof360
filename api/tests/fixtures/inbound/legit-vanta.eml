@@ -1,0 +1,18 @@
+Return-Path: <partners@vanta.com>
+Received: from mail.vanta.com (mail.vanta.com [203.0.113.10]) by mx.example.com with ESMTPS id 1; Mon, 14 Sep 2026 09:00:00 +1000
+Authentication-Results: mx.example.com; dkim=pass header.i=@vanta.com; spf=pass smtp.mailfrom=partners@vanta.com; dmarc=pass header.from=vanta.com
+Message-ID: <a1b2c3@vanta.com>
+From: Vanta Partnerships <partners@vanta.com>
+To: founder@example.com
+Subject: Partner programme details
+Date: Mon, 14 Sep 2026 09:00:00 +1000
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Hi,
+
+Following up on the partner programme. Details are on https://www.vanta.com/partners.
+
+Thanks,
+Priya
+Vanta Partnerships

@@ -714,3 +714,11 @@ flowchart LR
 - **Tier 1** keeps its frozen shape and lists no absences. The How-we-read-this receipt adds "N things we looked for and couldn't spot carried none."
 - Why it matters: the 13 Sept walk (lxplatform.io) held on the SOC 2 door and failed on the privacy door ("you don't yet have a published Privacy Policy") because fix 1 was per gap. This is the class. Two independent review rounds before commit; findings and dispositions in John's `_working/2026-09-12-hx-findings-proof360.md`.
 - Not touched, on purpose: gap-kind register triggers (`shortlist.js` reads `g.id`, gap-mapper emits `gap_id`, they have never fired). Law 9 ruling pending.
+
+## 2026-09-14 — Inbound trust check ("Check this"), tea
+
+- New capability, CLI only for now: `cd api && npm run check -- <file.eml>`. Reads a forwarded email and answers three lines (who really sent it; does the sender exist anywhere; does the pitch match the record), then an evidence table with every row labelled `[PUBLIC]` (DNS, RDAP), `[VENDOR]` (search, model) or `[DERIVED]` (worked out from the headers). No score, no verdict word, no "you should". A failed lookup says "couldn't check".
+- Read-only by construction: DNS, RDAP (`rdap.org`), Perplexity search, Bedrock extraction. Never fetches the sender's domain, follows a link, or loads a pixel (`api/src/services/inbound-check/`).
+- Pattern memory: every checked sender is one JSONL row shaped as a CORPUS observation (`~/.ethikslabs/proof360/memory/inbound/senders.jsonl`, `INBOUND_MEMORY_DIR` to override). A second sender from the same domain-generator template reports "1 prior sender matched this template" with the date. That is the finding a single lookup cannot see.
+- Tests: `api/tests/unit/inbound/inbound-check.test.js` (14), fixtures for the real trigger case (recipient sanitised), a legit firm, a display-name mismatch, a conflicting numeric claim; HX rules pinned on the rendered output.
+- Why it matters: founders get the same funnel John grades by reflex; this is the smallest slice of that reflex a customer can run without him in the room. Brief and return brief in John's `_working/_DROP/`.

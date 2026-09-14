@@ -1,0 +1,18 @@
+Return-Path: <sequoia.capital.team@gmail.com>
+Received: from mail-sor-f41.google.com ([209.85.220.41]) by mx.example.com with SMTPS id 2; Mon, 14 Sep 2026 09:10:00 +1000
+Authentication-Results: mx.example.com; dkim=pass header.i=@gmail.com; spf=pass smtp.mailfrom=sequoia.capital.team@gmail.com; dmarc=pass header.from=gmail.com
+Message-ID: <x9y8z7@gmail.com>
+From: Sequoia Capital <sequoia.capital.team@gmail.com>
+Reply-To: intake@sequoia-capital-partners.co
+To: founder@example.com
+Subject: Investment interest
+Date: Mon, 14 Sep 2026 09:10:00 +1000
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Hello,
+
+Our team at Sequoia Capital (sequoiacap.com) would like to discuss a seed round.
+
+Regards,
+Investment Team

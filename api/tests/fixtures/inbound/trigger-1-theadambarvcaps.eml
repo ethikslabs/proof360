@@ -1,0 +1,110 @@
+Delivered-To: founder@example.com
+Received: by 2002:a98:9acb:0:b0:278:ceb3:d8ce with SMTP id q11csp1652543eic;
+        Sun, 13 Sep 2026 12:10:46 -0700 (PDT)
+X-Received: by 2002:a05:622a:1649:b0:531:181:d6b6 with SMTP id d75a77b69052e-5310181d8e5mr32700931cf.37.1789326646257;
+        Sun, 13 Sep 2026 12:10:46 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1789326646; cv=none;
+        d=google.com; s=arc-20260327;
+        b=aBNpNyX283WbvVnRbwOmNUyiOOQSsLORA9WGX0DDsXWu5BiWWVs+ZprIP9NoV45gXm
+         wuAWlDWqyXmhh+hGpzIfbNYU/tS/3WSJAoDG0NnpZSMHt/ZlyEaslNMUFVE850Kj7Zkv
+         F1UXjoJbjcMl/VHQ9YGwrZyys+B/52GTS6+pgMRLHpeduzRtxTVJebx/MNfvc30LTvVG
+         cPWcWJFCsl6T1wBwmi7kXBoLJnYUaVoSKsIj1G6WVWvMNUufCy4yTcMe4j+6qdg8ItkA
+         P4HRevxoI6Gr3l9ptpAK+jf6LZ+OChMnjDCBlu9GLFq6eLky7L+MQEgFwJ6wUKO/4gSq
+         j4DQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=mime-version:date:content-transfer-encoding:subject:to:from
+         :message-id:dkim-signature;
+        bh=bwN63xOrQ0UaGBpdAAUF8rmcui32rA+0YlAu79qztMw=;
+        fh=WsjCtlQW7m2yZ/bN1DNuToVYuSbBsqJTJcUHGqNEsCg=;
+        b=snmoSOrVjz14heBi6O3Iru/fg99QPlTvYdkyFwno0ios3ktQCgUeKVHFQ4siDvpb4W
+         +Mr5VFmlKonzfQir/NOKVwGRYKLSqZUkJ7jWqEWEImHFbTHYtB2/FPVGbXfFWTVhBD7q
+         KRmBVRb+f6KT1PJ2gejaTO/xRup42DOozs7iKeyqLDnHAd9Q2mNwDU2H+zxgMLawrMVK
+         BNK+C4GO3mqBT3tWf5r1dHR1dCDrG72D86ut4j5tM2QlFEZOxLxheDqjzZxORlduWD5Q
+         lBm8RpGssr7hUZciJAqnT/hx5q2t7vHzyxsk/i1fMO8ivp12lrBvF3OlMaj4mCEPbmBN
+         +3eQ==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@theadambarvcaps.co header.s=google header.b="lpm0pF/s";
+       spf=pass (google.com: domain of jon@theadambarvcaps.co designates 209.85.220.41 as permitted sender) smtp.mailfrom=jon@theadambarvcaps.co;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=theadambarvcaps.co;
+       dara=pass header.i=@gmail.com
+Return-Path: <jon@theadambarvcaps.co>
+Received: from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41])
+        by mx.google.com with SMTPS id d75a77b69052e-530ca4adca9sor67234451cf.3.2026.09.13.12.10.45
+        for <founder@example.com>
+        (Google Transport Security);
+        Sun, 13 Sep 2026 12:10:46 -0700 (PDT)
+Received-SPF: pass (google.com: domain of jon@theadambarvcaps.co designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@theadambarvcaps.co header.s=google header.b="lpm0pF/s";
+       spf=pass (google.com: domain of jon@theadambarvcaps.co designates 209.85.220.41 as permitted sender) smtp.mailfrom=jon@theadambarvcaps.co;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=theadambarvcaps.co;
+       dara=pass header.i=@gmail.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=theadambarvcaps.co; s=google; t=1789326645; x=1789931445; dara=google.com;
+        h=content-type:mime-version:date:content-transfer-encoding:subject:to
+         :from:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=bwN63xOrQ0UaGBpdAAUF8rmcui32rA+0YlAu79qztMw=;
+        b=lpm0pF/syfv696g/TdTwkBV8GQ3KMSXJoVrNogHPZPOWyKlHhwlfJ39raq31R7ZTaz
+         qTccuNVCRYCGjPb8UruvM1Dti2cmWK6/SXnjORVPuSWofOrNvJcnYXsQklcj4kg0e6LC
+         yEr43AuYIbJgqOSt/UMeTRppbpaXKKw2rq9v8Gs+UvCWwWp2CQj6KCv/cGITSI4HmFCE
+         c+la922v2Bp5QY4wH0lbtaMuuHHyfEPUSXYfqkMWC1i2Cx2sj6Gp+enj0Fej5989/t2E
+         I3U0oBF+Ypgvoexm88hIpFCDxwpl+AR7SQWAA4BO7V7Gcj1G7/fg3DBgAFWQMeKslH1R
+         KzsQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1789326645; x=1789931445;
+        h=content-type:mime-version:date:content-transfer-encoding:subject:to
+         :from:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=bwN63xOrQ0UaGBpdAAUF8rmcui32rA+0YlAu79qztMw=;
+        b=c0txfCLbxoSnPX7XSk+Wy92o6s3xD6mml7K3AzcZ9CN8I8/h1njzzLcquGFq5FaJwk
+         WzXRC7BKu3ovBk4uww3iWeIEb6r4UBWnotU127vi7zJ6+S+CBdQEYSsh5P+7Cwpcdu21
+         IF4Iv6+HiBx2Z44EoRKXi7y0lLE0D/w14yu1ZJg0mEg2cRa7goT8XQ9JCIZo+qfzsFDn
+         6Ez1jCOVEu+5jQ5fYp87g6oI3XcpRXULMJRUEVsiozB8UFlJsWQtRLpyviXPfZo8ojdD
+         xDY5nbwu0psXsNJ2qsQVNjsU+azp5liFlIkRC4ZQxBQA1xm2/fQir00vV3ionDX24htv
+         ssjg==
+X-Gm-Message-State: AFuF++kHK6596khQywHMy0oRAQkUbsXFA0VEj6TbTl5hN2/oEiFHNsUN
+	67tys8PClIzc4FxmdtXNmFbtn//yasDzv85sI0e4d9Yf59MFAY/qA/r9q5sVU6cbxHu/o+c3MUc
+	GyJGIZhze
+X-Gm-Gg: AYBFou3od7Ef9fXJF8bvYFsMPrKNLyZeP5XURJmYcXySE+zI9sgun/1PSXR+xy5ATWy
+	LHbA4UwztMhFCAKN1G2hhy6FcNpSur5Cn7aPRrHBCMuBhHyM0qFsoepC2VOwzu7YgKT+s5Qc9Bw
+	/J8HFgI2p7Usb2Kk6NfGorhXQz6mhfnfiXjFMEI3HDWQq9xC/r/V02TFto3+HqgkPlssxAq2Aw1
+	g88BQFXhxvpWZQ0vgL7/SZ2IPXd09qnVz8/e7m4j9yfgcBJNPqY+Jxt68TKgsIfbsoCbEZXfnKj
+	Dszdih62XtBiH5bwIqrSYgNARn9q69NBgk4SoEdYEpet+hQT9LcEBfK31ULMQl7lmWcOmm1Qvi6
+	ZqPdsIbpuUIppGwsPjdMrS61IuCcY/PZcmEvo/ygDm986IH99ZrE6qJytV1dzKZXBzwC50dABg2
+	qSi4sLUoFR9vedrMPTAe7POrz804S9w/+NflEaaWHjzhRZ+9RsJjlx44qNAXRJDpqhHbZyZDJD5
+	2tX3jvTMOpS0MpK2fscu5gXp5sgLDgSyYVpukTiSWxsnR5DYS3cy74JLYJFBzlb/LZTSmjm6nkU
+	g3KqjlMCg1WTxMeVmIrh5a0t
+X-Received: by 2002:a05:622a:284:b0:530:fbd1:6078 with SMTP id d75a77b69052e-530fbd16a8amr52171891cf.7.1789326645589;
+        Sun, 13 Sep 2026 12:10:45 -0700 (PDT)
+Return-Path: <jon@theadambarvcaps.co>
+Received: from 01a09c2d-d390-7c9a-a1d1-989694d0922a.local (ec2-32-192-207-148.compute-1.amazonaws.com. [32.192.207.148])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-530ce4ec298sm77322121cf.16.2026.09.13.12.10.44
+        for <founder@example.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 13 Sep 2026 12:10:45 -0700 (PDT)
+Message-ID: <01a09c2d-d390-7c9a-a1d1-989694d0922a@theadambarvcaps.co>
+X-Mail-Abuse-Inquiries:
+ https://app.instantly.ai/privacy/report-abuse/01a09c2d-d390-7c9a-a1d1-989694d0922a
+From: Jon Rosen <jon@theadambarvcaps.co>
+To: founder@example.com
+Subject: details for Sep 14 to 18 tier 1 launch
+Content-Transfer-Encoding: quoted-printable
+Date: Sun, 13 Sep 2026 19:10:44 +0000
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Happy Sunday,
+
+A few spots opened up for the September venture event, =
+alongside teams backed by Accel and Index.
+
+Since you're not a public =
+company yet, thought this was worth flagging.
+
+Mind if I share the RSVP =
+invite? Otherwise reply and I'll clear your info.
+
+Jon
+Atlanta HQ

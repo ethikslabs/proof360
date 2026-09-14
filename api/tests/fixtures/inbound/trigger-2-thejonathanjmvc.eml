@@ -1,0 +1,27 @@
+Return-Path: <jon@thejonathanjmvc.co>
+Received: from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41]) by mx.google.com with SMTPS id abc123 for <founder@example.com>; Sun, 13 Sep 2026 16:35:51 -0700 (PDT)
+Authentication-Results: mx.google.com; dkim=pass header.i=@thejonathanjmvc.co header.s=google; spf=pass smtp.mailfrom=jon@thejonathanjmvc.co; dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=thejonathanjmvc.co
+DKIM-Signature: v=1; a=rsa-sha256; d=thejonathanjmvc.co; s=google; h=from:to:subject;
+Message-ID: <7f1e2a9c-0b1d-4c3e-9a8f-2b3c4d5e6f70@thejonathanjmvc.co>
+X-Mail-Abuse-Inquiries: https://app.instantly.ai/privacy/report-abuse/7f1e2a9c-0b1d-4c3e-9a8f-2b3c4d5e6f70
+From: Jon Herzog <jon@thejonathanjmvc.co>
+To: founder@example.com
+Subject: Re: details for Sep 14 to 18 tier 1 launch
+Date: Sun, 13 Sep 2026 23:35:51 +0000
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+Sure thing:
+
+The Flagship Event is led by Mr. Herzog, Managing Partner, Harvard
+valedictorian, 100M+ founder, Goldman Sachs alum, 373B+ exit to community.
+Trained by Bill Campbell (Steve Jobs).
+
+Here is the Flagship Event referral invite (at no cost) to reserve one of the
+spots by September 15th: https://calendly.com/ceocohort/launch
+
+Founders who leveraged The Protocol include: Larry Ellison (Oracle), Michael
+Dell, Bill Gates.
+
+Best,
+Jon
