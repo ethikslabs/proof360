@@ -148,6 +148,11 @@ jobs:
           TELEGRAM_BOT_TOKEN=$(get_ssm "/proof360/TELEGRAM_BOT_TOKEN")
           TELEGRAM_CHAT_ID=$(get_ssm "/proof360/TELEGRAM_CHAT_ID")
           PERPLEXITY_API_KEY=$(get_ssm "/ethikslabs/perplexity/api-key")
+          M365_TENANT_ID=$(aws ssm get-parameter --region $REGION --name /proof360/m365/tenant-id --with-decryption --query Parameter.Value --output text 2>/dev/null || echo "")
+          M365_CLIENT_ID=$(aws ssm get-parameter --region $REGION --name /proof360/m365/client-id --with-decryption --query Parameter.Value --output text 2>/dev/null || echo "")
+          M365_CLIENT_SECRET=$(aws ssm get-parameter --region $REGION --name /proof360/m365/client-secret --with-decryption --query Parameter.Value --output text 2>/dev/null || echo "")
+          M365_MAILBOX=$(aws ssm get-parameter --region $REGION --name /proof360/m365/mailbox --query Parameter.Value --output text 2>/dev/null || echo "")
+          INBOUND_CHECK_ADDRESS=$(aws ssm get-parameter --region $REGION --name /proof360/m365/check-address --query Parameter.Value --output text 2>/dev/null || echo "")
           GEMINI_API_KEY=$(get_ssm "/ethikslabs/gemini/api-key")
           PG_HOST=$PG_HOST
           PG_PORT=$PG_PORT

@@ -64,13 +64,18 @@ function senderLine(m, evidence) {
   // Domains in the body are named, never counted as a mismatch on their own: a calendly
   // link is not an identity claim. They sit beside the sender so the reader can compare.
   const alsoNames = m.bodyDomains.length ? ` The body also names ${m.bodyDomains.join(', ')}.` : '';
-  evidence.push({ label: '[DERIVED]', check: 'from', value: `${from.name ? `${from.name} ` : ''}<${from.address}>` });
-  evidence.push({ label: '[DERIVED]', check: 'reply-to', value: m.replyToDomain || 'same as from' });
-  evidence.push({ label: '[DERIVED]', check: 'envelope', value: m.returnPathDomain || 'not present' });
-  evidence.push({ label: '[DERIVED]', check: 'signature (DKIM)', value: m.dkimDomains.length ? m.dkimDomains.join(', ') : 'none' });
+  const NOT_SEEN = 'not seen in a forwarded copy';
+  evidence.push({ label: '[DERIVED]', check: 'from', value: `${from.name ? `${from.name} ` : ''}<${from.address}>${m.forwarded ? ` (forwarded to us by ${m.forwardedBy.address})` : ''}` });
+  evidence.push({ label: '[DERIVED]', check: 'reply-to', value: m.headersSeen ? m.replyToDomain || 'same as from' : NOT_SEEN });
+  evidence.push({ label: '[DERIVED]', check: 'envelope', value: m.headersSeen ? m.returnPathDomain || 'not present' : NOT_SEEN });
+  evidence.push({ label: '[DERIVED]', check: 'signature (DKIM)', value: m.headersSeen ? (m.dkimDomains.length ? m.dkimDomains.join(', ') : 'none') : NOT_SEEN });
   evidence.push({ label: '[DERIVED]', check: 'domains named in the body', value: m.bodyDomains.length ? m.bodyDomains.join(', ') : 'none' });
-  evidence.push({ label: '[DERIVED]', check: 'sending platform', value: m.esp ? `${m.esp} (from the headers)` : 'no platform mark in the headers' });
+  evidence.push({ label: '[DERIVED]', check: 'sending platform', value: m.headersSeen ? (m.esp ? `${m.esp} (from the headers)` : 'no platform mark in the headers') : NOT_SEEN });
   const who = `${from.name || from.local} at ${from.domain}`;
+  if (!m.headersSeen) {
+    const tail = mismatches.length ? ` One thing to note: ${mismatches.join('; ')}.` : '';
+    return `Who really sent it: ${who}, as shown in the forwarded copy. The envelope, signature and sending platform were not in what reached us, so we read the address and the body only.${tail}${alsoNames}`;
+  }
   if (!mismatches.length) return `Who really sent it: ${who}. The address, the envelope and the signature agree.${alsoNames || ' The body names no other domain.'}`;
   return `Who really sent it: ${who}, with a mismatch: ${mismatches.join('; ')}.${alsoNames}`;
 }

@@ -171,6 +171,12 @@ if (reaped.reaped || reaped.unreadable) {
 // Start stale session cleanup on 30-second interval
 const staleInterval = setInterval(checkStaleSessions, 30_000);
 
+// Inbound trust check, mailbox door (check@ethikslabs.com): only runs when the M365 env
+// is present on the box; see CONTROL/scripts/inbound-check-m365-setup.sh.
+import('./services/inbound-check/mailbox-m365.js')
+  .then(({ startMailboxPoller }) => import('./services/inbound-check/lookups.js').then(({ liveDeps }) => startMailboxPoller({ deps: liveDeps() })))
+  .catch((err) => console.warn(`[inbound-check] poller not started: ${err.message}`));
+
 app.addHook('onClose', () => {
   clearInterval(staleInterval);
 });

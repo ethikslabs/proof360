@@ -89,10 +89,42 @@ function domainsIn(text) {
   return [...out];
 }
 
+// A plain forward (Gmail "---------- Forwarded message ---------", Outlook "From: … Sent: …")
+// carries the original sender only as text. Find that block, take the inner From, Date and
+// Subject, and keep only the forwarded body. What the block cannot carry (envelope,
+// signature, platform headers) is reported as not seen, never guessed.
+const FWD_MARKERS = [
+  /^-{3,}\s*Forwarded message\s*-{3,}\s*$/im,
+  /^-{3,}\s*Original Message\s*-{3,}\s*$/im,
+  /^Begin forwarded message:\s*$/im,
+  /^From:\s.+\r?\nSent:\s.+\r?\nTo:\s.+/im, // Outlook, no dashed marker
+];
+export function unwrapForward(text) {
+  for (const re of FWD_MARKERS) {
+    const m = text.match(re);
+    if (!m) continue;
+    const start = m.index + (re.source.startsWith('^From') ? 0 : m[0].length);
+    const block = text.slice(start).replace(/^\s+/, '');
+    const inner = {};
+    const lines = block.split(/\r?\n/);
+    let i = 0;
+    for (; i < lines.length; i += 1) {
+      const l = lines[i].replace(/^\*|\*$/g, '');
+      const h = l.match(/^(From|Date|Sent|Subject|To|Cc):\s*(.*)$/i);
+      if (!h) { if (l.trim() === '' && Object.keys(inner).length) break; if (Object.keys(inner).length) break; continue; }
+      inner[h[1].toLowerCase()] = h[2].trim();
+    }
+    const from = parseAddress(inner.from?.replace(/\s*\[mailto:[^\]]+\]/i, ''));
+    if (!from) continue;
+    return { from, date: inner.date || inner.sent || '', subject: inner.subject || '', text: lines.slice(i).join('\n').trim() };
+  }
+  return null;
+}
+
 export function parseEml(raw) {
   const { head, body } = splitHeadersBody(raw);
   const headers = parseHeaders(head);
-  const from = parseAddress(headers.from?.[0]);
+  const outerFrom = parseAddress(headers.from?.[0]);
   const replyTo = parseAddress(headers['reply-to']?.[0]);
   const returnPath = parseAddress(headers['return-path']?.[0]);
   const dkimDomains = (headers['dkim-signature'] || []).map((v) => v.match(/\bd=([^;\s]+)/i)?.[1]?.toLowerCase()).filter(Boolean);
@@ -100,17 +132,27 @@ export function parseEml(raw) {
   const authResults = headers['authentication-results']?.[0] || '';
   const rawText = textPart(body, headers);
   // Drop quoted replies: the claims are the sender's, not the founder's own earlier words.
-  const text = rawText.split(/\r?\n/).filter((l) => !/^\s*>/.test(l)).join('\n').replace(/\r/g, '').trim();
-  const hay = [head, ...receivedHosts, text].join('\n');
+  let text = rawText.split(/\r?\n/).filter((l) => !/^\s*>/.test(l)).join('\n').replace(/\r/g, '').trim();
+  const fwd = unwrapForward(text);
+  const forwarded = !!(fwd && fwd.from.address !== outerFrom?.address);
+  const from = forwarded ? fwd.from : outerFrom;
+  if (forwarded) text = fwd.text;
+  // Headers belong to the sender only when the mail came straight from them. In a forwarded
+  // copy the envelope, signature, received chain and platform marks are the forwarder's.
+  const headersSeen = !forwarded;
+  const hay = headersSeen ? [head, ...receivedHosts, text].join('\n') : text;
   const esp = ESP_MARKS.find(([re]) => re.test(hay))?.[1] || null;
   const bodyDomains = domainsIn(text).filter((d) => d !== from?.domain);
   return {
-    headers, from, replyTo, returnPath,
-    replyToDomain: replyTo?.domain || null,
-    returnPathDomain: returnPath?.domain || null,
-    dkimDomains, receivedHosts, authResults, esp, text, bodyDomains,
-    subject: headers.subject?.[0] || '',
-    date: headers.date?.[0] || '',
+    headers, from, outerFrom,
+    forwarded, forwardedBy: forwarded ? outerFrom : null, headersSeen,
+    replyTo: headersSeen ? replyTo : null, returnPath: headersSeen ? returnPath : null,
+    replyToDomain: headersSeen ? replyTo?.domain || null : null,
+    returnPathDomain: headersSeen ? returnPath?.domain || null : null,
+    dkimDomains: headersSeen ? dkimDomains : [], receivedHosts: headersSeen ? receivedHosts : [], authResults: headersSeen ? authResults : '',
+    esp, text, bodyDomains,
+    subject: forwarded ? fwd.subject || headers.subject?.[0] || '' : headers.subject?.[0] || '',
+    date: forwarded ? fwd.date : headers.date?.[0] || '',
     freemail: from ? FREEMAIL.has(from.domain) : false,
   };
 }
