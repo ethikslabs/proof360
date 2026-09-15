@@ -238,9 +238,19 @@ export function screenCalls(src) {
     // Start ON the opener character, so its own closer brings depth back to 0 (round 3 fix:
     // starting one past it never closed, and captures ran to end of file).
     const i = m.index + m[0].length - 1;
-    let depth = 0, j = i;
+    // Punctuation inside a string, template literal or comment never counts (round 4 hole: an
+    // unmatched paren in a text value dropped the whole call from the sweep).
+    let depth = 0, j = i, quote = null;
     for (; j < src.length; j++) {
       const c = src[j];
+      if (quote) {
+        if (c === '\\') { j++; continue; }
+        if (quote === '//' ? c === '\n' : quote === '/*' ? src.startsWith('*/', j) && (j++, true) : c === quote) quote = null;
+        continue;
+      }
+      if (c === "'" || c === '"' || c === '`') { quote = c; continue; }
+      if (src.startsWith('//', j)) { quote = '//'; j++; continue; }
+      if (src.startsWith('/*', j)) { quote = '/*'; j++; continue; }
       if (isBrace ? c === '{' : c === '(') depth++;
       else if (isBrace ? c === '}' : c === ')') { depth--; if (depth === 0) { j++; break; } }
     }
@@ -267,6 +277,14 @@ describe('no emitter under api/src puts machinery or a raw error on the screen',
     const inner = screenCalls("log({ text: String(x), type: 'err', note: 'hello' });");
     expect(inner.length).toBe(1);
     expect(inner[0].text).toContain("note: 'hello'");
+    // Round 4 hole: a paren or brace inside a string literal must not perturb the depth count.
+    // Before the fix, an unmatched "(" or ")" in a text value dropped the whole call from the sweep,
+    // so a machinery word or raw error beside it was invisible to both checks.
+    const quoted = screenCalls("log({ type: 'err', text: 'unexpected (input from perplexity' });\nlog({ text: 'got a weird value)', type: 'err', note: `${err.message}` });\nlog({ text: \"brace { in a string\", type: 'ok' });");
+    expect(quoted.map((c) => c.line), 'calls with unbalanced punctuation inside strings are still captured').toEqual([1, 2, 3]);
+    expect(quoted[0].text).toContain('perplexity');
+    expect(quoted[1].text).toContain('err.message');
+    expect(quoted[1].text, 'the second capture stops at its own closer').not.toContain('brace');
     // Every appendLog in the two handlers is captured, none runs past its own call.
     for (const f of ['handlers/analyze.js', 'handlers/admin-preread.js']) {
       const text = readFileSync(join(SRC, f), 'utf8');

@@ -159,7 +159,7 @@ function reconEvidence(session) {
     // A fact about the connection, not the vendor's letter and not our verdict.
     const connection = ctx.has_old_tls === true ? 'older encryption versions still enabled'
       : ['A+', 'A', 'A-'].includes(ctx.ssl_grade) ? 'modern encryption, current versions only'
-      : 'encryption below current best practice';
+      : 'encryption on, current versions only, some settings behind the current standard';
     lines.push(factLine(STRONG, 'Connection setup', connection));
     anchors.push({ label: 'how the connection is set up', source: 'ssl scan', probe: true });
   }

@@ -252,6 +252,22 @@ describe('reconEvidence — ABSENCE RULE: a failed DNS lookup must never anchor 
   });
 });
 
+describe('reconEvidence — connection line is a fact about the connection, never a verdict (round 3 claim, pinned round 4)', () => {
+  it('has_old_tls true → "older encryption versions still enabled", whatever the grade', async () => {
+    const session = baseSession({ recon_context: { ssllabs: { ssl_grade: 'B', has_old_tls: true } } });
+    const { prompt, anchors } = await buildReadingContext(session);
+    expect(prompt).toMatch(/\[STRONG\] Connection setup: older encryption versions still enabled/);
+    expect(anchors).toContainEqual({ label: 'how the connection is set up', source: 'ssl scan', probe: true });
+  });
+  it('grade below A with current versions only → states what is on, never "below best practice"', async () => {
+    const session = baseSession({ recon_context: { ssllabs: { ssl_grade: 'B', has_old_tls: false } } });
+    const { prompt } = await buildReadingContext(session);
+    expect(prompt).toMatch(/\[STRONG\] Connection setup: encryption on, current versions only, some settings behind the current standard/);
+    const line = prompt.split('\n').find((l) => /Connection setup:/.test(l));
+    expect(line, 'the connection line itself carries no judgement word').not.toMatch(/best practice|should|below/i);
+  });
+});
+
 describe('buildReadingContext — anchors (deterministic, never from model output)', () => {
   it('emits one anchor per fact-group actually included in the prompt', async () => {
     const { anchors } = await buildReadingContext(baseSession());
