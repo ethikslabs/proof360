@@ -600,6 +600,14 @@
       "added": "2026-09-13",
       "approved_by": "john-coates",
       "boundary": "When a play diff in ~/Projects/ethiks361-apis (base tag sarvesh-f116572) shows how his src/corpus module would call John's CORPUS doors instead of projecting from company-search rows, that diff is the next Trello Dropped card on the John ↔ Sarvesh board, beside the corpus-console DIFF.md card: title, one-line why, link to the patch in the room, blue label. The card is created only on John's word (outward-facing); the diff, never the fork, is the hand-back. Depends on ethiks361-apis having its own SSM paths before it runs."
+    },
+    {
+      "id": "PROOF360-TOPIC-GRID-SG-CELLS-001",
+      "status": "ready",
+      "source": "edge:commercial_signal, 2026-09-16 close (John \"approve suggestions\")",
+      "added": "2026-09-16",
+      "approved_by": "john-coates",
+      "boundary": "Fill Singapore cells of the topic grid before the AU-only MVP ruling starts costing meetings. John ruled 15 Sept that market is a field on every grid cell (gap x buyer type x market) with only AU cells researched for the MVP; the same day's evidence argues SG comes sooner: Insight Assurance (SG auditor, partner master 'Prove it') is in the Vanta office this week and wants a partnership, Unity PAC incorporates SG companies, CORPUS already holds 11 SG government research questions, and the registry witness branch already reads ACRA via data.gov.sg with no key. Work: for the gaps a SG founder actually hits, research the SG cell of each (peer outcome, cost and timeline with sources, who closes it and by which route in SG, which program pays), and mark cells with no SG evidence as unfilled rather than falling back to AU copy. Extends PROOF360-PERSONA-DUAL-001 (AU Pty Ltd + SG Pte Ltd persona), which is the surface this data feeds. Acceptance: a SG-incorporated read cites SG sources and SG programs, never AU ones, and an unfilled SG cell says so."
     }
   ]
 }

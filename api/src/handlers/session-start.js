@@ -92,7 +92,7 @@ async function extractAndInfer(sessionId, { website_url, deck_file, session_id }
       }
     }
 
-    const { signals, sources_read, enterprise_signals, competitor_mentions, recon_context, company_summary, pages_read_count, used_web_research, research_engines } =
+    const { signals, sources_read, enterprise_signals, competitor_mentions, recon_context, company_summary, pages_read_count, used_web_research, research_engines, research_citations } =
       await extractSignals({ website_url, deck_file, session_id }, log);
 
     const reconFlat = extractReconContext(recon_context);
@@ -204,6 +204,7 @@ async function extractAndInfer(sessionId, { website_url, deck_file, session_id }
       company_summary: company_summary || null,
       used_web_research: !!used_web_research,
       research_engines: research_engines || [],
+      research_citations: research_citations || [],
       corpus_hits,
       identity,
     });

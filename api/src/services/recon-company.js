@@ -26,6 +26,29 @@ const MIN_CHARS = 400;
 export const researchQuery = (domain) =>
   `Research the company at ${domain}. Cover: what they build and sell, who their customers are, funding stage and amount raised if known, founding team, and any notable news or partnerships in the last 12 months. Be specific and factual. 200 words max.`;
 
+// What the engine says it read. Sonar returns `search_results` ({url, title, date}) and
+// `citations` (bare urls); both were discarded here until 30 Sept, so no read could show or
+// store the pages behind its research (sweep finding; approved edge suggestion). search_results
+// first because they carry a title and date; bare urls merged after, deduped. Only http(s) is
+// kept, nothing is inferred, and a missing field is an empty list, never an error.
+const MAX_CITATIONS = 10;
+const isWebUrl = (u) => typeof u === 'string' && /^https?:\/\/\S+$/i.test(u.trim());
+
+export function perplexityCitations(data) {
+  const out = [];
+  const seen = new Set();
+  const add = (url, title = null, date = null) => {
+    if (!isWebUrl(url)) return;
+    const u = url.trim();
+    if (seen.has(u) || out.length >= MAX_CITATIONS) return;
+    seen.add(u);
+    out.push({ url: u, title: typeof title === 'string' && title.trim() ? title.trim() : null, date: typeof date === 'string' && date.trim() ? date.trim() : null });
+  };
+  for (const r of Array.isArray(data?.search_results) ? data.search_results : []) add(r?.url, r?.title, r?.date);
+  for (const u of Array.isArray(data?.citations) ? data.citations : []) add(u);
+  return out;
+}
+
 // Internal fetchers return a failure-class shape rather than collapsing straight
 // to null, so the caller below can tell "the engine said no" (rate-limited, error
 // status) apart from "we never heard back" (timeout/network) — a swallowed status
@@ -50,7 +73,7 @@ async function fetchPerplexity(query, apiKey) {
     // Meter the spend even if the content is later judged thin — the tokens were consumed.
     const usage = meter.extractUsage(data);
     meter.emit({ provider: 'perplexity', model: 'sonar', ...usage });
-    return { ok: true, content: data.choices?.[0]?.message?.content?.trim() || null, usage: { in: usage.in ?? usage.tokens?.in ?? 0, out: usage.out ?? usage.tokens?.out ?? 0, model: 'sonar', provider: 'perplexity' } };
+    return { ok: true, content: data.choices?.[0]?.message?.content?.trim() || null, citations: perplexityCitations(data), usage: { in: usage.in ?? usage.tokens?.in ?? 0, out: usage.out ?? usage.tokens?.out ?? 0, model: 'sonar', provider: 'perplexity' } };
   } catch {
     clearTimeout(timeout);
     return { ok: false, status: null };
@@ -109,23 +132,27 @@ function classifyFailure(status) {
 export async function fetchPerplexityResearch(domain, { session_id = null, act = 'perplexity' } = {}) {
   const apiKey = process.env.PERPLEXITY_API_KEY;
   if (!apiKey) return { skip: 'no key' };
+  const fetched_at = new Date().toISOString();
   const result = await fetchPerplexity(researchQuery(domain), apiKey).catch(() => ({ ok: false, status: null }));
   if (result.usage) tallyUsage(session_id, { ...result.usage, act });
   if (!result.ok) return { skip: classifyFailure(result.status) };
   if (!result.content) return { skip: 'no answer', usage: result.usage };
   if (result.content.length < MIN_CHARS) return { skip: 'too thin', usage: result.usage };
-  return { content: result.content.slice(0, 2000), source: 'perplexity/sonar', usage: result.usage };
+  return { content: result.content.slice(0, 2000), source: 'perplexity/sonar', citations: result.citations || [], fetched_at, usage: result.usage };
 }
 
 export async function fetchGeminiResearch(domain, { session_id = null, act = 'gemini' } = {}) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return { skip: 'no key' };
+  const fetched_at = new Date().toISOString();
   const result = await fetchGemini(researchQuery(domain), apiKey).catch(() => ({ ok: false, status: null }));
   if (result.usage) tallyUsage(session_id, { ...result.usage, act });
   if (!result.ok) return { skip: classifyFailure(result.status) };
   if (!result.content) return { skip: 'no answer', usage: result.usage };
   if (result.content.length < MIN_CHARS) return { skip: 'too thin', usage: result.usage };
-  return { content: result.content.slice(0, 2000), source: `gemini/${GEMINI_MODEL.replace('gemini-', '')}`, usage: result.usage };
+  // Called without search grounding (priced per search, unruled — spec §9), so Gemini has no
+  // cited pages to give: an empty list, said plainly, never a guess.
+  return { content: result.content.slice(0, 2000), source: `gemini/${GEMINI_MODEL.replace('gemini-', '')}`, citations: [], fetched_at, usage: result.usage };
 }
 
 // Thin combiner kept for any caller wanting a single best-answer result

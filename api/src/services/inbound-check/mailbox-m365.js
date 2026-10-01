@@ -111,7 +111,13 @@ export async function pollOnce({ graph, address, deps, registry, baseUrl = proce
 // throws is logged and the next one runs. Nothing else in the process depends on it.
 export function startMailboxPoller({ env = process.env, deps, everyMs = 45_000, log = console.log } = {}) {
   const { M365_TENANT_ID, M365_CLIENT_ID, M365_CLIENT_SECRET, M365_MAILBOX, INBOUND_CHECK_ADDRESS } = env;
-  if (!(M365_TENANT_ID && M365_CLIENT_ID && M365_CLIENT_SECRET && M365_MAILBOX && INBOUND_CHECK_ADDRESS)) return null;
+  const missing = Object.entries({ M365_TENANT_ID, M365_CLIENT_ID, M365_CLIENT_SECRET, M365_MAILBOX, INBOUND_CHECK_ADDRESS })
+    .filter(([, value]) => !value).map(([name]) => name);
+  if (missing.length) {
+    // Say so: a silent return here means a forwarded check sits unread with nothing pointing at why.
+    log(`[inbound-check] disabled — missing ${missing.join(', ')}`);
+    return null;
+  }
   const graph = graphClient({ tenantId: M365_TENANT_ID, clientId: M365_CLIENT_ID, clientSecret: M365_CLIENT_SECRET, mailbox: M365_MAILBOX });
   let busy = false;
   const tick = async () => {
