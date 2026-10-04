@@ -124,3 +124,41 @@ export async function assertPublicHost(hostname, { resolver = lookupAll } = {}) 
   }
   return addresses;
 }
+
+/** Hostname from a bare host or a full URL; null if unparseable. */
+export function hostnameOf(urlOrHost) {
+  if (typeof urlOrHost !== 'string' || !urlOrHost.trim()) return null;
+  const s = urlOrHost.trim();
+  try {
+    return new URL(s.startsWith('http') ? s : `https://${s}`).hostname;
+  } catch {
+    return s.replace(/^\[|\]$/g, '') || null;
+  }
+}
+
+/**
+ * SYNCHRONOUS, no DNS: is the target an obviously-private literal we should refuse up
+ * front? A literal private/metadata IP (169.254.169.254, 127.0.0.1, 10.x…) or localhost.
+ * Used at the unauthenticated entry point for an immediate refusal that never does a DNS
+ * lookup — so it can never wrongly refuse a real site on a transient DNS blip. The deeper
+ * resolve-to-private check (DNS rebinding) is assertPublicUrl, run before the paid scrape.
+ */
+export function isObviouslyPrivateHost(urlOrHost) {
+  const host = hostnameOf(urlOrHost);
+  if (!host) return false;
+  const h = host.toLowerCase().replace(/^\[|\]$/g, '');
+  if (BLOCKED_HOSTNAMES.has(h) || h.endsWith('.localhost')) return true;
+  const looksLikeIp = /^[0-9.]+$/.test(h) || h.includes(':');
+  return looksLikeIp && isBlockedIp(h);
+}
+
+/**
+ * Full public-host assertion for a URL or host: resolves and fails closed for private,
+ * metadata, loopback, link-local or unresolvable targets. Throws SsrfBlockedError.
+ * Run before handing a founder-supplied URL to the paid scraper (Firecrawl).
+ */
+export async function assertPublicUrl(urlOrHost, opts = {}) {
+  const host = hostnameOf(urlOrHost);
+  if (!host) throw new SsrfBlockedError('unparseable target');
+  return assertPublicHost(host, opts);
+}

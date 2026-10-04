@@ -1,5 +1,8 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import rateLimit from '@fastify/rate-limit';
+import { corsOptions } from './lib/cors-config.js';
+import { perIpRateLimit, createGlobalCap } from './lib/rate-limit.js';
 import { checkStaleSessions, flushSessionsNow, reapOrphanedSessions } from './services/session-store.js';
 import { sessionStartHandler } from './handlers/session-start.js';
 import { firehoseHandler } from './handlers/firehose.js';
@@ -52,14 +55,30 @@ import {
 const PORT = parseInt(process.env.PORT || '3002', 10);
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
 
-const app = Fastify({ logger: { level: LOG_LEVEL } });
+// Per-IP rate-limit options for the paid, unauthenticated routes.
+const paid = { config: { rateLimit: perIpRateLimit() } };
 
-await app.register(cors, { origin: true });
+/**
+ * Build the Fastify app with all routes, CORS allowlist and rate limits registered,
+ * but WITHOUT starting the server or any background work (pollers, intervals). Importable
+ * for tests via app.inject(). The listen + startup side-effects live in start().
+ */
+export async function buildApp({ logger } = {}) {
+  // trustProxy: client IPs come from the Cloudflare → nginx forwarded headers, so the
+  // per-IP rate limiter keys on the real caller, not the proxy. (fastify >=5.12.5 also
+  // closes the X-Forwarded-Proto/Host spoofing advisory, GHSA-444r-cwp2-x5xf.)
+  const app = Fastify({ trustProxy: true, logger: logger ?? { level: LOG_LEVEL } });
+
+  await app.register(cors, corsOptions());
+  // global:false — the limiter only applies where a route opts in via config.rateLimit.
+  await app.register(rateLimit, { global: false });
+  // Whole-service ceiling across ALL IPs, enforced in onRequest before any handler body.
+  app.addHook('onRequest', createGlobalCap());
 
 // --- Phase 1: Cold read ---
-app.post('/api/v1/session/start', sessionStartHandler);
+app.post('/api/v1/session/start', paid, sessionStartHandler);
 // The firehose: cold read from nothing — the founder just talks (ETHL 2026-08-23)
-app.post('/api/v1/firehose', firehoseHandler);
+app.post('/api/v1/firehose', paid, firehoseHandler);
 app.get('/api/v1/session/:id/log', sessionLogHandler);
 app.get('/api/v1/session/:id/infer-status', inferStatusHandler);
 app.get('/api/v1/session/:id/inferences', inferencesHandler);
@@ -80,7 +99,7 @@ app.post('/api/v1/session/:id/shortlist', shortlistAddHandler);
 
 // Live persona follow-up chips (2026-08-25): one Bedrock call over the Record snapshot,
 // three record-grounded questions, one per persona. Honest empty on failure — never canned.
-app.get('/api/v1/session/:id/followups', sessionFollowupsHandler);
+app.get('/api/v1/session/:id/followups', paid, sessionFollowupsHandler);
 
 // --- Phase 2: Follow-up ---
 app.get('/api/v1/session/:id/followup-questions', followupQuestionsHandler);
@@ -102,13 +121,13 @@ app.post('/api/v1/session/:id/publish', publishHandler);
 app.post('/api/v1/session/:id/engage', engageHandler);
 
 // --- Persona chat ---
-app.post('/api/v1/chat', chatHandler);
+app.post('/api/v1/chat', paid, chatHandler);
 
 // --- Gap analysis (called after infer-status complete) ---
-app.post('/api/v1/session/:id/analyze', analyzeHandler);
+app.post('/api/v1/session/:id/analyze', paid, analyzeHandler);
 
 // --- Session-keyed chat (intent classification, server-side history) ---
-app.post('/api/v1/session/:id/chat', sessionChatHandler);
+app.post('/api/v1/session/:id/chat', paid, sessionChatHandler);
 app.get('/api/v1/session/:id/chat/history', sessionChatHistoryHandler);
 
 // --- Founder memory kernel (private, Auth0-verified, file-backed) ---
@@ -157,46 +176,60 @@ app.get('/api/features', featuresHandler);
 app.post('/api/admin/preread', adminPrereadHandler);
 app.get('/api/admin/preread/:batch_id', adminPrereadStatusHandler);
 
-// Fail anything the last process was still working on when it was replaced.
-// checkStaleSessions below cannot do this: it walks the in-memory Map, which a
-// fresh process starts empty, so the sessions a restart just orphaned are
-// invisible to it. Runs BEFORE listen() — a poll arriving mid-reap would read
-// 'processing' and start another 150-second wait for work that no longer exists.
-const reaped = reapOrphanedSessions();
-if (reaped.reaped || reaped.unreadable) {
-  app.log.warn(`reaped ${reaped.reaped} session(s) orphaned by the last restart` +
-    (reaped.unreadable ? `, ${reaped.unreadable} unreadable` : ''));
+  return app;
 }
 
-// Start stale session cleanup on 30-second interval
-const staleInterval = setInterval(checkStaleSessions, 30_000);
+/** Start the server and the background work. Only runs when this file is the entry point. */
+async function start() {
+  const app = await buildApp();
 
-// Inbound trust check, mailbox door (check@ethikslabs.com): only runs when the M365 env
-// is present on the box; see CONTROL/scripts/inbound-check-m365-setup.sh.
-import('./services/inbound-check/mailbox-m365.js')
-  .then(({ startMailboxPoller }) => import('./services/inbound-check/lookups.js').then(({ liveDeps }) => startMailboxPoller({ deps: liveDeps() })))
-  .catch((err) => console.warn(`[inbound-check] poller not started: ${err.message}`));
-
-app.addHook('onClose', () => {
-  clearInterval(staleInterval);
-});
-
-app.listen({ port: PORT, host: '0.0.0.0' }, (err) => {
-  if (err) {
-    app.log.error(err);
-    process.exit(1);
+  // Fail anything the last process was still working on when it was replaced.
+  // checkStaleSessions below cannot do this: it walks the in-memory Map, which a
+  // fresh process starts empty, so the sessions a restart just orphaned are
+  // invisible to it. Runs BEFORE listen() — a poll arriving mid-reap would read
+  // 'processing' and start another 150-second wait for work that no longer exists.
+  const reaped = reapOrphanedSessions();
+  if (reaped.reaped || reaped.unreadable) {
+    app.log.warn(`reaped ${reaped.reaped} session(s) orphaned by the last restart` +
+      (reaped.unreadable ? `, ${reaped.unreadable} unreadable` : ''));
   }
-  app.log.info(`Proof360 API listening on port ${PORT}`);
-});
 
-// Graceful shutdown — lets PM2 SIGTERM drain in-flight requests before
-// the new process starts, preventing EADDRINUSE on rapid restarts.
-process.on('SIGTERM', () => {
-  // Flush any coalesced session writes first — a PM2 restart must never lose
-  // the last few seconds of a founder's twin (write-through is 250ms-coalesced).
-  flushSessionsNow()
-    .catch(() => {})
-    .then(() => app.close())
-    .then(() => process.exit(0))
-    .catch(() => process.exit(1));
-});
+  // Start stale session cleanup on 30-second interval
+  const staleInterval = setInterval(checkStaleSessions, 30_000);
+
+  // Inbound trust check, mailbox door (check@ethikslabs.com): only runs when the M365 env
+  // is present on the box; see CONTROL/scripts/inbound-check-m365-setup.sh.
+  import('./services/inbound-check/mailbox-m365.js')
+    .then(({ startMailboxPoller }) => import('./services/inbound-check/lookups.js').then(({ liveDeps }) => startMailboxPoller({ deps: liveDeps() })))
+    .catch((err) => console.warn(`[inbound-check] poller not started: ${err.message}`));
+
+  app.addHook('onClose', () => {
+    clearInterval(staleInterval);
+  });
+
+  app.listen({ port: PORT, host: '0.0.0.0' }, (err) => {
+    if (err) {
+      app.log.error(err);
+      process.exit(1);
+    }
+    app.log.info(`Proof360 API listening on port ${PORT}`);
+  });
+
+  // Graceful shutdown — lets PM2 SIGTERM drain in-flight requests before
+  // the new process starts, preventing EADDRINUSE on rapid restarts.
+  process.on('SIGTERM', () => {
+    // Flush any coalesced session writes first — a PM2 restart must never lose
+    // the last few seconds of a founder's twin (write-through is 250ms-coalesced).
+    flushSessionsNow()
+      .catch(() => {})
+      .then(() => app.close())
+      .then(() => process.exit(0))
+      .catch(() => process.exit(1));
+  });
+}
+
+// Run only when invoked directly (node src/server.js), not when imported by tests.
+const invokedDirectly = process.argv[1] && import.meta.url === `file://${process.argv[1]}`;
+if (invokedDirectly) {
+  await start();
+}

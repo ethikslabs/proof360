@@ -60,6 +60,16 @@ vi.mock('../../src/services/domain-preflight.js', () => ({
   preflight: vi.fn(async () => ({ exists: true, suggestions: [] })),
 }));
 
+// extractSignals now asserts the scrape target is a public host (SSRF guard) before any
+// paid call — a real DNS lookup, like the door check above. acme.example never resolves,
+// so stub assertPublicUrl to pass here, at the same boundary as every other external.
+// SsrfBlockedError stays real so the guard's own catch path is unchanged. The guard's
+// behaviour is covered in ssrf-url.test.js.
+vi.mock('../../src/services/ssrf-guard.js', async (importOriginal) => {
+  const real = await importOriginal();
+  return { ...real, assertPublicUrl: vi.fn(async () => ['203.0.113.1']) };
+});
+
 vi.mock('../../src/services/gap-mapper.js', () => ({
   runGapAnalysis: vi.fn(async () => ({ gaps: [], trust_score: 80, readiness: 'ready', vendors: [] })),
 }));

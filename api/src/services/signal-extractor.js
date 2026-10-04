@@ -5,6 +5,7 @@ import FirecrawlApp from '@mendable/firecrawl-js';
 import { ENTERPRISE_SIGNALS_SCHEMA } from '../config/gaps.js';
 import { chatComplete } from '../lib/inference.js';
 import { runReconPipeline } from './recon-pipeline.js';
+import { assertPublicUrl, SsrfBlockedError } from './ssrf-guard.js';
 import { researchQuery, fetchPerplexityResearch, fetchGeminiResearch } from './recon-company.js';
 import { record as recordConsumption } from './consumption-emitter.js';
 import { resolve as resolveModel } from '../lib/model-resolver.mjs';
@@ -487,8 +488,25 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
     try { domain = new URL(baseUrl).hostname.replace('www.', ''); } catch {}
     const companyName = domain.split('.')[0].replace(/[-_]/g, ' ');
 
+    // SSRF: the founder-supplied host must be provably public before any paid call
+    // (Firecrawl scrape, recon, research, Bedrock). Fails closed for private/metadata/
+    // loopback and unresolvable hosts. We DON'T hard-fail on a block — a real site with a
+    // transient DNS blip shouldn't error out (the domain-preflight fail-open philosophy,
+    // John 2026-09-02) — we degrade to a perimeter-only read that spends nothing, which is
+    // also the honest, cost-free answer to an SSRF probe. (The handler already 400s an
+    // obviously-private literal; this catches a host that RESOLVES to a private address.)
+    try {
+      await assertPublicUrl(baseUrl);
+    } catch (err) {
+      if (err instanceof SsrfBlockedError) {
+        log({ act: 'site', type: 'act_body', text: 'Could not reach a readable public site', color: 'err' });
+        return fallbackSignals(website_url, deck_file);
+      }
+      throw err;
+    }
+
     const firecrawl = new FirecrawlApp({
-      apiKey: process.env.FIRECRAWL_API_KEY || 'self-hosted',
+      apiKey: process.env.FIRECRAWL_API_KEY,
       apiUrl: process.env.FIRECRAWL_API_URL || undefined,
     });
 

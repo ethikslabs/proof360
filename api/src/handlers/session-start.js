@@ -9,6 +9,7 @@ import { corpusQueryFor } from '../services/cold-reading.js';
 import { extractPositionSignals } from '../services/position-signals.js';
 import { resolveSessionIdentity } from '../services/holding-identity.js';
 import { preflight } from '../services/domain-preflight.js';
+import { isObviouslyPrivateHost } from '../services/ssrf-guard.js';
 import { query } from '../db/pool.js';
 
 const RECON_SOURCES = ['dns', 'http', 'certs', 'ip', 'github', 'jobs', 'hibp', 'ports', 'ssllabs', 'abuseipdb'];
@@ -20,6 +21,16 @@ export async function sessionStartHandler(request, reply) {
     return reply.status(400).send({
       error: 'Provide a website_url or deck_file',
       code: 'INVALID_INPUT',
+    });
+  }
+
+  // Refuse an obviously-private target before spending anything (no session row, no DNS).
+  // A literal metadata/loopback/RFC1918 IP or localhost is never a founder's real site —
+  // it's an SSRF probe. The deeper resolve-to-private check runs before the paid scrape.
+  if (website_url && isObviouslyPrivateHost(website_url)) {
+    return reply.status(400).send({
+      error: 'That address is not reachable.',
+      code: 'BLOCKED_TARGET',
     });
   }
 
