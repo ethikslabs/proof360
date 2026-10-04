@@ -95,7 +95,7 @@ async function generatePKCE() {
 }
 
 /* ─── Telegram preview modal ─────────────────────────────────────────────── */
-function TelegramPreviewModal({ initialMessage, currentUser, onClose }) {
+function TelegramPreviewModal({ initialMessage, currentUser, turnstileToken, onClose }) {
   const [msg, setMsg] = useState(initialMessage);
   const [status, setStatus] = useState('idle'); // idle | sending | sent | error
 
@@ -110,6 +110,7 @@ function TelegramPreviewModal({ initialMessage, currentUser, onClose }) {
           name:  currentUser?.name  || null,
           email: currentUser?.email || null,
           context: 'proof360 chat',
+          turnstileToken,
         }),
       });
       setStatus(res.ok ? 'sent' : 'error');
@@ -160,7 +161,7 @@ function TelegramPreviewModal({ initialMessage, currentUser, onClose }) {
               }}
             />
             {status === 'error' && (
-              <div style={{ fontSize: 12, color: '#dc2626', marginTop: 8 }}>Something went wrong — try again.</div>
+              <div style={{ fontSize: 12, color: '#dc2626', marginTop: 8 }}>Not sent — please try again.</div>
             )}
             <div style={{ display: 'flex', gap: 10, marginTop: 16, justifyContent: 'flex-end' }}>
               <button onClick={onClose} style={{
@@ -3444,6 +3445,7 @@ export default function Chat() {
       {telegramOpen && (
         <TelegramPreviewModal
           currentUser={currentUser}
+          turnstileToken={turnstileToken}
           initialMessage={
             companyData?.company_name
               ? `Hi John — I'm looking at ${companyData.company_name} on proof360 and have a few questions. Can we connect?`

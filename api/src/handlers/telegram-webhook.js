@@ -1,7 +1,28 @@
-import { getSessionForMessage, getTelegramFileUrl } from '../services/john-relay.js';
+import { timingSafeEqual } from 'node:crypto';
+import { getSessionForMessage } from '../services/john-relay.js';
 import { getSession, persistSession } from '../services/session-store.js';
 
+// Default-deny: this webhook writes a message ATTRIBUTED TO JOHN into a founder's
+// session, so the gate is a positive condition. Telegram echoes the secret set at
+// setWebhook time in the X-Telegram-Bot-Api-Secret-Token header; we require it to match
+// /proof360/TELEGRAM_WEBHOOK_SECRET. No secret configured → reject (fail closed), never
+// run unauthenticated.
+function secretMatches(request) {
+  const configured = process.env.TELEGRAM_WEBHOOK_SECRET;
+  if (!configured) return false;
+  const provided = request.headers?.['x-telegram-bot-api-secret-token'];
+  if (typeof provided !== 'string') return false;
+  const a = Buffer.from(provided);
+  const b = Buffer.from(configured);
+  if (a.length !== b.length) return false; // length differs → mismatch (constant-time over equal length)
+  return timingSafeEqual(a, b);
+}
+
 export async function telegramWebhookHandler(request, reply) {
+  if (!secretMatches(request)) {
+    return reply.status(401).send({ error: 'unauthorized' });
+  }
+
   const msg = request.body?.message;
   if (!msg) return reply.send({ ok: true });
 
@@ -15,21 +36,23 @@ export async function telegramWebhookHandler(request, reply) {
   const session = getSession(sessionId);
   if (!session) return reply.send({ ok: true });
 
+  // Store the Telegram file_id, NOT a URL — a getFile URL embeds the bot token. Photos
+  // are served later through the john-photo proxy, which resolves the token server-side.
   const johnMsg = {
     id:      msg.message_id,
     ts:      Date.now(),
     type:    'text',
     content: msg.text || msg.caption || '',
-    url:     null,
+    file_id: null,
   };
 
   if (msg.photo) {
     const largest = msg.photo[msg.photo.length - 1];
     johnMsg.type = 'image';
-    johnMsg.url  = await getTelegramFileUrl(largest.file_id);
+    johnMsg.file_id = largest.file_id;
   } else if (msg.video || msg.video_note) {
     johnMsg.type = 'video';
-    johnMsg.url  = await getTelegramFileUrl((msg.video || msg.video_note).file_id);
+    johnMsg.file_id = (msg.video || msg.video_note).file_id;
   }
 
   if (!session.john_messages) session.john_messages = [];

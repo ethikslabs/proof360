@@ -38,5 +38,9 @@ export async function demoAuth(request) {
 // Pure, testable selection of the journey route's auth gate. Fail-closed: ONLY the exact
 // string 'true' enables the no-token demo gate; anything else uses real auth (requireAuth).
 export function selectJourneyGate(env = process.env) {
-  return env.DEMO_FOUNDER_MODE === 'true' ? demoAuth : requireAuth;
+  // DEMO_FOUNDER_MODE opens a no-token gate for the seeded demo founder. It is IGNORED in
+  // production — a stray SSM/env value must never swap requireAuth for the demo stand-in
+  // on the live site. Non-prod only.
+  const demoOn = env.DEMO_FOUNDER_MODE === 'true' && env.NODE_ENV !== 'production';
+  return demoOn ? demoAuth : requireAuth;
 }

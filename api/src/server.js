@@ -24,6 +24,7 @@ import { publishHandler } from './handlers/publish.js';
 import { engageHandler } from './handlers/engage.js';
 import { telegramWebhookHandler } from './handlers/telegram-webhook.js';
 import { johnMessagesHandler } from './handlers/john-messages.js';
+import { johnPhotoHandler } from './handlers/john-photo.js';
 import { corpusStatsHandler } from './handlers/corpus-stats.js';
 import { advisoryRegistersHandler } from './handlers/advisory.js';
 import { notifyHandler } from './handlers/notify.js';
@@ -74,6 +75,18 @@ export async function buildApp({ logger } = {}) {
   await app.register(rateLimit, { global: false });
   // Whole-service ceiling across ALL IPs, enforced in onRequest before any handler body.
   app.addHook('onRequest', createGlobalCap());
+
+  // Errors: 5xx return a generic body with a request id and the detail is logged
+  // server-side — a DB failure must never hand an anonymous caller the host/port or a
+  // stack. 4xx (validation etc.) keep their message so the client can correct the input.
+  app.setErrorHandler((error, request, reply) => {
+    const sc = Number(error.statusCode);
+    if (Number.isInteger(sc) && sc >= 400 && sc < 500) {
+      return reply.status(sc).send({ error: error.message, code: error.code });
+    }
+    request.log.error({ err: error, reqId: request.id }, 'unhandled_error');
+    return reply.status(500).send({ error: 'internal_error', requestId: request.id });
+  });
 
 // --- Phase 1: Cold read ---
 app.post('/api/v1/session/start', paid, sessionStartHandler);
@@ -161,7 +174,10 @@ app.post('/api/v1/turnstile/verify', createTurnstileVerifyHandler());
 // --- John relay ---
 app.post('/api/telegram/webhook', telegramWebhookHandler);
 app.get('/api/v1/session/:id/john-messages', johnMessagesHandler);
-app.post('/api/v1/notify', notifyHandler);
+// Server-side proxy so John's Telegram photo replies never expose the bot-token URL.
+app.get('/api/v1/session/:id/john-photo/:fileId', johnPhotoHandler);
+// Message-John is unauthenticated and pushes to Telegram — rate-limited + Turnstile-gated.
+app.post('/api/v1/notify', paid, notifyHandler);
 
 // --- CORPUS ---
 app.get('/api/v1/corpus/stats', corpusStatsHandler);

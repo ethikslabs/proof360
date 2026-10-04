@@ -58,7 +58,8 @@ function gapFrom(cer) {
 // Shared gate + projection for every partner-window route. Returns null when the caller
 // must be 404'd (demo mode off, or a partner id that owns no route).
 async function demoContext(partner) {
-  if (process.env.DEMO_FOUNDER_MODE !== 'true') return null;
+  // Demo-only, and never in production — the flag can't open the partner window live.
+  if (process.env.DEMO_FOUNDER_MODE !== 'true' || process.env.NODE_ENV === 'production') return null;
   const knownPartners = new Set(Object.values(CER_ROUTES).map((r) => r.partner));
   if (!knownPartners.has(partner)) return null;
   const founder = await getOrCreateFounder({ sub: DEMO_SUB });
