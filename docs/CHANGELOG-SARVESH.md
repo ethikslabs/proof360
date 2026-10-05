@@ -4,6 +4,14 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-10-05 · Hotfix: the API came back up — the N1 refactor stopped it binding its port under pm2
+
+**Problem.** The N1 security pass (below) refactored `server.js` so the app could be imported by tests without starting a server: `app.listen` moved out of the top level into a `start()` function, called only when the file "is run directly". The directly-run check was `import.meta.url === \`file://${process.argv[1]}\``. That holds for `node src/server.js`, but pm2 (how the API runs in production) does not exec the script directly — in fork mode it launches its own container process and imports the script as a module, so `process.argv[1]` points at the pm2 wrapper, not `server.js`. The check was false, `start()` never ran, and nothing ever bound port 3002. The process looked healthy — pm2 reported it online with zero restarts and empty logs — because pm2's container keeps it alive; it simply never became a server. Every `/api/*` call returned 502 behind nginx.
+
+**Fix.** A small `src/lib/is-entrypoint.js` decides "am I the entry point?" correctly for all three launch modes. pm2 exposes the real script path in `process.env.pm_exec_path`, so the check prefers that, falls back to `process.argv[1]` for a bare `node` run, and compares with `pathToFileURL(...).href` rather than hand-building the `file://` string. A test runner sets neither to this module, so importing `buildApp` in a test still does not boot a server. Five unit tests (`is-entrypoint.test.js`) pin each mode: node-direct, pm2-fork, test-import, no-entry-info (fails closed), and pm_exec_path-wins.
+
+**Why it matters.** The listen path is now covered by a test that reproduces the pm2 launch shape, so a refactor can't silently stop the server binding its port again. N1–N3 stay exactly as shipped; only the entry-point guard changed.
+
 ## 2026-10-05 · The public app's open doors closed: anonymous spend capped, side doors shut, broken logins fixed (security pass N1–N3)
 
 **Problem.** proof360.au is public and holds no real data, so the live risk was never a data breach — it was anonymous abuse of the doors that cost money or leaked secrets, plus a few doors that simply did not work. Three classes, walked in order:

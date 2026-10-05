@@ -3,6 +3,7 @@ import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import { corsOptions } from './lib/cors-config.js';
 import { perIpRateLimit, createGlobalCap } from './lib/rate-limit.js';
+import { isEntrypoint } from './lib/is-entrypoint.js';
 import { checkStaleSessions, flushSessionsNow, reapOrphanedSessions } from './services/session-store.js';
 import { sessionStartHandler } from './handlers/session-start.js';
 import { firehoseHandler } from './handlers/firehose.js';
@@ -244,8 +245,10 @@ async function start() {
   });
 }
 
-// Run only when invoked directly (node src/server.js), not when imported by tests.
-const invokedDirectly = process.argv[1] && import.meta.url === `file://${process.argv[1]}`;
-if (invokedDirectly) {
+// Run only when this file is the process entry point (node src/server.js, OR pm2 which
+// sets process.env.pm_exec_path) — never when a test imports buildApp. See is-entrypoint.js:
+// the old `file://${process.argv[1]}` guard was false under pm2 fork mode, so listen never
+// ran and the API was online-but-dead (2026-10-05 prod outage).
+if (isEntrypoint(import.meta.url)) {
   await start();
 }
