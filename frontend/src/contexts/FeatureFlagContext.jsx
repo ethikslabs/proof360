@@ -31,10 +31,14 @@ export const SAFE_DEFAULTS = { // eslint-disable-line react-refresh/only-export-
   },
 };
 
-const FeatureFlagContext = createContext(SAFE_DEFAULTS);
+// `loaded` is false until the /api/features fetch settles (resolve OR reject). Consumers
+// that gate on a flag being false — e.g. AdminPreread's redirect — must wait for `loaded`,
+// or they act on SAFE_DEFAULTS and redirect before the API can say the feature is on.
+const FeatureFlagContext = createContext({ ...SAFE_DEFAULTS, loaded: false });
 
 export function FeatureFlagProvider({ children }) {
   const [features, setFeatures] = useState(SAFE_DEFAULTS);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -44,12 +48,15 @@ export function FeatureFlagProvider({ children }) {
       })
       .catch(() => {
         // Fetch failed — keep safe defaults (already set as initial state)
+      })
+      .finally(() => {
+        if (!cancelled) setLoaded(true);
       });
     return () => { cancelled = true; };
   }, []);
 
   return (
-    <FeatureFlagContext.Provider value={features}>
+    <FeatureFlagContext.Provider value={{ ...features, loaded }}>
       {children}
     </FeatureFlagContext.Provider>
   );

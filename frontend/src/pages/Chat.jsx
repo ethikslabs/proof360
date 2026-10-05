@@ -2291,7 +2291,7 @@ export default function Chat() {
             domain,
             stage: err?.message ?? String(err),
             elapsed_ms: elapsedMs,
-            session_id: spine.sessionId ?? null,
+            session_id: spine.storedSessionId() ?? null,
             error: err,
           });
           scanEsRef.current?.close(); scanEsRef.current = null;

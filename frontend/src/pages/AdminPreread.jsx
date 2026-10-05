@@ -75,8 +75,11 @@ export default function AdminPreread() {
   const pollRef = useRef(null);
 
   /* ── Feature flag gate ─────────────────────────────────────────────── */
+  // Only redirect once flags have LOADED and the tool is really off. Before load,
+  // features is SAFE_DEFAULTS (preread_tool:false) — redirecting then would bounce an
+  // admin off the page the instant it mounts, before the API can enable it.
   useEffect(() => {
-    if (features?.cold_read?.preread_tool === false) {
+    if (features?.loaded && features?.cold_read?.preread_tool === false) {
       navigate('/', { replace: true });
     }
   }, [features, navigate]);

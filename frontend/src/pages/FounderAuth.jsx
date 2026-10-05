@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Proof360Mark } from '../components/Proof360Mark';
 import { AUTH0_AUDIENCE, clearTokens, purgeStaleDemoAuth } from '../api/auth.js';
+import { makeOAuthState } from '../utils/oauth-state.js';
 
 const AUTH0_DOMAIN    = import.meta.env.VITE_AUTH0_DOMAIN    || '';
 const AUTH0_CLIENT_ID = import.meta.env.VITE_AUTH0_CLIENT_ID || '';
@@ -24,7 +25,7 @@ async function generatePKCE() {
   return { verifier, challenge };
 }
 
-function buildAuth0Url(challenge) {
+function buildAuth0Url(challenge, state) {
   const params = new URLSearchParams({
     client_id: AUTH0_CLIENT_ID,
     redirect_uri: REDIRECT_URI,
@@ -33,7 +34,7 @@ function buildAuth0Url(challenge) {
     scope: 'openid email profile offline_access',
     code_challenge: challenge,
     code_challenge_method: 'S256',
-    state: 'auth0',
+    state,
   });
   return `https://${AUTH0_DOMAIN}/authorize?${params}`;
 }
@@ -54,7 +55,11 @@ export default function FounderAuth() {
     sessionStorage.setItem('auth0_intent', 'founder');
     const { verifier, challenge } = await generatePKCE();
     sessionStorage.setItem('auth0_pkce_verifier', verifier);
-    window.location.href = buildAuth0Url(challenge);
+    // Per-request single-use CSRF nonce, same as Portal.jsx — the callback verifies it
+    // (OAUTH-CSRF-NONCE-001). The static state 'auth0' could never satisfy that check, so
+    // founder login silently failed at /portal/callback.
+    const state = makeOAuthState('auth0', sessionStorage);
+    window.location.href = buildAuth0Url(challenge, state);
   }
 
   function demoLogin() {
