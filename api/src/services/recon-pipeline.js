@@ -8,7 +8,7 @@
 //   certs     — CT log subdomain enumeration (crt.sh)
 //   ip        — IP/ASN/hosting provider (ipapi.co)
 //   github    — GitHub org presence, security policy, tech stack
-//   jobs      — Careers page hiring signals (via Firecrawl)
+//   jobs      — Careers page hiring signals (guarded plain fetch, site-reader.js)
 //   hibp      — Domain breach history (requires HIBP_API_KEY)
 //   ssllabs   — Official TLS grade (Qualys SSL Labs, no key required)
 //   abuseipdb — IP abuse confidence score, usage type (requires ABUSEIPDB_API_KEY)
@@ -27,7 +27,6 @@ import { assertPublicHost, SsrfBlockedError } from './ssrf-guard.js';
 
 export async function runReconPipeline(websiteUrl, companyName, options = {}) {
   const {
-    firecrawl        = null,
     hibpKey          = process.env.HIBP_API_KEY       || null,
     abuseIpdbKey     = process.env.ABUSEIPDB_API_KEY  || null,
     onSourceComplete = null,
@@ -66,11 +65,10 @@ export async function runReconPipeline(websiteUrl, companyName, options = {}) {
 
   console.log(`[recon] Starting pipeline for ${domain}`);
 
-  // Jobs has two branches (firecrawl present or skipped); both resolve through
-  // safe() then the shared .then() below — no special handling needed.
-  const jobsPromise = firecrawl
-    ? reconJobs(domain, firecrawl, session_id)
-    : Promise.resolve({ source: 'jobs', skipped: true, reason: 'no firecrawl' });
+  // Jobs is a plain fetch of the careers paths (recon-jobs.js) and never needed
+  // Firecrawl; it used to run only when a Firecrawl client was passed, and then
+  // received that client in the session_id slot.
+  const jobsPromise = reconJobs(domain, session_id);
 
   const [dns, http, certs, ip, github, jobs, hibp, ports, ssllabs, abuseipdb] =
     await Promise.allSettled([

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import FirecrawlApp from '@mendable/firecrawl-js';
+import { createSiteReader } from './site-reader.js';
 import { ENTERPRISE_SIGNALS_SCHEMA } from '../config/gaps.js';
 import { chatComplete } from '../lib/inference.js';
 import { runReconPipeline } from './recon-pipeline.js';
@@ -27,13 +27,12 @@ export const PAGES_TO_CHECK = [
   { path: '/trust', label: 'trust centre' },
 ];
 
-// Firecrawl is self-hosted on a small box it shares with CORPUS, pgvector and
-// this API, and each scrape costs it a playwright browser. Measured live against
-// cognisys.co.uk 2026-08-26: five at once returned four 15s timeouts and one 500
-// — zero pages, on every prod scan — while the same five in sequence returned
-// 200s in 7.0-9.0s each. Two at a time is what the box actually serves; the
-// worker says so itself when pushed past it ("Can't accept connection due to
-// RAM/CPU load"). Raise this only against a measurement, never a guess.
+// Two at a time. The bound was set 2026-08-26 for the self-hosted Firecrawl,
+// whose playwright browsers could not serve five at once on the shared box
+// (cognisys.co.uk: four 15s timeouts and a 500 concurrently, 200s in 7-9s in
+// sequence). The site reader that replaced it is a plain fetch, so the box is no
+// longer the limit, but it is still five requests at the founder's own site from
+// one IP; two at a time stays polite. Raise it only against a measurement.
 export const SCRAPE_CONCURRENCY = 2;
 
 // Wall-clock ceiling for the whole site act. The homepage lands first (~9s
@@ -50,7 +49,7 @@ function normalizeUrl(url) {
   return parsed.origin;
 }
 
-export async function scrapePages(firecrawl, baseUrl, log, session_id, { budgetMs = SITE_BUDGET_MS } = {}) {
+export async function scrapePages(reader, baseUrl, log, session_id, { budgetMs = SITE_BUDGET_MS } = {}) {
   // Set the moment the act closes over what it had. A scrape still in flight at
   // that point keeps running — we cannot recall it — but it has missed the read,
   // so it must not narrate. Measured on prod: without this the act logged
@@ -61,28 +60,29 @@ export async function scrapePages(firecrawl, baseUrl, log, session_id, { budgetM
 
   const scrapeOne = async ({ path, label }) => {
     try {
-      const result = await firecrawl.scrapeUrl(baseUrl + path, {
+      const result = await reader.scrapeUrl(baseUrl + path, {
         formats: ['markdown'],
         timeout: 15000,
       });
+      const source = result.via === 'cf-browser' ? 'cf-browser' : 'site-fetch';
       if (result.success && result.markdown && !(result.statusCode >= 400)) {
         emit(label, { text: `  ✓  ${label} · read`, type: 'ok' });
         if (session_id) {
-          recordConsumption({ session_id, source: 'firecrawl', units: 1, unit_type: 'credits', success: true });
+          recordConsumption({ session_id, source, units: 1, unit_type: 'pages', success: true });
         }
-        return { label, content: result.markdown.slice(0, 3000) };
+        return { label, content: result.markdown.slice(0, 3000), ...(result.sha256 ? { sha256: result.sha256 } : {}) };
       } else {
-        const reason = result.statusCode >= 400 ? `${result.statusCode}` : 'no content returned';
+        const reason = result.statusCode >= 400 ? `${result.statusCode}` : (result.reason || 'no content returned');
         emit(label, { text: `  ↳  ${label} · ${reason}`, type: 'muted' });
         if (session_id) {
-          recordConsumption({ session_id, source: 'firecrawl', units: 1, unit_type: 'credits', success: false, error: 'no content returned' });
+          recordConsumption({ session_id, source, units: 1, unit_type: 'pages', success: false, error: reason });
         }
       }
     } catch (err) {
       const reason = err?.message?.includes('timeout') ? 'timeout' : (err?.message || 'failed');
       emit(label, { text: `  ✗  ${label} · ${reason}`, type: 'err' });
       if (session_id) {
-        recordConsumption({ session_id, source: 'firecrawl', units: 1, unit_type: 'credits', success: false, error: reason });
+        recordConsumption({ session_id, source: 'site-fetch', units: 1, unit_type: 'pages', success: false, error: reason });
       }
     }
     return null;
@@ -112,7 +112,7 @@ export async function scrapePages(firecrawl, baseUrl, log, session_id, { budgetM
   };
 
   // The deadline has to bound the wait, not just the claiming: a worker already
-  // inside a scrape cannot check a clock, and firecrawl's own per-scrape ceiling
+  // inside a scrape cannot check a clock, and the reader's own per-page ceiling
   // is 15s — long enough on its own to push the act past its budget. Racing the
   // pool against the deadline lets the act close with what landed and leaves the
   // stragglers to finish into a result nobody reads.
@@ -367,7 +367,7 @@ function fallbackSignals(website_url, deck_file) {
   }
 
   // No real page was fetched here — this is simulated/placeholder signal, never an
-  // actual scrape (no Firecrawl key, no website_url, or the live scrape read zero
+  // actual scrape (site read off, no website_url, or the live scrape read zero
   // pages). pages_read_count: 0 is the honest-degradation flag the client uses to
   // decide between "read complete" and "perimeter read only" (INVARIANTS §1).
   return { signals, sources_read, enterprise_signals, competitor_mentions: [], pages_read_count: 0, used_web_research: false, research_engines: [] };
@@ -466,8 +466,12 @@ async function runResearchAct(act, query, fetchFn, log) {
 }
 
 export async function extractSignals({ website_url, deck_file, session_id }, log = () => {}) {
-  // No Firecrawl key — fall back to simulation (gateway handles AI credentials)
-  if (!process.env.FIRECRAWL_API_KEY) {
+  // The live read is on by default. SITE_READ_LIVE=0 falls back to simulation; under
+  // vitest (NODE_ENV=test) it is off unless a suite opts in with SITE_READ_LIVE=1, so
+  // no test reaches a real site by accident. (This gate used to be FIRECRAWL_API_KEY.)
+  const live = process.env.SITE_READ_LIVE === '1'
+    || (process.env.SITE_READ_LIVE !== '0' && process.env.NODE_ENV !== 'test');
+  if (!live) {
     await new Promise((r) => setTimeout(r, 2000));
     return fallbackSignals(website_url, deck_file);
   }
@@ -489,7 +493,7 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
     const companyName = domain.split('.')[0].replace(/[-_]/g, ' ');
 
     // SSRF: the founder-supplied host must be provably public before any paid call
-    // (Firecrawl scrape, recon, research, Bedrock). Fails closed for private/metadata/
+    // (site read, recon, research, Bedrock). Fails closed for private/metadata/
     // loopback and unresolvable hosts. We DON'T hard-fail on a block — a real site with a
     // transient DNS blip shouldn't error out (the domain-preflight fail-open philosophy,
     // John 2026-09-02) — we degrade to a perimeter-only read that spends nothing, which is
@@ -505,10 +509,7 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
       throw err;
     }
 
-    const firecrawl = new FirecrawlApp({
-      apiKey: process.env.FIRECRAWL_API_KEY,
-      apiUrl: process.env.FIRECRAWL_API_URL || undefined,
-    });
+    const siteReader = createSiteReader();
 
     log({ text: `$ proof360 --url ${domain}`, type: 'cmd' });
 
@@ -525,7 +526,6 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
         resolve(null);
       }, 20000);
       runReconPipeline(website_url, companyName, {
-        firecrawl,
         abuseIpdbKey: process.env.ABUSEIPDB_API_KEY || null,
         onSourceComplete: (source, line) => {
           perimeterChecks++;
@@ -547,7 +547,7 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
     for (const { path, label } of PAGES_TO_CHECK) {
       log({ act: 'site', type: 'act_body', text: `↳  ${label} ${baseUrl + path}`, color: 'muted' });
     }
-    const pages = await scrapePages(firecrawl, baseUrl, actLine('site'), session_id);
+    const pages = await scrapePages(siteReader, baseUrl, actLine('site'), session_id);
     const real_pages_count = pages.length;
     if (real_pages_count === 0) {
       log({ act: 'site', type: 'act_body', text: 'No pages could be read from this site', color: 'err' });

@@ -1,26 +1,21 @@
-// Job listing passive recon — local fetch via @mozilla/readability, no external API.
+// Job listing passive recon — the guarded site reader, no external API.
 // Extracts security/compliance hiring signals from careers pages.
 // The question being answered: "Is this company investing in security?
 // Are they actively closing compliance gaps? What stack are they on?"
+//
+// Fetches go through createSiteReader so every redirect hop clears the SSRF guard
+// (a careers path that 302s to an internal address is refused, not followed) and
+// the body is capped. This used to be a bare fetch() that followed redirects.
 
 import { record as recordConsumption } from './consumption-emitter.js';
+import { createSiteReader } from './site-reader.js';
+
+const reader = createSiteReader();
 
 async function fetchFullContent(url, { timeout = 8000 } = {}) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeout);
-  try {
-    const res = await fetch(url, { signal: controller.signal, headers: { 'User-Agent': 'Mozilla/5.0' } });
-    if (!res.ok) return { text: '' };
-    const html = await res.text();
-    const text = html.replace(/<script[\s\S]*?<\/script>/gi, '')
-                     .replace(/<style[\s\S]*?<\/style>/gi, '')
-                     .replace(/<[^>]+>/g, ' ')
-                     .replace(/\s+/g, ' ')
-                     .trim();
-    return { text };
-  } finally {
-    clearTimeout(timer);
-  }
+  const r = await reader.scrapeUrl(url, { timeout });
+  if (!r.success) return { text: '' };
+  return { text: r.markdown.replace(/\s+/g, ' ').trim() };
 }
 
 const CAREER_PATHS = [
