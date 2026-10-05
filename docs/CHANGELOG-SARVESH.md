@@ -4,6 +4,24 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-10-05 · The public app's open doors closed: anonymous spend capped, side doors shut, broken logins fixed (security pass N1–N3)
+
+**Problem.** proof360.au is public and holds no real data, so the live risk was never a data breach — it was anonymous abuse of the doors that cost money or leaked secrets, plus a few doors that simply did not work. Three classes, walked in order:
+- **Cost.** The paid routes (the ones that call Firecrawl, Bedrock, Perplexity) had no rate limit and CORS reflected any origin, so a stranger could drive spend from a script. The URL a visitor submits was scraped with no check that it pointed at a public host — a request for `http://169.254.169.254/` (the cloud metadata address) or an internal IP would be fetched (SSRF — a server tricked into making requests on an attacker's behalf).
+- **Side doors.** The Telegram webhook accepted any caller (no shared-secret check), "Message John" returned `{ok:true}` even when nothing was configured or sent, 5xx errors handed the raw `ECONNREFUSED host:port` back to anonymous callers, a Telegram photo URL embedded the bot token in output, and a `DEMO_FOUNDER_MODE` bypass could be honoured in production.
+- **Broken doors.** Founder login silently failed (it sent a static OAuth state that the CSRF-nonce check always rejects), the admin pre-read tool bounced the admin to `/` before the feature flag finished loading, and every cold-read failure logged `session_id:null` from a mistyped export.
+
+**Fix.** Three stacked branches, each with the guard enforced at the mechanism, not the prompt or the UI:
+- **N1 (cost).** CORS is now an env allowlist (`CORS_ORIGINS`, default `https://proof360.au`); per-IP and global rate limits run in `onRequest`, *before* any DB/Firecrawl/Bedrock call, on the six paid routes; `trustProxy` so the per-IP key is the real client IP behind Cloudflare; Fastify 5.3.3 → 5.12.5 (past the X-Forwarded advisory). Session-start 400s an obviously-private literal with no DNS lookup, and the extractor asserts the scrape host is provably public before Firecrawl — failing closed for hosts that resolve private or do not resolve, degrading to a cost-free perimeter read rather than hard-failing a real site. `server.js` became an importable `buildApp()` so every guard is testable.
+- **N2 (side doors).** Telegram webhook is default-deny on the `X-Telegram-Bot-Api-Secret-Token` (constant-time compare, fail closed if the secret is unset); "Message John" requires a valid Turnstile token and returns 503/502 honestly when messaging is unavailable or fails, never a false `ok`. The webhook stores the Telegram `file_id`, never a URL carrying the bot token; photos are served through an authorised server-side proxy. 5xx responses return `{error:"internal_error", requestId}` with detail logged server-side; 4xx keep their validation message. The demo bypass is ignored when `NODE_ENV=production` and no longer written by the deploy.
+- **N3 (broken doors).** Founder login issues a per-request OAuth nonce the callback accepts; the admin pre-read waits for the feature-flag fetch to settle before deciding to redirect; the failure log uses the real session-id accessor. Frontend only.
+
+**Why it matters.** The one public surface we run can no longer be turned into someone else's cloud bill or made to fetch our own metadata endpoint, the secret-bearing and bypass doors are shut, and the two logins that quietly did nothing now work. Tests: API 697 pass (35 new across N1–N2), frontend 695 pass + 2 skipped (6 new in N3), build clean.
+
+**Ops (John, not code).** New SSM value required before the Telegram check passes in production: `/proof360/TELEGRAM_WEBHOOK_SECRET`. If a Telegram photo reply ever went through in production, rotate the bot token. One SSRF step (DNS-timeout → fail-closed on domain preflight) was deliberately left out — it reverses the documented 2026-09-02 fail-open ruling and awaits John's call. The authenticated cross-tenant check (`ORG_ID_HEADER` membership) is tracked separately as the next item, before Tier 2.
+
+---
+
 ## 2026-09-14 · Gemini answers in 3 seconds, not 12: thinking turned down for the research question
 
 **Problem.** With Gemini back on `gemini-3.6-flash`, the read still narrated the engine as "no answer". Measured from the box with the exact research query: the model spent 12.1 seconds and 1,681 "thinking" tokens to write 257 tokens of answer, and the engine's 10 second budget cut it off. Thinking is on by default in Gemini 3, and it is billed as output.
