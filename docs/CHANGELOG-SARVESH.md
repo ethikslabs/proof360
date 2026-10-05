@@ -19,6 +19,25 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 **Ops (John, not code).** Once this is deployed, Firecrawl's containers can be removed from the box. Our own site, proof360.au, is a single-page app and reads 0/5 without the Cloudflare layer; switching that on needs a Cloudflare token with Browser Rendering permission in SSM.
 
+---
+
+## 2026-10-05 · Nothing on screen claims a live state, a score, or a fact that didn't come from this session (X4, partial)
+
+**Problem.** proof360 sells careful reading, but several surfaces presented fiction or demo data as fact: the chat's advisor intro called the fictional reference founder "a reference founder — funded, attested" (our two strongest truth words on a record canon itself describes as "product fictional"); the `/lab` page greeted first-time visitors with "Welcome back to Hive & Co's lab" and showed Hive & Co's metrics as if they were the visitor's; the partner portal badged **every** tenant window "LIVE"/"LIVE FEED", including seeded demo tenants (Cisco) and empty ones; the founder login promised "Your trust score" although the chat deliberately shows no scores; and a citation with nothing behind it rendered as `[n · no source]`, a bracket that reads like a real citation.
+
+**Fix.** Copy and badge honesty, no behaviour change to the reading pipeline:
+- Chat advisor intro: "Hive&Co is a worked example — a fictional reference founder. Map your own against it." ("funded, attested" removed.)
+- `/lab`: the hero now reads "Start your own lab."; the resume line is framed as "A worked example — Hive & Co, a fictional reference founder … This is what your own lab accumulates" (no "Welcome back", no implying the example is the visitor's).
+- Portal: the LIVE badge and dot show **only** for a tenant fed by a live CER partner; a seeded tenant is labelled "Demo data". An empty CER book now says why it's empty ("fed live from your CER book, which has no entries yet … nothing is seeded") instead of looking like a dead live feed.
+- Founder login: "Your record. Your pipeline." and "Your reads, saved across every session" — the word "trust score" is gone, matching the no-scores rule the chat already enforces.
+- An unsourced citation renders "[n · unsourced]" in plain words.
+
+**Why it matters.** A founder, a partner and an investor should never mistake the worked example for a real record, a seeded array for a live feed, or an empty marker for a citation. Frontend 699 pass + 2 skipped, build clean; api 702 pass (untouched).
+
+**Deferred (named, not done).** Two HX-beat items need deeper work and are left for a follow-up: (1) on a *failed* cold read, routing the UI to the `coldReadFailure` message plus an explicit "start over" action in every path — the failure renderer exists and demo signals are already labelled "example company", but the full failed-read state in Chat.jsx wasn't re-traced here; (2) mounting the `SimulationSwitch` on the pre-chat landing/intro (it is already present and correct in the chat header). The stats-fallback figures were found already labelled with their survey source ("— CapitalHQ Investor Survey, 2026"), so no change was needed there.
+
+---
+
 ## 2026-10-05 · Hotfix: the API came back up — the N1 refactor stopped it binding its port under pm2
 
 **Problem.** The N1 security pass (below) refactored `server.js` so the app could be imported by tests without starting a server: `app.listen` moved out of the top level into a `start()` function, called only when the file "is run directly". The directly-run check was `import.meta.url === \`file://${process.argv[1]}\``. That holds for `node src/server.js`, but pm2 (how the API runs in production) does not exec the script directly — in fork mode it launches its own container process and imports the script as a module, so `process.argv[1]` points at the pm2 wrapper, not `server.js`. The check was false, `start()` never ran, and nothing ever bound port 3002. The process looked healthy — pm2 reported it online with zero restarts and empty logs — because pm2's container keeps it alive; it simply never became a server. Every `/api/*` call returned 502 behind nginx.

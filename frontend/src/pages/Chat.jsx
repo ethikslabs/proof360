@@ -2604,7 +2604,7 @@ export default function Chat() {
                     fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
                     fontSize: 14, color: tk.inkSoft,
                     marginTop: 10, letterSpacing: '0.01em',
-                  }}>Three advisors. Different lenses. Hive&amp;Co is a reference founder — funded, attested. Map your own against it.</div>
+                  }}>Three advisors. Different lenses. Hive&amp;Co is a worked example — a fictional reference founder. Map your own against it.</div>
                   {!hasMessages && (
                     <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 18 }}>
                       {[
@@ -2842,7 +2842,7 @@ export default function Chat() {
                     fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
                     fontSize: 14, color: tk.inkSoft,
                     marginTop: 10, letterSpacing: '0.01em',
-                  }}>Three advisors. Different lenses. Hive&amp;Co is a reference founder — funded, attested. Map your own against it.</div>
+                  }}>Three advisors. Different lenses. Hive&amp;Co is a worked example — a fictional reference founder. Map your own against it.</div>
                   {!hasMessages && (
                     <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 18 }}>
                       {[

@@ -186,7 +186,7 @@ function UnsourcedMarker({ n, tk }) {
         color: tk.inkSoft, border: `1px dashed ${tk.hairStrong}`, borderRadius: 3,
         padding: '0 4px', marginLeft: 2, whiteSpace: 'nowrap',
       }}
-    >[{n} · no source]</span>
+    >[{n} · unsourced]</span>
   );
 }
 

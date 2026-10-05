@@ -199,12 +199,12 @@ export default function Lab() {
 
         <div className="shell">
           <div className="eyebrow">Trust &amp; Readiness Lab</div>
-          <h1 className="hero">Welcome back to <i>Hive &amp; Co’s</i> lab.</h1>
+          <h1 className="hero">Start your own lab.</h1>
 
           <div className="resume">
             <span className="dot" />
-            <p>Your lab on <b>Hive &amp; Co</b>: 12 reads, 6 vendors matched, readiness <b>38 → 41</b>.
-              <span className="chg"> 2 new signals since Tuesday — a fresh healthcare-buyer search and Cloudflare confirmed live on your domain.</span> Pick up where you left off.</p>
+            <p>A worked example — <b>Hive &amp; Co</b>, a fictional reference founder: 12 reads, 6 vendors matched, readiness <b>38 → 41</b>.
+              <span className="chg"> 2 new signals in the example — a fresh healthcare-buyer search and Cloudflare confirmed live on its domain.</span> This is what your own lab accumulates.</p>
           </div>
 
           <div className="trustbar">

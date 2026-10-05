@@ -29,7 +29,7 @@ describe('a citation with nothing behind it', () => {
     const { container } = render(<Bubble msg={msg} t={t} />);
     const mark = container.querySelector('[data-unsourced-citation="3"]');
     expect(mark).not.toBeNull();
-    expect(mark.textContent).toBe('[3 · no source]');
+    expect(mark.textContent).toBe('[3 · unsourced]');
     expect(container.querySelector('a[aria-label^="Source 3"]')).toBeNull();
   });
 });

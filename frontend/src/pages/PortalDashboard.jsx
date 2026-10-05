@@ -613,9 +613,11 @@ export default function PortalDashboard() {
                 </div>
                 <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', marginTop: 1 }}>{tenant?.tagline}</div>
               </div>
+              {/* LIVE only when the window is fed by a live CER partner; a seeded tenant is
+                  labelled Demo data (X4 — never badge seeded arrays as live). */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginLeft: 6 }}>
-                <div style={{ width: 6, height: 6, borderRadius: '50%', background: tc, animation: 'pulseDot 3s infinite' }}/>
-                <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '0.08em' }}>LIVE</span>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: liveOnly ? tc : 'rgba(255,255,255,0.3)', animation: liveOnly ? 'pulseDot 3s infinite' : 'none' }}/>
+                <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '0.08em' }}>{liveOnly ? 'LIVE' : 'DEMO DATA'}</span>
               </div>
             </div>
           </div>
@@ -717,8 +719,8 @@ export default function PortalDashboard() {
             ))}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: tc, opacity: 0.7, animation: 'pulseDot 3s infinite', display: 'inline-block' }}/>
-            <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '0.06em' }}>LIVE FEED</span>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: liveOnly ? tc : '#9ca3af', opacity: 0.7, animation: liveOnly ? 'pulseDot 3s infinite' : 'none', display: 'inline-block' }}/>
+            <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '0.06em' }}>{liveOnly ? 'LIVE FEED' : 'DEMO DATA'}</span>
           </div>
         </div>
 
@@ -748,9 +750,11 @@ export default function PortalDashboard() {
                 {filter === 'new' ? 'No new leads' : filter === 'active' ? 'Pipeline empty' : filter === 'won' ? 'No closed deals' : 'No leads'}
               </div>
               <p style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.7, maxWidth: 340, margin: '0 auto' }}>
-                {filter === 'new' || allLeads.length === 0
-                  ? 'Leads appear here as founders complete audits and their gaps match your product catalog.'
-                  : 'Engage leads from the All view to move them into your pipeline.'}
+                {liveOnly && allLeads.length === 0
+                  ? 'This window is fed live from your CER book, which has no entries yet — a lead appears here when a founder is issued a CER that matches your product catalog. (Not a demo: nothing is seeded.)'
+                  : filter === 'new' || allLeads.length === 0
+                    ? 'Leads appear here as founders complete audits and their gaps match your product catalog.'
+                    : 'Engage leads from the All view to move them into your pipeline.'}
               </p>
             </div>
           ) : filtered.map((lead, i) => (

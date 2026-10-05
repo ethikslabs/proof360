@@ -103,7 +103,7 @@ export default function FounderAuth() {
         {/* Main message */}
         <div style={{ animation: 'fadeUp 0.5s ease 0.1s both' }}>
           <h2 style={{ fontSize: 28, fontWeight: 800, color: '#ffffff', letterSpacing: '-0.03em', lineHeight: 1.15, marginBottom: 16 }}>
-            Your trust score.<br/>Your pipeline.
+            Your record.<br/>Your pipeline.
           </h2>
           <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', lineHeight: 1.75, maxWidth: 280 }}>
             Save your audit. Track remediation. See the moment a partner engages with your security profile.
@@ -111,7 +111,7 @@ export default function FounderAuth() {
 
           <div style={{ marginTop: 36, display: 'flex', flexDirection: 'column', gap: 14 }}>
             {[
-              { icon: '◎', label: 'Persistent trust score across all sessions' },
+              { icon: '◎', label: 'Your reads, saved across every session' },
               { icon: '◈', label: 'Partner engagement notifications' },
               { icon: '◉', label: 'Remediation pipeline tracker' },
             ].map(item => (
