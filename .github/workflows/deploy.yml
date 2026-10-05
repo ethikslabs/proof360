@@ -147,6 +147,7 @@ jobs:
           REPORT_BASE_URL=$(get_ssm "/proof360/REPORT_BASE_URL")
           TELEGRAM_BOT_TOKEN=$(get_ssm "/proof360/TELEGRAM_BOT_TOKEN")
           TELEGRAM_CHAT_ID=$(get_ssm "/proof360/TELEGRAM_CHAT_ID")
+          TELEGRAM_WEBHOOK_SECRET=$(get_ssm "/proof360/TELEGRAM_WEBHOOK_SECRET")
           PERPLEXITY_API_KEY=$(get_ssm "/ethikslabs/perplexity/api-key")
           M365_TENANT_ID=$(aws ssm get-parameter --region $REGION --name /proof360/m365/tenant-id --with-decryption --query Parameter.Value --output text 2>/dev/null || echo "")
           M365_CLIENT_ID=$(aws ssm get-parameter --region $REGION --name /proof360/m365/client-id --with-decryption --query Parameter.Value --output text 2>/dev/null || echo "")
@@ -213,7 +214,7 @@ jobs:
           fi
 
           echo "=== Registering Telegram webhook ==="
-          curl -s "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook?url=https://proof360.au/api/telegram/webhook" | grep -o '"ok":[^,}]*'
+          curl -s "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook?url=https://proof360.au/api/telegram/webhook&secret_token=${TELEGRAM_WEBHOOK_SECRET}" | grep -o '"ok":[^,}]*'
 
           echo "=== Deploy complete ==="
           DEPLOY
