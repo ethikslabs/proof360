@@ -95,9 +95,37 @@ async function generatePKCE() {
 }
 
 /* ─── Telegram preview modal ─────────────────────────────────────────────── */
-function TelegramPreviewModal({ initialMessage, currentUser, turnstileToken, onClose }) {
+function TelegramPreviewModal({ initialMessage, currentUser, onClose }) {
   const [msg, setMsg] = useState(initialMessage);
   const [status, setStatus] = useState('idle'); // idle | sending | sent | error
+  // /notify requires a Turnstile token (N2). The chat page holds none of its own,
+  // so this modal mounts its own widget. The token is single-use: the API's
+  // siteverify spends it, so it is not pre-verified here, and a failed send resets
+  // the widget for a fresh one.
+  const [turnstileToken, setTurnstileToken] = useState(null);
+  const tsRef = useRef(null);
+  const widgetId = useRef(null);
+
+  useLayoutEffect(() => {
+    if (!CF_TURNSTILE_SITEKEY) return;
+    function mountWidget() {
+      if (!window.turnstile || !tsRef.current || widgetId.current) return;
+      widgetId.current = window.turnstile.render(tsRef.current, {
+        sitekey: CF_TURNSTILE_SITEKEY,
+        theme: 'light',
+        callback: (token) => setTurnstileToken(token),
+        'error-callback': () => setTurnstileToken(null),
+        'expired-callback': () => setTurnstileToken(null),
+      });
+    }
+    if (window.turnstile) { mountWidget(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+    s.async = true;
+    s.onload = mountWidget;
+    document.head.appendChild(s);
+    return () => { if (widgetId.current && window.turnstile) window.turnstile.remove(widgetId.current); };
+  }, []);
 
   async function send() {
     setStatus('sending');
@@ -114,9 +142,16 @@ function TelegramPreviewModal({ initialMessage, currentUser, turnstileToken, onC
         }),
       });
       setStatus(res.ok ? 'sent' : 'error');
+      if (!res.ok) resetWidget();
     } catch {
       setStatus('error');
+      resetWidget();
     }
+  }
+
+  function resetWidget() {
+    setTurnstileToken(null);
+    if (widgetId.current && window.turnstile) window.turnstile.reset(widgetId.current);
   }
 
   return (
@@ -163,6 +198,9 @@ function TelegramPreviewModal({ initialMessage, currentUser, turnstileToken, onC
             {status === 'error' && (
               <div style={{ fontSize: 12, color: '#dc2626', marginTop: 8 }}>Not sent — please try again.</div>
             )}
+            {CF_TURNSTILE_SITEKEY
+              ? <div ref={tsRef} style={{ marginTop: 12 }} />
+              : <div style={{ fontSize: 12, color: '#dc2626', marginTop: 8 }}>Messaging is unavailable right now.</div>}
             <div style={{ display: 'flex', gap: 10, marginTop: 16, justifyContent: 'flex-end' }}>
               <button onClick={onClose} style={{
                 padding: '8px 18px', borderRadius: 8, border: '1px solid #e5e7eb',
@@ -170,7 +208,7 @@ function TelegramPreviewModal({ initialMessage, currentUser, turnstileToken, onC
               }}>Cancel</button>
               <button
                 onClick={send}
-                disabled={status === 'sending' || !msg.trim()}
+                disabled={status === 'sending' || !msg.trim() || !turnstileToken}
                 style={{
                   padding: '8px 22px', borderRadius: 8, border: 'none',
                   background: status === 'sending' ? '#6b7280' : '#1a1a2e',
@@ -3445,7 +3483,6 @@ export default function Chat() {
       {telegramOpen && (
         <TelegramPreviewModal
           currentUser={currentUser}
-          turnstileToken={turnstileToken}
           initialMessage={
             companyData?.company_name
               ? `Hi John — I'm looking at ${companyData.company_name} on proof360 and have a few questions. Can we connect?`
