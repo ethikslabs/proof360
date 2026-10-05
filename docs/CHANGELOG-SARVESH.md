@@ -38,6 +38,20 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-10-05 · Session ids can't become file paths, email capture is rate-limited, and the "report" link that opened nothing is gone (X5)
+
+**Problem.** A session id is used to build a file path (`SESSION_STORE_DIR/<id>.json`). The id was trusted raw on write and delete, so a crafted id with `..` or `/` could point the store outside its directory. Email capture took any session id plus a loosely matched address, appended it to a leads file, and emailed a link to `/report/<id>` — a route that was deleted, so the catch-all sent the recipient to `/chat` and the "report" opened nothing. And the in-product site preview iframed arbitrary founder URLs with `sandbox="allow-scripts allow-same-origin"` — the two together let a framed page run in our own origin and escape the sandbox.
+
+**Fix.**
+- **Session ids** are validated against the UUID format (the `sessions.id` column is a Postgres `uuid`) in one helper, used by read, write AND delete; a non-UUID id reads as not-found, is never written, and is never deleted-by-path. At the HTTP layer a single guard rejects a malformed `/session/:id` with **400** before any handler or the store sees it.
+- **Retention** (how long a session file and its cache entry live) is now `SESSION_RETENTION_DAYS`, default 30, documented in `api/.env`.
+- **Email capture** is rate-limited per IP (the same limiter the paid routes use), still requires an existing session, and no longer emails the dead `/report/<id>` link — the read isn't URL-addressable (a session resumes from the browser it ran in), so the mail confirms the save and points at the app instead.
+- **The preview iframe** drops `allow-same-origin` (keeps `allow-scripts`), so a framed site runs as a null, opaque origin and can't reach our storage or DOM.
+
+**Why it matters.** The one public app can't be steered into reading or writing arbitrary files via a session id, can't be hammered to spam capture, no longer sends a link that goes nowhere, and can't be turned into a foothold by a hostile page it previews. Tests cover traversal ids on read/write/delete, the route 400, capture-email's missing-session/invalid-email/rate-limit, and the iframe sandbox attribute. api 712 pass, frontend 696 pass + 2 skipped, build clean.
+
+---
+
 ## 2026-10-05 · Hotfix: the API came back up — the N1 refactor stopped it binding its port under pm2
 
 **Problem.** The N1 security pass (below) refactored `server.js` so the app could be imported by tests without starting a server: `app.listen` moved out of the top level into a `start()` function, called only when the file "is run directly". The directly-run check was `import.meta.url === \`file://${process.argv[1]}\``. That holds for `node src/server.js`, but pm2 (how the API runs in production) does not exec the script directly — in fork mode it launches its own container process and imports the script as a module, so `process.argv[1]` points at the pm2 wrapper, not `server.js`. The check was false, `start()` never ran, and nothing ever bound port 3002. The process looked healthy — pm2 reported it online with zero restarts and empty logs — because pm2's container keeps it alive; it simply never became a server. Every `/api/*` call returned 502 behind nginx.

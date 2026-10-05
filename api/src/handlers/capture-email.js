@@ -7,21 +7,25 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const ses = new SESClient({ region: process.env.SES_REGION || 'ap-southeast-2' });
 const SES_FROM = process.env.SES_FROM_ADDRESS || 'noreply@proof360.au';
-const REPORT_BASE_URL = process.env.REPORT_BASE_URL || 'https://proof360.au';
+const APP_URL = process.env.REPORT_BASE_URL || 'https://proof360.au';
 
 /**
- * Send Layer 2 report URL via SES. Fire-and-forget — failures logged, not thrown.
+ * Confirm the capture by email. Fire-and-forget — failures logged, not thrown.
+ *
+ * It used to email `${REPORT_BASE_URL}/report/${sessionId}`, but /report/:id was removed and
+ * the catch-all now sends it to /chat — so the "report" link opened nothing. There is no
+ * URL-addressable read today (a session resumes from the browser it ran in, not a link), so
+ * the email no longer carries a report link: it confirms the unlock and points at the app.
  */
-async function sendReportEmail(email, sessionId) {
-  const reportUrl = `${REPORT_BASE_URL}/report/${sessionId}`;
+async function sendCaptureConfirmation(email, sessionId) {
   try {
     await ses.send(new SendEmailCommand({
       Source: SES_FROM,
       Destination: { ToAddresses: [email] },
       Message: {
-        Subject: { Data: 'Your Proof360 Report' },
+        Subject: { Data: 'Your Proof360 read is saved' },
         Body: {
-          Text: { Data: reportUrl },
+          Text: { Data: `Thanks — your read is saved and your vendor intelligence is unlocked. Open ${APP_URL} in the browser you ran it in to pick up where you left off.` },
         },
       },
     }));
@@ -71,8 +75,8 @@ export async function captureEmailHandler(request, reply) {
     console.error(JSON.stringify({ event: 'lead_log_failed', session_id: id, error: err.message }));
   }
 
-  // Send report email via SES — fire-and-forget
-  sendReportEmail(email, id);
+  // Confirm by email via SES — fire-and-forget (no dead /report link)
+  sendCaptureConfirmation(email, id);
 
   return reply.send({ success: true });
 }

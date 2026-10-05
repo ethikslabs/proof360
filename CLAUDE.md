@@ -91,6 +91,8 @@ CORPUS_SEARCH_URL=...      # Optional; defaults to http://localhost:3009/search
 PERPLEXITY_API_KEY=...     # Optional recon-company enrichment
 GEMINI_API_KEY=...         # Optional recon-company enrichment
 PORT=3002                  # Optional (default: 3002)
+SESSION_STORE_DIR=...      # Optional; where session files live (default ~/.ethikslabs/proof360/sessions)
+SESSION_RETENTION_DAYS=30  # Optional; how long a session file + its Map entry live (default 30)
 ```
 
 Frontend reads `VITE_API_BASE_URL` at build time (empty string in production = same-origin). In dev, Vite proxies `/api` via `vite.config.js`.

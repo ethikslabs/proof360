@@ -317,7 +317,8 @@ describe('extractSignals — engine skip honesty (real failure class, not a swal
 describe('session-start.js — the corpus act + the extraction-failure __done__', () => {
   beforeEach(() => {
     _getSessionsMap().clear();
-    query.mockResolvedValue({ rows: [{ id: 'sess-fixed-1' }] });
+    // sessions.id is a Postgres UUID (gen_random_uuid); the store now rejects a non-UUID id.
+    query.mockResolvedValue({ rows: [{ id: '5e5510f1-0000-4000-8000-000000000001' }] });
     inferenceBuilderBehavior.throwError = null;
   });
 

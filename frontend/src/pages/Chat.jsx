@@ -608,9 +608,11 @@ function BrowserPanel({ seedUrl, onTabsChange, onClose, tk }) {
           src={activeTab?.url}
           title={activeTab?.label}
           // These preview arbitrary founder-supplied sites — sandbox so a framed page cannot
-          // hijack top-navigation, spawn popups, submit forms, or trigger downloads. Scripts +
-          // same-origin stay on so external sites still render (FRONTEND-URL-HARDEN-001).
-          sandbox="allow-scripts allow-same-origin"
+          // hijack top-navigation, spawn popups, submit forms, or trigger downloads. allow-scripts
+          // WITHOUT allow-same-origin: with both, a framed page runs in OUR origin and can reach
+          // our storage/DOM and defeat the sandbox (X5). Dropped — the preview keeps scripts but
+          // is treated as a null, opaque origin (FRONTEND-URL-HARDEN-001, tightened).
+          sandbox="allow-scripts"
           style={{ flex: 1, border: 'none', minWidth: 0,
             borderRight: (splitTab || tabs.length === 1) ? `1px solid ${tk.hairline}` : 'none' }}
         />

@@ -12,7 +12,10 @@ import { emitPulse } from './pulse-emitter.js';
 //   - CACHE_TTL_MS only evicts from the Map; RETENTION_MS (last_active_at)
 //     is when a session actually dies, Map and file both.
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours — Map eviction only
-const RETENTION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days — real expiry
+// Real expiry (file + Map). Configurable via SESSION_RETENTION_DAYS; a missing/invalid/<=0
+// value falls back to the documented 30-day default (see api/.env in CLAUDE.md).
+const RETENTION_DAYS = Number(process.env.SESSION_RETENTION_DAYS) > 0 ? Number(process.env.SESSION_RETENTION_DAYS) : 30;
+const RETENTION_MS = RETENTION_DAYS * 24 * 60 * 60 * 1000;
 const STALE_TIMEOUT_MS = 180 * 1000; // 3 minutes
 const FLUSH_DELAY_MS = 250; // coalesce write bursts (pipeline signals, chat stream)
 const sessions = new Map();
@@ -25,7 +28,17 @@ function storeDir() {
     || join(homedir(), '.ethikslabs', 'proof360', 'sessions');
 }
 
+// Session ids are UUIDs (uuidv4 / Postgres uuid). Anything else — a path fragment, "..", a
+// slash, a null — is rejected before it can become a file path, so a client-supplied id can
+// never read, write or delete outside the store. One validator, used by read/write/delete.
+const SESSION_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export function isValidSessionId(id) {
+  return typeof id === 'string' && SESSION_ID_RE.test(id);
+}
+
 function sessionPath(id) {
+  // Hard backstop: no filesystem path is ever built from an id that isn't a UUID.
+  if (!isValidSessionId(id)) throw new Error(`invalid session id: ${String(id)}`);
   return join(storeDir(), `${id}.json`);
 }
 
@@ -34,6 +47,10 @@ let flushTimer = null;
 let inFlight = Promise.resolve();
 
 async function writeSessionFile(session) {
+  if (!isValidSessionId(session?.id)) {
+    console.error(JSON.stringify({ event: 'session_write_rejected', session_id: String(session?.id) }));
+    return;
+  }
   const path = sessionPath(session.id);
   const tmp = `${path}.${process.pid}.tmp`;
   await mkdir(storeDir(), { recursive: true });
@@ -83,11 +100,13 @@ export async function flushSessionsNow() {
 }
 
 function deleteSessionFile(id) {
+  if (!isValidSessionId(id)) return;
   const removal = rm(sessionPath(id), { force: true }).catch(() => {});
   inFlight = inFlight.then(() => removal);
 }
 
 function hydrateSession(id) {
+  if (!isValidSessionId(id)) return null;
   const path = sessionPath(id);
   if (!existsSync(path)) return null;
   let session;
@@ -121,6 +140,11 @@ function isExpired(session) {
 }
 
 export function createSession({ id: providedId, website_url, deck_file, source = 'user' }) {
+  // A caller may seed the id (e.g. the Postgres row id), but only a well-formed UUID — never
+  // an arbitrary string that would become a traversal path at write time.
+  if (providedId !== undefined && providedId !== null && !isValidSessionId(providedId)) {
+    throw new Error('invalid session id');
+  }
   const id = providedId || uuidv4();
   const session = {
     id,
@@ -177,6 +201,7 @@ export function createSession({ id: providedId, website_url, deck_file, source =
 }
 
 export function getSession(id) {
+  if (!isValidSessionId(id)) return null;
   const session = sessions.get(id);
   if (!session) return hydrateSession(id);
   if (isExpired(session)) {

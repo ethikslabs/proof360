@@ -4,7 +4,7 @@ import rateLimit from '@fastify/rate-limit';
 import { corsOptions } from './lib/cors-config.js';
 import { perIpRateLimit, createGlobalCap } from './lib/rate-limit.js';
 import { isEntrypoint } from './lib/is-entrypoint.js';
-import { checkStaleSessions, flushSessionsNow, reapOrphanedSessions } from './services/session-store.js';
+import { checkStaleSessions, flushSessionsNow, reapOrphanedSessions, isValidSessionId } from './services/session-store.js';
 import { sessionStartHandler } from './handlers/session-start.js';
 import { firehoseHandler } from './handlers/firehose.js';
 import { inferStatusHandler } from './handlers/infer-status.js';
@@ -77,6 +77,15 @@ export async function buildApp({ logger } = {}) {
   // Whole-service ceiling across ALL IPs, enforced in onRequest before any handler body.
   app.addHook('onRequest', createGlobalCap());
 
+  // Every /session/:id route carries the id as `:id` (and only session routes use that param).
+  // Reject a malformed id with 400 here, before any handler or the session store touches it —
+  // a traversal id (".." / "/") never reaches the filesystem. params are parsed by preValidation.
+  app.addHook('preValidation', async (request, reply) => {
+    if (request.params?.id !== undefined && !isValidSessionId(request.params.id)) {
+      return reply.status(400).send({ error: 'invalid session id', code: 'INVALID_SESSION_ID' });
+    }
+  });
+
   // Errors: 5xx return a generic body with a request id and the detail is logged
   // server-side — a DB failure must never hand an anonymous caller the host/port or a
   // stack. 4xx (validation etc.) keep their message so the client can correct the input.
@@ -119,7 +128,7 @@ app.get('/api/v1/session/:id/followups', paid, sessionFollowupsHandler);
 app.get('/api/v1/session/:id/followup-questions', followupQuestionsHandler);
 
 // --- Phase 3: Override and recompute ---
-app.post('/api/v1/session/:id/capture-email', captureEmailHandler);
+app.post('/api/v1/session/:id/capture-email', paid, captureEmailHandler);
 
 // --- Phase 3: Override contract ---
 app.post('/api/v1/session/:id/override', overrideHandler);
