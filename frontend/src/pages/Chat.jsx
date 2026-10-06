@@ -13,6 +13,7 @@ import { GraphView }           from '../components/chat/GraphView.jsx';
 import { ProvenanceAccordion } from '../components/chat/ProvenanceAccordion.jsx';
 import { DrawerStats }         from '../components/chat/DrawerStats.jsx';
 import { EscalationCTA }       from '../components/chat/EscalationCTA.jsx';
+import { openMeetJohn }        from '../components/chat/meetJohn.js';
 import { ChatInput }           from '../components/chat/ChatInput.jsx';
 import { ModeTiles }          from '../components/chat/ModeTiles.jsx';
 import { CompanyProfile }     from '../components/chat/CompanyProfile.jsx';
@@ -92,137 +93,6 @@ async function generatePKCE() {
   const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v));
   const c = btoa(String.fromCharCode(...new Uint8Array(d))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
   return { verifier: v, challenge: c };
-}
-
-/* ─── Telegram preview modal ─────────────────────────────────────────────── */
-function TelegramPreviewModal({ initialMessage, currentUser, onClose }) {
-  const [msg, setMsg] = useState(initialMessage);
-  const [status, setStatus] = useState('idle'); // idle | sending | sent | error
-  // /notify requires a Turnstile token (N2). The chat page holds none of its own,
-  // so this modal mounts its own widget. The token is single-use: the API's
-  // siteverify spends it, so it is not pre-verified here, and a failed send resets
-  // the widget for a fresh one.
-  const [turnstileToken, setTurnstileToken] = useState(null);
-  const tsRef = useRef(null);
-  const widgetId = useRef(null);
-
-  useLayoutEffect(() => {
-    if (!CF_TURNSTILE_SITEKEY) return;
-    function mountWidget() {
-      if (!window.turnstile || !tsRef.current || widgetId.current) return;
-      widgetId.current = window.turnstile.render(tsRef.current, {
-        sitekey: CF_TURNSTILE_SITEKEY,
-        theme: 'light',
-        callback: (token) => setTurnstileToken(token),
-        'error-callback': () => setTurnstileToken(null),
-        'expired-callback': () => setTurnstileToken(null),
-      });
-    }
-    if (window.turnstile) { mountWidget(); return; }
-    const s = document.createElement('script');
-    s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
-    s.async = true;
-    s.onload = mountWidget;
-    document.head.appendChild(s);
-    return () => { if (widgetId.current && window.turnstile) window.turnstile.remove(widgetId.current); };
-  }, []);
-
-  async function send() {
-    setStatus('sending');
-    try {
-      const res = await fetch('/api/v1/notify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: msg,
-          name:  currentUser?.name  || null,
-          email: currentUser?.email || null,
-          context: 'proof360 chat',
-          turnstileToken,
-        }),
-      });
-      setStatus(res.ok ? 'sent' : 'error');
-      if (!res.ok) resetWidget();
-    } catch {
-      setStatus('error');
-      resetWidget();
-    }
-  }
-
-  function resetWidget() {
-    setTurnstileToken(null);
-    if (widgetId.current && window.turnstile) window.turnstile.reset(widgetId.current);
-  }
-
-  return (
-    <div onClick={onClose} style={{
-      position: 'fixed', inset: 0, zIndex: 300,
-      background: 'rgba(20,16,28,0.6)', backdropFilter: 'blur(4px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background: '#fbf8f1', borderRadius: 14,
-        width: 'min(520px, 95vw)', padding: '28px 28px 24px',
-        boxShadow: '0 24px 64px rgba(0,0,0,0.18)',
-        fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-      }}>
-        {status === 'sent' ? (
-          <div style={{ textAlign: 'center', padding: '16px 0' }}>
-            <div style={{ fontSize: 28, marginBottom: 12 }}>✓</div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: '#1a1a2e', marginBottom: 6 }}>Sent to John</div>
-            <div style={{ fontSize: 13, color: '#6b7280' }}>He'll respond on Telegram or email within a day.</div>
-            <button onClick={onClose} style={{
-              marginTop: 20, padding: '8px 24px', borderRadius: 8,
-              background: '#1a1a2e', color: '#fff', border: 'none', cursor: 'pointer',
-              fontSize: 13, fontWeight: 600,
-            }}>Close</button>
-          </div>
-        ) : (
-          <>
-            <div style={{ fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#9ca3af', marginBottom: 16 }}>Message to John</div>
-            <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12, lineHeight: 1.5 }}>
-              This will be sent directly to John on Telegram. Edit before sending.
-            </div>
-            <textarea
-              value={msg}
-              onChange={e => setMsg(e.target.value)}
-              style={{
-                width: '100%', minHeight: 120, padding: '12px 14px',
-                borderRadius: 8, border: '1px solid #e5e7eb',
-                background: '#f9fafb', fontSize: 14, color: '#1a1a2e',
-                lineHeight: 1.6, resize: 'vertical', boxSizing: 'border-box',
-                fontFamily: '"IBM Plex Sans", system-ui, sans-serif',
-                outline: 'none',
-              }}
-            />
-            {status === 'error' && (
-              <div style={{ fontSize: 12, color: '#dc2626', marginTop: 8 }}>Not sent — please try again.</div>
-            )}
-            {CF_TURNSTILE_SITEKEY
-              ? <div ref={tsRef} style={{ marginTop: 12 }} />
-              : <div style={{ fontSize: 12, color: '#dc2626', marginTop: 8 }}>Messaging is unavailable right now.</div>}
-            <div style={{ display: 'flex', gap: 10, marginTop: 16, justifyContent: 'flex-end' }}>
-              <button onClick={onClose} style={{
-                padding: '8px 18px', borderRadius: 8, border: '1px solid #e5e7eb',
-                background: 'transparent', fontSize: 13, color: '#6b7280', cursor: 'pointer',
-              }}>Cancel</button>
-              <button
-                onClick={send}
-                disabled={status === 'sending' || !msg.trim() || !turnstileToken}
-                style={{
-                  padding: '8px 22px', borderRadius: 8, border: 'none',
-                  background: status === 'sending' ? '#6b7280' : '#1a1a2e',
-                  color: '#fff', fontSize: 13, fontWeight: 600,
-                  cursor: status === 'sending' ? 'default' : 'pointer',
-                  transition: 'background 0.15s',
-                }}
-              >{status === 'sending' ? 'Sending…' : 'Send →'}</button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  );
 }
 
 /* ─── Login modal ────────────────────────────────────────────────────────── */
@@ -1400,14 +1270,8 @@ export default function Chat() {
     try { const s = localStorage.getItem('founder_auth'); return s ? JSON.parse(s).user : null; } catch { return null; }
   });
   const [loginOpen,       setLoginOpen]       = useState(false);
-  const [telegramOpen,    setTelegramOpen]    = useState(false);
   const [focusedProgram,  setFocusedProgram]  = useState(null);
   const [founderProfile,  setFounderProfile]  = useState(null);
-  useEffect(() => {
-    const handler = () => setTelegramOpen(true);
-    window.addEventListener('proof360:telegram', handler);
-    return () => window.removeEventListener('proof360:telegram', handler);
-  }, []);
   const [, setDrawerCollapsed] = useState(false);
   const [sidebarCollapsed,setSidebarCollapsed]= useState(true);
   const [hiveStage,       setHiveStage]       = useState(1);
@@ -3474,23 +3338,11 @@ export default function Chat() {
           message={(companyData?.gaps || []).filter((g) => g.state !== 'not_observed').length > 2
             ? "There are gaps here that typically benefit from a guided conversation. We can introduce relevant partners."
             : null}
-          onTelegram={() => setTelegramOpen(true)}
+          onMeetJohn={openMeetJohn}
           email="hello@ethikslabs.com"
         />
       </MachineDrawer>
 
-      {/* Telegram preview modal */}
-      {telegramOpen && (
-        <TelegramPreviewModal
-          currentUser={currentUser}
-          initialMessage={
-            companyData?.company_name
-              ? `Hi John — I'm looking at ${companyData.company_name} on proof360 and have a few questions. Can we connect?`
-              : `Hi John — I've been using proof360 and would love to connect. Can we set up a call?`
-          }
-          onClose={() => setTelegramOpen(false)}
-        />
-      )}
 
       {/* Login modal */}
       {loginOpen && (
