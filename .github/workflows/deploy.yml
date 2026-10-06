@@ -130,6 +130,11 @@ jobs:
           AUTH0_AUDIENCE=$(get_ssm "/proof360/AUTH0_AUDIENCE")
           MEMORY_STORE_DIR="/home/ec2-user/.ethikslabs/proof360/memory"
           mkdir -p "$MEMORY_STORE_DIR"
+          # Shell variables, not only .env lines: the webhook registration at the end of this
+          # script needs them. Written only into the heredoc, they were empty there, so every
+          # deploy's setWebhook ran with an empty bot token and did nothing.
+          TELEGRAM_BOT_TOKEN=$(get_ssm "/proof360/TELEGRAM_BOT_TOKEN")
+          TELEGRAM_WEBHOOK_SECRET=$(get_ssm "/proof360/TELEGRAM_WEBHOOK_SECRET")
           cat > $API_DIR/.env << EOF
           PORT=$PORT
           BEDROCK_REGION=us-east-1
@@ -145,7 +150,7 @@ jobs:
           SES_REGION=$(get_ssm "/proof360/SES_REGION")
           SES_FROM_ADDRESS=$(get_ssm "/proof360/SES_FROM_ADDRESS")
           REPORT_BASE_URL=$(get_ssm "/proof360/REPORT_BASE_URL")
-          TELEGRAM_BOT_TOKEN=$(get_ssm "/proof360/TELEGRAM_BOT_TOKEN")
+          TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN
           TELEGRAM_CHAT_ID=$(get_ssm "/proof360/TELEGRAM_CHAT_ID")
           PERPLEXITY_API_KEY=$(get_ssm "/ethikslabs/perplexity/api-key")
           M365_TENANT_ID=$(aws ssm get-parameter --region $REGION --name /proof360/m365/tenant-id --with-decryption --query Parameter.Value --output text 2>/dev/null || echo "")
@@ -162,7 +167,7 @@ jobs:
           AUTH0_DOMAIN=$AUTH0_DOMAIN
           AUTH0_AUDIENCE=$AUTH0_AUDIENCE
           TURNSTILE_SECRET=$(get_ssm "/proof360/TURNSTILE_SECRET")
-          TELEGRAM_WEBHOOK_SECRET=$(get_ssm "/proof360/TELEGRAM_WEBHOOK_SECRET")
+          TELEGRAM_WEBHOOK_SECRET=$TELEGRAM_WEBHOOK_SECRET
           CF_ACCESS_TEAM_DOMAIN=$(get_ssm "/proof360/CF_ACCESS_TEAM_DOMAIN")
           CF_ACCESS_AUD=$(get_ssm "/proof360/CF_ACCESS_AUD")
           PG_MEMORY_DATABASE=proof360_memory
@@ -213,7 +218,13 @@ jobs:
           fi
 
           echo "=== Registering Telegram webhook ==="
-          curl -s "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook?url=https://proof360.au/api/telegram/webhook" | grep -o '"ok":[^,}]*'
+          # The handler refuses any update without X-Telegram-Bot-Api-Secret-Token (fail closed),
+          # so the webhook must be registered WITH the secret, or every real message is 401'd.
+          # --data-urlencode keeps the secret out of the URL; the output shows only "ok".
+          curl -s "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
+            --data-urlencode "url=https://proof360.au/api/telegram/webhook" \
+            --data-urlencode "secret_token=${TELEGRAM_WEBHOOK_SECRET}" | grep -o '"ok":[^,}]*' || echo "WARNING: setWebhook did not return ok"
+
 
           echo "=== Deploy complete ==="
           DEPLOY
