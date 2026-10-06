@@ -8,15 +8,16 @@
 //
 // This file runs the REAL pipeline code (signal-extractor.js's extractSignals,
 // session-start.js's sessionStartHandler) with externals mocked at the same
-// seams the neighbouring suites use (Firecrawl, Bedrock/chatComplete, recon,
+// seams the neighbouring suites use (site reader, Bedrock/chatComplete, recon,
 // Postgres) — never a hand-invented fixture shape.
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-vi.mock('@mendable/firecrawl-js', () => ({
-  default: vi.fn().mockImplementation(() => ({
+vi.mock('../../src/services/site-reader.js', () => ({
+  createSiteReader: vi.fn(() => ({
     scrapeUrl: vi.fn(async (url) => ({
       success: true,
       statusCode: 200,
+      via: 'fetch',
       markdown: `# content for ${url}\n\nWe are a B2B SaaS company.`,
     })),
   })),
@@ -158,7 +159,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   delete process.env.PERPLEXITY_API_KEY;
   delete process.env.GEMINI_API_KEY;
-  process.env.FIRECRAWL_API_KEY = 'test-firecrawl-key';
+  process.env.SITE_READ_LIVE = '1';
   chatComplete.mockResolvedValue({ choices: [{ message: { content: JSON.stringify(EXTRACTION_JSON) } }] });
 });
 

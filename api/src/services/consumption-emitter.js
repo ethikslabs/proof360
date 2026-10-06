@@ -17,7 +17,7 @@ try {
  * Valid source identifiers for consumption records.
  */
 const VALID_SOURCES = new Set([
-  'firecrawl', 'hibp', 'abuseipdb', 'github', 'ssllabs',
+  'site-fetch', 'cf-browser', 'firecrawl', 'hibp', 'abuseipdb', 'github', 'ssllabs',
   'crtsh', 'ipapi', 'portscan', 'jobs', 'dns', 'http',
   'certs', 'ip', 'ports',
 ]);

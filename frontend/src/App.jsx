@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useEffect, Component } from 'react';
+import { useEffect, useState, Component } from 'react';
+import { MeetJohnModal } from './components/chat/MeetJohnModal.jsx';
+import { MEET_JOHN_EVENT, openMeetJohn } from './components/chat/meetJohn.js';
 import { FeatureFlagProvider } from './contexts/FeatureFlagContext';
 import AdminPreread from './pages/AdminPreread';
 import Portal from './pages/Portal';
@@ -50,26 +52,44 @@ class ErrorBoundary extends Component {
   }
 }
 
+// Floating "Meet John" button + the HubSpot booking modal, on every route.
+function MeetJohn() {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener(MEET_JOHN_EVENT, handler);
+    return () => window.removeEventListener(MEET_JOHN_EVENT, handler);
+  }, []);
+  return (
+    <>
+      <button
+        onClick={openMeetJohn}
+        title="Meet John"
+        aria-label="Meet John"
+        style={{
+          position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
+          width: 48, height: 48, borderRadius: '50%',
+          background: '#1a1a2e', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.4)', border: 'none', cursor: 'pointer',
+        }}
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect x="3" y="5" width="18" height="16" rx="2" />
+          <path d="M16 3v4M8 3v4M3 10h18" />
+        </svg>
+      </button>
+      {open && <MeetJohnModal onClose={() => setOpen(false)} />}
+    </>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <FeatureFlagProvider>
         <ErrorBoundary>
           <ScrollToTop />
-          <button
-            onClick={() => window.dispatchEvent(new CustomEvent('proof360:telegram'))}
-            title="Message John"
-            style={{
-              position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
-              width: 48, height: 48, borderRadius: '50%',
-              background: '#229ED9', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.4)', border: 'none', cursor: 'pointer',
-            }}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8l-1.68 7.92c-.12.56-.44.7-.9.44l-2.48-1.83-1.2 1.15c-.13.13-.24.24-.5.24l.18-2.52 4.56-4.12c.2-.18-.04-.28-.3-.1L7.82 14.4l-2.44-.76c-.53-.17-.54-.53.11-.78l9.54-3.68c.44-.16.82.11.61.62z"/>
-            </svg>
-          </button>
+          <MeetJohn />
           <Routes>
             <Route path="/" element={<Navigate to="/chat" replace />} />
             <Route path="/portal" element={<Portal />} />
