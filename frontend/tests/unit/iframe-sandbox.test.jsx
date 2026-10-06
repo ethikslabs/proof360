@@ -5,6 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import process from 'node:process';
 
 // Read from the project root (vitest's cwd is frontend/); import.meta.url is an http URL under
 // jsdom, so fileURLToPath can't be used here.
