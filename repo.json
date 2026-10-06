@@ -232,8 +232,9 @@
     },
     {
       "id": "PROOF360-FIRECRAWL-EXIT-001",
-      "status": "ready",
-      "boundary": "Migrate the live Firecrawl scrape lane (api/src/services/signal-extractor.js FirecrawlApp import + cli.mjs traceFirecrawl + /proof360/FIRECRAWL_* SSM env) to the estate readability+jsdom fetch doctrine. Firecrawl is banned estate-wide; proof360 is the last runtime survivor. Real migration with parity checks on the 5-page cold-read scrape, not a deletion. Remove SSM keys + deploy env lines once parity proven. Ratified D1 of working/2026-07-14-model-rationalisation.md (John approve 2026-07-14)."
+      "status": "in_progress",
+      "boundary": "Migrate the live Firecrawl scrape lane (api/src/services/signal-extractor.js FirecrawlApp import + cli.mjs traceFirecrawl + /proof360/FIRECRAWL_* SSM env) to the estate readability+jsdom fetch doctrine. Firecrawl is banned estate-wide; proof360 is the last runtime survivor. Real migration with parity checks on the 5-page cold-read scrape, not a deletion. Remove SSM keys + deploy env lines once parity proven. Ratified D1 of working/2026-07-14-model-rationalisation.md (John approve 2026-07-14).",
+      "evidence": "Runtime lane done 2026-10-06: PR #20 (233c7f4, merged 3c84355, deployed 13:21 AEDT) replaced FirecrawlApp with api/src/services/site-reader.js (guarded plain fetch, no jsdom needed) and removed @mendable/firecrawl-js. Parity: the self-hosted Firecrawl API had been dead since 2026-09-14 (0 pages per read); the reader read vanta.com 5/5, linear.app 4/5, cognisys.co.uk 1/5 (rest 404/SVG). Left: cli.mjs traceFirecrawl, /proof360/FIRECRAWL_* SSM keys, deploy.yml FIRECRAWL lines, and the four idle firecrawl-* containers on the box."
     },
     {
       "id": "PROOF360-ADVISORY-DEMO-FIXTURE-001",
@@ -600,6 +601,22 @@
       "added": "2026-09-13",
       "approved_by": "john-coates",
       "boundary": "When a play diff in ~/Projects/ethiks361-apis (base tag sarvesh-f116572) shows how his src/corpus module would call John's CORPUS doors instead of projecting from company-search rows, that diff is the next Trello Dropped card on the John ↔ Sarvesh board, beside the corpus-console DIFF.md card: title, one-line why, link to the patch in the room, blue label. The card is created only on John's word (outward-facing); the diff, never the fork, is the hand-back. Depends on ethiks361-apis having its own SSM paths before it runs."
+    },
+    {
+      "id": "PROOF360-READ-CHANGED-SINCE-001",
+      "status": "ready",
+      "approved_by": "john-coates",
+      "source": "edge:task_enhancement, 2026-10-06 close [20261006023221-d440] (John \"Task - awesome approve\")",
+      "added": "2026-10-06",
+      "boundary": "Keep the per-page sha256 the site reader already returns (site-reader.js, PR #20) with each read, keyed by domain + page label, so a rescan can tell the founder 'your site changed since your last read' and name which pages. The CORPUS v2 write-back pattern applied to proof360. Unchanged pages say so, not silence; a page that 404s now and read before says that too. Store the hash and fetched_at only, not the page text."
+    },
+    {
+      "id": "PROOF360-GET-JOHN-HX-LOG-001",
+      "status": "ready",
+      "approved_by": "john-coates",
+      "source": "edge:commercial_signal, 2026-10-06 close [20261006023221-d440] (John \"Commercial, agree, log somehow\")",
+      "added": "2026-10-06",
+      "boundary": "Log the 'get John' moment so talk-to-a-human becomes measured HX, not anecdote. The trigger (hidden Telegram relay offered only at frustration: founder asks for a person, the read failed, repeated rephrasing; Meet John on HubSpot stays the visible door; John 6 Oct: 'the HX at the end of frustration - like talk to a human in a call centre') emits one event per step on the session: signal_fired (which signal), offered, taken, john_replied (latency), founder_returned. Events go to the session record and the estate usage ledger (usage-event.v1 sibling, so PULSUS can count them); a taken relay or a Meet John booking also lands on the HubSpot contact timeline. Build the trigger and the log together: a trigger without the log repeats the mistake this card exists to prevent."
     }
   ]
 }
