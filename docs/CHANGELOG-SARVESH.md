@@ -4,6 +4,14 @@ Plain-English "why it was made" for each change, written for the CTO outside the
 
 ---
 
+## 2026-10-12 · proof360 is frozen; the logic lives on in e361
+
+**Problem.** proof360 and e361 (the ethiks361 fork) carried the same read engine in two places. Since 7 Oct the engine, the 10-cent read cap and the `/proof360` door have all been inside `ethiks361/apps/api/engine` and `apps/web/src/pages/proof360`, so every change here would have to be made twice.
+
+**Fix.** This repository is frozen as of today: tagged, archived read-only on GitHub, no further commits. This last commit only banks the work that was in flight (CORPUS grow, research citations, the session-start and consumption-emitter edits) so nothing is lost. `proof360.au` now answers every page with a 301 to `ethiks360.com/proof360`; its API (`/api/`, `/b/`) stays running on the box because e361's own `/api/` still proxies to it. Nothing was switched off.
+
+**Why it matters.** One place for the read. From here the proof360 logic is a route of e361, and anything worth carrying to the platform travels as a brief with a diff, not as a second codebase.
+
 ## 2026-09-14 · Gemini answers in 3 seconds, not 12: thinking turned down for the research question
 
 **Problem.** With Gemini back on `gemini-3.6-flash`, the read still narrated the engine as "no answer". Measured from the box with the exact research query: the model spent 12.1 seconds and 1,681 "thinking" tokens to write 257 tokens of answer, and the engine's 10 second budget cut it off. Thinking is on by default in Gemini 3, and it is billed as output.

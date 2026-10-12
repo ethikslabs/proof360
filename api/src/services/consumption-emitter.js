@@ -20,6 +20,7 @@ const VALID_SOURCES = new Set([
   'firecrawl', 'hibp', 'abuseipdb', 'github', 'ssllabs',
   'crtsh', 'ipapi', 'portscan', 'jobs', 'dns', 'http',
   'certs', 'ip', 'ports',
+  'corpus', // objects held through CORPUS's write door (corpus-grow.js, lane 2)
 ]);
 
 /**

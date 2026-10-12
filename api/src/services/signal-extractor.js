@@ -7,6 +7,7 @@ import { chatComplete } from '../lib/inference.js';
 import { runReconPipeline } from './recon-pipeline.js';
 import { researchQuery, fetchPerplexityResearch, fetchGeminiResearch } from './recon-company.js';
 import { record as recordConsumption } from './consumption-emitter.js';
+import { holdResearch, holdCitedPages } from './corpus-grow.js';
 import { resolve as resolveModel } from '../lib/model-resolver.mjs';
 import * as meter from '../lib/meter.mjs';
 
@@ -369,7 +370,7 @@ function fallbackSignals(website_url, deck_file) {
   // actual scrape (no Firecrawl key, no website_url, or the live scrape read zero
   // pages). pages_read_count: 0 is the honest-degradation flag the client uses to
   // decide between "read complete" and "perimeter read only" (INVARIANTS §1).
-  return { signals, sources_read, enterprise_signals, competitor_mentions: [], pages_read_count: 0, used_web_research: false, research_engines: [] };
+  return { signals, sources_read, enterprise_signals, competitor_mentions: [], pages_read_count: 0, used_web_research: false, research_engines: [], research_citations: [] };
 }
 
 const SIGNAL_READABLE = {
@@ -561,9 +562,16 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
     // never counts a synthetic page as a genuinely scraped one.
     const researchPages = [];
     const research_engines = [];
+    // The pages each engine says it read (Perplexity returns them; Gemini is called without
+    // search grounding, so it has none to give). Kept on the session so a read can show, and
+    // later store, what its research stood on — approved edge suggestion, 30 Sept.
+    const research_citations = [];
     if (perplexityResult.content) {
       researchPages.push({ label: `company research (${perplexityResult.source})`, content: perplexityResult.content });
       research_engines.push('perplexity');
+      for (const c of perplexityResult.citations || []) {
+        research_citations.push({ engine: 'perplexity', ...c, fetched_at: perplexityResult.fetched_at || null });
+      }
     }
     if (geminiResult.content) {
       researchPages.push({ label: `company research (${geminiResult.source})`, content: geminiResult.content });
@@ -572,14 +580,32 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
     pages.unshift(...researchPages);
     const used_web_research = research_engines.length > 0;
 
+    // Hold what the read looked at (lane 2, corpus-grows spec §5): each engine answer through
+    // CORPUS's write door with its cited urls, so the next read finds it with source and date.
+    // Started here, awaited under the correlate act (the door's 4 s budget, in parallel). The
+    // cited pages (hop two, up to 5 fetches) run in the background and never delay the read.
+    // Only domain + engine output cross; session_id is for the consumption line (membrane).
+    const holding = Promise.all([
+      perplexityResult.content ? holdResearch({ domain, engine: 'perplexity', content: perplexityResult.content, citations: perplexityResult.citations, fetched_at: perplexityResult.fetched_at, session_id }) : null,
+      geminiResult.content ? holdResearch({ domain, engine: 'gemini', content: geminiResult.content, citations: [], fetched_at: geminiResult.fetched_at, session_id }) : null,
+    ]).catch(() => []);
+    if (perplexityResult.content && perplexityResult.citations?.length) {
+      holdCitedPages({ domain, citations: perplexityResult.citations, session_id }).catch(() => {});
+    }
+
     if (pages.length === 0) {
-      return { ...fallbackSignals(website_url, deck_file), recon_context, used_web_research, research_engines };
+      return { ...fallbackSignals(website_url, deck_file), recon_context, used_web_research, research_engines, research_citations };
     }
 
     // 6. Correlate — the haiku extraction call, over every witness gathered so far.
     log({ type: 'act', act: 'correlate', phase: 'start', title: 'Correlating what every witness saw', note: 'claude haiku · bedrock' });
     const perimeterPart = recon_context ? 'perimeter context' : 'no perimeter context';
     log({ act: 'correlate', type: 'act_body', text: `${real_pages_count} pages + ${research_engines.length} research answers + ${perimeterPart} → signal extraction` });
+    const holds = (await holding).filter(Boolean);
+    if (holds.length) {
+      const heldCount = holds.reduce((n, h) => n + (h.held || 0), 0);
+      log({ act: 'correlate', type: 'act_body', color: 'muted', text: heldCount > 0 ? `held · ${heldCount} object${heldCount === 1 ? '' : 's'}` : 'held · library door closed' });
+    }
 
     const sources_read = pages.map((p) => p.label);
     let extracted;
@@ -609,13 +635,13 @@ export async function extractSignals({ website_url, deck_file, session_id }, log
       // to say. Overriding fallbackSignals' pages_read_count:0 keeps the honest-read
       // flag accurate even though the signals themselves are placeholders. real_pages_count
       // (not pages.length) so a research-only contribution never counts as a page read.
-      return { ...fallbackSignals(website_url, deck_file), recon_context, pages_read_count: real_pages_count, used_web_research, research_engines };
+      return { ...fallbackSignals(website_url, deck_file), recon_context, pages_read_count: real_pages_count, used_web_research, research_engines, research_citations };
     }
 
     log({ type: 'act', act: 'correlate', phase: 'done', note: `${signals.length} signal${signals.length === 1 ? '' : 's'}`, ...(extracted._usage ? { tokens: extracted._usage } : {}) });
 
     const company_summary = extracted.company_summary || null;
-    return { signals, sources_read, enterprise_signals, competitor_mentions, recon_context, company_summary, pages_read_count: real_pages_count, used_web_research, research_engines };
+    return { signals, sources_read, enterprise_signals, competitor_mentions, recon_context, company_summary, pages_read_count: real_pages_count, used_web_research, research_engines, research_citations };
   } catch (err) {
     console.error('[signal-extractor] pipeline error:', err.message, err.stack);
     // Only emit to terminal if not already emitted by the specific handler above
